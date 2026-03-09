@@ -1546,7 +1546,7 @@ function writeEsencialesSheet(esSheet,gastos){
 }
 
 function saveChecklistToExcel(){
-  if(!_rawWb){alert('No hay archivo Excel cargado.');return;}
+  if(!_rawWb) _rawWb = buildNewWorkbook();
   const esName=_rawWb.SheetNames.find(n=>n.toLowerCase().includes('esencial'));
   if(!esName){alert('No se encontró la hoja Esenciales.');return;}
   if(!writeEsencialesSheet(_rawWb.Sheets[esName],_editData.gastos)){
@@ -2269,8 +2269,57 @@ function applyAndDownload(){readConfigFromForm();closeEditModal();buildDashboard
 // ══════════════════════════════════
 // EXCEL EXPORT
 // ══════════════════════════════════
+function buildNewWorkbook(){
+  // Build a brand-new cnt.xlsx from _editData when no existing workbook is loaded
+  const wb = XLSX.utils.book_new();
+  const {config,gastos,forNow,emerg,historial} = _editData;
+
+  // ── Config sheet ──
+  const configRows = [
+    ['Tasa Dólar', config.tasa],
+    ['Mes Actual', config.mes],
+    ['Año', config.anio],
+    ['Ingreso Mensual', config.ingresoUSD],
+    ['Días alerta', config.diasAlerta],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(configRows), 'Config');
+
+  // ── Esenciales sheet ──
+  const esRows = [['Descripción','Tipo','Pagado','Adeudado','Día','Tasa%','Balance','OriginalRD','OriginalUSD','FechaLimite','Notas','Pagado_Mes']];
+  gastos.forEach(g => esRows.push([g.nombre,g.tipo,g.pagado||0,g.adeudado||0,g.dia||1,g.tasa||0,g.balance||0,g.originalRD||0,g.originalUSD||0,g.fechaLimite||'',g.notas||'',g.pagadoMes?'SI':'NO']));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(esRows), 'Esenciales');
+
+  // ── ForNow sheet ──
+  const fnRows = [['Fecha', forNow.fecha ? new Date(forNow.fecha).toLocaleDateString('es-DO') : ''],[''],['Cuenta','Saldo','Comprometido']];
+  forNow.cuentas.forEach(c => fnRows.push([c.nombre, c.saldo||0, c.comp||0]));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fnRows), 'ForNow');
+
+  // ── Emergency sheet ──
+  const cf = emerg.cashflow;
+  const emRows = [
+    ['SECCIÓN A — Fondos de Emergencia'],
+    ['Fondo','Aportado','Balance','Meta'],
+    ...emerg.fondos.map(f=>[f.fondo,f.aportado||0,f.balance||0,f.meta||0]),
+    [''],
+    ['SECCIÓN B — Cashflow'],
+    ['Ingreso Mensual RD$', cf.ingreso||0],
+    ['Gasto Mensual RD$',   cf.gasto||0],
+    ['Ahorros este Mes',    cf.ahorros||0],
+    ['Balance Ahorros',     cf.balanceAhorros||0],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(emRows), 'Emergency');
+
+  // ── Historial sheet ──
+  const hisRows = [['Mes','Año','Ingresos','Gasto','Ahorro','%Ahorro','Deudas','Emergencia','NetWorth','Tasa','Notas']];
+  historial.forEach(h => hisRows.push([h.mes,h.anio,h.ingresos,h.gasto,h.ahorro||0,h.tasaAhorro||0,h.deudas,h.emergencia,h.netWorth,h.tasa,h.notas||'']));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hisRows), 'Historial');
+
+  return wb;
+}
+
 function generateExcel(){
-  if(!_rawWb){alert('No hay workbook cargado.');return;}
+  // If no workbook loaded (started from scratch), build one fresh
+  if(!_rawWb) _rawWb = buildNewWorkbook();
   const {config,gastos,forNow,emerg,historial}=_editData;
   const configSheet=_rawWb.Sheets[_rawWb.SheetNames.find(n=>n.toLowerCase().includes('config'))];
   if(configSheet){
