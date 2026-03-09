@@ -2,7 +2,7 @@
   "name": "CNT Core · Dashboard Financiero",
   "short_name": "CNT Core",
   "description": "Dashboard financiero personal — offline, privado, sin servidor",
-  "start_url": "./cnt-dashboard-v6.html",
+  "start_url": "./cnt.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
@@ -28,13 +28,13 @@
     {
       "name": "Checklist de Pagos",
       "short_name": "Pagos",
-      "url": "./cnt-dashboard-v6.html#checklist",
+      "url": "./cnt.html#checklist",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Cierre de Mes",
       "short_name": "Cerrar Mes",
-      "url": "./cnt-dashboard-v6.html#cierre",
+      "url": "./cnt.html#cierre",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]

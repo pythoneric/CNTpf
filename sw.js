@@ -1,5 +1,5 @@
 // CNT Core · Service Worker v1
-// ⚠️  IMPORTANTE: Incrementar CACHE_NAME al actualizar cnt-dashboard-v6.html
+// ⚠️  IMPORTANTE: Incrementar CACHE_NAME al actualizar cnt.html
 //     Ejemplo: 'cnt-core-v3', 'cnt-core-v4', etc.
 //     Esto fuerza que los usuarios descarguen la nueva versión.
 const CACHE_NAME = 'cnt-core-v2';
@@ -10,7 +10,7 @@ const EXTERNAL_ASSETS = [
   'https://fonts.gstatic.com',
 ];
 const SHELL_ASSETS = [
-  './cnt-dashboard-v6.html',
+  './cnt.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
