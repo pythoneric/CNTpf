@@ -10,6 +10,8 @@ const EXTERNAL_ASSETS = [
 const SHELL_ASSETS = [
   './cnt-dashboard-v6.html',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
 ];
 
 // Install: pre-cache the app shell and external libs

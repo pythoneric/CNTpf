@@ -3,6 +3,7 @@
   "short_name": "CNT Core",
   "description": "Dashboard financiero personal — offline, privado, sin servidor",
   "start_url": "./cnt-dashboard-v6.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#060912",
@@ -11,15 +12,15 @@
   "categories": ["finance", "productivity"],
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23060912'/%3E%3Ccircle cx='96' cy='96' r='40' fill='none' stroke='%233b82f6' stroke-width='8'/%3E%3Ccircle cx='96' cy='96' r='12' fill='%2306b6d4'/%3E%3C/svg%3E",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23060912'/%3E%3Ccircle cx='256' cy='256' r='110' fill='none' stroke='%233b82f6' stroke-width='20'/%3E%3Ccircle cx='256' cy='256' r='32' fill='%2306b6d4'/%3E%3C/svg%3E",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -28,13 +29,13 @@
       "name": "Checklist de Pagos",
       "short_name": "Pagos",
       "url": "./cnt-dashboard-v6.html#checklist",
-      "description": "Ver pagos del mes"
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Cierre de Mes",
       "short_name": "Cerrar Mes",
       "url": "./cnt-dashboard-v6.html#cierre",
-      "description": "Wizard de cierre mensual"
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

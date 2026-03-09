@@ -222,4 +222,3 @@ El service worker usa Network-first para el HTML — siempre intenta descargar l
 - Chrome / Edge: soporte completo (PWA + IndexedDB + SW)
 - Safari iOS 16.4+: soporte completo
 - Firefox: IndexedDB + SW funcionan, instalación como PWA limitada
-
