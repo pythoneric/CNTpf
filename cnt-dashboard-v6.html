@@ -622,10 +622,23 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <!-- PROYECTOR DE DEUDAS -->
   <div id="tab-proyector" class="panel">
     <div class="card" style="margin-bottom:16px" id="proyectorConfig"></div>
+
+    <!-- Debt Cost Snapshot -->
+    <div class="card" style="margin-bottom:16px" id="debtCostSnapshot"></div>
+
+    <!-- Strategy timelines -->
     <div class="grid g2" style="margin-bottom:16px">
       <div class="card"><div class="card-title">🔥 Estrategia Avalancha <span style="font-size:10px;color:var(--muted)">(mayor tasa primero)</span></div><div id="avalanchaTimeline"></div></div>
       <div class="card"><div class="card-title">⛄ Estrategia Bola de Nieve <span style="font-size:10px;color:var(--muted)">(menor balance primero)</span></div><div id="nieveTimeline"></div></div>
     </div>
+
+    <!-- Refinancing Simulator -->
+    <div class="card" style="margin-bottom:16px" id="refiSimulator"></div>
+
+    <!-- What-If Scenarios -->
+    <div class="card" style="margin-bottom:16px" id="whatIfScenarios"></div>
+
+    <!-- Chart -->
     <div class="card"><div class="card-title">Proyección de Balance Total de Deudas</div><div class="chart-wrap"><canvas id="proyectorChart"></canvas></div></div>
   </div>
 
@@ -1675,12 +1688,33 @@ function resetChecklist(){
 function buildProyector({gastos,ingreso,gasto,config}){
   const resta=ingreso-gasto;
   const extraPayment=Math.max(0,Math.round(resta*0.4));
+  const cf=_editData.emerg.cashflow;
+  const savingsMonthly=cf.ahorros||0;
+  const allDeudas=gastos.filter(g=>g.balance>0&&g.tasa>0);
+  const totalBalance=allDeudas.reduce((a,g)=>a+g.balance,0);
+  const totalAdeudado=allDeudas.reduce((a,g)=>a+g.adeudado,0);
+  const intMensual=allDeudas.reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
+  const wtdAvgRate=totalBalance>0?allDeudas.reduce((a,g)=>a+g.tasa*g.balance,0)/totalBalance:0;
+
+  // ── Parámetro de Proyección ──
   document.getElementById('proyectorConfig').innerHTML=`
     <div class="card-title">⚙️ Parámetro de Proyección</div>
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="flex:1;min-width:200px">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Pago extra mensual disponible (RD$)</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Pago extra mensual disponible (RD$) — arrastra el slider o escribe un monto</div>
         <input type="range" id="extraSlider" min="0" max="${Math.max(1,resta*2)}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <input type="number" id="extraInput" value="${extraPayment}" min="0" max="${Math.round(resta*2)}" step="1000"
+            oninput="document.getElementById('extraSlider').value=this.value;updateProyector()"
+            style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:160px">
+          <span style="font-size:12px;color:var(--muted)">RD$/mes</span>
+          <button onclick="document.getElementById('extraSlider').value=${Math.round(resta)};document.getElementById('extraInput').value=${Math.round(resta)};updateProyector()"
+            style="padding:6px 12px;background:rgba(34,211,160,.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
+            Todo el superávit</button>
+          ${savingsMonthly>0?`<button onclick="document.getElementById('extraSlider').value=${extraPayment+savingsMonthly};document.getElementById('extraInput').value=${extraPayment+savingsMonthly};updateProyector()"
+            style="padding:6px 12px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
+            + Redirigir ahorros (RD$${fmt(savingsMonthly)})</button>`:''}
+        </div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:12px 18px;min-width:140px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">Pago extra/mes</div>
@@ -1691,11 +1725,183 @@ function buildProyector({gastos,ingreso,gasto,config}){
         <div class="mono" style="font-size:22px;font-weight:800;color:${resta>0?'var(--green)':'var(--red)'};margin-top:2px">RD$${fmt(resta)}</div>
       </div>
     </div>`;
+
+  // ── Costo Real de la Deuda ──
+  const costRows=allDeudas.map(g=>{
+    const intMes=g.balance*(g.tasa/100/12);
+    const netPaydown=g.adeudado-intMes;
+    const pctInterest=g.adeudado>0?Math.round(intMes/g.adeudado*100):0;
+    return `<tr>
+      <td style="font-weight:700">${escH(g.nombre)}</td>
+      <td class="mono" style="text-align:right">RD$${fmt(g.balance)}</td>
+      <td class="mono" style="color:${g.tasa>30?'var(--red)':g.tasa>18?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa}%</td>
+      <td class="mono" style="color:var(--red);text-align:right">RD$${fmt(intMes)}</td>
+      <td class="mono" style="text-align:right">RD$${fmt(g.adeudado)}</td>
+      <td class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}RD$${fmt(Math.abs(netPaydown))}</td>
+      <td style="text-align:center">
+        <div style="background:var(--border);border-radius:99px;height:6px;width:80px;overflow:hidden;display:inline-block">
+          <div style="height:6px;border-radius:99px;width:${Math.min(pctInterest,100)}%;background:${pctInterest>50?'var(--red)':pctInterest>25?'var(--yellow)':'var(--green)'}"></div>
+        </div>
+        <span style="font-size:10px;color:var(--muted);margin-left:4px">${pctInterest}% interés</span>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('debtCostSnapshot').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+      <div class="card-title" style="margin:0">💸 Costo Real de Tus Deudas</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
+          <div style="font-size:10px;color:var(--muted)">Interés mensual total</div>
+          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">RD$${fmt(intMensual)}</div>
+        </div>
+        <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
+          <div style="font-size:10px;color:var(--muted)">Interés anual total</div>
+          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">RD$${fmt(intMensual*12)}</div>
+        </div>
+        <div style="background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);border-radius:8px;padding:8px 14px;text-align:center">
+          <div style="font-size:10px;color:var(--muted)">Tasa promedio ponderada</div>
+          <div class="mono" style="font-size:18px;font-weight:800;color:var(--yellow)">${wtdAvgRate.toFixed(2)}%</div>
+        </div>
+        <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center">
+          <div style="font-size:10px;color:var(--muted)">Interés como % del superávit</div>
+          <div class="mono" style="font-size:18px;font-weight:800;color:${intMensual>resta?'var(--red)':'var(--accent)'}">${resta>0?Math.round(intMensual/resta*100):'∞'}%</div>
+        </div>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr>
+        <th>Deuda</th><th style="text-align:right">Balance</th><th style="text-align:center">Tasa</th>
+        <th style="text-align:right">Interés/mes</th><th style="text-align:right">Cuota/mes</th>
+        <th style="text-align:right">Capital real pagado</th><th style="text-align:center">Eficiencia</th>
+      </tr></thead>
+      <tbody>${costRows}</tbody>
+    </table></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px;padding:8px 12px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);border-radius:8px">
+      💡 <strong>Capital real pagado</strong> = cuota mensual menos el interés del mes. Si es negativo (⚠), la deuda crece aunque pagues.
+    </div>`;
+
+  // ── Simulador de Refinanciamiento ──
+  const refiRows=allDeudas.map((g,i)=>{
+    const currentIntAnual=g.balance*(g.tasa/100);
+    const refiRate=Math.max(10,Math.round(wtdAvgRate*0.6));// suggest ~60% of avg
+    const refiIntAnual=g.balance*(refiRate/100);
+    const saving=currentIntAnual-refiIntAnual;
+    return `<tr>
+      <td style="font-weight:700">${escH(g.nombre)}</td>
+      <td class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
+      <td><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="0.5"
+        oninput="updateRefiRow(${i})"
+        style="background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);width:80px">
+        <span style="font-size:11px;color:var(--muted)">%</span></td>
+      <td class="mono" style="color:var(--green);text-align:right" id="refi-saving-${i}">RD$${fmt(Math.round(saving/12))}/mes</td>
+      <td class="mono" style="color:var(--accent);text-align:right" id="refi-saving-yr-${i}">RD$${fmt(Math.round(saving))}/año</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('refiSimulator').innerHTML=`
+    <div class="card-title" style="margin-bottom:16px">🔄 Simulador de Refinanciamiento</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">¿Cuánto ahorrarías si refinanciaras una deuda a una tasa menor? Ingresa la tasa objetivo para cada una.</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr>
+        <th>Deuda</th><th style="text-align:center">Tasa actual</th><th>Tasa objetivo</th>
+        <th style="text-align:right">Ahorro mensual</th><th style="text-align:right">Ahorro anual</th>
+      </tr></thead>
+      <tbody>${refiRows}</tbody>
+    </table></div>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
+      💡 <strong>Opciones comunes para RD:</strong> Consolidar en préstamo personal de banco (12–20%), transferir saldo de tarjeta (algunos bancos ofrecen 0% los primeros meses), o negociar directamente con el acreedor.
+    </div>`;
+
+  // ── Escenarios What-If ──
+  const runFwd=(ds,extra)=>{
+    let months=0;
+    const debts=ds.map(d=>({...d,interestPaid:0}));
+    while(debts.some(d=>d.balance>0)&&months<360){
+      months++;
+      debts.sort((a,b)=>b.tasa-a.tasa);
+      const freed=debts.filter(d=>d.balance<=0).reduce((a,d)=>a+d.adeudado,0);
+      let el=extra+freed;
+      debts.forEach(d=>{
+        if(d.balance<=0)return;
+        const mi=d.balance*(d.tasa/100/12);
+        d.interestPaid+=mi;
+        const pay=d.adeudado+Math.min(el,d.balance);
+        el=Math.max(0,el-Math.max(0,pay-d.adeudado));
+        d.balance=Math.max(0,d.balance+mi-pay);
+        if(d.balance<=0&&!d.paidMonth)d.paidMonth=months;
+      });
+    }
+    const totalMonths=Math.max(...debts.map(d=>d.paidMonth||months));
+    const totalInterest=debts.reduce((a,d)=>a+d.interestPaid,0);
+    return{months:totalMonths,interest:Math.round(totalInterest),display:`${Math.floor(totalMonths/12)}a ${totalMonths%12}m`};
+  };
+
+  const baseResult=runFwd(allDeudas.map(d=>({...d})),extraPayment);
+  const maxSurplus=runFwd(allDeudas.map(d=>({...d})),Math.round(resta));
+  const plusSavings=savingsMonthly>0?runFwd(allDeudas.map(d=>({...d})),extraPayment+savingsMonthly):null;
+  const zeroExtra=runFwd(allDeudas.map(d=>({...d})),0);
+  const half=runFwd(allDeudas.map(d=>({...d})),Math.round(resta*0.5));
+
+  const scRow=(label,result,baseRef,highlight=false)=>{
+    const monthsDiff=baseRef.months-result.months;
+    const intDiff=baseRef.interest-result.interest;
+    return `<tr style="${highlight?'background:rgba(34,211,160,.06);':''}">
+      <td style="font-weight:${highlight?'800':'600'}">${label}</td>
+      <td class="mono" style="text-align:center;font-weight:${highlight?'800':'400'};color:${highlight?'var(--green)':'var(--text)'}">${result.display}</td>
+      <td class="mono" style="color:var(--red);text-align:right">RD$${fmt(result.interest)}</td>
+      <td class="mono" style="text-align:center;color:${monthsDiff>0?'var(--green)':monthsDiff<0?'var(--red)':'var(--muted)'}">
+        ${monthsDiff>0?`▲ ${monthsDiff}m antes`:monthsDiff<0?`▼ ${Math.abs(monthsDiff)}m después`:'—'}
+      </td>
+      <td class="mono" style="text-align:right;color:${intDiff>0?'var(--green)':intDiff<0?'var(--red)':'var(--muted)'}">
+        ${intDiff>0?`Ahorras RD$${fmt(intDiff)}`:intDiff<0?`Pagas RD$${fmt(Math.abs(intDiff))} más`:'—'}
+      </td>
+    </tr>`;
+  };
+
+  document.getElementById('whatIfScenarios').innerHTML=`
+    <div class="card-title" style="margin-bottom:16px">🎯 Escenarios ¿Qué Pasaría Si…?</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr>
+        <th>Escenario</th>
+        <th style="text-align:center">Libre de deudas</th>
+        <th style="text-align:right">Interés total pagado</th>
+        <th style="text-align:center">vs. Escenario base</th>
+        <th style="text-align:right">Interés ahorrado</th>
+      </tr></thead>
+      <tbody>
+        ${scRow(`Solo mínimos (RD$0 extra)`,zeroExtra,baseResult)}
+        ${scRow(`Pago extra: RD$${fmt(Math.round(resta*0.25))}/mes (25% superávit)`,runFwd(allDeudas.map(d=>({...d})),Math.round(resta*0.25)),baseResult)}
+        ${scRow(`Pago extra: RD$${fmt(extraPayment)}/mes (actual)`,baseResult,baseResult)}
+        ${scRow(`50% del superávit (RD$${fmt(Math.round(resta*0.5))}/mes)`,half,baseResult)}
+        ${plusSavings?scRow(`Redirigir ahorros (extra + RD$${fmt(savingsMonthly)}/mes)`,plusSavings,baseResult,true):''}
+        ${scRow(`Todo el superávit (RD$${fmt(Math.round(resta))}/mes)`,maxSurplus,baseResult,!plusSavings)}
+      </tbody>
+    </table></div>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
+      ⚡ <strong>Estrategia Avalancha</strong> aplicada en todos los escenarios (mayor tasa primero). Los pagos mínimos liberados de deudas saldadas se acumulan automáticamente al siguiente objetivo.
+    </div>`;
+
   updateProyector();
 }
+function updateRefiRow(i){
+  const g=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0)[i];
+  if(!g)return;
+  const newRate=parseFloat(document.getElementById(`refi-rate-${i}`)?.value||0);
+  if(newRate<=0||newRate>=g.tasa)return;
+  const saving=g.balance*(g.tasa-newRate)/100;
+  const savMes=document.getElementById(`refi-saving-${i}`);
+  const savYr=document.getElementById(`refi-saving-yr-${i}`);
+  if(savMes)savMes.textContent=`RD$${fmt(Math.round(saving/12))}/mes`;
+  if(savYr)savYr.textContent=`RD$${fmt(Math.round(saving))}/año`;
+}
+
 function updateProyector(){
   const extra=parseFloat(document.getElementById('extraSlider')?.value||0);
   document.getElementById('extraVal').textContent='RD$'+fmt(extra);
+  // Sync number input if it exists and differs
+  const inp=document.getElementById('extraInput');
+  if(inp&&parseFloat(inp.value)!==extra)inp.value=extra;
   const deudas=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).map(g=>({...g}));
   if(!deudas.length){
     ['avalanchaTimeline','nieveTimeline'].forEach(id=>{document.getElementById(id).innerHTML='<div style="text-align:center;padding:20px;color:var(--green);font-size:13px">¡Sin deudas con tasa! 🎉</div>';});
@@ -1704,15 +1910,16 @@ function updateProyector(){
   const runStrategy=(ds,sortFn)=>{
     let months=0;const maxM=360;
     const debts=ds.map(d=>({...d,interestPaid:0}));
-    const timeline=[];
     while(debts.some(d=>d.balance>0)&&months<maxM){
       months++;
       debts.sort(sortFn);
-      let extraLeft=extra;
+      // Freed minimum payments from already-paid debts roll into the extra pool each month
+      const freedMins=debts.filter(d=>d.balance<=0).reduce((a,d)=>a+d.adeudado,0);
+      let extraLeft=extra+freedMins;
       debts.forEach(d=>{
         if(d.balance<=0)return;
         const monthlyInt=d.balance*(d.tasa/100/12);
-        d.interestPaid=(d.interestPaid||0)+monthlyInt; // Fix #5: accumulate real interest
+        d.interestPaid=(d.interestPaid||0)+monthlyInt;
         const payment=d.adeudado+Math.min(extraLeft,d.balance);
         extraLeft=Math.max(0,extraLeft-Math.max(0,payment-d.adeudado));
         d.balance=Math.max(0,d.balance+monthlyInt-payment);
@@ -1755,7 +1962,9 @@ function updateProyector(){
   const calcProgress=(ds,sortFn)=>{
     const debts=ds.map(d=>({...d}));
     return Array.from({length:months},(_,mo)=>{
-      debts.sort(sortFn);let extraLeft=extra;
+      debts.sort(sortFn);
+      const freedMins=debts.filter(d=>d.balance<=0).reduce((a,d)=>a+d.adeudado,0);
+      let extraLeft=extra+freedMins;
       debts.forEach(d=>{
         if(d.balance<=0)return;
         const mi=d.balance*(d.tasa/100/12);
