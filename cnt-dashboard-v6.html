@@ -921,7 +921,6 @@ window.addEventListener('load',()=>checkSavedData());
 // START FROM SCRATCH — Setup Wizard
 // ══════════════════════════════════
 let _setupStep=0;
-// _setupSteps defined below after helper render functions
 
 function defaultEditData(){
   const now=new Date();
@@ -936,20 +935,52 @@ function defaultEditData(){
   };
 }
 
-function startFromScratch(){
-  _editData=defaultEditData();
-  _rawWb=null;
-  _setupStep=0;
-  document.getElementById('setupModal').style.display='flex';
-  document.body.style.overflow='hidden';
-  renderSetup();
+// ── Helper renderers (defined before _setupSteps so they're available inside render:() arrows) ──
+function renderSwCuenta(i,c){
+  return`<div class="sw-cuenta-row" style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
+    <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
+    <input class="cierre-input sw-cnt-saldo" type="number" placeholder="Saldo RD$" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
+    <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
+  </div>`;
 }
-function closeSetup(){
-  document.getElementById('setupModal').style.display='none';
-  document.body.style.overflow='';
+function addSwCuenta(){
+  document.getElementById('sw-cuentas-list').insertAdjacentHTML('beforeend',renderSwCuenta(Date.now(),{nombre:'',saldo:0}));
+}
+function renderSwGasto(i,g){
+  const tipos=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
+  return`<div class="sw-gasto-row" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:8px;align-items:center">
+      <input class="cierre-input sw-g-nombre" placeholder="Descripción" value="${escH(g.nombre)}" style="font-size:14px;padding:8px 10px">
+      <select class="cierre-input sw-g-tipo" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto">
+        ${tipos.map(t=>`<option value="${t}" ${t===g.tipo?'selected':''}>${t}</option>`).join('')}
+      </select>
+      <button class="row-del-btn" onclick="this.closest('.sw-gasto-row').remove()">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (RD$)</div><input class="cierre-input sw-g-adeudado" type="number" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="number" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="number" step="0.01" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="number" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+    </div>
+  </div>`;
+}
+function addSwGasto(){
+  document.getElementById('sw-gastos-list').insertAdjacentHTML('beforeend',renderSwGasto(Date.now(),{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0}));
+}
+function renderSwFondo(i,f){
+  return`<div class="sw-fondo-row" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
+    <input class="cierre-input sw-f-nombre" placeholder="Nombre fondo" value="${escH(f.fondo)}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-balance" type="number" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-meta" type="number" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
+    <button class="row-del-btn" onclick="this.closest('.sw-fondo-row').remove()">✕</button>
+  </div>`;
+}
+function addSwFondo(){
+  document.getElementById('sw-fondos-list').insertAdjacentHTML('beforeend',renderSwFondo(Date.now(),{fondo:'',balance:0,meta:0}));
 }
 
-var _setupSteps=[
+// ── _setupSteps defined BEFORE startFromScratch so it's assigned when the function runs ──
+const _setupSteps=[
   {
     title:'Paso 1 · Parámetros básicos',
     sub:'Define el período y tu ingreso mensual',
@@ -1091,65 +1122,30 @@ var _setupSteps=[
   }
 ];
 
-function renderSwCuenta(i,c){
-  return`<div class="sw-cuenta-row" style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
-    <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
-    <input class="cierre-input sw-cnt-saldo" type="number" placeholder="Saldo RD$" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
-    <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
-  </div>`;
+function startFromScratch(){
+  _editData=defaultEditData();
+  _rawWb=null;
+  _setupStep=0;
+  document.getElementById('setupModal').style.display='flex';
+  document.body.style.overflow='hidden';
+  renderSetup();
 }
-function addSwCuenta(){
-  document.getElementById('sw-cuentas-list').insertAdjacentHTML('beforeend',renderSwCuenta(Date.now(),{nombre:'',saldo:0}));
-}
-
-function renderSwGasto(i,g){
-  const tipos=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
-  return`<div class="sw-gasto-row" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
-    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:8px;align-items:center">
-      <input class="cierre-input sw-g-nombre" placeholder="Descripción" value="${escH(g.nombre)}" style="font-size:14px;padding:8px 10px">
-      <select class="cierre-input sw-g-tipo" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto">
-        ${tipos.map(t=>`<option value="${t}" ${t===g.tipo?'selected':''}>${t}</option>`).join('')}
-      </select>
-      <button class="row-del-btn" onclick="this.closest('.sw-gasto-row').remove()">✕</button>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (RD$)</div><input class="cierre-input sw-g-adeudado" type="number" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="number" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="number" step="0.01" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="number" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-    </div>
-  </div>`;
-}
-function addSwGasto(){
-  document.getElementById('sw-gastos-list').insertAdjacentHTML('beforeend',renderSwGasto(Date.now(),{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0}));
-}
-
-function renderSwFondo(i,f){
-  return`<div class="sw-fondo-row" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
-    <input class="cierre-input sw-f-nombre" placeholder="Nombre fondo" value="${escH(f.fondo)}" style="font-size:13px;padding:8px 10px">
-    <input class="cierre-input sw-f-balance" type="number" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
-    <input class="cierre-input sw-f-meta" type="number" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
-    <button class="row-del-btn" onclick="this.closest('.sw-fondo-row').remove()">✕</button>
-  </div>`;
-}
-function addSwFondo(){
-  document.getElementById('sw-fondos-list').insertAdjacentHTML('beforeend',renderSwFondo(Date.now(),{fondo:'',balance:0,meta:0}));
+function closeSetup(){
+  document.getElementById('setupModal').style.display='none';
+  document.body.style.overflow='';
 }
 
 function renderSetup(){
   const total=_setupSteps.length;
   const s=_setupSteps[_setupStep];
-  // Dots
   document.getElementById('setupDots').innerHTML=_setupSteps.map((_,i)=>`
     <div style="width:${i===_setupStep?'24px':'10px'};height:10px;border-radius:99px;background:${i===_setupStep?'var(--accent)':i<_setupStep?'var(--green)':'var(--border)'};transition:all .3s"></div>
   `).join('');
-  // Content
   document.getElementById('setupContent').innerHTML=`
     <div style="margin-bottom:6px;font-size:16px;font-weight:800">${s.title}</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:18px">${s.sub}</div>
     ${s.render()}
   `;
-  // Buttons
   document.getElementById('setupPrev').style.visibility=_setupStep===0?'hidden':'visible';
   document.getElementById('setupNext').textContent=_setupStep===total-1?'✓ Crear dashboard':'Siguiente →';
   document.getElementById('setupNext').className=`btn ${_setupStep===total-1?'btn-success':'btn-primary'}`;
@@ -1157,10 +1153,8 @@ function renderSetup(){
 
 function setupNav(dir){
   if(dir===1){
-    // Save current step
     _setupSteps[_setupStep].save();
     if(_setupStep===_setupSteps.length-1){
-      // Final confirm — launch dashboard
       closeSetup();
       buildDashboard(_editData);
       document.getElementById('loaderScreen').style.display='none';
@@ -1169,7 +1163,6 @@ function setupNav(dir){
       autoSave();
       generateExcel();
       showToast('✨ Dashboard creado · Excel descargado como punto de partida','var(--accent)');
-      // Open edit modal so they can keep adding data
       setTimeout(()=>openEditModal(),1200);
       return;
     }
