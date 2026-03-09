@@ -602,15 +602,15 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <div class="card-title" style="margin:0">Gastos & Deudas Mensuales</div>
         <div style="display:flex;gap:16px;font-size:12px;flex-wrap:wrap">
           <span style="color:var(--muted)">Total Pagado: <span class="mono" style="color:var(--green);font-weight:700" id="tPagado">—</span></span>
-          <span style="color:var(--muted)">Total Adeudado: <span class="mono" style="color:var(--red);font-weight:700" id="tAdeudado">—</span></span>
+          <span style="color:var(--muted)">Pendiente este mes: <span class="mono" style="color:var(--red);font-weight:700" id="tAdeudado">—</span></span>
         </div>
       </div>
       <div class="tbl-wrap"><table class="mobile-card-table"><thead><tr>
-        <th>Descripción</th><th>Tipo</th><th>Pagado (RD$)</th><th>Adeudado (RD$)</th>
+        <th>Descripción</th><th>Tipo</th><th>Pagado (RD$)</th><th>Cuota (RD$)</th><th>% Ing</th>
         <th>Día Pago</th><th>Tasa %</th><th>Balance (RD$)</th><th>Estado</th>
       </tr></thead><tbody id="gastosBody"></tbody></table></div>
     </div>
-    <div class="card"><div class="card-title">Montos Adeudados por Compromiso</div><div class="chart-wrap"><canvas id="gastosBar"></canvas></div></div>
+    <div class="card"><div class="card-title">Pagado vs Pendiente por Compromiso</div><div class="chart-wrap"><canvas id="gastosBar"></canvas></div></div>
   </div>
 
   <!-- CHECKLIST PAGOS DEL MES -->
@@ -627,7 +627,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       </div>
     </div>
     <div class="card" style="margin-bottom:16px">
-      <div class="card-title">Interés Anual Total Pagado en Deudas</div>
+      <div class="card-title">💸 Costo de Intereses en Deudas</div>
       <div id="interestAnalysis"></div>
     </div>
   </div>
@@ -1516,19 +1516,25 @@ function calcScore({ingreso,gasto,resta,totalBalance,config,emerg,historial}){
 // ══════════════════════════════════
 // ALERTS
 // ══════════════════════════════════
-function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta}){
+function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,interesMensual}){
   const today=new Date();
   const dayOfMonth=today.getDate();
+  const daysInMonth=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
   const diasAlerta=config.diasAlerta||5;
   const vencProx=[];
   const vencPasados=[];
   gastos.forEach(g=>{
     if(!g.dia||g.adeudado<=0)return;
-    const daysUntil=g.dia>=dayOfMonth?g.dia-dayOfMonth:30-(dayOfMonth-g.dia);
-    // Fix #3: skip if already paid (either by amount or by checklist)
+    // Fix: use real days in month instead of hardcoded 30
+    const daysUntil=g.dia>=dayOfMonth?g.dia-dayOfMonth:daysInMonth-(dayOfMonth-g.dia);
+    // Skip if already paid
     if(g.pagado>=g.adeudado||g.pagadoMes)return;
-    if(daysUntil<=diasAlerta)vencProx.push({...g,daysUntil,urgente:daysUntil<=2});
-    if(g.dia<dayOfMonth&&g.pagado===0&&!g.pagadoMes)vencPasados.push({...g,daysLate:dayOfMonth-g.dia});
+    // Fix: mutually exclusive — vencPasado takes priority over vencProx to avoid double-listing
+    if(g.dia<dayOfMonth&&g.pagado===0&&!g.pagadoMes){
+      vencPasados.push({...g,daysLate:dayOfMonth-g.dia});
+    } else if(daysUntil<=diasAlerta){
+      vencProx.push({...g,daysUntil,urgente:daysUntil<=2});
+    }
   });
   // fechas límite próximas
   const limProx=[];
@@ -1557,10 +1563,11 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta}){
   });
   // Update tab dot
   const urgentCount=vencPasados.length+vencProx.filter(g=>g.urgente).length;
+  const hasFinAlert=ag.innerHTML&&!ag.innerHTML.includes('Sin alertas');
   const tabAl=document.getElementById('tabAlertas');
   const existDot=tabAl.querySelector('.alert-dot');
   if(existDot)existDot.remove();
-  if(urgentCount>0)tabAl.innerHTML=`🔔 Alertas <span class="alert-dot"></span>`;
+  if(urgentCount>0||hasFinAlert)tabAl.innerHTML=`🔔 Alertas <span class="alert-dot"></span>`;
   // ALERTAS GENERALES
   const ag=document.getElementById('alertasGen');ag.innerHTML='';
   const gpct=ingreso>0?gasto/ingreso:1;
@@ -1568,8 +1575,18 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta}){
   else if(gpct>0.85)ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">⚠️</div><div class="alert-text"><div class="alert-title">Gastos elevados</div><div class="alert-sub">${Math.round(gpct*100)}% del ingreso comprometido</div></div></div>`;
   const dRatio=ingreso>0?totalBalance/(ingreso*12):1;
   if(dRatio>1.5)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">Deuda muy alta</div><div class="alert-sub">${(dRatio*100).toFixed(0)}% del ingreso anual en deudas</div></div></div>`;
-  const altaTasa=gastos.filter(g=>g.tasa>20&&g.balance>0);
+  const altaTasa=gastos.filter(g=>g.tasa>15&&g.balance>0);
   altaTasa.forEach(g=>ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">Tasa alta: ${escH(g.nombre)}</div><div class="alert-sub">${g.tasa}% anual — RD$${fmt(g.balance)} pendiente</div></div></div>`);
+  // Fondo de emergencia bajo
+  if(emerg){
+    const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
+    const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
+    const efPct=efMeta>0?efTotal/efMeta:0;
+    if(efPct<0.25)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">Fondo de emergencia crítico</div><div class="alert-sub">${Math.round(efPct*100)}% completado — RD$${fmt(Math.round(efMeta-efTotal))} para alcanzar la meta</div></div></div>`;
+    else if(efPct<0.5)ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">Fondo de emergencia bajo</div><div class="alert-sub">${Math.round(efPct*100)}% completado — sigue aportando mensualmente</div></div></div>`;
+  }
+  // Carga de intereses vs superávit
+  if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)ag.innerHTML+=`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">Carga de intereses elevada</div><div class="alert-sub">RD$${fmt(Math.round(interesMensual))}/mes en intereses — ${Math.round(interesMensual/resta*100)}% de tu superávit</div></div></div>`;
   if(!ag.innerHTML)ag.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">✅ Sin alertas financieras</div>`;
   // SITUACIÓN
   const as=document.getElementById('alertasSit');
@@ -1577,7 +1594,7 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta}){
     {icon:gpct<=.8?'✅':'⚠️',l:'Control de Gastos',v:`${Math.round(gpct*100)}% del ingreso usado`,c:gpct<=.8?'var(--green)':gpct<=.9?'var(--yellow)':'var(--red)'},
     {icon:resta>0?'✅':'🔴',l:'Superávit Mensual',v:resta>0?`RD$${fmt(resta)} disponible`:'Déficit de RD$'+fmt(Math.abs(resta)),c:resta>0?'var(--green)':'var(--red)'},
     {icon:dRatio<0.5?'✅':'⚠️',l:'Ratio Deuda',v:`${(dRatio*100).toFixed(0)}% del ingreso anual`,c:dRatio<0.5?'var(--green)':dRatio<1?'var(--yellow)':'var(--red)'},
-    {icon:'📊',l:'Próximo pago',v:vencProx.length>0?`${vencProx[0].nombre} en ${vencProx[0].daysUntil}d`:'Sin pagos próximos',c:'var(--text)'},
+    {icon:vencProx.length>0?'📅':'✅',l:'Próximos pagos',v:vencProx.length>0?vencProx.map(p=>`${p.nombre.split(' ')[0]} (${p.daysUntil===0?'¡hoy!':p.daysUntil+'d'})`).join(' · '):'Al día este mes',c:vencProx.some(p=>p.urgente)?'var(--red)':vencProx.length>0?'var(--yellow)':'var(--green)'},
   ];
   as.innerHTML=`<div class="grid g2" style="gap:10px">${items.map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:14px 16px;border-left:3px solid ${i.c}"><div style="font-size:20px;margin-bottom:6px">${i.icon}</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">${i.l}</div><div style="font-size:13px;font-weight:700;margin-top:4px;color:${i.c}">${i.v}</div></div>`).join('')}</div>`;
 }
@@ -1587,28 +1604,34 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta}){
 // ══════════════════════════════════
 function buildChecklist(gastos){
   const withPago=gastos.filter(g=>g.adeudado>0);
-  const pending=withPago.filter(g=>!g.pagadoMes);
+  // Sort pending by day of month (ascending urgency), done keeps order
+  const pending=withPago.filter(g=>!g.pagadoMes).sort((a,b)=>(a.dia||31)-(b.dia||31));
   const done=withPago.filter(g=>g.pagadoMes);
   const total=withPago.length;
   const donePct=total>0?Math.round((done.length/total)*100):0;
+  // Progress by amount (more financially meaningful)
+  const doneMonto=done.reduce((a,g)=>a+g.adeudado,0);
+  const pendMonto=pending.reduce((a,g)=>a+g.adeudado,0);
+  const totalMonto=doneMonto+pendMonto;
+  const doneMonPct=totalMonto>0?Math.round(doneMonto/totalMonto*100):0;
 
-  // Save button: visible only if there are unsaved changes
   const saveBtn=_pendingSave
     ?`<button onclick="saveChecklistToExcel()" class="btn btn-success btn-sm" style="animation:pulse 2s ease-in-out infinite">💾 Guardar en Excel</button>`
     :`<button class="btn btn-ghost btn-sm" style="opacity:.4;cursor:default">💾 Guardado</button>`;
 
   document.getElementById('checklistProgress').innerHTML=`
     <div class="checklist-progress">
-      <div class="checklist-pct" style="color:${donePct===100?'var(--green)':donePct>50?'var(--yellow)':'var(--accent)'}">${donePct}%</div>
+      <div class="checklist-pct" style="color:${doneMonPct===100?'var(--green)':doneMonPct>50?'var(--yellow)':'var(--accent)'}">${doneMonPct}%</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;margin-bottom:6px">${done.length} de ${total} pagos marcados este mes</div>
-        <div class="progress-wrap" style="margin:0"><div class="progress-bar" style="width:${donePct}%;background:linear-gradient(90deg,var(--green),var(--accent2))"></div></div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">${done.length} de ${total} pagos marcados · <span style="color:var(--green)">RD$${fmt(doneMonto)}</span> de <span style="color:var(--muted)">RD$${fmt(totalMonto)}</span></div>
+        <div class="progress-wrap" style="margin:0"><div class="progress-bar" style="width:${doneMonPct}%;background:linear-gradient(90deg,var(--green),var(--accent2))"></div></div>
         <div style="font-size:11px;color:var(--muted);margin-top:6px">
-          Pendiente: <span style="color:var(--red);font-weight:700">RD$${fmt(pending.reduce((a,g)=>a+g.adeudado,0))}</span>
-          &nbsp;·&nbsp; Pagado: <span style="color:var(--green);font-weight:700">RD$${fmt(done.reduce((a,g)=>a+g.adeudado,0))}</span>
+          Pendiente: <span style="color:var(--red);font-weight:700">RD$${fmt(pendMonto)}</span>
+          &nbsp;·&nbsp; Pagado: <span style="color:var(--green);font-weight:700">RD$${fmt(doneMonto)}</span>
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button onclick="markAllChecklist()" class="btn btn-ghost btn-sm" title="Marcar todos">✓ Todo</button>
         ${saveBtn}
         <button onclick="resetChecklist()" class="btn btn-ghost btn-sm" title="Desmarcar todos">↺ Reset</button>
       </div>
@@ -1617,7 +1640,11 @@ function buildChecklist(gastos){
       ⚠️ Tienes cambios sin guardar. Presiona <strong>💾 Guardar en Excel</strong> para que persistan al recargar el archivo.
     </div>`:''}`;
 
-  const mkRow=(g,isDone)=>`<div class="check-item ${isDone?'done':''}" onclick="toggleCheck(${_editData.gastos.indexOf(g)})" style="cursor:pointer">
+  const ingreso=_editData.emerg?.cashflow?.ingreso||1;
+  const mkRow=(g,isDone)=>{
+    const pct=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
+    const intMes=g.balance>0&&g.tasa>0?Math.round(g.balance*(g.tasa/100/12)):0;
+    return `<div class="check-item ${isDone?'done':''}" onclick="toggleCheck(${_editData.gastos.indexOf(g)})" style="cursor:pointer">
     <div class="check-box" style="${isDone?'background:var(--green);border-color:var(--green);color:#052e16':''}">
       ${isDone?'✓':''}
     </div>
@@ -1626,11 +1653,14 @@ function buildChecklist(gastos){
       <div class="check-day">
         <span class="pill" style="background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'—')}</span>
         &nbsp;· Día <strong>${g.dia||'—'}</strong>
+        &nbsp;· <span style="color:var(--muted)">${pct}% ing</span>
+        ${intMes>0?`&nbsp;· <span style="color:var(--red);font-size:10px">~RD$${fmt(intMes)}/mes interés</span>`:''}
         ${isDone?'<span style="color:var(--green);margin-left:8px;font-size:11px;font-weight:700">✓ Pagado este mes</span>':''}
       </div>
     </div>
     <div class="check-amount" style="color:${isDone?'var(--green)':'var(--red)'}">RD$${fmt(g.adeudado)}</div>
   </div>`;
+  };
 
   document.getElementById('checklistPending').innerHTML=pending.length
     ?pending.map(g=>mkRow(g,false)).join('')
@@ -1640,23 +1670,23 @@ function buildChecklist(gastos){
     ?done.map(g=>mkRow(g,true)).join('')
     :`<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px">Ningún pago marcado aún</div>`;
 
-  // Interest Analysis
+  // Interest Analysis — fix title and tasa color threshold
   const deudas=gastos.filter(g=>g.balance>0&&g.tasa>0);
-  const totalIntAnual=deudas.reduce((a,g)=>a+g.balance*(g.tasa/100),0);
-  const totalIntMes=totalIntAnual/12;
+  const totalIntMes=deudas.reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
+  const totalIntAnual=totalIntMes*12;
   document.getElementById('interestAnalysis').innerHTML=`
     <div class="grid g3" style="gap:10px;margin-bottom:16px">
-      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Interés Anual Total</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--red);margin-top:4px">RD$${fmt(totalIntAnual)}</div></div>
-      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Interés Mensual Aprox.</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--yellow);margin-top:4px">RD$${fmt(totalIntMes)}</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Interés Anual en Deudas</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--red);margin-top:4px">RD$${fmt(Math.round(totalIntAnual))}</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Interés Mensual</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--yellow);margin-top:4px">RD$${fmt(Math.round(totalIntMes))}</div></div>
       <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Deudas con Tasa</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px">${deudas.length}</div></div>
     </div>
-    <div class="tbl-wrap"><table><thead><tr><th>Deuda</th><th>Balance</th><th>Tasa %</th><th>Interés Anual</th><th>Interés Mensual</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table><thead><tr><th>Deuda</th><th>Balance</th><th>Tasa %</th><th>Interés Mensual</th><th>Interés Anual</th></tr></thead><tbody>
     ${deudas.sort((a,b)=>b.tasa-a.tasa).map(g=>`<tr>
       <td style="font-weight:700">${escH(g.nombre)}</td>
       <td class="num" style="color:var(--red)">RD$${fmt(g.balance)}</td>
-      <td class="mono" style="color:${g.tasa>20?'var(--red)':'var(--yellow)'};text-align:center">${g.tasa}%</td>
-      <td class="num" style="color:var(--red)">RD$${fmt(g.balance*(g.tasa/100))}</td>
-      <td class="num" style="color:var(--muted)">RD$${fmt(g.balance*(g.tasa/100)/12)}</td>
+      <td class="mono" style="color:${g.tasa>15?'var(--red)':'var(--yellow)'};text-align:center">${g.tasa}%</td>
+      <td class="num" style="color:var(--yellow)">RD$${fmt(Math.round(g.balance*(g.tasa/100/12)))}</td>
+      <td class="num" style="color:var(--red)">RD$${fmt(Math.round(g.balance*(g.tasa/100)))}</td>
     </tr>`).join('')}
     </tbody></table></div>`;
 }
@@ -1665,13 +1695,15 @@ function toggleCheck(idx){
   if(idx<0||idx>=_editData.gastos.length)return;
   const g=_editData.gastos[idx];
   g.pagadoMes=!g.pagadoMes;
-  // Fix #12: sync pagado amount with checklist state
-  if(g.pagadoMes&&g.pagado===0&&g.adeudado>0) g.pagado=g.adeudado;
+  // Sync pagado amount: marking as done sets full adeudado; unmarking clears if auto-set
+  if(g.pagadoMes&&g.adeudado>0) g.pagado=g.adeudado;
   else if(!g.pagadoMes&&g.pagado===g.adeudado) g.pagado=0;
   _pendingSave=true;
+  autoSave();
   // Haptic feedback on mobile
   if(navigator.vibrate) navigator.vibrate(g.pagadoMes?[10,30,10]:30);
   buildChecklist(_editData.gastos);
+  buildAlerts({gastos:_editData.gastos,config:_editData.config,ingreso:_editData.emerg.cashflow.ingreso,gasto:_editData.emerg.cashflow.gasto,totalBalance:_editData.gastos.reduce((a,g)=>a+g.balance,0),resta:_editData.emerg.cashflow.resta,emerg:_editData.emerg,interesMensual:_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0)});
 }
 
 // ── Fix #7: shared helper to write Esenciales sheet ──
@@ -1714,13 +1746,32 @@ function saveChecklistToExcel(){
   const stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
   XLSX.writeFile(_rawWb,`cnt_${stamp}.xlsx`);
   buildChecklist(_editData.gastos);
+  buildAlerts({gastos:_editData.gastos,config:_editData.config,ingreso:_editData.emerg.cashflow.ingreso,gasto:_editData.emerg.cashflow.gasto,totalBalance:_editData.gastos.reduce((a,g)=>a+g.balance,0),resta:_editData.emerg.cashflow.resta,emerg:_editData.emerg,interesMensual:_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0)});
   autoSave();
   showToast('💾 Estado de pagos guardado en Excel y memoria local');
 }
 
 function resetChecklist(){
-  _editData.gastos.forEach(g=>{if(g.adeudado>0)g.pagadoMes=false;});
+  _editData.gastos.forEach(g=>{
+    if(g.adeudado>0){
+      // Also reset pagado if it was auto-set by toggleCheck (pagado===adeudado)
+      if(g.pagadoMes&&g.pagado===g.adeudado) g.pagado=0;
+      g.pagadoMes=false;
+    }
+  });
   _pendingSave=true;
+  buildChecklist(_editData.gastos);
+}
+
+function markAllChecklist(){
+  _editData.gastos.forEach(g=>{
+    if(g.adeudado>0&&!g.pagadoMes){
+      g.pagadoMes=true;
+      if(g.pagado===0) g.pagado=g.adeudado;
+    }
+  });
+  _pendingSave=true;
+  autoSave();
   buildChecklist(_editData.gastos);
 }
 
@@ -2127,27 +2178,34 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     </div>`;
 
   // ── Gastos Table ──
+  const pendienteMes=gastos.filter(g=>g.adeudado>0&&!g.pagadoMes).reduce((a,g)=>a+g.adeudado,0);
   document.getElementById('tPagado').textContent='RD$'+fmt(totalPagado);
-  document.getElementById('tAdeudado').textContent='RD$'+fmt(totalAdeudado);
+  document.getElementById('tAdeudado').textContent='RD$'+fmt(pendienteMes);
   const tbody=document.getElementById('gastosBody');tbody.innerHTML='';
   gastos.forEach(g=>{
-    const isPaid=g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0;
-    const noPago=g.adeudado>0&&g.pagado===0;
-    const est=isPaid?['✓ Pagado','#052e16','#22d3a0']:noPago?['⏳ Pendiente','#450a0a','#f4606a']:['◑ Parcial','#1e1b4b','#93c5fd'];
-    const mesTag=g.adeudado>0?(g.pagadoMes?'<span class="pill" style="background:#052e16;color:#22d3a0;margin-left:4px">✓ Este mes</span>':'<span class="pill" style="background:#2a0a0a;color:#f4606a;margin-left:4px">Pendiente</span>'):'';
     const tc=tipoColors[g.tipo]||'#94a3b8';
+    const pctIng=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
+    // Estado unificado: pagadoMes (checklist) tiene prioridad sobre pagado (monto)
+    let estLabel,estBg,estFg;
+    if(g.pagadoMes){estLabel='✓ Este mes';estBg='#052e16';estFg='#22d3a0';}
+    else if(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0){estLabel='✓ Pagado';estBg='#052e16';estFg='#22d3a0';}
+    else if(g.pagado>0&&g.adeudado>0){estLabel='◑ Parcial';estBg='#1e1b4b';estFg='#93c5fd';}
+    else if(g.adeudado>0){estLabel='⏳ Pendiente';estBg='#450a0a';estFg='#f4606a';}
+    else{estLabel='—';estBg='transparent';estFg='var(--muted)';}
     tbody.innerHTML+=`<tr>
       <td data-label="" style="font-weight:600">${escH(g.nombre)}</td>
       <td data-label="Tipo"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
       <td data-label="Pagado" class="num" style="color:${g.pagado>0?'var(--green)':'var(--muted)'}">${g.pagado>0?'RD$'+fmt(g.pagado):'—'}</td>
-      <td data-label="Adeudado" class="num">${g.adeudado>0?'RD$'+fmt(g.adeudado):'—'}</td>
+      <td data-label="Cuota" class="num">${g.adeudado>0?'RD$'+fmt(g.adeudado):'—'}</td>
+      <td data-label="% Ing" class="mono" style="color:${pctIng>15?'var(--red)':pctIng>8?'var(--yellow)':'var(--muted)'};text-align:center">${g.adeudado>0?pctIng+'%':'—'}</td>
       <td data-label="Día" class="mono" style="color:var(--muted);text-align:center">${g.dia||'—'}</td>
-      <td data-label="Tasa" class="mono" style="color:${g.tasa>20?'var(--red)':g.tasa>0?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa>0?g.tasa+'%':'—'}</td>
+      <td data-label="Tasa" class="mono" style="color:${g.tasa>15?'var(--red)':g.tasa>0?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa>0?g.tasa+'%':'—'}</td>
       <td data-label="Balance" class="num" style="color:${g.balance>0?'var(--red)':'var(--muted)'}">${g.balance>0?'RD$'+fmt(g.balance):'—'}</td>
-      <td data-label="Estado"><span class="pill" style="background:${est[1]};color:${est[2]}">${est[0]}</span>${mesTag}</td>
+      <td data-label="Estado"><span class="pill" style="background:${estBg};color:${estFg}">${estLabel}</span></td>
     </tr>`;
   });
-  tbody.innerHTML+=`<tr style="background:rgba(59,130,246,.04)"><td colspan="2" style="font-weight:800">TOTALES</td><td class="num" style="font-weight:800;color:var(--green)">RD$${fmt(totalPagado)}</td><td class="num" style="font-weight:800">RD$${fmt(totalAdeudado)}</td><td colspan="2"></td><td class="num" style="font-weight:800;color:var(--red)">RD$${fmt(totalBalance)}</td><td></td></tr>`;
+  const totalCuotas=gastos.reduce((a,g)=>a+g.adeudado,0);
+  tbody.innerHTML+=`<tr style="background:rgba(59,130,246,.04)"><td colspan="2" style="font-weight:800">TOTALES</td><td class="num" style="font-weight:800;color:var(--green)">RD$${fmt(totalPagado)}</td><td class="num" style="font-weight:800">RD$${fmt(totalCuotas)}</td><td class="mono" style="text-align:center;font-weight:800;color:var(--muted)">${ingreso>0?Math.round(totalCuotas/ingreso*100)+'%':'—'}</td><td colspan="2"></td><td class="num" style="font-weight:800;color:var(--red)">RD$${fmt(totalBalance)}</td><td></td></tr>`;
 
   // ── Deuda KPIs ──
   document.getElementById('deudaKpis').innerHTML=[
@@ -2277,11 +2335,18 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10,color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)} (${totalBalance>0?Math.round(ctx.raw/totalBalance*100):0}%)`}}}}
       });
     }
+    const _gRows=gastos.filter(g=>g.adeudado>0);
     charts.gastosBar=new Chart(document.getElementById('gastosBar'),{
       type:'bar',
-      data:{labels:gastos.filter(g=>g.adeudado>0).map(g=>g.nombre.length>14?g.nombre.slice(0,14)+'…':g.nombre),datasets:[{label:'Adeudado',data:gastos.filter(g=>g.adeudado>0).map(g=>g.adeudado),backgroundColor:gastos.filter(g=>g.adeudado>0).map(g=>(tipoColors[g.tipo]||'#f87171')+'99'),borderColor:gastos.filter(g=>g.adeudado>0).map(g=>tipoColors[g.tipo]||'#f87171'),borderWidth:2,borderRadius:6}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
-        scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxRotation:40}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
+      data:{
+        labels:_gRows.map(g=>g.nombre.length>14?g.nombre.slice(0,14)+'…':g.nombre),
+        datasets:[
+          {label:'Pagado',data:_gRows.map(g=>Math.min(g.pagado,g.adeudado)),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:4,stack:'s'},
+          {label:'Pendiente',data:_gRows.map(g=>Math.max(0,g.adeudado-(g.pagadoMes?g.adeudado:Math.min(g.pagado,g.adeudado)))),backgroundColor:_gRows.map(g=>(tipoColors[g.tipo]||'#f87171')+'99'),borderColor:_gRows.map(g=>tipoColors[g.tipo]||'#f87171'),borderWidth:2,borderRadius:4,stack:'s'}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+        scales:{x:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxRotation:40}},y:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
     });
     charts.efChart=new Chart(document.getElementById('efChart'),{
       type:'bar',
@@ -2295,7 +2360,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   },150);
 
   buildHistorial(historial,config);
-  buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta});
+  buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,interesMensual});
   buildChecklist(gastos);
   buildProyector({gastos,ingreso,gasto,config});
 }
