@@ -2211,7 +2211,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   document.getElementById('deudaKpis').innerHTML=[
     {l:'Deuda Total',v:`RD$${fmt(totalBalance)}`,s:`≈ ${fmtUSD(totalBalance/config.tasa)}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
     {l:'Deuda más cara',v:masCaraDeuda?escH(masCaraDeuda.nombre):'—',s:masCaraDeuda?`${masCaraDeuda.tasa}% anual`:'—',c:'var(--yellow)',b:'rgba(245,200,66,.1)'},
-    {l:'Cuota Mensual',v:`RD$${fmt(cuotaDeudas)}`,s:'Suma cuotas préstamos',c:'var(--red)',b:'rgba(244,96,106,.1)'},
+    {l:'Cuota Mensual',v:`RD$${fmt(cuotaDeudas)}`,s:`Solo deudas con balance · ${allDeudas.length} deudas`,c:'var(--red)',b:'rgba(244,96,106,.1)'},
     {l:'Avance de Pago',v:`${deudaPct}%`,s:`Pagado RD$${fmt(Math.round(pagadoReal))}`,c:'var(--accent)',b:'rgba(59,130,246,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:20px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
@@ -2219,21 +2219,17 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const dc=document.getElementById('deudaCards');dc.innerHTML='';
   allDeudas.forEach(d=>{
     const pct=totalBalance>0?Math.round((d.balance/totalBalance)*100):0;
-    const bc=d.tasa>20?'linear-gradient(90deg,#f4606a,#fb923c)':d.tasa>0?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#93c5fd,#818cf8)';
+    const bc=d.tasa>15?'linear-gradient(90deg,#f4606a,#fb923c)':d.tasa>0?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#93c5fd,#818cf8)';
     const fStr=fmtFecha(d.fechaLimite,{month:'short',year:'numeric'});
     dc.innerHTML+=`<div class="debt-card">
       <div class="debt-header">
         <div><div class="debt-name">${escH(d.nombre)}</div><span class="pill" style="background:${(tipoColors[d.tipo]||'#64748b')}22;color:${tipoColors[d.tipo]||'#94a3b8'};margin-top:4px;display:inline-block">${escH(d.tipo)}</span></div>
-        <div style="text-align:right"><div class="debt-amount">RD$${fmt(d.balance)}</div>${d.tasa>0?`<div style="font-size:12px;color:${d.tasa>20?'var(--red)':'var(--yellow)'};margin-top:2px">${d.tasa}% anual</div>`:''}</div>
+        <div style="text-align:right"><div class="debt-amount">RD$${fmt(d.balance)}</div>${d.tasa>0?`<div style="font-size:12px;color:${d.tasa>15?'var(--red)':'var(--yellow)'};margin-top:2px">${d.tasa}% anual</div>`:''}</div>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${pct}% del total de deudas</div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       <div class="debt-meta">
-        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">Cuota mensual</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}
-        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">Día de pago</div><div class="dmi-val">Día ${d.dia}</div></div>`:''}
-        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">Tasa interés</div><div class="dmi-val" style="color:${d.tasa>20?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}
-        <div class="debt-meta-item"><div class="dmi-label">Vence</div><div class="dmi-val">${fStr}</div></div>
-      </div>
+        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">Cuota mensual</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">Interés mensual</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">Día de pago</div><div class="dmi-val">Día ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">Tasa interés</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">Vence</div><div class="dmi-val">${fStr}</div></div></div>
     </div>`;
   });
 
@@ -2290,8 +2286,11 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   ].map(r=>`<div class="cf-row"><div><div class="cf-label">${r.l}</div><div class="cf-desc">${r.d}</div></div><div class="cf-val" style="color:${r.c}">${r.v}</div></div>`).join('');
 
   const meses=resta>0&&(efMeta-efTotal)>0?Math.ceil((efMeta-efTotal)/(resta*0.5)):'—';
+  const intMensualEf=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
+  const intPct=resta>0?Math.round(intMensualEf/resta*100):0;
   document.getElementById('efTip').innerHTML=`<div style="margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:var(--yellow)">⚡ Plan sugerido</div></div>
-    <div style="font-size:13px;color:var(--muted);line-height:2">Superávit: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span>/mes<br>50% a emergencia: <span class="mono" style="color:var(--accent)">RD$${fmt(resta*0.5)}/mes</span><br><br>Tiempo para meta:<br><span class="mono" style="color:var(--yellow);font-size:20px;font-weight:700">~${meses} meses</span></div>`;
+    <div style="font-size:13px;color:var(--muted);line-height:2">Superávit: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span>/mes<br>50% a emergencia: <span class="mono" style="color:var(--accent)">RD$${fmt(Math.round(resta*0.5))}/mes</span><br><br>Tiempo para meta:<br><span class="mono" style="color:var(--yellow);font-size:20px;font-weight:700">~${meses} meses</span></div>
+    ${intMensualEf>0?`<div style="margin-top:16px;padding:10px 14px;background:rgba(244,96,106,.07);border-radius:8px;border:1px solid rgba(244,96,106,.2)"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">⚠️ Carga de intereses</div><div style="font-size:12px;color:var(--muted)">RD$${fmt(Math.round(intMensualEf))}/mes en intereses = <span style="color:${intPct>80?'var(--red)':'var(--yellow)'};font-weight:700">${intPct}% del superávit</span>. Reducir deuda aumenta capacidad de ahorro.</div></div>`:''}`;
 
   // ── ForNow ──
   document.getElementById('forNowKpis').innerHTML=forNow.cuentas.slice(0,4).map(c=>
@@ -2301,7 +2300,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   document.getElementById('forNowDetail').innerHTML=`<div class="card-title">Disponibilidad · Actualizado ${fDate}</div>
     ${[{l:'Total en Cuentas',v:`RD$${fmt(forNow.total)}`,c:'var(--text)',d:'Suma todos los saldos',st:''},
        {l:'Comprometido',v:`(RD$${fmt(Math.abs(forNow.comprometido))})`,c:'var(--red)',d:'Compromisos del mes',st:''},
-       {l:'Disponible Real',v:`RD$${fmt(forNow.disponible)}`,c:forNow.disponible>=0?'var(--green)':'var(--red)',d:'Después de compromisos',st:'background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:10px;'}]
+       {l:'Disponible Real',v:forNow.disponible<0?`(RD$${fmt(Math.abs(forNow.disponible))})`:`RD$${fmt(forNow.disponible)}`,c:forNow.disponible>=0?'var(--green)':'var(--red)',d:'Después de compromisos',st:'background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:10px;'}]
       .map(r=>`<div class="cf-row" style="${r.st}"><div><div class="cf-label">${r.l}</div><div class="cf-desc">${r.d}</div></div><div class="cf-val" style="color:${r.c}">${r.v}</div></div>`).join('')}`;
 
   // Charts
@@ -2388,7 +2387,8 @@ function buildHistorial(historial,config){
     const ahorroColor=h.ahorro<0?'var(--red)':'var(--green)';
     const tasaStr=typeof h.tasaAhorro==='number'?(h.tasaAhorro*100).toFixed(1)+'%':String(h.tasaAhorro||'—');
     hb.innerHTML+=`<tr>
-      <td data-label="" style="font-weight:700">${escH(h.mes)} ${h.anio}</td>
+      <td data-label="" style="font-weight:700">${escH(h.mes)}</td>
+      <td data-label="Año" class="mono" style="color:var(--muted);text-align:right">${h.anio}</td>
       <td data-label="Ingresos" class="num" style="color:var(--green)">RD$${fmt(h.ingresos)}</td>
       <td data-label="Gasto" class="num" style="color:var(--red)">RD$${fmt(h.gasto)}</td>
       <td data-label="Ahorro Neto" class="num" style="color:${ahorroColor}">${h.ahorro<0?'(RD$'+fmt(Math.abs(h.ahorro))+')':'RD$'+fmt(h.ahorro)}</td>
