@@ -1,6 +1,6 @@
 // CNT Core · Service Worker v1
 // Estrategia: Cache-first para assets externos, Network-first para el HTML
-const CACHE_NAME = 'cnt-core-v1';
+const CACHE_NAME = 'cnt-core-v2';
 const EXTERNAL_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
