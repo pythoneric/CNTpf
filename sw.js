@@ -1,5 +1,7 @@
 // CNT Core · Service Worker v1
-// Estrategia: Cache-first para assets externos, Network-first para el HTML
+// ⚠️  IMPORTANTE: Incrementar CACHE_NAME al actualizar cnt-dashboard-v6.html
+//     Ejemplo: 'cnt-core-v3', 'cnt-core-v4', etc.
+//     Esto fuerza que los usuarios descarguen la nueva versión.
 const CACHE_NAME = 'cnt-core-v2';
 const EXTERNAL_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',

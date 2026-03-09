@@ -33,7 +33,7 @@ body.light{
   --green:#059669;--red:#dc2626;--yellow:#d97706;--purple:#7c3aed;--orange:#ea580c;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;overscroll-behavior-y:contain}
 body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
 body.light::before{background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px)}
 body::after{content:'';position:fixed;top:-300px;right:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(59,130,246,.06) 0%,transparent 70%);pointer-events:none;z-index:0}
@@ -244,6 +244,13 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 
 /* ══ CHART HEIGHTS — responsive ══ */
 .chart-wrap{position:relative;height:clamp(160px,28vw,260px)}
+@media(max-width:640px){.chart-wrap{height:200px}}
+@media(min-width:1280px){.chart-wrap{height:300px}}
+
+/* ══ GPU HINTS — smooth animations on mobile ══ */
+.panel{will-change:opacity,transform}
+.loader-dot,.logo-dot{will-change:opacity,transform}
+header{will-change:auto}
 
 /* ══ TOUCH TARGETS — min 44px ══ */
 .hdr-btn{min-height:44px;min-width:44px;padding:10px 14px}
@@ -355,6 +362,65 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .mnav-btn .mnav-icon{font-size:18px}
   .card{padding:12px}
   .kpi-val{font-size:18px}
+}
+
+/* ══ WINDOWS / LARGE SCREENS ≥1280px ══ */
+@media(min-width:1280px){
+  .panel{padding:24px 32px}
+  header{padding:16px 32px}
+  .tabs{padding:12px 32px 0}
+  .g4{grid-template-columns:repeat(4,1fr)}
+}
+@media(min-width:1600px){
+  .panel{padding:28px 48px}
+  header{padding:18px 48px}
+  .tabs{padding:12px 48px 0}
+}
+
+/* ══ SWIPE INDICATOR (mobile) ══ */
+.swipe-hint{display:none}
+@media(max-width:640px){
+  .swipe-hint{display:block;text-align:center;font-size:10px;color:var(--muted);padding:6px 0 2px;letter-spacing:.06em}
+}
+
+/* ══ EDIT MODAL MOBILE — scrollable tabs ══ */
+@media(max-width:640px){
+  .edit-tabs{flex-wrap:nowrap;overflow-x:auto;gap:6px;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .edit-tabs::-webkit-scrollbar{height:0}
+  .edit-tab{flex-shrink:0;font-size:12px;padding:8px 14px}
+  .edit-actions{flex-wrap:wrap;gap:8px}
+  .edit-actions .btn{flex:1 1 auto;justify-content:center;font-size:12px;padding:10px 12px}
+  /* Edit tables - show as stacked cards on mobile */
+  .edit-table-wrap{border-radius:10px;overflow:hidden}
+  .edit-table{font-size:12px}
+  .edit-table th{font-size:9px;padding:6px 8px}
+  .edit-table td{padding:4px 6px}
+  .tbl-input{min-width:70px!important;font-size:13px!important}
+}
+
+/* ══ CHECKLIST MOBILE ══ */
+@media(max-width:640px){
+  .check-item{padding:12px 14px;gap:10px}
+  .check-amount{font-size:12px}
+  .check-name{font-size:13px}
+}
+
+/* ══ DEBT CARDS MOBILE ══ */
+@media(max-width:640px){
+  .debt-card{padding:14px}
+  .debt-name{font-size:14px}
+  .debt-amount{font-size:18px}
+  .debt-meta{gap:6px}
+  .debt-meta-item{padding:6px 10px}
+  .dmi-val{font-size:13px}
+}
+
+/* ══ PROYECTOR MOBILE ══ */
+@media(max-width:640px){
+  .strategy-card{padding:12px}
+  .timeline-item{gap:8px}
+  .timeline-name{font-size:12px}
+  .timeline-date{font-size:10px}
 }
 </style>
 </head>
@@ -635,12 +701,12 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 </div>
 
 <!-- ══ CIERRE DE MES WIZARD ══ -->
-<div id="cierreModal">
+<div id="cierreModal" role="dialog" aria-modal="true" aria-labelledby="cierreModalTitle">
   <div class="cierre-container">
     <div class="cierre-header">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:14px;font-weight:800;color:var(--accent)">🗓 CIERRE DE MES</div>
-        <button class="btn btn-ghost btn-sm" onclick="closeCierre()">✕ Cerrar</button>
+        <div id="cierreModalTitle" style="font-size:14px;font-weight:800;color:var(--accent)">🗓 CIERRE DE MES</div>
+        <button class="btn btn-ghost btn-sm" onclick="closeCierre()" aria-label="Cerrar wizard de cierre de mes">✕ Cerrar</button>
       </div>
       <div class="step-indicator" id="stepDots"></div>
       <div id="cierreSteps"></div>
@@ -653,13 +719,13 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 </div>
 
 <!-- ══ EDIT MODAL ══ -->
-<div id="editModal">
+<div id="editModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
   <div class="edit-container">
     <div class="edit-header">
       <div class="edit-header-left">
         <div class="edit-icon">✏️</div>
         <div>
-          <div class="edit-title">Editar Datos</div>
+          <div class="edit-title" id="editModalTitle">Editar Datos</div>
           <div class="edit-subtitle">Los cambios se aplican al dashboard y puedes descargar el Excel actualizado</div>
         </div>
       </div>
@@ -667,7 +733,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <span class="changes-badge" id="changesBadge" style="display:none">● <span id="changesCount">0</span> cambios</span>
         <button class="btn btn-success" onclick="applyAndDownload()">⬇ Guardar y descargar Excel</button>
         <button class="btn btn-primary" onclick="applyChanges()">✓ Guardar y aplicar al dashboard</button>
-        <button class="btn btn-ghost" onclick="closeEditModal()">✕ Cerrar</button>
+        <button class="btn btn-ghost" onclick="closeEditModal()" aria-label="Cerrar editor de datos">✕ Cerrar</button>
       </div>
     </div>
     <div class="edit-tabs">
@@ -763,6 +829,8 @@ let _pendingSave=false; // tracks unsaved checklist changes
 function showToast(msg,color='var(--green)'){
   const t=document.createElement('div');
   t.textContent=msg;
+  t.setAttribute('role','status');
+  t.setAttribute('aria-live','polite');
   Object.assign(t.style,{position:'fixed',bottom:'28px',left:'50%',transform:'translateX(-50%) translateY(20px)',background:color==='var(--green)'?'#052e16':'#1a1a2e',border:`1px solid ${color}`,color,padding:'10px 20px',borderRadius:'10px',fontSize:'13px',fontWeight:'700',zIndex:'9999',opacity:'0',transition:'all .3s',whiteSpace:'nowrap',boxShadow:'0 4px 20px rgba(0,0,0,.4)'});
   document.body.appendChild(t);
   requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';});
@@ -871,7 +939,7 @@ async function loadFromDB(){
     buildDashboard(_editData);
     document.getElementById('loaderScreen').style.display='none';
     document.getElementById('dashApp').style.display='block';
-    showTab('resumen',document.querySelector('.tab-btn'));
+    navigateToHash();
     showToast('📂 Datos cargados desde memoria local','var(--green)');
   }catch(e){
     showError('Error cargando datos: '+e.message);
@@ -916,6 +984,40 @@ async function autoSave(){
 }
 
 window.addEventListener('load',()=>checkSavedData());
+
+// ══════════════════════════════════
+// SWIPE GESTURES — mobile tab nav
+// ══════════════════════════════════
+(()=>{
+  const TAB_ORDER=['resumen','alertas','checklist','gastos','deudas','proyector','emergency','fornow','historial'];
+  let _tx=0,_ty=0;
+  document.addEventListener('touchstart',e=>{
+    _tx=e.touches[0].clientX;
+    _ty=e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    // Only swipe when dashboard is visible and no modal is open
+    if(document.getElementById('dashApp').style.display==='none')return;
+    if(document.getElementById('editModal').classList.contains('open'))return;
+    if(document.getElementById('cierreModal').classList.contains('open'))return;
+    // Only on mobile (bottom nav visible)
+    if(window.innerWidth>640)return;
+    const dx=e.changedTouches[0].clientX-_tx;
+    const dy=e.changedTouches[0].clientY-_ty;
+    // Must be horizontal swipe (dx > 60px, less vertical movement than horizontal)
+    if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)*0.7)return;
+    const activePanel=document.querySelector('.panel.active');
+    if(!activePanel)return;
+    const curId=activePanel.id.replace('tab-','');
+    const idx=TAB_ORDER.indexOf(curId);
+    if(idx===-1)return;
+    const nextIdx=dx<0?Math.min(idx+1,TAB_ORDER.length-1):Math.max(idx-1,0);
+    if(nextIdx===idx)return;
+    const nextId=TAB_ORDER[nextIdx];
+    const mBtn=document.querySelector(`.mnav-btn[onclick*="'${nextId}'"]`);
+    mobileTab(nextId,mBtn);
+  },{passive:true});
+})();
 
 // ══════════════════════════════════
 // START FROM SCRATCH — Setup Wizard
@@ -1225,7 +1327,7 @@ function processWorkbook(wb,filename){
     buildDashboard({config,gastos,forNow,emerg,historial,filename});
     document.getElementById('loaderScreen').style.display='none';
     document.getElementById('dashApp').style.display='block';
-    showTab('resumen',document.querySelector('.tab-btn'));
+    navigateToHash();
     // Auto-save to IndexedDB so next visit skips Excel upload
     autoSave();
   }catch(err){showError('⚠ Error procesando: '+err.message);console.error(err);}
@@ -1389,14 +1491,14 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta}){
     alertasVenc.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">✅ Sin vencimientos próximos</div>`;
   }
   vencPasados.forEach(g=>{
-    alertasVenc.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🚨</div><div class="alert-text"><div class="alert-title">${g.nombre}</div><div class="alert-sub">Venció hace ${g.daysLate} días — <span style="color:var(--red);font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:var(--red)">-${g.daysLate}d</div></div>`;
+    alertasVenc.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🚨</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">Venció hace ${g.daysLate} días — <span style="color:var(--red);font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:var(--red)">-${g.daysLate}d</div></div>`;
   });
   vencProx.forEach(g=>{
     const cls=g.urgente?'urgent':'warning';
-    alertasVenc.innerHTML+=`<div class="alert-item ${cls}"><div class="alert-icon">${g.urgente?'⚠️':'🔔'}</div><div class="alert-text"><div class="alert-title">${g.nombre}</div><div class="alert-sub">Vence día ${g.dia} — <span style="font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:${g.urgente?'var(--red)':'var(--yellow)'}">${g.daysUntil===0?'¡Hoy!':g.daysUntil+'d'}</div></div>`;
+    alertasVenc.innerHTML+=`<div class="alert-item ${cls}"><div class="alert-icon">${g.urgente?'⚠️':'🔔'}</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">Vence día ${g.dia} — <span style="font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:${g.urgente?'var(--red)':'var(--yellow)'}">${g.daysUntil===0?'¡Hoy!':g.daysUntil+'d'}</div></div>`;
   });
   limProx.forEach(g=>{
-    alertasVenc.innerHTML+=`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${g.nombre} · Fecha límite</div><div class="alert-sub">${g.fl.toLocaleDateString('es-DO',{month:'long',year:'numeric'})} — Balance: <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`;
+    alertasVenc.innerHTML+=`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · Fecha límite</div><div class="alert-sub">${g.fl.toLocaleDateString('es-DO',{month:'long',year:'numeric'})} — Balance: <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`;
   });
   // Update tab dot
   const urgentCount=vencPasados.length+vencProx.filter(g=>g.urgente).length;
@@ -1412,7 +1514,7 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta}){
   const dRatio=ingreso>0?totalBalance/(ingreso*12):1;
   if(dRatio>1.5)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">Deuda muy alta</div><div class="alert-sub">${(dRatio*100).toFixed(0)}% del ingreso anual en deudas</div></div></div>`;
   const altaTasa=gastos.filter(g=>g.tasa>20&&g.balance>0);
-  altaTasa.forEach(g=>ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">Tasa alta: ${g.nombre}</div><div class="alert-sub">${g.tasa}% anual — RD$${fmt(g.balance)} pendiente</div></div></div>`);
+  altaTasa.forEach(g=>ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">Tasa alta: ${escH(g.nombre)}</div><div class="alert-sub">${g.tasa}% anual — RD$${fmt(g.balance)} pendiente</div></div></div>`);
   if(!ag.innerHTML)ag.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">✅ Sin alertas financieras</div>`;
   // SITUACIÓN
   const as=document.getElementById('alertasSit');
@@ -1465,9 +1567,9 @@ function buildChecklist(gastos){
       ${isDone?'✓':''}
     </div>
     <div style="flex:1">
-      <div class="check-name">${g.nombre}</div>
+      <div class="check-name">${escH(g.nombre)}</div>
       <div class="check-day">
-        <span class="pill" style="background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${g.tipo||'—'}</span>
+        <span class="pill" style="background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'—')}</span>
         &nbsp;· Día <strong>${g.dia||'—'}</strong>
         ${isDone?'<span style="color:var(--green);margin-left:8px;font-size:11px;font-weight:700">✓ Pagado este mes</span>':''}
       </div>
@@ -1495,7 +1597,7 @@ function buildChecklist(gastos){
     </div>
     <div class="tbl-wrap"><table><thead><tr><th>Deuda</th><th>Balance</th><th>Tasa %</th><th>Interés Anual</th><th>Interés Mensual</th></tr></thead><tbody>
     ${deudas.sort((a,b)=>b.tasa-a.tasa).map(g=>`<tr>
-      <td style="font-weight:700">${g.nombre}</td>
+      <td style="font-weight:700">${escH(g.nombre)}</td>
       <td class="num" style="color:var(--red)">RD$${fmt(g.balance)}</td>
       <td class="mono" style="color:${g.tasa>20?'var(--red)':'var(--yellow)'};text-align:center">${g.tasa}%</td>
       <td class="num" style="color:var(--red)">RD$${fmt(g.balance*(g.tasa/100))}</td>
@@ -1639,7 +1741,7 @@ function updateProyector(){
         }
         return `<div class="timeline-item">
           <div class="timeline-dot" style="background:${COLORS[i%COLORS.length]}"></div>
-          <div class="timeline-info"><div class="timeline-name">${d.nombre}${deadlineWarn}</div><div class="timeline-date">${Math.floor(d.paidMonth/12)}a ${d.paidMonth%12}m · Tasa ${d.tasa}%</div></div>
+          <div class="timeline-info"><div class="timeline-name">${escH(d.nombre)}${deadlineWarn}</div><div class="timeline-date">${Math.floor(d.paidMonth/12)}a ${d.paidMonth%12}m · Tasa ${d.tasa}%</div></div>
           <div class="timeline-int" style="color:var(--red)">~RD$${fmt(d.interestPaid||0)}<br><span style="font-size:10px;color:var(--muted)">interés total</span></div>
         </div>`;
       }).join('');
@@ -1781,8 +1883,8 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const mesTag=g.adeudado>0?(g.pagadoMes?'<span class="pill" style="background:#052e16;color:#22d3a0;margin-left:4px">✓ Este mes</span>':'<span class="pill" style="background:#2a0a0a;color:#f4606a;margin-left:4px">Pendiente</span>'):'';
     const tc=tipoColors[g.tipo]||'#94a3b8';
     tbody.innerHTML+=`<tr>
-      <td data-label="" style="font-weight:600">${g.nombre}</td>
-      <td data-label="Tipo"><span class="pill" style="background:${tc}22;color:${tc}">${g.tipo||'—'}</span></td>
+      <td data-label="" style="font-weight:600">${escH(g.nombre)}</td>
+      <td data-label="Tipo"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
       <td data-label="Pagado" class="num" style="color:${g.pagado>0?'var(--green)':'var(--muted)'}">${g.pagado>0?'RD$'+fmt(g.pagado):'—'}</td>
       <td data-label="Adeudado" class="num">${g.adeudado>0?'RD$'+fmt(g.adeudado):'—'}</td>
       <td data-label="Día" class="mono" style="color:var(--muted);text-align:center">${g.dia||'—'}</td>
@@ -1796,7 +1898,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   // ── Deuda KPIs ──
   document.getElementById('deudaKpis').innerHTML=[
     {l:'Deuda Total',v:`RD$${fmt(totalBalance)}`,s:`≈ ${fmtUSD(totalBalance/config.tasa)}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
-    {l:'Deuda más cara',v:masCaraDeuda?masCaraDeuda.nombre:'—',s:masCaraDeuda?`${masCaraDeuda.tasa}% anual`:'—',c:'var(--yellow)',b:'rgba(245,200,66,.1)'},
+    {l:'Deuda más cara',v:masCaraDeuda?escH(masCaraDeuda.nombre):'—',s:masCaraDeuda?`${masCaraDeuda.tasa}% anual`:'—',c:'var(--yellow)',b:'rgba(245,200,66,.1)'},
     {l:'Cuota Mensual',v:`RD$${fmt(cuotaDeudas)}`,s:'Suma cuotas préstamos',c:'var(--red)',b:'rgba(244,96,106,.1)'},
     {l:'Avance de Pago',v:`${deudaPct}%`,s:`Pagado RD$${fmt(totalOriginal-totalBalance)}`,c:'var(--accent)',b:'rgba(59,130,246,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:20px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
@@ -1809,7 +1911,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const fStr=d.fechaLimite instanceof Date?d.fechaLimite.toLocaleDateString('es-DO',{month:'short',year:'numeric'}):d.fechaLimite?String(d.fechaLimite).slice(0,7):'—';
     dc.innerHTML+=`<div class="debt-card">
       <div class="debt-header">
-        <div><div class="debt-name">${d.nombre}</div><span class="pill" style="background:${(tipoColors[d.tipo]||'#64748b')}22;color:${tipoColors[d.tipo]||'#94a3b8'};margin-top:4px;display:inline-block">${d.tipo}</span></div>
+        <div><div class="debt-name">${escH(d.nombre)}</div><span class="pill" style="background:${(tipoColors[d.tipo]||'#64748b')}22;color:${tipoColors[d.tipo]||'#94a3b8'};margin-top:4px;display:inline-block">${escH(d.tipo)}</span></div>
         <div style="text-align:right"><div class="debt-amount">RD$${fmt(d.balance)}</div>${d.tasa>0?`<div style="font-size:12px;color:${d.tasa>20?'var(--red)':'var(--yellow)'};margin-top:2px">${d.tasa}% anual</div>`:''}</div>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${pct}% del total de deudas</div>
@@ -1851,7 +1953,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   emerg.fondos.forEach(e=>{
     const pct=e.meta>0?Math.min(Math.round((e.balance/e.meta)*100),100):0;
     const bc=pct>=90?'linear-gradient(90deg,#22d3a0,#06b6d4)':pct>30?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#f4606a,#c026d3)';
-    efEl.innerHTML+=`<div class="ef-row"><div class="ef-header"><div class="ef-name">${e.fondo}</div>
+    efEl.innerHTML+=`<div class="ef-row"><div class="ef-header"><div class="ef-name">${escH(e.fondo)}</div>
       <div class="ef-nums">
         <span style="color:var(--muted)">Balance: <span class="mono" style="color:var(--yellow);font-weight:700">RD$${fmt(e.balance)}</span></span>
         <span style="color:var(--muted)">Meta: <span class="mono" style="color:var(--muted);font-weight:700">RD$${fmt(e.meta)}</span></span>
@@ -1878,7 +1980,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
 
   // ── ForNow ──
   document.getElementById('forNowKpis').innerHTML=forNow.cuentas.slice(0,4).map(c=>
-    `<div class="card"><div class="card-title">${c.nombre}</div><div class="kpi-val" style="color:${c.saldo>0?'var(--green)':'var(--muted)'};font-size:22px">RD$${fmt(c.saldo)}</div><div class="kpi-sub">Saldo actual</div></div>`
+    `<div class="card"><div class="card-title">${escH(c.nombre)}</div><div class="kpi-val" style="color:${c.saldo>0?'var(--green)':'var(--muted)'};font-size:22px">RD$${fmt(c.saldo)}</div><div class="kpi-sub">Saldo actual</div></div>`
   ).join('');
   const fDate=forNow.fecha instanceof Date?forNow.fecha.toLocaleDateString('es-DO',{day:'2-digit',month:'long',year:'numeric'}):forNow.fecha?String(forNow.fecha).slice(0,10):'—';
   document.getElementById('forNowDetail').innerHTML=`<div class="card-title">Disponibilidad · Actualizado ${fDate}</div>
@@ -1964,7 +2066,7 @@ function buildHistorial(historial,config){
     const ahorroColor=h.ahorro<0?'var(--red)':'var(--green)';
     const tasaStr=typeof h.tasaAhorro==='number'?(h.tasaAhorro*100).toFixed(1)+'%':String(h.tasaAhorro||'—');
     hb.innerHTML+=`<tr>
-      <td data-label="" style="font-weight:700">${h.mes} ${h.anio}</td>
+      <td data-label="" style="font-weight:700">${escH(h.mes)} ${h.anio}</td>
       <td data-label="Ingresos" class="num" style="color:var(--green)">RD$${fmt(h.ingresos)}</td>
       <td data-label="Gasto" class="num" style="color:var(--red)">RD$${fmt(h.gasto)}</td>
       <td data-label="Ahorro Neto" class="num" style="color:${ahorroColor}">${h.ahorro<0?'(RD$'+fmt(Math.abs(h.ahorro))+')':'RD$'+fmt(h.ahorro)}</td>
@@ -2024,6 +2126,7 @@ function openCierre(){
   document.getElementById('cierreModal').classList.add('open');
   document.body.style.overflow='hidden';
   renderCierre();
+  setTimeout(()=>{const f=document.querySelector('#cierreModal button,#cierreModal input');if(f)f.focus();},100);
 }
 function closeCierre(){document.getElementById('cierreModal').classList.remove('open');document.body.style.overflow='';}
 function renderCierre(){
@@ -2038,7 +2141,7 @@ function renderCierre(){
       let label=c.nombre;
       seen[label]=(seen[label]||0)+1;
       if(seen[label]>1)label=`${label} (${seen[label]})`;
-      return `<div class="cierre-field"><label class="cierre-label">${label}</label><input class="cierre-input" type="number" step="any" placeholder="${fmt(c.saldo)}" id="cw-saldo-${escH(c.nombre)}-${seen[label]}" value="${c.saldo||0}"></div>`;
+      return `<div class="cierre-field"><label class="cierre-label">${escH(label)}</label><input class="cierre-input" type="number" step="any" placeholder="${fmt(c.saldo)}" id="cw-saldo-${escH(c.nombre)}-${seen[label]}" value="${c.saldo||0}"></div>`;
     }).join('');
   } else if(_cierreStep===6){
     // Resumen
@@ -2126,9 +2229,46 @@ function showTab(id,btn){
   if(id==='proyector')updateProyector();
 }
 
+// Handle URL hash for PWA shortcuts (manifest shortcuts use #checklist, #cierre)
+function navigateToHash(){
+  const hash=window.location.hash;
+  const tabMap={
+    '#checklist':'checklist',
+    '#gastos':'gastos',
+    '#deudas':'deudas',
+    '#alertas':'alertas',
+    '#proyector':'proyector',
+    '#emergency':'emergency',
+    '#fornow':'fornow',
+    '#historial':'historial',
+  };
+  if(hash==='#cierre'){
+    showTab('resumen',document.querySelector('.tab-btn'));
+    syncMobileNav('resumen');
+    setTimeout(()=>openCierre(),300);
+  } else if(tabMap[hash]){
+    const id=tabMap[hash];
+    const btn=document.querySelector(`.tab-btn[onclick*="'${id}'"]`);
+    showTab(id,btn);
+    syncMobileNav(id);
+  } else {
+    showTab('resumen',document.querySelector('.tab-btn'));
+    syncMobileNav('resumen');
+  }
+}
+
+// Sync mobile bottom nav active state to match a tab id
+function syncMobileNav(id){
+  document.querySelectorAll('.mnav-btn').forEach(b=>{
+    b.classList.remove('active');
+    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes(`'${id}'`))b.classList.add('active');
+  });
+}
+
 // Mobile bottom nav — syncs with desktop tabs
 function mobileTab(id,btn){
-  showTab(id,null);
+  const desktopBtn=document.querySelector(`.tab-btn[onclick*="'${id}'"]`);
+  showTab(id,desktopBtn);
   document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
   // Sync alert dot on mobile alertas button
@@ -2155,6 +2295,13 @@ document.addEventListener('click',e=>{
   const om=document.getElementById('hdrOverflowMenu');
   if(om&&ob&&!ob.contains(e.target)&&!om.contains(e.target))om.classList.remove('open');
 });
+// Close modals on Escape key
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('editModal')?.classList.contains('open'))closeEditModal();
+    else if(document.getElementById('cierreModal')?.classList.contains('open'))closeCierre();
+  }
+});
 
 // ══════════════════════════════════
 // EDIT MODE
@@ -2164,7 +2311,7 @@ let _rawWb=null;
 let _changesCount=0;
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
-function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';}
+function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';}
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 
