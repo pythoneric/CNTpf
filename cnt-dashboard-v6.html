@@ -373,28 +373,52 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div class="lcard">
     <div class="drop-zone-icon">📊</div>
     <h2>CNT Core · Dashboard</h2>
-    <p>Selecciona o arrastra tu archivo <strong>cnt.xlsx</strong> para cargar o actualizar el dashboard.<br>
+    <p style="margin-bottom:20px">Elige cómo empezar.<br>
     <span style="font-size:11px;color:var(--green)">🔒 Tus datos nunca salen de tu dispositivo.</span></p>
 
-    <!-- Saved data banner — shown when IndexedDB has data -->
-    <div id="savedDataBanner" style="display:none;margin-bottom:16px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.25);border-radius:12px;padding:14px 16px;text-align:left">
-      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:4px">✅ Datos guardados encontrados</div>
-      <div style="font-size:12px;color:var(--muted)" id="savedDataInfo">—</div>
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn btn-success btn-sm" onclick="loadFromDB()" style="flex:1">▶ Abrir datos guardados</button>
-        <button class="btn btn-ghost btn-sm" onclick="clearDB()" style="color:var(--red);border-color:rgba(244,96,106,.3)">🗑 Borrar</button>
+    <!-- Option 1: Saved data (hidden until IndexedDB has data) -->
+    <div id="savedDataBanner" style="display:none;margin-bottom:12px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.25);border-radius:12px;padding:14px 16px;text-align:left">
+      <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px">✅ Datos guardados</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="savedDataInfo">—</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-success btn-sm" onclick="loadFromDB()" style="flex:1">▶ Continuar donde lo dejé</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearDB()" style="color:var(--red);border-color:rgba(244,96,106,.3)" title="Borrar datos guardados">🗑</button>
       </div>
     </div>
 
-    <label for="fileInput" style="display:block">
+    <!-- Divider -->
+    <div id="loaderDivider" style="display:flex;align-items:center;gap:10px;margin:14px 0;display:none">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-size:11px;color:var(--muted);white-space:nowrap">o empieza de otra forma</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+
+    <!-- Option 2: Upload Excel -->
+    <label for="fileInput" style="display:block;margin-bottom:10px">
       <div class="drop-zone" id="dropZone"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
-        <div class="drop-zone-icon" style="font-size:32px;margin-bottom:8px">📂</div>
-        <div class="drop-zone-text">Seleccionar archivo .xlsx</div>
-        <div class="drop-zone-sub">o arrastra el archivo aquí · <span>actualiza los datos guardados</span></div>
+        <div style="font-size:26px;margin-bottom:6px">📂</div>
+        <div class="drop-zone-text">Importar archivo .xlsx</div>
+        <div class="drop-zone-sub">Arrastra o toca para seleccionar · <span>actualiza datos existentes</span></div>
       </div>
     </label>
     <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="loadFile(event)">
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:10px;margin:14px 0">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-size:11px;color:var(--muted);white-space:nowrap">o</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+
+    <!-- Option 3: Start from scratch -->
+    <button class="btn btn-ghost" onclick="startFromScratch()" style="width:100%;justify-content:center;border-style:dashed;gap:10px;padding:14px">
+      <span style="font-size:20px">✨</span>
+      <div style="text-align:left">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Empezar desde cero</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Configuro el dashboard con un asistente y genero mi Excel inicial</div>
+      </div>
+    </button>
 
     <div id="errorMsg"></div>
     <div id="loadingSpinner"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)">Procesando…</div></div>
@@ -577,6 +601,35 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <th style="text-align:right">Ahorro Neto</th><th style="text-align:right">Tasa Ahorro</th><th style="text-align:right">Deudas (RD$)</th><th style="text-align:right">Emergencia (RD$)</th><th style="text-align:right">Net Worth (RD$)</th><th style="text-align:right">Tasa $</th>
       </tr></thead><tbody id="histBody"></tbody></table></div>
       <div class="hist-note">📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SETUP WIZARD (Start from Scratch) ══ -->
+<div id="setupModal" style="position:fixed;inset:0;z-index:700;background:rgba(6,9,18,.96);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px;align-items:flex-start;justify-content:center">
+  <div style="max-width:560px;width:100%;margin:auto">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px">
+
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+        <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">✨</div>
+        <div>
+          <div style="font-size:18px;font-weight:800">Configuración inicial</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Completa estos pasos para generar tu dashboard</div>
+        </div>
+      </div>
+
+      <!-- Step dots -->
+      <div style="display:flex;gap:6px;margin-bottom:24px" id="setupDots"></div>
+
+      <!-- Step content -->
+      <div id="setupContent"></div>
+
+      <!-- Nav -->
+      <div style="display:flex;gap:10px;justify-content:space-between;margin-top:24px">
+        <button class="btn btn-ghost" id="setupPrev" onclick="setupNav(-1)">← Anterior</button>
+        <button class="btn btn-primary" id="setupNext" onclick="setupNav(1)">Siguiente →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -845,10 +898,12 @@ async function checkSavedData(){
     if(meta){
       const banner=document.getElementById('savedDataBanner');
       const info=document.getElementById('savedDataInfo');
+      const divider=document.getElementById('loaderDivider');
       const d=new Date(meta.savedAt);
       const when=d.toLocaleDateString('es-DO',{weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
       info.textContent=`${meta.mes||'—'} ${meta.anio||''} · ${meta.filename} · Guardado ${when}`;
       banner.style.display='block';
+      if(divider) divider.style.display='flex';
     }
   }catch(e){/* no data yet */}
 }
@@ -861,6 +916,267 @@ async function autoSave(){
 }
 
 window.addEventListener('load',()=>checkSavedData());
+
+// ══════════════════════════════════
+// START FROM SCRATCH — Setup Wizard
+// ══════════════════════════════════
+function defaultEditData(){
+  const now=new Date();
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  return{
+    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5},
+    gastos:[],
+    forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
+    emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,resta:0,ahorros:0,balanceAhorros:0}},
+    historial:[],
+    filename:'cnt.xlsx'
+  };
+}
+
+function startFromScratch(){
+  _editData=defaultEditData();
+  _rawWb=null;
+  _setupStep=0;
+  document.getElementById('setupModal').style.display='flex';
+  document.body.style.overflow='hidden';
+  renderSetup();
+}
+function closeSetup(){
+  document.getElementById('setupModal').style.display='none';
+  document.body.style.overflow='';
+}
+
+let _setupStep=0;
+const _setupSteps=[
+  {
+    title:'Paso 1 · Parámetros básicos',
+    sub:'Define el período y tu ingreso mensual',
+    render:()=>`
+      <div style="margin-bottom:14px">
+        <label class="cierre-label">Mes actual</label>
+        <select class="cierre-input" id="sw-mes" style="cursor:pointer">
+          ${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+            .map(m=>`<option value="${m}" ${m===_editData.config.mes?'selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="cierre-label">Año</label><input class="cierre-input" type="number" id="sw-anio" value="${_editData.config.anio}"></div>
+        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="number" step="0.01" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5"></div>
+      </div>
+      <div style="margin-top:14px"><label class="cierre-label">Ingreso mensual (USD)</label><input class="cierre-input" type="number" id="sw-ingreso" value="${_editData.config.ingresoUSD||''}" placeholder="ej. 4000"></div>
+      <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="number" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
+    `,
+    save:()=>{
+      _editData.config.mes=document.getElementById('sw-mes').value;
+      _editData.config.anio=parseInt(document.getElementById('sw-anio').value)||new Date().getFullYear();
+      _editData.config.tasa=parseFloat(document.getElementById('sw-tasa').value)||60;
+      _editData.config.ingresoUSD=parseFloat(document.getElementById('sw-ingreso').value)||0;
+      _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
+      _editData.config.diasAlerta=parseInt(document.getElementById('sw-alerta').value)||5;
+      _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
+      _editData.emerg.cashflow.tasa=_editData.config.tasa;
+    }
+  },
+  {
+    title:'Paso 2 · Cuentas disponibles',
+    sub:'¿En qué cuentas tienes dinero ahora mismo?',
+    render:()=>`
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Agrega tus cuentas de disponibilidad inmediata (corriente, ahorro, cash, etc.)</div>
+      <div id="sw-cuentas-list">
+        ${_editData.forNow.cuentas.length===0
+          ? renderSwCuenta(0,{nombre:'',saldo:0})
+          : _editData.forNow.cuentas.map((c,i)=>renderSwCuenta(i,c)).join('')}
+      </div>
+      <button class="row-add-btn" onclick="addSwCuenta()" style="margin-top:8px">+ Agregar cuenta</button>
+    `,
+    save:()=>{
+      const rows=document.querySelectorAll('.sw-cuenta-row');
+      _editData.forNow.cuentas=[];
+      rows.forEach(row=>{
+        const nombre=row.querySelector('.sw-cnt-nombre').value.trim();
+        const saldo=parseFloat(row.querySelector('.sw-cnt-saldo').value)||0;
+        if(nombre) _editData.forNow.cuentas.push({nombre,saldo,comp:0,disp:saldo});
+      });
+      _editData.forNow.total=_editData.forNow.cuentas.reduce((a,c)=>a+c.saldo,0);
+      _editData.forNow.fecha=new Date();
+    }
+  },
+  {
+    title:'Paso 3 · Gastos & compromisos',
+    sub:'Agrega tus gastos fijos, deudas y cuotas mensuales',
+    render:()=>`
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Agrega al menos tus compromisos principales. Puedes agregar más después desde Editar.</div>
+      <div id="sw-gastos-list">
+        ${_editData.gastos.length===0
+          ? renderSwGasto(0,{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0})
+          : _editData.gastos.map((g,i)=>renderSwGasto(i,g)).join('')}
+      </div>
+      <button class="row-add-btn" onclick="addSwGasto()" style="margin-top:8px">+ Agregar gasto/deuda</button>
+    `,
+    save:()=>{
+      const rows=document.querySelectorAll('.sw-gasto-row');
+      _editData.gastos=[];
+      rows.forEach(row=>{
+        const nombre=row.querySelector('.sw-g-nombre').value.trim();
+        if(!nombre)return;
+        const adeudado=parseFloat(row.querySelector('.sw-g-adeudado').value)||0;
+        const dia=parseInt(row.querySelector('.sw-g-dia').value)||1;
+        const tasa=parseFloat(row.querySelector('.sw-g-tasa').value)||0;
+        const balance=parseFloat(row.querySelector('.sw-g-balance').value)||0;
+        const tipo=row.querySelector('.sw-g-tipo').value;
+        _editData.gastos.push({nombre,tipo,pagado:0,adeudado,dia,tasa,balance,originalRD:balance||adeudado,originalUSD:0,fechaLimite:null,notas:'',pagadoMes:false});
+      });
+      const totalGasto=_editData.gastos.reduce((a,g)=>a+g.adeudado,0);
+      _editData.emerg.cashflow.gasto=totalGasto;
+      _editData.emerg.cashflow.resta=_editData.emerg.cashflow.ingreso-totalGasto;
+    }
+  },
+  {
+    title:'Paso 4 · Fondos de emergencia',
+    sub:'¿Tienes fondos de emergencia o metas de ahorro?',
+    render:()=>`
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Opcional. Define tus fondos de emergencia con su balance actual y meta mínima.</div>
+      <div id="sw-fondos-list">
+        ${_editData.emerg.fondos.length===0
+          ? renderSwFondo(0,{fondo:'',balance:0,meta:0,aportado:0})
+          : _editData.emerg.fondos.map((f,i)=>renderSwFondo(i,f)).join('')}
+      </div>
+      <button class="row-add-btn" onclick="addSwFondo()" style="margin-top:8px">+ Agregar fondo</button>
+      <div style="margin-top:16px">
+        <label class="cierre-label">Balance de ahorros acumulados (RD$)</label>
+        <input class="cierre-input" type="number" id="sw-balAh" value="${_editData.emerg.cashflow.balanceAhorros||0}" placeholder="0">
+      </div>
+    `,
+    save:()=>{
+      const rows=document.querySelectorAll('.sw-fondo-row');
+      _editData.emerg.fondos=[];
+      rows.forEach(row=>{
+        const fondo=row.querySelector('.sw-f-nombre').value.trim();
+        if(!fondo)return;
+        const balance=parseFloat(row.querySelector('.sw-f-balance').value)||0;
+        const meta=parseFloat(row.querySelector('.sw-f-meta').value)||0;
+        _editData.emerg.fondos.push({fondo,balance,meta,aportado:0,falta:Math.max(0,meta-balance)});
+      });
+      _editData.emerg.cashflow.balanceAhorros=parseFloat(document.getElementById('sw-balAh').value)||0;
+    }
+  },
+  {
+    title:'Paso 5 · ¡Listo!',
+    sub:'Tu dashboard está configurado',
+    render:()=>{
+      const cf=_editData.emerg.cashflow;
+      const ingreso=_editData.config.ingresoRD;
+      const gasto=cf.gasto||0;
+      const items=[
+        ['Período',`${_editData.config.mes} ${_editData.config.anio}`],
+        ['Tasa Dólar',`RD$ ${_editData.config.tasa}`],
+        ['Ingreso',`${fmtUSD(_editData.config.ingresoUSD)} = RD$ ${fmt(ingreso)}`],
+        ['Gastos/Cuotas',`RD$ ${fmt(gasto)} · ${_editData.gastos.length} ítems`],
+        ['Cuentas',`${_editData.forNow.cuentas.length} cuentas · RD$ ${fmt(_editData.forNow.total)}`],
+        ['Fondos emergencia',`${_editData.emerg.fondos.length} fondos`],
+      ];
+      return`<div style="background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:16px">
+        ${items.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--muted)">${l}</span><span style="font-weight:700;font-family:var(--mono)">${v}</span></div>`).join('')}
+      </div>
+      <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:12px;font-size:12px;color:var(--muted);line-height:1.7">
+        Al confirmar:<br>
+        ✅ Se lanza el dashboard con tus datos<br>
+        ✅ Se descarga <strong>cnt.xlsx</strong> con la estructura inicial<br>
+        ✅ Los datos quedan guardados localmente
+      </div>`;
+    },
+    save:()=>{}
+  }
+];
+
+function renderSwCuenta(i,c){
+  return`<div class="sw-cuenta-row" style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
+    <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
+    <input class="cierre-input sw-cnt-saldo" type="number" placeholder="Saldo RD$" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
+    <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
+  </div>`;
+}
+function addSwCuenta(){
+  document.getElementById('sw-cuentas-list').insertAdjacentHTML('beforeend',renderSwCuenta(Date.now(),{nombre:'',saldo:0}));
+}
+
+function renderSwGasto(i,g){
+  const tipos=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
+  return`<div class="sw-gasto-row" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:8px;align-items:center">
+      <input class="cierre-input sw-g-nombre" placeholder="Descripción" value="${escH(g.nombre)}" style="font-size:14px;padding:8px 10px">
+      <select class="cierre-input sw-g-tipo" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto">
+        ${tipos.map(t=>`<option value="${t}" ${t===g.tipo?'selected':''}>${t}</option>`).join('')}
+      </select>
+      <button class="row-del-btn" onclick="this.closest('.sw-gasto-row').remove()">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (RD$)</div><input class="cierre-input sw-g-adeudado" type="number" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="number" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="number" step="0.01" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="number" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+    </div>
+  </div>`;
+}
+function addSwGasto(){
+  document.getElementById('sw-gastos-list').insertAdjacentHTML('beforeend',renderSwGasto(Date.now(),{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0}));
+}
+
+function renderSwFondo(i,f){
+  return`<div class="sw-fondo-row" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
+    <input class="cierre-input sw-f-nombre" placeholder="Nombre fondo" value="${escH(f.fondo)}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-balance" type="number" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-meta" type="number" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
+    <button class="row-del-btn" onclick="this.closest('.sw-fondo-row').remove()">✕</button>
+  </div>`;
+}
+function addSwFondo(){
+  document.getElementById('sw-fondos-list').insertAdjacentHTML('beforeend',renderSwFondo(Date.now(),{fondo:'',balance:0,meta:0}));
+}
+
+function renderSetup(){
+  const total=_setupSteps.length;
+  const s=_setupSteps[_setupStep];
+  // Dots
+  document.getElementById('setupDots').innerHTML=_setupSteps.map((_,i)=>`
+    <div style="width:${i===_setupStep?'24px':'10px'};height:10px;border-radius:99px;background:${i===_setupStep?'var(--accent)':i<_setupStep?'var(--green)':'var(--border)'};transition:all .3s"></div>
+  `).join('');
+  // Content
+  document.getElementById('setupContent').innerHTML=`
+    <div style="margin-bottom:6px;font-size:16px;font-weight:800">${s.title}</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:18px">${s.sub}</div>
+    ${s.render()}
+  `;
+  // Buttons
+  document.getElementById('setupPrev').style.visibility=_setupStep===0?'hidden':'visible';
+  document.getElementById('setupNext').textContent=_setupStep===total-1?'✓ Crear dashboard':'Siguiente →';
+  document.getElementById('setupNext').className=`btn ${_setupStep===total-1?'btn-success':'btn-primary'}`;
+}
+
+function setupNav(dir){
+  if(dir===1){
+    // Save current step
+    _setupSteps[_setupStep].save();
+    if(_setupStep===_setupSteps.length-1){
+      // Final confirm — launch dashboard
+      closeSetup();
+      buildDashboard(_editData);
+      document.getElementById('loaderScreen').style.display='none';
+      document.getElementById('dashApp').style.display='block';
+      showTab('resumen',document.querySelector('.tab-btn'));
+      autoSave();
+      generateExcel();
+      showToast('✨ Dashboard creado · Excel descargado como punto de partida','var(--accent)');
+      // Open edit modal so they can keep adding data
+      setTimeout(()=>openEditModal(),1200);
+      return;
+    }
+    _setupStep++;
+  } else {
+    if(_setupStep>0) _setupStep--;
+  }
+  renderSetup();
+}
 function toggleTheme(){
   document.body.classList.toggle('light');
   document.getElementById('themeBtn').textContent=document.body.classList.contains('light')?'🌙':'☀️';
