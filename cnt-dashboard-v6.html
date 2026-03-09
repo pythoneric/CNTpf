@@ -1561,15 +1561,14 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
   limProx.forEach(g=>{
     alertasVenc.innerHTML+=`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · Fecha límite</div><div class="alert-sub">${fmtFecha(g.fl,{day:'numeric',month:'long',year:'numeric'})} — Balance: <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`;
   });
-  // Update tab dot
+  // ALERTAS GENERALES — declare ag first so tab-dot logic can reference it
+  const ag=document.getElementById('alertasGen');ag.innerHTML='';
+  // Update tab dot (ag must be declared before this)
   const urgentCount=vencPasados.length+vencProx.filter(g=>g.urgente).length;
-  const hasFinAlert=ag.innerHTML&&!ag.innerHTML.includes('Sin alertas');
   const tabAl=document.getElementById('tabAlertas');
   const existDot=tabAl.querySelector('.alert-dot');
   if(existDot)existDot.remove();
-  if(urgentCount>0||hasFinAlert)tabAl.innerHTML=`🔔 Alertas <span class="alert-dot"></span>`;
-  // ALERTAS GENERALES
-  const ag=document.getElementById('alertasGen');ag.innerHTML='';
+  if(urgentCount>0)tabAl.innerHTML=`🔔 Alertas <span class="alert-dot"></span>`;
   const gpct=ingreso>0?gasto/ingreso:1;
   if(gpct>1)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🔴</div><div class="alert-text"><div class="alert-title">Gastos superan ingresos</div><div class="alert-sub">Estás gastando ${Math.round((gpct-1)*100)}% más de lo que ingresas</div></div></div>`;
   else if(gpct>0.85)ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">⚠️</div><div class="alert-text"><div class="alert-title">Gastos elevados</div><div class="alert-sub">${Math.round(gpct*100)}% del ingreso comprometido</div></div></div>`;
