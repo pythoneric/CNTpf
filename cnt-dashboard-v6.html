@@ -920,6 +920,9 @@ window.addEventListener('load',()=>checkSavedData());
 // ══════════════════════════════════
 // START FROM SCRATCH — Setup Wizard
 // ══════════════════════════════════
+let _setupStep=0;
+// _setupSteps defined below after helper render functions
+
 function defaultEditData(){
   const now=new Date();
   const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -946,8 +949,7 @@ function closeSetup(){
   document.body.style.overflow='';
 }
 
-let _setupStep=0;
-const _setupSteps=[
+var _setupSteps=[
   {
     title:'Paso 1 · Parámetros básicos',
     sub:'Define el período y tu ingreso mensual',
