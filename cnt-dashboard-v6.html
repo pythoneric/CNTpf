@@ -488,9 +488,27 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
     <div id="errorMsg"></div>
     <div id="loadingSpinner"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)">Procesando…</div></div>
+
+    <!-- Cache reset — útil cuando los cambios no aparecen -->
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);text-align:center">
+      <button onclick="hardResetCache()" title="Limpia el Service Worker y caché, luego recarga desde el servidor"
+        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font);transition:all .2s"
+        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        🔄 Limpiar caché · Forzar actualización
+      </button>
+    </div>
   </div>
 
-  <div style="font-size:11px;color:var(--muted);text-align:center">Funciona sin conexión · Todo procesado localmente · Datos guardados en tu navegador</div>
+  <div style="display:flex;align-items:center;gap:16px;justify-content:center;flex-wrap:wrap">
+    <div style="font-size:11px;color:var(--muted);text-align:center">Funciona sin conexión · Todo procesado localmente · Datos guardados en tu navegador</div>
+    <button onclick="hardResetCache()" title="Limpiar caché del Service Worker y recargar"
+      style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .2s"
+      onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      🔄 Limpiar caché
+    </button>
+  </div>
 </div>
 
 <!-- ══ DASHBOARD ══ -->
@@ -1535,7 +1553,7 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta}){
     alertasVenc.innerHTML+=`<div class="alert-item ${cls}"><div class="alert-icon">${g.urgente?'⚠️':'🔔'}</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">Vence día ${g.dia} — <span style="font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:${g.urgente?'var(--red)':'var(--yellow)'}">${g.daysUntil===0?'¡Hoy!':g.daysUntil+'d'}</div></div>`;
   });
   limProx.forEach(g=>{
-    alertasVenc.innerHTML+=`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · Fecha límite</div><div class="alert-sub">${g.fl.toLocaleDateString('es-DO',{month:'long',year:'numeric'})} — Balance: <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`;
+    alertasVenc.innerHTML+=`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · Fecha límite</div><div class="alert-sub">${fmtFecha(g.fl,{day:'numeric',month:'long',year:'numeric'})} — Balance: <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`;
   });
   // Update tab dot
   const urgentCount=vencPasados.length+vencProx.filter(g=>g.urgente).length;
@@ -2141,7 +2159,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   allDeudas.forEach(d=>{
     const pct=totalBalance>0?Math.round((d.balance/totalBalance)*100):0;
     const bc=d.tasa>20?'linear-gradient(90deg,#f4606a,#fb923c)':d.tasa>0?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#93c5fd,#818cf8)';
-    const fStr=d.fechaLimite instanceof Date?d.fechaLimite.toLocaleDateString('es-DO',{month:'short',year:'numeric'}):d.fechaLimite?String(d.fechaLimite).slice(0,7):'—';
+    const fStr=fmtFecha(d.fechaLimite,{month:'short',year:'numeric'});
     dc.innerHTML+=`<div class="debt-card">
       <div class="debt-header">
         <div><div class="debt-name">${escH(d.nombre)}</div><span class="pill" style="background:${(tipoColors[d.tipo]||'#64748b')}22;color:${tipoColors[d.tipo]||'#94a3b8'};margin-top:4px;display:inline-block">${escH(d.tipo)}</span></div>
@@ -2547,6 +2565,13 @@ function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(
 function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';}
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function fmtFecha(f,opts){
+  // Normaliza cualquier formato de fecha (Date, string ISO, string larga) a fecha local en español
+  if(!f)return'—';
+  const d=f instanceof Date?f:new Date(f);
+  if(isNaN(d.getTime()))return'—';
+  return d.toLocaleDateString('es-DO',opts||{day:'numeric',month:'short',year:'numeric'});
+}
 
 function buildEditForms(){
   const {config,gastos,forNow,emerg,historial}=_editData;
