@@ -764,8 +764,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       </div>
       <div class="edit-actions">
         <span class="changes-badge" id="changesBadge" style="display:none">● <span id="changesCount">0</span> cambios</span>
-        <button class="btn btn-success" onclick="applyAndDownload()">⬇ Guardar y descargar Excel</button>
-        <button class="btn btn-primary" onclick="applyChanges()">✓ Guardar y aplicar al dashboard</button>
+        <button class="btn btn-success" onclick="applyAndDownload()">💾 Guardar y exportar Excel</button>
+        <button class="btn btn-primary" onclick="applyChanges()">✓ Guardar</button>
         <button class="btn btn-ghost" onclick="closeEditModal()" aria-label="Cerrar editor de datos">✕ Cerrar</button>
       </div>
     </div>
@@ -824,8 +824,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     </div>
     <div class="save-bar">
       <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn btn-success" onclick="applyAndDownload()">⬇ Guardar y descargar Excel</button>
-        <button class="btn btn-primary" onclick="applyChanges()">✓ Guardar y aplicar al dashboard</button>
+        <button class="btn btn-success" onclick="applyAndDownload()">💾 Guardar y exportar Excel</button>
+        <button class="btn btn-primary" onclick="applyChanges()">✓ Guardar</button>
       </div>
     </div>
   </div>
@@ -2668,8 +2668,8 @@ function readConfigFromForm(){
   _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
   _editData.forNow.fecha=document.getElementById('fornow-fecha')?.value||null;
 }
-function applyChanges(){readConfigFromForm();closeEditModal();buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast('✓ Cambios guardados localmente');}
-function applyAndDownload(){readConfigFromForm();closeEditModal();buildDashboard({..._editData,filename:_editData.filename});generateExcel();autoSave();}
+function applyChanges(){readConfigFromForm();buildDashboard({..._editData,filename:_editData.filename});autoSave();closeEditModal();showToast('✓ Cambios guardados y aplicados');}
+function applyAndDownload(){readConfigFromForm();buildDashboard({..._editData,filename:_editData.filename});autoSave();generateExcel();closeEditModal();}
 
 // ══════════════════════════════════
 // EXCEL EXPORT
