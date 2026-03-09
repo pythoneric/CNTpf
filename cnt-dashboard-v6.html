@@ -513,6 +513,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleTheme()" id="themeBtn" title="Modo claro/oscuro">☀️</button>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="exportSnapshot()" title="Exportar snapshot PDF">📸</button>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="resetLoader()">↩</button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="hardResetCache()" title="Limpiar caché y recargar" style="font-size:15px">🔄</button>
       <!-- Mobile overflow menu -->
       <div id="hdrOverflow">
         <button class="hdr-btn" onclick="toggleOverflow()" id="overflowBtn" title="Más opciones">⋯</button>
@@ -522,6 +523,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
           <button class="overflow-item" onclick="toggleTheme();closeOverflow()" id="themeBtnMobile">☀️ Cambiar tema</button>
           <button class="overflow-item" onclick="exportSnapshot();closeOverflow()">📸 Exportar PDF</button>
           <button class="overflow-item" onclick="resetLoader();closeOverflow()">↩ Cambiar archivo</button>
+          <button class="overflow-item" onclick="hardResetCache();closeOverflow()">🔄 Limpiar caché</button>
         </div>
       </div>
     </div>
@@ -1308,6 +1310,28 @@ function resetLoader(){
   document.getElementById('loadingSpinner').style.display='none';
   document.getElementById('fileInput').value='';
   destroyCharts();
+}
+async function hardResetCache(){
+  const btn=event?.currentTarget;
+  if(btn){btn.style.opacity='0.5';btn.style.pointerEvents='none';}
+  try{
+    // 1. Unregister all Service Workers
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+    // 2. Clear all Cache Storage caches
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+    // 3. Show brief toast then hard reload
+    showToast('🔄 Caché limpiado — recargando...');
+    setTimeout(()=>location.reload(true),800);
+  }catch(e){
+    showToast('⚠ Error al limpiar caché: '+e.message);
+    if(btn){btn.style.opacity='';btn.style.pointerEvents='';}
+  }
 }
 function processFile(file){
   if(!file.name.match(/\.(xlsx|xls)$/i)){showError('⚠ Solo se aceptan archivos .xlsx o .xls');return;}
