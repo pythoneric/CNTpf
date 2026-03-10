@@ -40,18 +40,18 @@ body::after{content:'';position:fixed;top:-300px;right:-200px;width:700px;height
 .z1{position:relative;z-index:1}
 
 /* ══ LOADER ══ */
-#loaderScreen{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:24px}
+#loaderScreen{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:12px 24px;overflow-y:auto}
 .loader-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 20px var(--accent),0 0 40px rgba(59,130,246,.3);animation:pulse 2.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.85)}}
-.loader-logo{display:flex;align-items:center;gap:14px;width:100%;max-width:420px}
-.loader-title{font-size:30px;font-weight:800;letter-spacing:-.03em}
+.loader-logo{display:flex;align-items:center;gap:14px;width:100%;max-width:440px}
+.loader-title{font-size:18px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
 .loader-label{font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
-.lcard{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:32px;width:100%;max-width:440px;text-align:center}
-.lcard h2{font-size:18px;font-weight:800;margin-bottom:8px}
-.lcard p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px}
-.drop-zone{border:2px dashed var(--border);border-radius:14px;padding:36px 20px;transition:all .25s;cursor:pointer}
+.lcard{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:18px 24px;width:100%;max-width:440px;text-align:center}
+.lcard h2{font-size:17px;font-weight:800;margin-bottom:3px}
+.lcard p{font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:10px}
+.drop-zone{border:2px dashed var(--border);border-radius:14px;padding:12px 20px;transition:all .25s;cursor:pointer}
 .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(59,130,246,.05)}
-.drop-zone-icon{font-size:42px;margin-bottom:10px}
+.drop-zone-icon{font-size:24px;margin-bottom:2px}
 .drop-zone-text{font-size:14px;font-weight:600;color:var(--text)}
 .drop-zone-sub{font-size:12px;color:var(--muted);margin-top:6px}
 .drop-zone-sub span{color:var(--accent);font-weight:600}
