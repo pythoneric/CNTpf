@@ -900,8 +900,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 // ══════════════════════════════════
 // HELPERS
 // ══════════════════════════════════
-const fmt=n=>{if(n===undefined||n===null||isNaN(n))return'—';return Math.abs(n).toLocaleString('es-DO',{maximumFractionDigits:0})};
-const fmtUSD=n=>n===undefined||isNaN(n)?'—':'$'+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0});
+const fmt=n=>{if(n===undefined||n===null||isNaN(n))return'—';return Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0})};
+const fmtUSD=n=>n===undefined||isNaN(n)?'—':'$'+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});
 const clean=v=>{
   if(v===null||v===undefined)return 0;
   if(typeof v==='number')return v;
@@ -1199,18 +1199,48 @@ const _setupSteps=[
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div><label class="cierre-label">Año</label><input class="cierre-input" type="number" id="sw-anio" value="${_editData.config.anio}"></div>
-        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="number" step="0.01" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5"></div>
+        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="number" step="0.01" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
       </div>
-      <div style="margin-top:14px"><label class="cierre-label">Ingreso mensual (USD)</label><input class="cierre-input" type="number" id="sw-ingreso" value="${_editData.config.ingresoUSD||''}" placeholder="ej. 4000"></div>
+      <div style="margin-top:14px">
+        <label class="cierre-label">Ingreso mensual</label>
+        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px">
+          <button type="button" id="sw-ing-usd-btn"
+            onclick="swSetIngresoCurrency('USD')"
+            style="flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--accent);color:#fff">
+            💵 USD
+          </button>
+          <button type="button" id="sw-ing-rd-btn"
+            onclick="swSetIngresoCurrency('RD')"
+            style="flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--surface2);color:var(--muted)">
+            🇩🇴 RD$
+          </button>
+        </div>
+        <div style="position:relative">
+          <span id="sw-ing-prefix" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--muted);pointer-events:none">USD</span>
+          <input class="cierre-input" type="number" id="sw-ingreso"
+            value="${_editData.config.ingresoUSD||''}"
+            placeholder="ej. 1500"
+            style="padding-left:52px"
+            oninput="swUpdateIngresoPreview()">
+        </div>
+        <div id="sw-ingreso-preview" style="margin-top:8px;padding:8px 12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:12px;color:var(--accent);display:none"></div>
+      </div>
       <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="number" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
     `,
     save:()=>{
       _editData.config.mes=document.getElementById('sw-mes').value;
       _editData.config.anio=parseInt(document.getElementById('sw-anio').value)||new Date().getFullYear();
       _editData.config.tasa=parseFloat(document.getElementById('sw-tasa').value)||60;
-      _editData.config.ingresoUSD=parseFloat(document.getElementById('sw-ingreso').value)||0;
-      _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
       _editData.config.diasAlerta=parseInt(document.getElementById('sw-alerta').value)||5;
+      const rawVal=parseFloat(document.getElementById('sw-ingreso').value)||0;
+      const currency=document.getElementById('sw-ing-rd-btn')?.style.background==='var(--accent)'?'RD':'USD';
+      if(currency==='RD'){
+        _editData.config.ingresoRD=rawVal;
+        _editData.config.ingresoUSD=_editData.config.tasa>0?rawVal/_editData.config.tasa:0;
+      } else {
+        _editData.config.ingresoUSD=rawVal;
+        _editData.config.ingresoRD=rawVal*_editData.config.tasa;
+      }
       _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
       _editData.emerg.cashflow.tasa=_editData.config.tasa;
     }
@@ -1338,6 +1368,56 @@ function startFromScratch(){
 function closeSetup(){
   document.getElementById('setupModal').style.display='none';
   document.body.style.overflow='';
+}
+
+// ── Setup wizard: income currency toggle helpers ──
+function swSetIngresoCurrency(currency){
+  const usdBtn=document.getElementById('sw-ing-usd-btn');
+  const rdBtn=document.getElementById('sw-ing-rd-btn');
+  const prefix=document.getElementById('sw-ing-prefix');
+  const input=document.getElementById('sw-ingreso');
+  if(!usdBtn||!rdBtn)return;
+  const tasa=parseFloat(document.getElementById('sw-tasa')?.value)||60;
+  const currentVal=parseFloat(input.value)||0;
+
+  if(currency==='USD'){
+    // If switching FROM RD to USD, convert the current value
+    if(rdBtn.style.background==='var(--accent)'&&currentVal>0){
+      input.value=tasa>0?Math.round(currentVal/tasa*100)/100:'';
+    }
+    usdBtn.style.background='var(--accent)';usdBtn.style.color='#fff';
+    rdBtn.style.background='var(--surface2)';rdBtn.style.color='var(--muted)';
+    prefix.textContent='USD';
+    input.placeholder='ej. 1500';
+  } else {
+    // If switching FROM USD to RD, convert the current value
+    if(usdBtn.style.background==='var(--accent)'&&currentVal>0){
+      input.value=Math.round(currentVal*tasa);
+    }
+    rdBtn.style.background='var(--accent)';rdBtn.style.color='#fff';
+    usdBtn.style.background='var(--surface2)';usdBtn.style.color='var(--muted)';
+    prefix.textContent='RD$';
+    input.placeholder='ej. 240,000';
+  }
+  swUpdateIngresoPreview();
+}
+
+function swUpdateIngresoPreview(){
+  const preview=document.getElementById('sw-ingreso-preview');
+  const input=document.getElementById('sw-ingreso');
+  const rdBtn=document.getElementById('sw-ing-rd-btn');
+  if(!preview||!input||!rdBtn)return;
+  const tasa=parseFloat(document.getElementById('sw-tasa')?.value)||60;
+  const val=parseFloat(input.value)||0;
+  const isRD=rdBtn.style.background==='var(--accent)';
+  if(!val){preview.style.display='none';return;}
+  preview.style.display='block';
+  if(isRD){
+    const usd=tasa>0?val/tasa:0;
+    preview.textContent=`≈ ${fmtUSD(Math.round(usd*100)/100)} USD (a tasa RD$ ${tasa})`;
+  } else {
+    preview.textContent=`≈ RD$ ${fmt(Math.round(val*tasa))} (a tasa RD$ ${tasa})`;
+  }
 }
 
 function renderSetup(){
