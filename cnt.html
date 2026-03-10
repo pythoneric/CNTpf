@@ -271,9 +271,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   background:var(--surface);border-top:1px solid var(--border);
   padding:8px max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  display:none;gap:0;overflow-x:auto;justify-content:space-around}
+  display:none;gap:0;overflow-x:auto;justify-content:space-around;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
 #mobileNav::-webkit-scrollbar{height:0}
-.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-width:52px;border-radius:10px;transition:all .2s;flex-shrink:0}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-width:52px;border-radius:10px;transition:all .2s;flex-shrink:0;scroll-snap-align:start}
 .mnav-btn .mnav-icon{font-size:20px;line-height:1}
 .mnav-btn.active{color:var(--accent);background:rgba(59,130,246,.08)}
 .mnav-btn .alert-dot{width:6px;height:6px;background:var(--red);border-radius:50%;position:absolute;top:4px;right:8px;animation:pulse 1.5s infinite}
@@ -289,12 +290,21 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 /* ══ RESPONSIVE TABLE → CARDS (mobile) ══ */
 .card-table-row{display:none}
 
-/* ══ TABLET 768–1024px ══ */
+/* ══ CF BAR — wraps gracefully on small screens ══ */
+.cf-bar{flex-wrap:wrap}
+.cf-seg{min-width:fit-content}
+
+/* ══ TABLET 641–1024px ══ */
 @media(max-width:1024px) and (min-width:641px){
   .g4{grid-template-columns:repeat(2,1fr)}
   .g3{grid-template-columns:repeat(2,1fr)}
   .g12,.g21{grid-template-columns:1fr}
   .g13{grid-template-columns:1fr 2fr}
+  /* Proyector slider area wraps cleanly */
+  #proyectorConfig .card-title{font-size:12px}
+  /* Edit modal tables readable on tablet */
+  .edit-table{font-size:12px}
+  .tbl-input{min-width:75px!important}
 }
 
 /* ══ TABLET ≤960px ══ */
@@ -307,7 +317,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 @media(max-width:640px){
   /* Layout */
   header{padding:10px 16px;gap:8px}
-  .panel{padding:14px 16px;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+  .panel{padding:14px 16px;padding-bottom:calc(88px + env(safe-area-inset-bottom))}
   .tabs{display:none}/* replaced by bottom nav */
   #mobileNav{display:flex}
 
@@ -341,10 +351,11 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   /* Debt cards */
   .debt-meta{grid-template-columns:1fr 1fr}
 
-  /* Wizard */
+  /* Wizard modals */
   .cierre-container{padding:0}
-  .cierre-header{border-radius:12px;padding:18px}
-  .cierre-input{font-size:16px} /* prevent iOS zoom */
+  .cierre-header{border-radius:12px;padding:16px}
+  .cierre-input{font-size:16px;padding:12px 14px} /* prevent iOS zoom + bigger tap target */
+  #setupModal>div>div{padding:20px 16px!important;border-radius:16px!important}
 
   /* Edit modal */
   .edit-container{padding:0 4px}
@@ -354,6 +365,22 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   /* Inputs min 16px to prevent iOS auto-zoom */
   input,select,textarea{font-size:16px!important}
   .tbl-input{font-size:14px!important}
+
+  /* CF bar: stack vertically when too narrow */
+  .cf-bar{height:auto;flex-direction:column;gap:4px;border-radius:10px;overflow:visible}
+  .cf-seg{border-radius:8px!important;padding:8px 14px;justify-content:flex-start;gap:8px;font-size:13px}
+
+  /* Score card: row layout on mobile to save vertical space */
+  #scoreCard{flex-direction:row!important;gap:16px;align-items:center}
+  .score-ring{width:90px;height:90px;flex-shrink:0}
+  .score-ring svg{width:90px;height:90px}
+  .score-num{font-size:22px}
+
+  /* Proyector slider row wraps */
+  #proyectorConfig [style*="display:flex"]{flex-wrap:wrap}
+
+  /* Loader */
+  .lcard{padding:20px 16px}
 }
 
 /* ══ SMALL PHONES ≤375px ══ */
@@ -362,6 +389,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .mnav-btn .mnav-icon{font-size:18px}
   .card{padding:12px}
   .kpi-val{font-size:18px}
+  .cierre-header{padding:12px}
 }
 
 /* ══ WINDOWS / LARGE SCREENS ≥1280px ══ */
@@ -421,6 +449,42 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .timeline-item{gap:8px}
   .timeline-name{font-size:12px}
   .timeline-date{font-size:10px}
+}
+
+/* ══ CF-ROW — prevent value clipping on narrow screens ══ */
+@media(max-width:480px){
+  .cf-row{flex-direction:column;align-items:flex-start;gap:4px}
+  .cf-val{font-size:15px;text-align:left}
+}
+
+/* ══ EMERGENCY TIP CARD — min height so it doesn't collapse ══ */
+@media(max-width:960px){
+  #efTip{min-height:120px}
+}
+
+/* ══ TABLET g3 — always 2 columns on tablet, 1 on mobile ══ */
+@media(max-width:768px) and (min-width:641px){
+  .g3{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ══ REFI TABLE INPUTS — full width on mobile card layout ══ */
+@media(max-width:640px){
+  .mobile-card-table td[data-label="Tasa objetivo"] input{width:100%!important;max-width:200px}
+  /* Deuda KPIs — 2 col on mobile */
+  #deudaKpis.g4{grid-template-columns:repeat(2,1fr)!important}
+  #forNowKpis.g4{grid-template-columns:repeat(2,1fr)!important}
+  #histKpis.g4{grid-template-columns:repeat(2,1fr)!important}
+  /* debtCostSnapshot efficiency bar hidden on mobile — show as text only */
+  .mobile-card-table td[data-label="Eficiencia"] div{display:none}
+  /* Proyector config stat pills — side by side */
+  #proyectorConfig>div>div:nth-child(2),
+  #proyectorConfig>div>div:nth-child(3){flex:1;min-width:120px}
+}
+
+/* ══ KPIS 2×2 on mobile instead of 1 column ══ */
+@media(max-width:640px){
+  #kpiRow.g4{grid-template-columns:repeat(2,1fr)!important}
+  #efKpis.g3{grid-template-columns:repeat(2,1fr)!important}
 }
 </style>
 </head>
@@ -561,14 +625,15 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
   <!-- Mobile bottom navigation -->
   <nav id="mobileNav" aria-label="Navegación móvil">
-    <button class="mnav-btn active" onclick="mobileTab('resumen',this)"><span class="mnav-icon">📊</span>Resumen</button>
+    <button class="mnav-btn" onclick="mobileTab('resumen',this)" id="mnavResumen"><span class="mnav-icon">📊</span>Resumen</button>
     <button class="mnav-btn" onclick="mobileTab('alertas',this)" id="mobileTabAlertas"><span class="mnav-icon">🔔</span>Alertas</button>
-    <button class="mnav-btn" onclick="mobileTab('checklist',this)"><span class="mnav-icon">✅</span>Pagos</button>
-    <button class="mnav-btn" onclick="mobileTab('deudas',this)"><span class="mnav-icon">🏦</span>Deudas</button>
-    <button class="mnav-btn" onclick="mobileTab('gastos',this)"><span class="mnav-icon">💸</span>Gastos</button>
-    <button class="mnav-btn" onclick="mobileTab('emergency',this)"><span class="mnav-icon">🛡</span>Emergencia</button>
-    <button class="mnav-btn" onclick="mobileTab('historial',this)"><span class="mnav-icon">📅</span>Historial</button>
-    <button class="mnav-btn" onclick="mobileTab('proyector',this)"><span class="mnav-icon">🎯</span>Proyector</button>
+    <button class="mnav-btn" onclick="mobileTab('checklist',this)" id="mnavChecklist"><span class="mnav-icon">✅</span>Pagos</button>
+    <button class="mnav-btn" onclick="mobileTab('deudas',this)" id="mnavDeudas"><span class="mnav-icon">🏦</span>Deudas</button>
+    <button class="mnav-btn" onclick="mobileTab('gastos',this)" id="mnavGastos"><span class="mnav-icon">💸</span>Gastos</button>
+    <button class="mnav-btn" onclick="mobileTab('emergency',this)" id="mnavEmergencia"><span class="mnav-icon">🛡</span>Emergencia</button>
+    <button class="mnav-btn" onclick="mobileTab('fornow',this)" id="mnavFondos"><span class="mnav-icon">💳</span>Fondos</button>
+    <button class="mnav-btn" onclick="mobileTab('historial',this)" id="mnavHistorial"><span class="mnav-icon">📅</span>Historial</button>
+    <button class="mnav-btn" onclick="mobileTab('proyector',this)" id="mnavProyector"><span class="mnav-icon">🎯</span>Proyector</button>
   </nav>
 
   <!-- RESUMEN -->
@@ -1016,7 +1081,12 @@ async function autoSave(){
   }
 }
 
-window.addEventListener('load',()=>checkSavedData());
+window.addEventListener('load',()=>{
+  checkSavedData();
+  // Set initial active on mobile nav
+  const firstMnav=document.getElementById('mnavResumen');
+  if(firstMnav)firstMnav.classList.add('active');
+});
 
 // ══════════════════════════════════
 // SWIPE GESTURES — mobile tab nav
@@ -1679,13 +1749,13 @@ function buildChecklist(gastos){
       <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Interés Mensual</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--yellow);margin-top:4px">RD$${fmt(Math.round(totalIntMes))}</div></div>
       <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Deudas con Tasa</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px">${deudas.length}</div></div>
     </div>
-    <div class="tbl-wrap"><table><thead><tr><th>Deuda</th><th>Balance</th><th>Tasa %</th><th>Interés Mensual</th><th>Interés Anual</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table class="mobile-card-table"><thead><tr><th>Deuda</th><th>Balance</th><th>Tasa %</th><th>Interés Mensual</th><th>Interés Anual</th></tr></thead><tbody>
     ${deudas.sort((a,b)=>b.tasa-a.tasa).map(g=>`<tr>
-      <td style="font-weight:700">${escH(g.nombre)}</td>
-      <td class="num" style="color:var(--red)">RD$${fmt(g.balance)}</td>
-      <td class="mono" style="color:${g.tasa>15?'var(--red)':'var(--yellow)'};text-align:center">${g.tasa}%</td>
-      <td class="num" style="color:var(--yellow)">RD$${fmt(Math.round(g.balance*(g.tasa/100/12)))}</td>
-      <td class="num" style="color:var(--red)">RD$${fmt(Math.round(g.balance*(g.tasa/100)))}</td>
+      <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
+      <td data-label="Balance" class="num" style="color:var(--red)">RD$${fmt(g.balance)}</td>
+      <td data-label="Tasa" class="mono" style="color:${g.tasa>15?'var(--red)':'var(--yellow)'};text-align:center">${g.tasa}%</td>
+      <td data-label="Int/mes" class="num" style="color:var(--yellow)">RD$${fmt(Math.round(g.balance*(g.tasa/100/12)))}</td>
+      <td data-label="Int/año" class="num" style="color:var(--red)">RD$${fmt(Math.round(g.balance*(g.tasa/100)))}</td>
     </tr>`).join('')}
     </tbody></table></div>`;
 }
@@ -1795,16 +1865,16 @@ function buildProyector({gastos,ingreso,gasto,config}){
       <div style="flex:1;min-width:200px">
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Pago extra mensual disponible (RD$) — arrastra el slider o escribe un monto</div>
         <input type="range" id="extraSlider" min="0" max="${Math.max(1,resta*2)}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
-        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
           <input type="number" id="extraInput" value="${extraPayment}" min="0" max="${Math.round(resta*2)}" step="1000"
             oninput="document.getElementById('extraSlider').value=this.value;updateProyector()"
-            style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:160px">
+            style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:140px;min-width:100px">
           <span style="font-size:12px;color:var(--muted)">RD$/mes</span>
           <button onclick="document.getElementById('extraSlider').value=${Math.round(resta)};document.getElementById('extraInput').value=${Math.round(resta)};updateProyector()"
-            style="padding:6px 12px;background:rgba(34,211,160,.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
+            style="padding:8px 12px;background:rgba(34,211,160,.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">
             Todo el superávit</button>
           ${savingsMonthly>0?`<button onclick="document.getElementById('extraSlider').value=${extraPayment+savingsMonthly};document.getElementById('extraInput').value=${extraPayment+savingsMonthly};updateProyector()"
-            style="padding:6px 12px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
+            style="padding:8px 12px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">
             + Redirigir ahorros (RD$${fmt(savingsMonthly)})</button>`:''}
         </div>
       </div>
@@ -1824,13 +1894,13 @@ function buildProyector({gastos,ingreso,gasto,config}){
     const netPaydown=g.adeudado-intMes;
     const pctInterest=g.adeudado>0?Math.round(intMes/g.adeudado*100):0;
     return `<tr>
-      <td style="font-weight:700">${escH(g.nombre)}</td>
-      <td class="mono" style="text-align:right">RD$${fmt(g.balance)}</td>
-      <td class="mono" style="color:${g.tasa>30?'var(--red)':g.tasa>18?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa}%</td>
-      <td class="mono" style="color:var(--red);text-align:right">RD$${fmt(intMes)}</td>
-      <td class="mono" style="text-align:right">RD$${fmt(g.adeudado)}</td>
-      <td class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}RD$${fmt(Math.abs(netPaydown))}</td>
-      <td style="text-align:center">
+      <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
+      <td data-label="Balance" class="mono" style="text-align:right">RD$${fmt(g.balance)}</td>
+      <td data-label="Tasa" class="mono" style="color:${g.tasa>30?'var(--red)':g.tasa>18?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa}%</td>
+      <td data-label="Int/mes" class="mono" style="color:var(--red);text-align:right">RD$${fmt(intMes)}</td>
+      <td data-label="Cuota/mes" class="mono" style="text-align:right">RD$${fmt(g.adeudado)}</td>
+      <td data-label="Capital pagado" class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}RD$${fmt(Math.abs(netPaydown))}</td>
+      <td data-label="Eficiencia" style="text-align:center">
         <div style="background:var(--border);border-radius:99px;height:6px;width:80px;overflow:hidden;display:inline-block">
           <div style="height:6px;border-radius:99px;width:${Math.min(pctInterest,100)}%;background:${pctInterest>50?'var(--red)':pctInterest>25?'var(--yellow)':'var(--green)'}"></div>
         </div>
@@ -1861,7 +1931,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
         </div>
       </div>
     </div>
-    <div class="tbl-wrap"><table>
+    <div class="tbl-wrap"><table class="mobile-card-table">
       <thead><tr>
         <th>Deuda</th><th style="text-align:right">Balance</th><th style="text-align:center">Tasa</th>
         <th style="text-align:right">Interés/mes</th><th style="text-align:right">Cuota/mes</th>
@@ -1880,21 +1950,21 @@ function buildProyector({gastos,ingreso,gasto,config}){
     const refiIntAnual=g.balance*(refiRate/100);
     const saving=currentIntAnual-refiIntAnual;
     return `<tr>
-      <td style="font-weight:700">${escH(g.nombre)}</td>
-      <td class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
-      <td><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="0.5"
+      <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
+      <td data-label="Tasa actual" class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
+      <td data-label="Tasa objetivo"><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="0.5"
         oninput="updateRefiRow(${i})"
         style="background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);width:80px">
         <span style="font-size:11px;color:var(--muted)">%</span></td>
-      <td class="mono" style="color:var(--green);text-align:right" id="refi-saving-${i}">RD$${fmt(Math.round(saving/12))}/mes</td>
-      <td class="mono" style="color:var(--accent);text-align:right" id="refi-saving-yr-${i}">RD$${fmt(Math.round(saving))}/año</td>
+      <td data-label="Ahorro/mes" class="mono" style="color:var(--green);text-align:right" id="refi-saving-${i}">RD$${fmt(Math.round(saving/12))}/mes</td>
+      <td data-label="Ahorro/año" class="mono" style="color:var(--accent);text-align:right" id="refi-saving-yr-${i}">RD$${fmt(Math.round(saving))}/año</td>
     </tr>`;
   }).join('');
 
   document.getElementById('refiSimulator').innerHTML=`
     <div class="card-title" style="margin-bottom:16px">🔄 Simulador de Refinanciamiento</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px">¿Cuánto ahorrarías si refinanciaras una deuda a una tasa menor? Ingresa la tasa objetivo para cada una.</div>
-    <div class="tbl-wrap"><table>
+    <div class="tbl-wrap"><table class="mobile-card-table">
       <thead><tr>
         <th>Deuda</th><th style="text-align:center">Tasa actual</th><th>Tasa objetivo</th>
         <th style="text-align:right">Ahorro mensual</th><th style="text-align:right">Ahorro anual</th>
@@ -1939,13 +2009,13 @@ function buildProyector({gastos,ingreso,gasto,config}){
     const monthsDiff=baseRef.months-result.months;
     const intDiff=baseRef.interest-result.interest;
     return `<tr style="${highlight?'background:rgba(34,211,160,.06);':''}">
-      <td style="font-weight:${highlight?'800':'600'}">${label}</td>
-      <td class="mono" style="text-align:center;font-weight:${highlight?'800':'400'};color:${highlight?'var(--green)':'var(--text)'}">${result.display}</td>
-      <td class="mono" style="color:var(--red);text-align:right">RD$${fmt(result.interest)}</td>
-      <td class="mono" style="text-align:center;color:${monthsDiff>0?'var(--green)':monthsDiff<0?'var(--red)':'var(--muted)'}">
+      <td data-label="" style="font-weight:${highlight?'800':'600'}">${label}</td>
+      <td data-label="Libre en" class="mono" style="text-align:center;font-weight:${highlight?'800':'400'};color:${highlight?'var(--green)':'var(--text)'}">${result.display}</td>
+      <td data-label="Interés total" class="mono" style="color:var(--red);text-align:right">RD$${fmt(result.interest)}</td>
+      <td data-label="vs base" class="mono" style="text-align:center;color:${monthsDiff>0?'var(--green)':monthsDiff<0?'var(--red)':'var(--muted)'}">
         ${monthsDiff>0?`▲ ${monthsDiff}m antes`:monthsDiff<0?`▼ ${Math.abs(monthsDiff)}m después`:'—'}
       </td>
-      <td class="mono" style="text-align:right;color:${intDiff>0?'var(--green)':intDiff<0?'var(--red)':'var(--muted)'}">
+      <td data-label="Interés ahorrado" class="mono" style="text-align:right;color:${intDiff>0?'var(--green)':intDiff<0?'var(--red)':'var(--muted)'}">
         ${intDiff>0?`Ahorras RD$${fmt(intDiff)}`:intDiff<0?`Pagas RD$${fmt(Math.abs(intDiff))} más`:'—'}
       </td>
     </tr>`;
@@ -1953,7 +2023,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
 
   document.getElementById('whatIfScenarios').innerHTML=`
     <div class="card-title" style="margin-bottom:16px">🎯 Escenarios ¿Qué Pasaría Si…?</div>
-    <div class="tbl-wrap"><table>
+    <div class="tbl-wrap"><table class="mobile-card-table">
       <thead><tr>
         <th>Escenario</th>
         <th style="text-align:center">Libre de deudas</th>
@@ -2439,7 +2509,7 @@ const _cierreSteps=[
   // Fix #2: add explicit gasto step so historial doesn't inherit stale value
   {title:'Paso 4 · Gasto Real del Mes',sub:'¿Cuánto gastaste en total este mes? (RD$)',fields:[{id:'cw-gasto',label:'Gasto Total del Mes (RD$)',type:'number',key:'gasto',step:'any'}]},
   {title:'Paso 5 · Saldos de Cuentas',sub:'Actualiza los saldos actuales de tus cuentas',fields:[]},
-  {title:'Paso 6 · Ahorros',sub:'Registra tus ahorros del mes',fields:[{id:'cw-ahorros',label:'Ahorros este mes (RD$)',type:'number',key:'ahorros'},{id:'cw-balAh',label:'Balance total de ahorros (RD$)',type:'number',key:'balanceAhorros'}]},
+  {title:'Paso 6 · Ahorros',sub:'Registra tus ahorros del mes',fields:[{id:'cw-ahorros',label:'Ahorros este mes (RD$)',type:'number',key:'ahorros'},{id:'cw-balAh',label:'Balance total de ahorros (RD$) — sugerido: balance anterior + este mes',type:'number',key:'balanceAhorros'}]},
   {title:'Paso 7 · Confirmar y cerrar',sub:'Revisa el resumen y agrega al historial',fields:[]},
 ];
 function openCierre(){
@@ -2456,13 +2526,9 @@ function renderCierre(){
   const s=_cierreSteps[_cierreStep];
   let html=`<div class="cierre-title">${s.title}</div><div class="cierre-sub">${s.sub}</div>`;
   if(_cierreStep===4){
-    // Saldos cuentas — Fix #15: deduplicate names to avoid duplicate input IDs
-    const seen={};
-    html+=_editData.forNow.cuentas.map(c=>{
-      let label=c.nombre;
-      seen[label]=(seen[label]||0)+1;
-      if(seen[label]>1)label=`${label} (${seen[label]})`;
-      return `<div class="cierre-field"><label class="cierre-label">${escH(label)}</label><input class="cierre-input" type="number" step="any" placeholder="${fmt(c.saldo)}" id="cw-saldo-${escH(c.nombre)}-${seen[label]}" value="${c.saldo||0}"></div>`;
+    // Saldos cuentas — use numeric index for IDs (account names may contain spaces/special chars)
+    html+=_editData.forNow.cuentas.map((c,idx)=>{
+      return `<div class="cierre-field"><label class="cierre-label">${escH(c.nombre)}</label><input class="cierre-input" type="number" step="any" placeholder="${fmt(c.saldo)}" id="cw-saldo-${idx}" value="${c.saldo||0}"></div>`;
     }).join('');
   } else if(_cierreStep===6){
     // Resumen
@@ -2478,7 +2544,13 @@ function renderCierre(){
     html+=tbl;
   } else {
     s.fields.forEach(f=>{
-      const curVal=f.key?(_editData.config[f.key]||_editData.emerg?.cashflow[f.key]||''):'';
+      let curVal=f.key?(_editData.config[f.key]!==undefined?_editData.config[f.key]:(_editData.emerg?.cashflow[f.key]!==undefined?_editData.emerg.cashflow[f.key]:'')):'';
+      // For balanceAhorros, suggest current balance + this month's savings as a helpful default
+      if(f.id==='cw-balAh'){
+        const ahorrosInput=document.getElementById('cw-ahorros');
+        const ahorrosEste=ahorrosInput?parseFloat(ahorrosInput.value)||0:(_editData.emerg?.cashflow?.ahorros||0);
+        curVal=(_editData.emerg?.cashflow?.balanceAhorros||0)+ahorrosEste;
+      }
       html+=`<div class="cierre-field"><label class="cierre-label">${f.label}</label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"></div>`;
     });
   }
@@ -2495,15 +2567,19 @@ function cierreNav(dir){
     // Fix #2: step 3 = gasto real
     else if(_cierreStep===3){const g=parseFloat(document.getElementById('cw-gasto')?.value);if(!isNaN(g)&&g>0)_editData.emerg.cashflow.gasto=g;}
     else if(_cierreStep===4){
-      const seen2={};
-      _editData.forNow.cuentas.forEach(c=>{
-        seen2[c.nombre]=(seen2[c.nombre]||0)+1;
-        const el=document.getElementById(`cw-saldo-${escH(c.nombre)}-${seen2[c.nombre]}`);
+      _editData.forNow.cuentas.forEach((c,idx)=>{
+        const el=document.getElementById(`cw-saldo-${idx}`);
         if(el)c.saldo=parseFloat(el.value)||0;
       });
       _editData.forNow.total=_editData.forNow.cuentas.reduce((a,c)=>a+c.saldo,0);
     }
-    else if(_cierreStep===5){_editData.emerg.cashflow.ahorros=parseFloat(document.getElementById('cw-ahorros')?.value)||0;_editData.emerg.cashflow.balanceAhorros=parseFloat(document.getElementById('cw-balAh')?.value)||0;}
+    else if(_cierreStep===5){
+      const ahorrosEste=parseFloat(document.getElementById('cw-ahorros')?.value)||0;
+      _editData.emerg.cashflow.ahorros=ahorrosEste;
+      // Auto-accumulate: add this month's savings to the running balance
+      const newBalAh=parseFloat(document.getElementById('cw-balAh')?.value);
+      _editData.emerg.cashflow.balanceAhorros=isNaN(newBalAh)?(_editData.emerg.cashflow.balanceAhorros||0)+ahorrosEste:newBalAh;
+    }
     else if(_cierreStep===6){
       // Confirm: add to historial
       const cf=_editData.emerg.cashflow;
@@ -2520,7 +2596,7 @@ function cierreNav(dir){
       _pendingSave=false;
       closeCierre();
       buildDashboard({..._editData});
-      showTab('historial',document.querySelectorAll('.tab-btn')[8]);
+      showTab('historial',document.querySelector(".tab-btn[onclick*=\"'historial'\"]"));
       generateExcel();
       autoSave();
       showToast('🗓 Mes cerrado · Excel descargado con historial y pagos reseteados ✓','var(--green)');
@@ -2634,7 +2710,7 @@ function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
 function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';}
-function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fmtFecha(f,opts){
   // Normaliza cualquier formato de fecha (Date, string ISO, string larga) a fecha local en español
   if(!f)return'—';
