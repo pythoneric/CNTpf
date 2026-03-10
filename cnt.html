@@ -616,6 +616,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <button class="tab-btn" onclick="showTab('emergency',this)" data-i18n="tab_emergency">🛡 Emergencia</button>
     <button class="tab-btn" onclick="showTab('fornow',this)" data-i18n="tab_fornow">💳 Fondos</button>
     <button class="tab-btn" onclick="showTab('historial',this)" data-i18n="tab_historial">📅 Historial</button>
+    <button class="tab-btn" onclick="showTab('metas',this)" data-i18n="tab_metas">🏆 Metas</button>
+    <button class="tab-btn" onclick="showTab('analisis',this)" data-i18n="tab_analisis">📈 Análisis</button>
   </div>
 
   <!-- Mobile bottom navigation -->
@@ -750,6 +752,11 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="card"><div class="card-title">Ingresos vs Gastos por Mes</div><div class="chart-wrap"><canvas id="histBar"></canvas></div></div>
       <div class="card"><div class="card-title">Balance de Deudas por Mes</div><div class="chart-wrap"><canvas id="histDeudaLine"></canvas></div></div>
     </div>
+    <!-- RECURRING EXPENSE TREND (Feature 4) -->
+    <div class="card" style="margin-bottom:16px" id="expenseTrendCard">
+      <div class="card-title" data-i18n="trend_title">📈 Tendencia de Gastos Recurrentes</div>
+      <div id="expenseTrend"></div>
+    </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
         <div class="card-title" style="margin:0">Registro Mensual Completo</div>
@@ -760,6 +767,40 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <th style="text-align:right">Ahorro Neto</th><th style="text-align:right">Tasa Ahorro</th><th style="text-align:right">Deudas (RD$)</th><th style="text-align:right">Emergencia (RD$)</th><th style="text-align:right">Net Worth (RD$)</th><th style="text-align:right">Tasa $</th>
       </tr></thead><tbody id="histBody"></tbody></table></div>
       <div class="hist-note">📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.</div>
+    </div>
+  </div>
+
+  <!-- METAS DE AHORRO (Feature 1) -->
+  <div id="tab-metas" class="panel">
+    <div class="grid g3" style="margin-bottom:16px" id="metasKpis"></div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px">
+        <div class="card-title" style="margin:0" data-i18n="metas_main_title">🏆 Metas de Ahorro</div>
+        <button onclick="addSavingsGoal()" style="padding:8px 16px;background:rgba(34,211,160,.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Agregar Meta</button>
+      </div>
+      <div id="metasList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" data-i18n="metas_progress_title">Progreso Total de Metas</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="metasChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ANÁLISIS: Budget vs Actual + Debt Payoff Dates (Features 2 & 3) -->
+  <div id="tab-analisis" class="panel">
+    <!-- Feature 2: Budget vs Actual -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" data-i18n="bva_title">📊 Presupuesto vs Real del Mes</div>
+      <div id="budgetVsActual"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" data-i18n="bva_chart_title">Varianza por Categoría</div>
+      <div class="chart-wrap"><canvas id="bvaChart"></canvas></div>
+    </div>
+    <!-- Feature 3: Debt Payoff Date Projection per Debt -->
+    <div class="card">
+      <div class="card-title" data-i18n="dpd_title">📅 Fechas Estimadas de Pago por Deuda</div>
+      <div id="debtPayoffDates"></div>
     </div>
   </div>
 </div>
@@ -1082,6 +1123,35 @@ const LANG = {
     toast_monthclosed:'🗓 Mes cerrado · Excel descargado con historial y pagos reseteados ✓',
     // Months (for historial)
     months:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+    // New feature tabs
+    tab_metas:'🏆 Metas', tab_analisis:'📈 Análisis',
+    // Feature 1 – Savings Goals
+    metas_main_title:'🏆 Metas de Ahorro', metas_progress_title:'Progreso Total de Metas',
+    metas_kpi_total:'Total Metas', metas_kpi_done:'Completadas', metas_kpi_saved:'Total Ahorrado',
+    metas_empty:'Sin metas aún. Haz clic en "+ Agregar Meta" para empezar.',
+    metas_goal:'Meta (RD$)', metas_saved:'Ahorrado (RD$)', metas_monthly:'Aporte mensual (RD$)',
+    metas_name_ph:'Nombre de la meta (ej: Vacaciones)', metas_eta:'Fecha estimada',
+    metas_done_badge:'✅ Completada', metas_months_left:'meses restantes',
+    // Feature 2 – Budget vs Actual
+    bva_title:'📊 Presupuesto vs Real del Mes',
+    bva_chart_title:'Varianza por Categoría',
+    bva_budget:'Presupuestado', bva_actual:'Real Pagado', bva_variance:'Varianza',
+    bva_over:'Sobre presup.', bva_under:'Bajo presup.', bva_exact:'Exacto',
+    bva_total_budget:'Total Presupuestado', bva_total_actual:'Total Real',
+    bva_total_var:'Varianza Total', bva_note:'Presupuestado = cuota mensual · Real = pagado este mes.',
+    bva_empty:'No hay datos de gastos. Sube tu archivo Excel para ver la comparación.',
+    // Feature 3 – Debt Payoff Dates
+    dpd_title:'📅 Fechas Estimadas de Pago por Deuda',
+    dpd_debt:'Deuda', dpd_balance:'Balance', dpd_rate:'Tasa', dpd_monthly:'Cuota/mes',
+    dpd_months:'Meses', dpd_payoff_date:'Fecha de pago', dpd_int_total:'Interés total',
+    dpd_extra_note:'Basado en pagos mínimos actuales. El Proyector calcula con pagos extra.',
+    dpd_empty:'No hay deudas con tasa activas.',
+    dpd_never:'No alcanzará a pagarse',
+    // Feature 4 – Recurring Expense Trend
+    trend_title:'📈 Tendencia de Gastos Recurrentes',
+    trend_cat:'Gasto', trend_prev:'Mes anterior', trend_curr:'Este mes', trend_change:'Variación',
+    trend_empty:'Se necesitan al menos 2 meses en historial para mostrar tendencias.',
+    trend_up:'▲ subió', trend_down:'▼ bajó', trend_flat:'→ igual',
   },
   en: {
     // Header buttons / overflow
@@ -1261,6 +1331,35 @@ const LANG = {
     toast_monthclosed:'🗓 Month closed · Excel downloaded with history and payments reset ✓',
     // Months
     months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    // New feature tabs
+    tab_metas:'🏆 Goals', tab_analisis:'📈 Analysis',
+    // Feature 1 – Savings Goals
+    metas_main_title:'🏆 Savings Goals', metas_progress_title:'Total Goals Progress',
+    metas_kpi_total:'Total Goals', metas_kpi_done:'Completed', metas_kpi_saved:'Total Saved',
+    metas_empty:'No goals yet. Click "+ Add Goal" to start.',
+    metas_goal:'Goal (RD$)', metas_saved:'Saved (RD$)', metas_monthly:'Monthly contribution (RD$)',
+    metas_name_ph:'Goal name (e.g. Vacation)', metas_eta:'Estimated date',
+    metas_done_badge:'✅ Completed', metas_months_left:'months left',
+    // Feature 2 – Budget vs Actual
+    bva_title:'📊 Budget vs Actual This Month',
+    bva_chart_title:'Variance by Category',
+    bva_budget:'Budgeted', bva_actual:'Actual Paid', bva_variance:'Variance',
+    bva_over:'Over budget', bva_under:'Under budget', bva_exact:'On budget',
+    bva_total_budget:'Total Budgeted', bva_total_actual:'Total Actual',
+    bva_total_var:'Total Variance', bva_note:'Budgeted = monthly payment · Actual = paid this month.',
+    bva_empty:'No expense data. Upload your Excel file to see the comparison.',
+    // Feature 3 – Debt Payoff Dates
+    dpd_title:'📅 Estimated Payoff Date per Debt',
+    dpd_debt:'Debt', dpd_balance:'Balance', dpd_rate:'Rate', dpd_monthly:'Payment/mo',
+    dpd_months:'Months', dpd_payoff_date:'Payoff date', dpd_int_total:'Total interest',
+    dpd_extra_note:'Based on current minimum payments only. The Projector calculates with extra payments.',
+    dpd_empty:'No active debts with a rate.',
+    dpd_never:'Will not pay off at this rate',
+    // Feature 4 – Recurring Expense Trend
+    trend_title:'📈 Recurring Expense Trend',
+    trend_cat:'Expense', trend_prev:'Prior month', trend_curr:'This month', trend_change:'Change',
+    trend_empty:'At least 2 months of history needed to show trends.',
+    trend_up:'▲ up', trend_down:'▼ down', trend_flat:'→ flat',
   }
 };
 
@@ -1492,7 +1591,7 @@ window.addEventListener('load',()=>{
 // SWIPE GESTURES — mobile tab nav
 // ══════════════════════════════════
 (()=>{
-  const TAB_ORDER=['resumen','alertas','checklist','gastos','deudas','proyector','emergency','fornow','historial'];
+  const TAB_ORDER=['resumen','alertas','checklist','gastos','deudas','proyector','emergency','fornow','historial','metas','analisis'];
   let _tx=0,_ty=0;
   document.addEventListener('touchstart',e=>{
     _tx=e.touches[0].clientX;
@@ -1536,6 +1635,7 @@ function defaultEditData(){
     forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
     emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,resta:0,ahorros:0,balanceAhorros:0}},
     historial:[],
+    metas:[],
     filename:'cnt.xlsx'
   };
 }
@@ -2910,6 +3010,10 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,interesMensual});
   buildChecklist(gastos);
   buildProyector({gastos,ingreso,gasto,config});
+  buildSavingsGoals();
+  buildBudgetVsActual(gastos,ingreso);
+  buildDebtPayoffDates(gastos,ingreso,gasto);
+  buildExpenseTrend(historial,gastos);
 }
 
 // ══════════════════════════════════
@@ -2975,6 +3079,367 @@ function buildHistorial(historial,config){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
   });
+}
+
+// ══════════════════════════════════════════════════════
+// FEATURE 4: RECURRING EXPENSE TREND (inside Historial)
+// ══════════════════════════════════════════════════════
+function buildExpenseTrend(historial,gastos){
+  const el=document.getElementById('expenseTrend');
+  if(!el)return;
+  if(historial.length<2){
+    el.innerHTML=`<p style="color:var(--muted);font-size:13px;padding:12px 0">${t('trend_empty')}</p>`;
+    return;
+  }
+  const curr=historial[0];// most recent (historial[0] = newest)
+  const prev=historial[1];// one month earlier
+  // For recurring expense trend we compare gasto and ahorro (top-level monthly totals)
+  // We also show per-type breakdown from current gastos vs what the historial shows for prev month
+  const rows=[
+    {name:_lang==='es'?'Gasto Total':'Total Expenses',curr:curr.gasto,prev:prev.gasto},
+    {name:_lang==='es'?'Ingresos':'Income',curr:curr.ingresos,prev:prev.ingresos},
+    {name:_lang==='es'?'Ahorro Neto':'Net Savings',curr:curr.ahorro,prev:prev.ahorro},
+    {name:_lang==='es'?'Balance Deudas':'Debt Balance',curr:curr.deudas,prev:prev.deudas},
+    {name:_lang==='es'?'Fondo Emergencia':'Emergency Fund',curr:curr.emergencia,prev:prev.emergencia},
+  ];
+  // Add per-type expense breakdown from current gastos
+  const tipoMap={};
+  gastos.forEach(g=>{const k=g.tipo||'Otro';if(!tipoMap[k])tipoMap[k]=0;tipoMap[k]+=g.adeudado||0;});
+  const html=rows.map(r=>{
+    const delta=r.curr-r.prev;
+    const pct=r.prev!==0?Math.round(delta/Math.abs(r.prev)*100):0;
+    const isExpense=r.name.toLowerCase().includes('gasto')||r.name.toLowerCase().includes('expense')||r.name.toLowerCase().includes('deu');
+    // For expenses+debts: going up is bad (red); for income/savings: going up is good (green)
+    const upIsGood=r.name.toLowerCase().includes('ingreso')||r.name.toLowerCase().includes('income')||r.name.toLowerCase().includes('ahorro')||r.name.toLowerCase().includes('saving')||r.name.toLowerCase().includes('emergencia')||r.name.toLowerCase().includes('emergency');
+    const arrowColor=delta===0?'var(--muted)':((delta>0)===upIsGood?'var(--green)':'var(--red)');
+    const arrow=delta>0?'▲':delta<0?'▼':'→';
+    const pctStr=delta===0?'—':`${arrow} ${Math.abs(pct)}%`;
+    return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(26,37,64,.4)">
+      <div style="font-size:13px;font-weight:600;color:var(--text)">${escH(r.name)}</div>
+      <div class="mono" style="font-size:12px;color:var(--muted);text-align:right">RD$${fmt(r.prev)}</div>
+      <div class="mono" style="font-size:12px;font-weight:700;color:var(--text);text-align:right">RD$${fmt(r.curr)}</div>
+      <div class="mono" style="font-size:12px;font-weight:700;color:${arrowColor};text-align:right;min-width:70px">${pctStr}</div>
+    </div>`;
+  }).join('');
+  // Header row
+  const hdr=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;padding:6px 0 10px;border-bottom:2px solid var(--border)">
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase">${t('trend_cat')}</div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;text-align:right">${t('trend_prev')} (${escH(prev.mes)})</div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;text-align:right">${t('trend_curr')} (${escH(curr.mes)})</div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;text-align:right">${t('trend_change')}</div>
+  </div>`;
+  el.innerHTML=hdr+html;
+  // Add current month type breakdown if gastos exist
+  if(Object.keys(tipoMap).length){
+    const typeHtml=Object.entries(tipoMap).map(([tipo,val])=>{
+      const tc=tipoColors[tipo]||'#94a3b8';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(26,37,64,.25)">
+        <span class="pill" style="background:${tc}22;color:${tc};min-width:90px">${escH(tipo)}</span>
+        <div style="flex:1;background:var(--surface2);border-radius:99px;height:6px;overflow:hidden">
+          <div style="height:6px;border-radius:99px;background:${tc};width:${Math.min(100,Math.round(val/curr.gasto*100)||0)}%"></div>
+        </div>
+        <span class="mono" style="font-size:12px;font-weight:700;color:var(--text)">RD$${fmt(val)}</span>
+        <span style="font-size:11px;color:var(--muted)">${Math.round(val/curr.gasto*100)||0}%</span>
+      </div>`;
+    }).join('');
+    el.innerHTML+=`<div style="margin-top:16px;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">${_lang==='es'?'Distribución por Tipo (Mes Actual)':'Type Breakdown (Current Month)'}</div>`+typeHtml;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// FEATURE 1: SAVINGS GOAL TRACKER
+// ══════════════════════════════════════════════════════
+function buildSavingsGoals(){
+  if(!_editData.metas)_editData.metas=[];
+  const metas=_editData.metas;
+  const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0
+    ?(_editData.config.ingresoUSD*_editData.config.tasa)
+    :(_editData.config.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
+
+  // KPIs
+  const kpiEl=document.getElementById('metasKpis');
+  if(kpiEl){
+    const totalSaved=metas.reduce((a,m)=>a+(m.saved||0),0);
+    const done=metas.filter(m=>(m.saved||0)>=(m.goal||1)&&m.goal>0).length;
+    kpiEl.innerHTML=[
+      {l:t('metas_kpi_total'),v:String(metas.length),c:'var(--accent)',b:'rgba(59,130,246,.1)'},
+      {l:t('metas_kpi_done'),v:String(done),c:'var(--green)',b:'rgba(34,211,160,.1)'},
+      {l:t('metas_kpi_saved'),v:`RD$${fmt(totalSaved)}`,c:'var(--purple)',b:'rgba(167,139,250,.1)'},
+    ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div></div>`).join('');
+  }
+
+  const listEl=document.getElementById('metasList');
+  if(!listEl)return;
+  if(!metas.length){
+    listEl.innerHTML=`<p style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">${t('metas_empty')}</p>`;
+  } else {
+    listEl.innerHTML=metas.map((m,i)=>{
+      const saved=m.saved||0;const goal=m.goal||1;const monthly=m.monthly||0;
+      const pct=Math.min(100,Math.round(saved/goal*100));
+      const rem=Math.max(0,goal-saved);
+      const isDone=saved>=goal&&goal>0;
+      const monthsLeft=monthly>0&&!isDone?Math.ceil(rem/monthly):null;
+      let eta='—';
+      if(isDone)eta=t('metas_done_badge');
+      else if(monthsLeft){
+        const d=new Date();d.setMonth(d.getMonth()+monthsLeft);
+        eta=d.toLocaleDateString(_lang==='es'?'es-DO':'en-US',{month:'long',year:'numeric'});
+      }
+      const barColor=isDone?'var(--green)':pct>66?'var(--accent)':pct>33?'var(--yellow)':'var(--red)';
+      const pctOfIncome=ingreso>0&&monthly>0?Math.round(monthly/ingreso*100):0;
+      return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <div style="flex:1;min-width:160px">
+            <input value="${escH(m.name||'')}" placeholder="${t('metas_name_ph')}"
+              oninput="_editData.metas[${i}].name=this.value;autoSave()"
+              style="font-size:15px;font-weight:700;background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text);font-family:var(--font);padding:2px 4px;width:100%;outline:none">
+            <div style="font-size:12px;color:var(--muted);margin-top:5px">${t('metas_eta')}: <strong style="color:${isDone?'var(--green)':'var(--accent)'}">${eta}</strong>${monthsLeft?` · ${monthsLeft} ${t('metas_months_left')}`:''}${pctOfIncome?` · <span style="color:var(--muted)">${pctOfIncome}% del ingreso</span>`:''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="mono" style="font-size:22px;font-weight:800;color:${barColor}">${pct}%</div>
+            <button onclick="_editData.metas.splice(${i},1);autoSave();buildSavingsGoals()"
+              style="background:rgba(244,96,106,.12);border:1px solid rgba(244,96,106,.3);border-radius:8px;color:var(--red);padding:4px 10px;font-size:12px;cursor:pointer;font-weight:700">✕</button>
+          </div>
+        </div>
+        <div class="progress-wrap" style="margin-bottom:14px">
+          <div class="progress-bar" style="width:${pct}%;background:linear-gradient(90deg,${barColor}99,${barColor})"></div>
+        </div>
+        <div class="grid g3" style="gap:12px">
+          <div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_saved')}</div>
+            <input type="number" value="${saved}" min="0"
+              oninput="_editData.metas[${i}].saved=parseFloat(this.value)||0;autoSave();buildSavingsGoals()"
+              style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green);width:100%;outline:none">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_goal')}</div>
+            <input type="number" value="${goal}" min="1"
+              oninput="_editData.metas[${i}].goal=parseFloat(this.value)||1;autoSave();buildSavingsGoals()"
+              style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:100%;outline:none">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_monthly')}</div>
+            <input type="number" value="${monthly}" min="0"
+              oninput="_editData.metas[${i}].monthly=parseFloat(this.value)||0;autoSave();buildSavingsGoals()"
+              style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);width:100%;outline:none">
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Chart — horizontal bar per goal
+  setTimeout(()=>{
+    if(charts.metasChart)charts.metasChart.destroy();
+    const cEl=document.getElementById('metasChart');
+    if(!cEl||!metas.length)return;
+    const GOAL_COLORS=['#22d3a0','#3b82f6','#a78bfa','#f5c842','#fb923c','#f87171'];
+    charts.metasChart=new Chart(cEl,{
+      type:'bar',
+      data:{
+        labels:metas.map(m=>m.name||'—'),
+        datasets:[
+          {label:_lang==='es'?'Ahorrado':'Saved',data:metas.map(m=>m.saved||0),backgroundColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]+'aa'),borderColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]),borderWidth:2,borderRadius:6},
+          {label:_lang==='es'?'Falta':'Remaining',data:metas.map(m=>Math.max(0,(m.goal||0)-(m.saved||0))),backgroundColor:'rgba(26,37,64,.4)',borderColor:'rgba(74,93,128,.3)',borderWidth:1,borderRadius:6},
+        ]
+      },
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+        scales:{x:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}},y:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:11}}}}}
+    });
+  },100);
+}
+
+function addSavingsGoal(){
+  if(!_editData.metas)_editData.metas=[];
+  _editData.metas.push({name:'',goal:0,saved:0,monthly:0});
+  autoSave();
+  buildSavingsGoals();
+  // Scroll to new goal
+  const list=document.getElementById('metasList');
+  if(list)list.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ══════════════════════════════════════════════════════
+// FEATURE 2: MONTHLY BUDGET VS ACTUAL COMPARISON
+// ══════════════════════════════════════════════════════
+function buildBudgetVsActual(gastos,ingreso){
+  const el=document.getElementById('budgetVsActual');
+  if(!el)return;
+  if(!gastos||!gastos.length){
+    el.innerHTML=`<p style="color:var(--muted);font-size:13px;padding:12px 0">${t('bva_empty')}</p>`;
+    return;
+  }
+
+  let totalBudget=0,totalActual=0,overCount=0,underCount=0;
+  const rows=gastos.map(g=>{
+    const budget=g.adeudado||0;
+    const actual=g.pagado||0;
+    const delta=actual-budget;
+    const pct=budget>0?Math.round(actual/budget*100):0;
+    totalBudget+=budget;totalActual+=actual;
+    if(delta>100)overCount++;else if(delta<-100)underCount++;
+    const varColor=delta>0?'var(--red)':delta<0?'var(--green)':'var(--muted)';
+    const varText=delta>0?`▲ RD$${fmt(delta)}`:delta<0?`▼ RD$${fmt(Math.abs(delta))}`:'—';
+    const barW=Math.min(120,pct);
+    const barColor=pct>110?'var(--red)':pct>100?'var(--yellow)':pct<50?'rgba(34,211,160,.4)':'var(--green)';
+    const tc=tipoColors[g.tipo]||'#94a3b8';
+    return `<tr>
+      <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
+      <td data-label="Tipo"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
+      <td data-label="${t('bva_budget')}" class="num" style="color:var(--muted)">RD$${fmt(budget)}</td>
+      <td data-label="${t('bva_actual')}" class="num" style="color:${actual>0?'var(--text)':'var(--muted)'}">RD$${fmt(actual)}</td>
+      <td data-label="${t('bva_variance')}" class="num" style="color:${varColor};font-weight:700">${varText}</td>
+      <td data-label="%" style="min-width:90px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;background:var(--surface2);border-radius:99px;height:5px;overflow:hidden;min-width:50px">
+            <div style="height:5px;border-radius:99px;width:${Math.min(100,barW)}%;background:${barColor}"></div>
+          </div>
+          <span class="mono" style="font-size:11px;color:${pct>100?'var(--red)':'var(--muted)'}">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const totalDelta=totalActual-totalBudget;
+  const summaryColor=totalDelta>0?'var(--red)':totalDelta<0?'var(--green)':'var(--muted)';
+  const summaryArrow=totalDelta>0?'▲':totalDelta<0?'▼':'';
+
+  el.innerHTML=`
+    <div class="grid g3" style="gap:10px;margin-bottom:18px">
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_budget')}</div>
+        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">RD$${fmt(totalBudget)}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_actual')}</div>
+        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">RD$${fmt(totalActual)}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_var')}</div>
+        <div class="mono" style="font-size:20px;font-weight:800;color:${summaryColor}">${summaryArrow} RD$${fmt(Math.abs(totalDelta))}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${overCount} ${_lang==='es'?'sobre':'over'} · ${underCount} ${_lang==='es'?'bajo':'under'}</div>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table class="mobile-card-table">
+      <thead><tr>
+        <th>${_lang==='es'?'Descripción':'Description'}</th><th>Tipo</th>
+        <th style="text-align:right">${t('bva_budget')}</th>
+        <th style="text-align:right">${t('bva_actual')}</th>
+        <th style="text-align:right">${t('bva_variance')}</th>
+        <th>%</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px;padding:8px 12px;background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.15);border-radius:8px">
+      💡 ${t('bva_note')}
+    </div>`;
+
+  // Budget vs Actual chart
+  setTimeout(()=>{
+    if(charts.bvaChart)charts.bvaChart.destroy();
+    const cEl=document.getElementById('bvaChart');
+    if(!cEl)return;
+    const labels=gastos.map(g=>g.nombre&&g.nombre.length>14?g.nombre.slice(0,12)+'…':g.nombre);
+    charts.bvaChart=new Chart(cEl,{
+      type:'bar',
+      data:{labels,datasets:[
+        {label:t('bva_budget'),data:gastos.map(g=>g.adeudado||0),backgroundColor:'rgba(59,130,246,.4)',borderColor:'#3b82f6',borderWidth:2,borderRadius:4},
+        {label:t('bva_actual'),data:gastos.map(g=>g.pagado||0),backgroundColor:'rgba(34,211,160,.45)',borderColor:'#22d3a0',borderWidth:2,borderRadius:4},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+        scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxRotation:40}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
+    });
+  },120);
+}
+
+// ══════════════════════════════════════════════════════
+// FEATURE 3: DEBT PAYOFF DATE PROJECTION PER DEBT
+// ══════════════════════════════════════════════════════
+function buildDebtPayoffDates(gastos,ingreso,gasto){
+  const el=document.getElementById('debtPayoffDates');
+  if(!el)return;
+  const debts=gastos.filter(g=>g.balance>0&&g.tasa>0&&g.adeudado>0);
+  if(!debts.length){
+    el.innerHTML=`<p style="color:var(--muted);font-size:13px;padding:12px 0">${t('dpd_empty')}</p>`;
+    return;
+  }
+
+  const today=new Date();
+  const COLORS_DPD=['#22d3a0','#3b82f6','#a78bfa','#f5c842','#fb923c','#f87171','#c4b5fd','#93c5fd'];
+
+  const calcPayoff=(balance,monthlyRate,payment)=>{
+    // Months to pay off: n = -ln(1 - (r*PV)/PMT) / ln(1+r)  [standard amortisation]
+    if(monthlyRate<=0)return payment>0?Math.ceil(balance/payment):Infinity;
+    if(payment<=balance*monthlyRate)return Infinity;// payment doesn't cover interest
+    const n=Math.log(1-(monthlyRate*balance)/payment)/Math.log(1+monthlyRate);
+    return Math.ceil(Math.abs(n));
+  };
+
+  const calcTotalInterest=(balance,monthlyRate,payment,months)=>{
+    if(months===Infinity)return Infinity;
+    return Math.round(payment*months-balance);
+  };
+
+  const rows=debts.map((d,i)=>{
+    const monthlyRate=d.tasa/100/12;
+    const months=calcPayoff(d.balance,monthlyRate,d.adeudado);
+    const totalInt=months===Infinity?Infinity:calcTotalInterest(d.balance,monthlyRate,d.adeudado,months);
+    const payoffDate=months===Infinity?null:new Date(today.getFullYear(),today.getMonth()+months,1);
+    const color=COLORS_DPD[i%COLORS_DPD.length];
+    const years=months===Infinity?null:Math.floor(months/12);
+    const mos=months===Infinity?null:months%12;
+    const durStr=months===Infinity?t('dpd_never'):`${years>0?years+'a ':''} ${mos}m`;
+    const dateStr=payoffDate?payoffDate.toLocaleDateString(_lang==='es'?'es-DO':'en-US',{month:'long',year:'numeric'}):t('dpd_never');
+    const paidPct=d.originalRD>0?Math.round((1-d.balance/d.originalRD)*100):0;
+    // Urgency color: >3 years = red, 1-3 years = yellow, <1 year = green
+    const urgColor=months===Infinity?'var(--red)':months>36?'var(--red)':months>12?'var(--yellow)':'var(--green)';
+
+    return `<div style="background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${color};border-radius:12px;padding:16px 18px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <div>
+          <div style="font-size:14px;font-weight:800;color:var(--text)">${escH(d.nombre)}</div>
+          <div style="margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
+            <span>Balance: <strong class="mono" style="color:var(--red)">RD$${fmt(d.balance)}</strong></span>
+            <span>·</span>
+            <span>Tasa: <strong class="mono" style="color:${d.tasa>30?'var(--red)':d.tasa>18?'var(--yellow)':'var(--muted)'}">${d.tasa}%</strong></span>
+            <span>·</span>
+            <span>Cuota: <strong class="mono">RD$${fmt(d.adeudado)}/mes</strong></span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--muted)">${t('dpd_payoff_date')}</div>
+          <div style="font-size:15px;font-weight:800;color:${urgColor}">${dateStr}</div>
+          <div class="mono" style="font-size:12px;color:var(--muted)">${durStr}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
+          <div style="font-size:10px;color:var(--muted)">${t('dpd_int_total')}</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:${months===Infinity?'var(--red)':'var(--red)'}">
+            ${totalInt===Infinity?'∞':('RD$'+fmt(totalInt))}
+          </div>
+        </div>
+        <div style="background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
+          <div style="font-size:10px;color:var(--muted)">Interés/mes</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:var(--text)">RD$${fmt(Math.round(d.balance*monthlyRate))}</div>
+        </div>
+        <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
+          <div style="font-size:10px;color:var(--muted)">Capital/mes</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:${d.adeudado>d.balance*monthlyRate?'var(--accent)':'var(--red)'}">
+            ${d.adeudado>d.balance*monthlyRate?'RD$'+fmt(Math.round(d.adeudado-d.balance*monthlyRate)):'⚠ Negativo'}
+          </div>
+        </div>
+      </div>
+      ${paidPct>0?`<div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>Progreso total pagado</span><span>${paidPct}%</span></div>
+        <div class="progress-wrap"><div class="progress-bar" style="width:${paidPct}%;background:${color}"></div></div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  el.innerHTML=rows+`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.15);border-radius:8px">
+    💡 ${t('dpd_extra_note')}
+  </div>`;
 }
 
 // ══════════════════════════════════
