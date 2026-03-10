@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>BitEric Finance</title>
+<title>CNT Core · Dashboard Financiero</title>
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#060912" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f0f4f8" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BitEric Finance">
+<meta name="apple-mobile-web-app-title" content="CNT Core">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="description" content="Dashboard financiero personal — offline, privado, sin servidor">
 <!-- Icons inline SVG as data URI for apple touch -->
@@ -40,18 +40,18 @@ body::after{content:'';position:fixed;top:-300px;right:-200px;width:700px;height
 .z1{position:relative;z-index:1}
 
 /* ══ LOADER ══ */
-#loaderScreen{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:12px 24px;overflow-y:auto}
+#loaderScreen{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:24px}
 .loader-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 20px var(--accent),0 0 40px rgba(59,130,246,.3);animation:pulse 2.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.85)}}
-.loader-logo{display:flex;align-items:center;gap:14px;width:100%;max-width:440px}
-.loader-title{font-size:18px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.loader-logo{display:flex;align-items:center;gap:14px}
+.loader-title{font-size:30px;font-weight:800;letter-spacing:-.03em}
 .loader-label{font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
-.lcard{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:18px 24px;width:100%;max-width:440px;text-align:center}
-.lcard h2{font-size:17px;font-weight:800;margin-bottom:3px}
-.lcard p{font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:10px}
-.drop-zone{border:2px dashed var(--border);border-radius:14px;padding:12px 20px;transition:all .25s;cursor:pointer}
+.lcard{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:32px;width:100%;max-width:440px;text-align:center}
+.lcard h2{font-size:18px;font-weight:800;margin-bottom:8px}
+.lcard p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.drop-zone{border:2px dashed var(--border);border-radius:14px;padding:36px 20px;transition:all .25s;cursor:pointer}
 .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(59,130,246,.05)}
-.drop-zone-icon{font-size:24px;margin-bottom:2px}
+.drop-zone-icon{font-size:42px;margin-bottom:10px}
 .drop-zone-text{font-size:14px;font-weight:600;color:var(--text)}
 .drop-zone-sub{font-size:12px;color:var(--muted);margin-top:6px}
 .drop-zone-sub span{color:var(--accent);font-weight:600}
@@ -271,10 +271,9 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   background:var(--surface);border-top:1px solid var(--border);
   padding:8px max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  display:none;gap:0;overflow-x:auto;justify-content:space-around;
-  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  display:none;gap:0;overflow-x:auto;justify-content:space-around}
 #mobileNav::-webkit-scrollbar{height:0}
-.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-width:52px;border-radius:10px;transition:all .2s;flex-shrink:0;scroll-snap-align:start}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-width:52px;border-radius:10px;transition:all .2s;flex-shrink:0}
 .mnav-btn .mnav-icon{font-size:20px;line-height:1}
 .mnav-btn.active{color:var(--accent);background:rgba(59,130,246,.08)}
 .mnav-btn .alert-dot{width:6px;height:6px;background:var(--red);border-radius:50%;position:absolute;top:4px;right:8px;animation:pulse 1.5s infinite}
@@ -290,21 +289,12 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 /* ══ RESPONSIVE TABLE → CARDS (mobile) ══ */
 .card-table-row{display:none}
 
-/* ══ CF BAR — wraps gracefully on small screens ══ */
-.cf-bar{flex-wrap:wrap}
-.cf-seg{min-width:fit-content}
-
-/* ══ TABLET 641–1024px ══ */
+/* ══ TABLET 768–1024px ══ */
 @media(max-width:1024px) and (min-width:641px){
   .g4{grid-template-columns:repeat(2,1fr)}
   .g3{grid-template-columns:repeat(2,1fr)}
   .g12,.g21{grid-template-columns:1fr}
   .g13{grid-template-columns:1fr 2fr}
-  /* Proyector slider area wraps cleanly */
-  #proyectorConfig .card-title{font-size:12px}
-  /* Edit modal tables readable on tablet */
-  .edit-table{font-size:12px}
-  .tbl-input{min-width:75px!important}
 }
 
 /* ══ TABLET ≤960px ══ */
@@ -317,7 +307,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 @media(max-width:640px){
   /* Layout */
   header{padding:10px 16px;gap:8px}
-  .panel{padding:14px 16px;padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+  .panel{padding:14px 16px;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
   .tabs{display:none}/* replaced by bottom nav */
   #mobileNav{display:flex}
 
@@ -351,11 +341,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   /* Debt cards */
   .debt-meta{grid-template-columns:1fr 1fr}
 
-  /* Wizard modals */
+  /* Wizard */
   .cierre-container{padding:0}
-  .cierre-header{border-radius:12px;padding:16px}
-  .cierre-input{font-size:16px;padding:12px 14px} /* prevent iOS zoom + bigger tap target */
-  #setupModal>div>div{padding:20px 16px!important;border-radius:16px!important}
+  .cierre-header{border-radius:12px;padding:18px}
+  .cierre-input{font-size:16px} /* prevent iOS zoom */
 
   /* Edit modal */
   .edit-container{padding:0 4px}
@@ -365,22 +354,6 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   /* Inputs min 16px to prevent iOS auto-zoom */
   input,select,textarea{font-size:16px!important}
   .tbl-input{font-size:14px!important}
-
-  /* CF bar: stack vertically when too narrow */
-  .cf-bar{height:auto;flex-direction:column;gap:4px;border-radius:10px;overflow:visible}
-  .cf-seg{border-radius:8px!important;padding:8px 14px;justify-content:flex-start;gap:8px;font-size:13px}
-
-  /* Score card: row layout on mobile to save vertical space */
-  #scoreCard{flex-direction:row!important;gap:16px;align-items:center}
-  .score-ring{width:90px;height:90px;flex-shrink:0}
-  .score-ring svg{width:90px;height:90px}
-  .score-num{font-size:22px}
-
-  /* Proyector slider row wraps */
-  #proyectorConfig [style*="display:flex"]{flex-wrap:wrap}
-
-  /* Loader */
-  .lcard{padding:20px 16px}
 }
 
 /* ══ SMALL PHONES ≤375px ══ */
@@ -389,7 +362,6 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .mnav-btn .mnav-icon{font-size:18px}
   .card{padding:12px}
   .kpi-val{font-size:18px}
-  .cierre-header{padding:12px}
 }
 
 /* ══ WINDOWS / LARGE SCREENS ≥1280px ══ */
@@ -450,42 +422,6 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .timeline-name{font-size:12px}
   .timeline-date{font-size:10px}
 }
-
-/* ══ CF-ROW — prevent value clipping on narrow screens ══ */
-@media(max-width:480px){
-  .cf-row{flex-direction:column;align-items:flex-start;gap:4px}
-  .cf-val{font-size:15px;text-align:left}
-}
-
-/* ══ EMERGENCY TIP CARD — min height so it doesn't collapse ══ */
-@media(max-width:960px){
-  #efTip{min-height:120px}
-}
-
-/* ══ TABLET g3 — always 2 columns on tablet, 1 on mobile ══ */
-@media(max-width:768px) and (min-width:641px){
-  .g3{grid-template-columns:repeat(2,1fr)}
-}
-
-/* ══ REFI TABLE INPUTS — full width on mobile card layout ══ */
-@media(max-width:640px){
-  .mobile-card-table td[data-label="Tasa objetivo"] input{width:100%!important;max-width:200px}
-  /* Deuda KPIs — 2 col on mobile */
-  #deudaKpis.g4{grid-template-columns:repeat(2,1fr)!important}
-  #forNowKpis.g4{grid-template-columns:repeat(2,1fr)!important}
-  #histKpis.g4{grid-template-columns:repeat(2,1fr)!important}
-  /* debtCostSnapshot efficiency bar hidden on mobile — show as text only */
-  .mobile-card-table td[data-label="Eficiencia"] div{display:none}
-  /* Proyector config stat pills — side by side */
-  #proyectorConfig>div>div:nth-child(2),
-  #proyectorConfig>div>div:nth-child(3){flex:1;min-width:120px}
-}
-
-/* ══ KPIS 2×2 on mobile instead of 1 column ══ */
-@media(max-width:640px){
-  #kpiRow.g4{grid-template-columns:repeat(2,1fr)!important}
-  #efKpis.g3{grid-template-columns:repeat(2,1fr)!important}
-}
 </style>
 </head>
 <body>
@@ -495,27 +431,23 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div class="loader-logo">
     <div class="loader-dot"></div>
     <div>
-      <div class="loader-label">BitEric Finance</div>
-      <div class="loader-title" data-i18n="loader_title">Personal Finance</div>
+      <div class="loader-label">CNT Core</div>
+      <div class="loader-title">Dashboard Financiero</div>
     </div>
-    <button onclick="toggleLoaderLang()" id="loaderLangBtn"
-      style="margin-left:auto;padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap"
-      onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
-      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🇺🇸 EN</button>
   </div>
 
   <div class="lcard">
     <div class="drop-zone-icon">📊</div>
-    <h2>BitEric Finance</h2>
-    <p style="margin-bottom:20px"><span data-i18n="loader_tagline">Elige cómo empezar.</span><br>
-    <span style="font-size:11px;color:var(--green)" data-i18n="loader_privacy">🔒 Tus datos nunca salen de tu dispositivo.</span></p>
+    <h2>CNT Core · Dashboard</h2>
+    <p style="margin-bottom:20px">Elige cómo empezar.<br>
+    <span style="font-size:11px;color:var(--green)">🔒 Tus datos nunca salen de tu dispositivo.</span></p>
 
     <!-- Option 1: Saved data (hidden until IndexedDB has data) -->
     <div id="savedDataBanner" style="display:none;margin-bottom:12px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.25);border-radius:12px;padding:14px 16px;text-align:left">
-      <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px" data-i18n="loader_saved">✅ Datos guardados</div>
+      <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:2px">✅ Datos guardados</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="savedDataInfo">—</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-success btn-sm" onclick="loadFromDB()" style="flex:1" data-i18n="loader_continue">▶ Continuar donde lo dejé</button>
+        <button class="btn btn-success btn-sm" onclick="loadFromDB()" style="flex:1">▶ Continuar donde lo dejé</button>
         <button class="btn btn-ghost btn-sm" onclick="clearDB()" style="color:var(--red);border-color:rgba(244,96,106,.3)" title="Borrar datos guardados">🗑</button>
       </div>
     </div>
@@ -523,7 +455,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <!-- Divider -->
     <div id="loaderDivider" style="display:flex;align-items:center;gap:10px;margin:14px 0;display:none">
       <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:11px;color:var(--muted);white-space:nowrap" data-i18n="loader_or_other">o empieza de otra forma</span>
+      <span style="font-size:11px;color:var(--muted);white-space:nowrap">o empieza de otra forma</span>
       <div style="flex:1;height:1px;background:var(--border)"></div>
     </div>
 
@@ -532,8 +464,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="drop-zone" id="dropZone"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
         <div style="font-size:26px;margin-bottom:6px">📂</div>
-        <div class="drop-zone-text" data-i18n="loader_import">Importar archivo .xlsx</div>
-        <div class="drop-zone-sub" data-i18n="loader_import_sub">Arrastra o toca para seleccionar · <span>actualiza datos existentes</span></div>
+        <div class="drop-zone-text">Importar archivo .xlsx</div>
+        <div class="drop-zone-sub">Arrastra o toca para seleccionar · <span>actualiza datos existentes</span></div>
       </div>
     </label>
     <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="loadFile(event)">
@@ -541,7 +473,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <!-- Divider -->
     <div style="display:flex;align-items:center;gap:10px;margin:14px 0">
       <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:11px;color:var(--muted);white-space:nowrap" data-i18n="loader_or">o</span>
+      <span style="font-size:11px;color:var(--muted);white-space:nowrap">o</span>
       <div style="flex:1;height:1px;background:var(--border)"></div>
     </div>
 
@@ -549,22 +481,33 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <button class="btn btn-ghost" onclick="startFromScratch()" style="width:100%;justify-content:center;border-style:dashed;gap:10px;padding:14px">
       <span style="font-size:20px">✨</span>
       <div style="text-align:left">
-        <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="loader_scratch">Empezar desde cero</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px" data-i18n="loader_scratch_sub">Configuro el dashboard con un asistente y genero mi Excel inicial</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Empezar desde cero</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Configuro el dashboard con un asistente y genero mi Excel inicial</div>
       </div>
     </button>
 
     <div id="errorMsg"></div>
-    <div id="loadingSpinner"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)" data-i18n="loader_processing">Procesando…</div></div>
+    <div id="loadingSpinner"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)">Procesando…</div></div>
+
+    <!-- Cache reset — útil cuando los cambios no aparecen -->
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);text-align:center">
+      <button onclick="hardResetCache()" title="Limpia el Service Worker y caché, luego recarga desde el servidor"
+        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font);transition:all .2s"
+        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        🔄 Limpiar caché · Forzar actualización
+      </button>
+    </div>
   </div>
 
   <div style="display:flex;align-items:center;gap:16px;justify-content:center;flex-wrap:wrap">
-    <div style="font-size:11px;color:var(--muted);text-align:center" data-i18n="loader_offline">Funciona sin conexión · Todo procesado localmente · Datos guardados en tu navegador</div>
+    <div style="font-size:11px;color:var(--muted);text-align:center">Funciona sin conexión · Todo procesado localmente · Datos guardados en tu navegador</div>
     <button onclick="hardResetCache()" title="Limpiar caché del Service Worker y recargar"
       style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .2s"
       onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
-      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'"
-      data-i18n="loader_clearcache2">🔄 Limpiar caché</button>
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      🔄 Limpiar caché
+    </button>
   </div>
 </div>
 
@@ -574,19 +517,18 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="logo">
       <div class="logo-dot"></div>
       <div>
-        <div class="logo-label">BitEric Finance</div>
+        <div class="logo-label">CNT Core · Financial Dashboard</div>
         <div class="logo-title" id="headerTitle">—</div>
       </div>
     </div>
     <div class="header-meta">
-      <div class="meta-item"><div class="meta-label" data-i18n="hdr_tasa">Tasa USD</div><div class="meta-val" id="hTasa">—</div></div>
-      <div class="meta-item"><div class="meta-label" data-i18n="hdr_ingusd">Ingreso USD</div><div class="meta-val" id="hIngUSD">—</div></div>
-      <div class="meta-item"><div class="meta-label" data-i18n="hdr_ingrd">Ingreso RD$</div><div class="meta-val" style="color:var(--green)" id="hIngRD">—</div></div>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="openCierre()" data-i18n="closemonth">🗓 Cerrar Mes</button>
-      <button class="hdr-btn edit hdr-meta-overflow-hide" onclick="openEditModal()" data-i18n="edit">✏️ Editar</button>
+      <div class="meta-item"><div class="meta-label">Tasa USD</div><div class="meta-val" id="hTasa">—</div></div>
+      <div class="meta-item"><div class="meta-label">Ingreso USD</div><div class="meta-val" id="hIngUSD">—</div></div>
+      <div class="meta-item"><div class="meta-label">Ingreso RD$</div><div class="meta-val" style="color:var(--green)" id="hIngRD">—</div></div>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="openCierre()">🗓 Cerrar Mes</button>
+      <button class="hdr-btn edit hdr-meta-overflow-hide" onclick="openEditModal()">✏️ Editar</button>
       <span id="dbSyncStatus" style="display:none;font-size:11px;color:var(--green);font-weight:700;align-items:center;gap:4px">💾 Guardado</span>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleTheme()" id="themeBtn" title="Modo claro/oscuro">☀️</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleLang()" id="langBtn" title="Switch language">🇺🇸 EN</button>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="exportSnapshot()" title="Exportar snapshot PDF">📸</button>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="resetLoader()">↩</button>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="hardResetCache()" title="Limpiar caché y recargar" style="font-size:15px">🔄</button>
@@ -594,41 +536,40 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div id="hdrOverflow">
         <button class="hdr-btn" onclick="toggleOverflow()" id="overflowBtn" title="Más opciones">⋯</button>
         <div id="hdrOverflowMenu">
-          <button class="overflow-item" onclick="openCierre();closeOverflow()" data-i18n="closemonth">🗓 Cerrar Mes</button>
-          <button class="overflow-item" onclick="openEditModal();closeOverflow()" data-i18n="editdata">✏️ Editar datos</button>
-          <button class="overflow-item" onclick="toggleTheme();closeOverflow()" id="themeBtnMobile">☀️ <span data-i18n="changetheme">Cambiar tema</span></button>
-          <button class="overflow-item" onclick="toggleLang();closeOverflow()" id="langBtnMobile">🇺🇸 <span id="langBtnMobileLabel">Switch to English</span></button>
-          <button class="overflow-item" onclick="exportSnapshot();closeOverflow()" data-i18n="exportpdf">📸 Exportar PDF</button>
-          <button class="overflow-item" onclick="resetLoader();closeOverflow()" data-i18n="changefile">↩ Cambiar archivo</button>
-          <button class="overflow-item" onclick="hardResetCache();closeOverflow()" data-i18n="clearcache">🔄 Limpiar caché</button>
+          <button class="overflow-item" onclick="openCierre();closeOverflow()">🗓 Cerrar Mes</button>
+          <button class="overflow-item" onclick="openEditModal();closeOverflow()">✏️ Editar datos</button>
+          <button class="overflow-item" onclick="toggleTheme();closeOverflow()" id="themeBtnMobile">☀️ Cambiar tema</button>
+          <button class="overflow-item" onclick="exportSnapshot();closeOverflow()">📸 Exportar PDF</button>
+          <button class="overflow-item" onclick="resetLoader();closeOverflow()">↩ Cambiar archivo</button>
+          <button class="overflow-item" onclick="hardResetCache();closeOverflow()">🔄 Limpiar caché</button>
         </div>
       </div>
     </div>
   </header>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('resumen',this)" data-i18n="tab_resumen">📊 Resumen</button>
-    <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas" data-i18n="tab_alertas">🔔 Alertas</button>
-    <button class="tab-btn" onclick="showTab('gastos',this)" data-i18n="tab_gastos">💸 Gastos</button>
-    <button class="tab-btn" onclick="showTab('checklist',this)" data-i18n="tab_checklist">✅ Pagos del Mes</button>
-    <button class="tab-btn" onclick="showTab('deudas',this)" data-i18n="tab_deudas">🏦 Deudas</button>
-    <button class="tab-btn" onclick="showTab('proyector',this)" data-i18n="tab_proyector">🎯 Proyector</button>
-    <button class="tab-btn" onclick="showTab('emergency',this)" data-i18n="tab_emergency">🛡 Emergencia</button>
-    <button class="tab-btn" onclick="showTab('fornow',this)" data-i18n="tab_fornow">💳 Fondos</button>
-    <button class="tab-btn" onclick="showTab('historial',this)" data-i18n="tab_historial">📅 Historial</button>
+    <button class="tab-btn active" onclick="showTab('resumen',this)">📊 Resumen</button>
+    <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas">🔔 Alertas</button>
+    <button class="tab-btn" onclick="showTab('gastos',this)">💸 Gastos</button>
+    <button class="tab-btn" onclick="showTab('checklist',this)">✅ Pagos del Mes</button>
+    <button class="tab-btn" onclick="showTab('deudas',this)">🏦 Deudas</button>
+    <button class="tab-btn" onclick="showTab('proyector',this)">🎯 Proyector</button>
+    <button class="tab-btn" onclick="showTab('emergency',this)">🛡 Emergencia</button>
+    <button class="tab-btn" onclick="showTab('fornow',this)">💳 Fondos</button>
+    <button class="tab-btn" onclick="showTab('historial',this)">📅 Historial</button>
+    <button class="tab-btn" onclick="showTab('metas',this)">🎯 Metas</button>
   </div>
 
   <!-- Mobile bottom navigation -->
   <nav id="mobileNav" aria-label="Navegación móvil">
-    <button class="mnav-btn" onclick="mobileTab('resumen',this)" id="mnavResumen"><span class="mnav-icon">📊</span><span data-i18n="mnav_resumen">Resumen</span></button>
-    <button class="mnav-btn" onclick="mobileTab('alertas',this)" id="mobileTabAlertas"><span class="mnav-icon">🔔</span><span data-i18n="mnav_alertas">Alertas</span></button>
-    <button class="mnav-btn" onclick="mobileTab('checklist',this)" id="mnavChecklist"><span class="mnav-icon">✅</span><span data-i18n="mnav_checklist">Pagos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('deudas',this)" id="mnavDeudas"><span class="mnav-icon">🏦</span><span data-i18n="mnav_deudas">Deudas</span></button>
-    <button class="mnav-btn" onclick="mobileTab('gastos',this)" id="mnavGastos"><span class="mnav-icon">💸</span><span data-i18n="mnav_gastos">Gastos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('emergency',this)" id="mnavEmergencia"><span class="mnav-icon">🛡</span><span data-i18n="mnav_emergency">Emergencia</span></button>
-    <button class="mnav-btn" onclick="mobileTab('fornow',this)" id="mnavFondos"><span class="mnav-icon">💳</span><span data-i18n="mnav_fornow">Fondos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('historial',this)" id="mnavHistorial"><span class="mnav-icon">📅</span><span data-i18n="mnav_historial">Historial</span></button>
-    <button class="mnav-btn" onclick="mobileTab('proyector',this)" id="mnavProyector"><span class="mnav-icon">🎯</span><span data-i18n="mnav_proyector">Proyector</span></button>
+    <button class="mnav-btn active" onclick="mobileTab('resumen',this)"><span class="mnav-icon">📊</span>Resumen</button>
+    <button class="mnav-btn" onclick="mobileTab('alertas',this)" id="mobileTabAlertas"><span class="mnav-icon">🔔</span>Alertas</button>
+    <button class="mnav-btn" onclick="mobileTab('checklist',this)"><span class="mnav-icon">✅</span>Pagos</button>
+    <button class="mnav-btn" onclick="mobileTab('deudas',this)"><span class="mnav-icon">🏦</span>Deudas</button>
+    <button class="mnav-btn" onclick="mobileTab('gastos',this)"><span class="mnav-icon">💸</span>Gastos</button>
+    <button class="mnav-btn" onclick="mobileTab('emergency',this)"><span class="mnav-icon">🛡</span>Emergencia</button>
+    <button class="mnav-btn" onclick="mobileTab('historial',this)"><span class="mnav-icon">📅</span>Historial</button>
+    <button class="mnav-btn" onclick="mobileTab('proyector',this)"><span class="mnav-icon">🎯</span>Proyector</button>
   </nav>
 
   <!-- RESUMEN -->
@@ -650,27 +591,28 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div id="tab-alertas" class="panel">
     <div class="grid g2" style="margin-bottom:16px">
       <div class="card"><div class="card-title">🔴 Vencimientos Próximos</div><div id="alertasVenc"></div></div>
-      <div class="card"><div class="card-title" data-i18n="panel_alertas_gen">⚠️ Alertas Financieras</div><div id="alertasGen"></div></div>
+      <div class="card"><div class="card-title">⚠️ Alertas Financieras</div><div id="alertasGen"></div></div>
     </div>
-    <div class="card"><div class="card-title" data-i18n="panel_alertas_sit">📋 Resumen de Situación</div><div id="alertasSit"></div></div>
+    <div class="card"><div class="card-title">📋 Resumen de Situación</div><div id="alertasSit"></div></div>
   </div>
 
   <!-- GASTOS -->
   <div id="tab-gastos" class="panel">
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:18px">
-        <div class="card-title" style="margin:0" data-i18n="gastostbl_title">Gastos & Deudas Mensuales</div>
+        <div class="card-title" style="margin:0">Gastos & Deudas Mensuales</div>
         <div style="display:flex;gap:16px;font-size:12px;flex-wrap:wrap">
-          <span style="color:var(--muted)"><span data-i18n="gastostbl_paid">Total Pagado</span>: <span class="mono" style="color:var(--green);font-weight:700" id="tPagado">—</span></span>
-          <span style="color:var(--muted)"><span data-i18n="gastostbl_pending">Pendiente este mes</span>: <span class="mono" style="color:var(--red);font-weight:700" id="tAdeudado">—</span></span>
+          <span style="color:var(--muted)">Total Pagado: <span class="mono" style="color:var(--green);font-weight:700" id="tPagado">—</span></span>
+          <span style="color:var(--muted)">Pendiente este mes: <span class="mono" style="color:var(--red);font-weight:700" id="tAdeudado">—</span></span>
         </div>
       </div>
       <div class="tbl-wrap"><table class="mobile-card-table"><thead><tr>
-        <th data-i18n="gastostbl_desc">Descripción</th><th data-i18n="gastostbl_tipo">Tipo</th><th data-i18n="gastostbl_pagado">Pagado (RD$)</th><th data-i18n="gastostbl_cuota">Cuota (RD$)</th><th data-i18n="gastostbl_pctinc">% Ing</th>
-        <th data-i18n="gastostbl_day">Día Pago</th><th data-i18n="gastostbl_rate">Tasa %</th><th data-i18n="gastostbl_balance">Balance (RD$)</th><th data-i18n="gastostbl_status">Estado</th>
+        <th>Descripción</th><th>Tipo</th><th>Pagado (RD$)</th><th>Cuota (RD$)</th><th>% Ing</th>
+        <th>Día Pago</th><th>Tasa %</th><th>Balance (RD$)</th><th>Estado</th>
       </tr></thead><tbody id="gastosBody"></tbody></table></div>
     </div>
-    <div class="card"><div class="card-title" data-i18n="panel_gastos_chart">Pagado vs Pendiente por Compromiso</div><div class="chart-wrap"><canvas id="gastosBar"></canvas></div></div>
+    <div class="card"><div class="card-title">Pagado vs Pendiente por Compromiso</div><div class="chart-wrap"><canvas id="gastosBar"></canvas></div></div>
+    <div class="card" style="margin-top:16px" id="budgetVsActual"></div>
   </div>
 
   <!-- CHECKLIST PAGOS DEL MES -->
@@ -678,16 +620,16 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="card" style="margin-bottom:16px" id="checklistProgress"></div>
     <div class="grid g2" style="margin-bottom:16px">
       <div class="card">
-        <div class="card-title" data-i18n="chk_pending_tab">⏳ Pendientes</div>
+        <div class="card-title">⏳ Pendientes</div>
         <div id="checklistPending"></div>
       </div>
       <div class="card">
-        <div class="card-title" data-i18n="chk_done_tab">✅ Pagados</div>
+        <div class="card-title">✅ Pagados</div>
         <div id="checklistDone"></div>
       </div>
     </div>
     <div class="card" style="margin-bottom:16px">
-      <div class="card-title" data-i18n="chk_interest_title">💸 Costo de Intereses en Deudas</div>
+      <div class="card-title">💸 Costo de Intereses en Deudas</div>
       <div id="interestAnalysis"></div>
     </div>
   </div>
@@ -696,7 +638,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div id="tab-deudas" class="panel">
     <div class="grid g4" style="margin-bottom:20px" id="deudaKpis"></div>
     <div id="deudaCards"></div>
-    <div class="card"><div class="card-title" data-i18n="panel_deudas_dist">Distribución de Deudas</div><div class="chart-wrap"><canvas id="deudaPie"></canvas></div></div>
+    <div class="card"><div class="card-title">Distribución de Deudas</div><div class="chart-wrap"><canvas id="deudaPie"></canvas></div></div>
   </div>
 
   <!-- PROYECTOR DE DEUDAS -->
@@ -708,8 +650,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
     <!-- Strategy timelines -->
     <div class="grid g2" style="margin-bottom:16px">
-      <div class="card"><div class="card-title"><span data-i18n="proy_avalanche_title">🔥 Estrategia Avalancha</span> <span style="font-size:10px;color:var(--muted)" data-i18n="proy_avalanche_sub">(mayor tasa primero)</span></div><div id="avalanchaTimeline"></div></div>
-      <div class="card"><div class="card-title"><span data-i18n="proy_snowball_title">⛄ Estrategia Bola de Nieve</span> <span style="font-size:10px;color:var(--muted)" data-i18n="proy_snowball_sub">(menor balance primero)</span></div><div id="nieveTimeline"></div></div>
+      <div class="card"><div class="card-title">🔥 Estrategia Avalancha <span style="font-size:10px;color:var(--muted)">(mayor tasa primero)</span></div><div id="avalanchaTimeline"></div></div>
+      <div class="card"><div class="card-title">⛄ Estrategia Bola de Nieve <span style="font-size:10px;color:var(--muted)">(menor balance primero)</span></div><div id="nieveTimeline"></div></div>
     </div>
 
     <!-- Refinancing Simulator -->
@@ -760,6 +702,20 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <th style="text-align:right">Ahorro Neto</th><th style="text-align:right">Tasa Ahorro</th><th style="text-align:right">Deudas (RD$)</th><th style="text-align:right">Emergencia (RD$)</th><th style="text-align:right">Net Worth (RD$)</th><th style="text-align:right">Tasa $</th>
       </tr></thead><tbody id="histBody"></tbody></table></div>
       <div class="hist-note">📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.</div>
+    </div>
+    <div class="card" style="margin-top:16px" id="expenseTrend"></div>
+  </div>
+
+  <!-- METAS DE AHORRO -->
+  <div id="tab-metas" class="panel">
+    <div class="grid g4" style="margin-bottom:16px" id="metasKpis"></div>
+    <div id="metasCards" style="margin-bottom:16px"></div>
+    <div id="metasEmpty" style="display:none" class="card">
+      <div style="text-align:center;padding:40px;color:var(--muted)">
+        <div style="font-size:32px;margin-bottom:12px">🎯</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Sin metas configuradas</div>
+        <div style="font-size:12px">Agrega metas en Editar datos → pestaña Metas.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -835,6 +791,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <button class="edit-tab" onclick="showEditTab('fornow',this)">💳 Fondos</button>
       <button class="edit-tab" onclick="showEditTab('emergency',this)">🛡 Emergencia</button>
       <button class="edit-tab" onclick="showEditTab('historial',this)">📅 Historial</button>
+      <button class="edit-tab" onclick="showEditTab('metas',this)">🎯 Metas</button>
     </div>
     <div id="esection-config" class="edit-section active">
       <div class="edit-card"><div class="edit-card-title">⚙️ Parámetros Globales</div><div class="field-grid" id="configFields"></div></div>
@@ -882,6 +839,16 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <button class="row-add-btn" onclick="addHistorialRow()">+ Agregar mes</button>
       </div>
     </div>
+    <div id="esection-metas" class="edit-section">
+      <div class="edit-card">
+        <div class="edit-card-title">🎯 Metas de Ahorro</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Vacaciones, fondo de emergencia extra, compra, equipo, etc.</div>
+        <div class="edit-table-wrap"><table class="edit-table"><thead><tr>
+          <th>Nombre</th><th>Ahorrado (RD$)</th><th>Meta (RD$)</th><th>Aporte Mensual (RD$)</th><th>Notas</th><th></th>
+        </tr></thead><tbody id="metasEditBody"></tbody></table></div>
+        <button class="row-add-btn" onclick="addMetaRow()">+ Agregar meta</button>
+      </div>
+    </div>
     <div class="save-bar">
       <div style="display:flex;gap:10px;justify-content:flex-end">
         <button class="btn btn-success" onclick="applyAndDownload()">💾 Guardar y exportar Excel</button>
@@ -895,413 +862,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 // ══════════════════════════════════
 // HELPERS
 // ══════════════════════════════════
-const fmt=n=>{if(n===undefined||n===null||isNaN(n))return'—';return Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0})};
-const fmtUSD=n=>n===undefined||isNaN(n)?'—':'$'+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});
-
-// ══════════════════════════════════
-// i18n — LANGUAGE SYSTEM
-// ══════════════════════════════════
-let _lang = localStorage.getItem('cnt_lang')||'es';
-
-const LANG = {
-  es: {
-    // Header buttons / overflow
-    closemonth:'🗓 Cerrar Mes', edit:'✏️ Editar', editdata:'✏️ Editar datos',
-    changetheme:'Cambiar tema', exportpdf:'📸 Exportar PDF',
-    changefile:'↩ Cambiar archivo', clearcache:'🔄 Limpiar caché',
-    langbtn:'🇺🇸 EN', langswitch:'Switch to English',
-    // Header meta labels
-    hdr_tasa:'Tasa USD', hdr_ingusd:'Ingreso USD', hdr_ingrd:'Ingreso RD$',
-    // Desktop tabs
-    tab_resumen:'📊 Resumen', tab_alertas:'🔔 Alertas', tab_gastos:'💸 Gastos',
-    tab_checklist:'✅ Pagos del Mes', tab_deudas:'🏦 Deudas', tab_proyector:'🎯 Proyector',
-    tab_emergency:'🛡 Emergencia', tab_fornow:'💳 Fondos', tab_historial:'📅 Historial',
-    // Mobile nav
-    mnav_resumen:'Resumen', mnav_alertas:'Alertas', mnav_checklist:'Pagos',
-    mnav_deudas:'Deudas', mnav_gastos:'Gastos', mnav_emergency:'Emergencia',
-    mnav_fornow:'Fondos', mnav_historial:'Historial', mnav_proyector:'Proyector',
-    // KPI labels
-    kpi_income:'Ingresos', kpi_expenses:'Gastos Totales', kpi_surplus:'Superávit del Mes', kpi_networth:'Net Worth',
-    kpi_surplus_pct:'% del ingreso ✓', kpi_deficit:'⚠ Déficit', kpi_savings_ef:'Ahorros+EF − Deudas',
-    // Score card
-    score_title:'Salud Financiera',
-    score_grades:{excellent:'Excelente',good:'Bueno',fair:'Regular',poor:'En Riesgo',critical:'Crítico'},
-    // CF bar
-    cf_dist:'Distribución del Ingreso', cf_expenses:'Gastos', cf_remainder:'Sobrante',
-    cf_withdrawusd:'Retirar USD', cf_rate:'Tasa Dólar', cf_savings:'Ahorros este mes', cf_committed:'Comprometido',
-    // Gastos table
-    gastostbl_title:'Gastos & Deudas Mensuales', gastostbl_paid:'Total Pagado', gastostbl_pending:'Pendiente este mes',
-    gastostbl_desc:'Descripción', gastostbl_tipo:'Tipo', gastostbl_pagado:'Pagado (RD$)', gastostbl_cuota:'Cuota (RD$)',
-    gastostbl_pctinc:'% Ing', gastostbl_day:'Día Pago', gastostbl_rate:'Tasa %', gastostbl_balance:'Balance (RD$)',
-    gastostbl_status:'Estado', gastostbl_total:'TOTALES',
-    gastostbl_thismonth:'✓ Este mes', gastostbl_done:'✓ Pagado', gastostbl_partial:'◑ Parcial',
-    gastostbl_pending2:'⏳ Pendiente',
-    // Deuda KPIs
-    deuda_total:'Deuda Total', deuda_mostexpensive:'Deuda más cara', deuda_monthly:'Cuota Mensual',
-    deuda_progress:'Avance de Pago', deuda_annualrate:'% anual', deuda_onlybalance:'Solo deudas con balance',
-    // Deuda cards
-    dcard_monthly:'Cuota mensual', dcard_intmonthly:'Interés mensual', dcard_payday:'Día de pago',
-    dcard_rate:'Tasa interés', dcard_expires:'Vence', dcard_oftotal:'% del total de deudas',
-    // Deuda summary
-    deuda_summary_title:'Resumen de Deudas Totales', deuda_balancetotal:'Balance Total',
-    deuda_original:'Monto Original', deuda_paidtodate:'Pagado hasta hoy', deuda_advance:'Avance',
-    deuda_globalprogress:'Progreso global de pago',
-    // Net Worth alert
-    nw_negative:'Net Worth Negativo', nw_positive:'Net Worth Positivo',
-    nw_advice_neg:'Priorizar reducción de deudas con tasas altas', nw_advice_pos:'Buen trabajo manteniendo activos sobre pasivos.',
-    nw_interest_label:'Interés mensual total', nw_peryear:'solo en intereses',
-    // Emergency KPIs
-    ef_balance:'Balance Emergencia', ef_missing:'Falta Cubrir', ef_surplus:'Superávit Mensual',
-    ef_available:'Disponible', ef_deficit:'Déficit', ef_completed:'% completado',
-    ef_goal:'de', ef_balance_lbl:'Balance:', ef_goal_lbl:'Meta:', ef_missing_lbl:'Falta:',
-    // Cashflow rows
-    cf_monthlyincome:'Ingreso Mensual', cf_monthlygasto:'Gasto Mensual Total', cf_rate_global:'Tasa Dólar',
-    cf_withdrawusd2:'Retirar en USD', cf_remainder2:'Resta (Ingreso-Gasto)', cf_savings2:'Ahorros este mes',
-    cf_savingsbalance:'Balance Ahorros', cf_esenciales:'Suma de Esenciales', cf_global:'Configuración global',
-    cf_expensedivrate:'Gasto ÷ Tasa', cf_surplus2:'Superávit ✓', cf_deficit2:'⚠ Déficit',
-    cf_manual:'Manual', cf_accumulated:'Acumulado',
-    // Historial
-    hist_lasmonth:'Último mes registrado', hist_income:'Ingresos', hist_networth:'Net Worth',
-    hist_months:'Meses registrados', hist_recent:'Datos más recientes', hist_monthlydata:'Ingreso del mes',
-    hist_assetminusliab:'Activos − Pasivos', hist_totalrecorded:'Total en historial',
-    hist_table_title:'Registro Mensual Completo',
-    hist_col_month:'Mes', hist_col_year:'Año', hist_col_income:'Ingresos (RD$)', hist_col_expense:'Gasto (RD$)',
-    hist_col_savings:'Ahorro Neto', hist_col_savingsrate:'Tasa Ahorro', hist_col_debts:'Deudas (RD$)',
-    hist_col_emergency:'Emergencia (RD$)', hist_col_nw:'Net Worth (RD$)', hist_col_rate:'Tasa $',
-    hist_note:'📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.',
-    hist_evolnw:'Evolución Net Worth & Deudas', hist_incvsexp:'Ingresos vs Gastos por Mes', hist_debttrend:'Balance de Deudas por Mes',
-    // Alertas
-    alert_novenc:'✅ Sin vencimientos próximos', alert_nofinancial:'✅ Sin alertas financieras',
-    alert_overdueago:'Venció hace', alert_days:'días', alert_dueday:'Vence día',
-    alert_today:'¡Hoy!', alert_deadline:'Fecha límite', alert_balance_lbl:'Balance:',
-    alert_overspend_title:'Gastos superan ingresos', alert_overspend_sub:'Estás gastando % más de lo que ingresas',
-    alert_highexp_title:'Gastos elevados', alert_highexp_sub:'% del ingreso comprometido',
-    alert_highdebt_title:'Deuda muy alta', alert_highdebt_sub:'% del ingreso anual en deudas',
-    alert_highrate_title:'Tasa alta:', alert_highrate_sub:'% anual — RD$ pendiente',
-    alert_ef_critical_title:'Fondo de emergencia crítico', alert_ef_critical_sub:'% completado — RD$ para alcanzar la meta',
-    alert_ef_low_title:'Fondo de emergencia bajo', alert_ef_low_sub:'% completado — sigue aportando mensualmente',
-    alert_interest_title:'Carga de intereses elevada', alert_interest_sub:'RD$/mes en intereses — % de tu superávit',
-    // Situacion
-    sit_expenses:'Control de Gastos', sit_surplus:'Superávit Mensual', sit_debt:'Ratio Deuda',
-    sit_payments:'Próximos pagos', sit_used:'% del ingreso usado', sit_available:'disponible',
-    sit_deficit:'Déficit de RD$', sit_annualincome:'% del ingreso anual', sit_uptodate:'Al día este mes',
-    // Checklist
-    chk_title:'Pagos del Mes', chk_of:'de', chk_marked:'pagos marcados',
-    chk_pending_lbl:'Pendiente:', chk_paid_lbl:'Pagado:',
-    chk_markall:'✓ Todo', chk_saved:'💾 Guardado', chk_saveexcel:'💾 Guardar en Excel', chk_reset:'↺ Reset',
-    chk_unsaved:'⚠️ Tienes cambios sin guardar. Presiona <strong>💾 Guardar en Excel</strong> para que persistan al recargar el archivo.',
-    chk_allpaid:'🎉 ¡Todo pagado este mes!', chk_nonemarked:'Ningún pago marcado aún',
-    chk_day:'Día', chk_income:'% ing', chk_paidmonth:'✓ Pagado este mes',
-    chk_pending_tab:'⏳ Pendientes', chk_done_tab:'✅ Pagados', chk_interest_title:'💸 Costo de Intereses en Deudas',
-    chk_interest_annual:'Interés Anual en Deudas', chk_interest_monthly:'Interés Mensual', chk_interest_count:'Deudas con Tasa',
-    chk_tbl_debt:'Deuda', chk_tbl_balance:'Balance', chk_tbl_rate:'Tasa %', chk_tbl_intmonth:'Interés Mensual', chk_tbl_intannual:'Interés Anual',
-    // Proyector
-    proy_config_title:'⚙️ Parámetro de Proyección',
-    proy_slider_label:'Pago extra mensual disponible (RD$) — arrastra el slider o escribe un monto',
-    proy_per_month:'RD$/mes', proy_allsurplus:'Todo el superávit', proy_redirectsavings:'+ Redirigir ahorros',
-    proy_extra_label:'Pago extra/mes', proy_surplus_label:'Superávit mensual',
-    proy_cost_title:'💸 Costo Real de Tus Deudas',
-    proy_annual_interest:'Interés Anual', proy_monthly_interest:'Interés Mensual', proy_wtd_rate:'Tasa Ponderada',
-    proy_interest_pct_surplus:'Interés como % del superávit',
-    proy_cost_col_debt:'Deuda', proy_cost_col_balance:'Balance', proy_cost_col_rate:'Tasa',
-    proy_cost_col_intmonth:'Interés/mes', proy_cost_col_monthly:'Cuota/mes', proy_cost_col_capital:'Capital real pagado',
-    proy_cost_col_efficiency:'Eficiencia',
-    proy_cost_tip:'💡 <strong>Capital real pagado</strong> = cuota mensual menos el interés del mes. Si es negativo (⚠), la deuda crece aunque pagues.',
-    proy_refi_title:'🔄 Simulador de Refinanciamiento',
-    proy_refi_desc:'¿Cuánto ahorrarías si refinanciaras una deuda a una tasa menor? Ingresa la tasa objetivo para cada una.',
-    proy_refi_col_debt:'Deuda', proy_refi_col_current:'Tasa actual', proy_refi_col_target:'Tasa objetivo',
-    proy_refi_col_monthly:'Ahorro mensual', proy_refi_col_annual:'Ahorro anual',
-    proy_refi_tip:'💡 <strong>Opciones comunes para RD:</strong> Consolidar en préstamo personal de banco (12–20%), transferir saldo de tarjeta (algunos bancos ofrecen 0% los primeros meses), o negociar directamente con el acreedor.',
-    proy_whatif_title:'🎯 Escenarios ¿Qué Pasaría Si…?',
-    proy_whatif_col_scenario:'Escenario', proy_whatif_col_free:'Libre de deudas', proy_whatif_col_interest:'Interés total pagado',
-    proy_whatif_col_vs:'vs. Escenario base', proy_whatif_col_saved:'Interés ahorrado',
-    proy_whatif_only_min:'Solo mínimos (RD$0 extra)', proy_whatif_pct25:'% superávit)',
-    proy_whatif_current:'actual)', proy_whatif_pct50:'% del superávit',
-    proy_whatif_redirect:'Redirigir ahorros (extra + RD$', proy_whatif_all:'Todo el superávit (RD$',
-    proy_whatif_before:'m antes', proy_whatif_after:'m después',
-    proy_whatif_saves:'Ahorras RD$', proy_whatif_more:'Pagas RD$ más',
-    proy_whatif_tip:'⚡ <strong>Estrategia Avalancha</strong> aplicada en todos los escenarios (mayor tasa primero). Los pagos mínimos liberados de deudas saldadas se acumulan automáticamente al siguiente objetivo.',
-    proy_chart_title:'Proyección de Balance Total de Deudas',
-    proy_avalanche_title:'🔥 Estrategia Avalancha', proy_avalanche_sub:'(mayor tasa primero)',
-    proy_snowball_title:'⛄ Estrategia Bola de Nieve', proy_snowball_sub:'(menor balance primero)',
-    // Panel section titles (HTML)
-    panel_alertas_venc:'🔴 Vencimientos Próximos', panel_alertas_gen:'⚠️ Alertas Financieras',
-    panel_alertas_sit:'📋 Resumen de Situación',
-    panel_gastos_chart:'Pagado vs Pendiente por Compromiso',
-    panel_checklist_progress:'Progreso de Pagos del Mes',
-    panel_deudas_dist:'Distribución de Deudas',
-    panel_ef_progress:'Fondos de Emergencia · Progreso', panel_ef_cashflow:'Cashflow Mensual Detallado',
-    panel_ef_chart:'Progreso Total vs Meta',
-    panel_hist_chart:'Evolución Net Worth & Deudas',
-    // For Now
-    fornow_total:'Total en Cuentas', fornow_committed:'Comprometido', fornow_available:'Disponible Real',
-    fornow_accounts:'Suma todos los saldos', fornow_commitments:'Compromisos del mes', fornow_aftercommit:'Después de compromisos',
-    fornow_updated:'Actualizado', fornow_current:'Saldo actual',
-    // Cierre wizard
-    cierre_title:'🗓 CIERRE DE MES',
-    cierre_step1_title:'Paso 1 · Tasa Dólar', cierre_step1_sub:'Actualiza la tasa del dólar para este mes',
-    cierre_step2_title:'Paso 2 · Mes y Año', cierre_step2_sub:'Confirma el período que estás cerrando',
-    cierre_step3_title:'Paso 3 · Ingreso USD', cierre_step3_sub:'¿Cuánto ingresaste este mes en dólares?',
-    cierre_step4_title:'Paso 4 · Gasto Real del Mes', cierre_step4_sub:'¿Cuánto gastaste en total este mes? (RD$)',
-    cierre_step5_title:'Paso 5 · Saldos de Cuentas', cierre_step5_sub:'Actualiza los saldos actuales de tus cuentas',
-    cierre_step6_title:'Paso 6 · Ahorros', cierre_step6_sub:'Registra tus ahorros del mes',
-    cierre_step7_title:'Paso 7 · Confirmar y cerrar', cierre_step7_sub:'Revisa el resumen y agrega al historial',
-    cierre_prev:'← Anterior', cierre_next:'Siguiente →', cierre_confirm:'✓ Confirmar y cerrar mes',
-    cierre_note:'Al confirmar se agrega este mes al Historial y se aplican todos los cambios al dashboard.',
-    cierre_success:'🗓 Mes cerrado · Excel descargado con historial y pagos reseteados ✓',
-    // Edit modal
-    edit_title:'Editar Datos', edit_sub:'Los cambios se aplican al dashboard y puedes descargar el Excel actualizado',
-    edit_save:'💾 Guardar y exportar Excel', edit_apply:'✓ Guardar', edit_close:'✕ Cerrar',
-    edit_tab_config:'⚙️ Configuración', edit_tab_gastos:'💸 Gastos & Deudas',
-    edit_tab_fornow:'💳 Fondos', edit_tab_emergency:'🛡 Emergencia', edit_tab_historial:'📅 Historial',
-    // Loader
-    loader_title:'Personal Finance', loader_tagline:'Elige cómo empezar.',
-    loader_privacy:'🔒 Tus datos nunca salen de tu dispositivo.',
-    loader_saved:'✅ Datos guardados', loader_continue:'▶ Continuar donde lo dejé',
-    loader_or_other:'o empieza de otra forma', loader_or:'o',
-    loader_import:'Importar archivo .xlsx',
-    loader_import_sub:'Arrastra o toca para seleccionar · <span>actualiza datos existentes</span>',
-    loader_scratch:'Empezar desde cero',
-    loader_scratch_sub:'Configuro el dashboard con un asistente y genero mi Excel inicial',
-    loader_processing:'Procesando…',
-    loader_offline:'Funciona sin conexión · Todo procesado localmente · Datos guardados en tu navegador',
-    loader_clearcache:'🔄 Limpiar caché · Forzar actualización',
-    loader_clearcache2:'🔄 Limpiar caché',
-    // Setup wizard
-    setup_title:'Configuración inicial', setup_sub:'Completa estos pasos para generar tu dashboard',
-    setup_prev:'← Anterior', setup_next:'Siguiente →', setup_create:'✓ Crear dashboard',
-    setup_step1_title:'Paso 1 · Parámetros básicos', setup_step1_sub:'Define el período y tu ingreso mensual',
-    setup_step2_title:'Paso 2 · Cuentas disponibles', setup_step2_sub:'¿En qué cuentas tienes dinero ahora mismo?',
-    setup_step3_title:'Paso 3 · Gastos & compromisos', setup_step3_sub:'Agrega tus gastos fijos, deudas y cuotas mensuales',
-    setup_step4_title:'Paso 4 · Fondos de emergencia', setup_step4_sub:'Configura tus fondos de emergencia',
-    setup_step5_title:'Paso 5 · ¡Listo!', setup_step5_sub:'Tu dashboard está configurado',
-    // Toasts
-    toast_saved:'💾 Estado de pagos guardado en Excel y memoria local',
-    toast_autosaved:'💾 Guardado automáticamente',
-    toast_changes:'✓ Cambios aplicados',
-    toast_monthclosed:'🗓 Mes cerrado · Excel descargado con historial y pagos reseteados ✓',
-    // Months (for historial)
-    months:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-  },
-  en: {
-    // Header buttons / overflow
-    closemonth:'🗓 Close Month', edit:'✏️ Edit', editdata:'✏️ Edit data',
-    changetheme:'Change theme', exportpdf:'📸 Export PDF',
-    changefile:'↩ Change file', clearcache:'🔄 Clear cache',
-    langbtn:'🇩🇴 ES', langswitch:'Cambiar a Español',
-    // Header meta labels
-    hdr_tasa:'USD Rate', hdr_ingusd:'Income USD', hdr_ingrd:'Income RD$',
-    // Desktop tabs
-    tab_resumen:'📊 Summary', tab_alertas:'🔔 Alerts', tab_gastos:'💸 Expenses',
-    tab_checklist:'✅ Monthly Payments', tab_deudas:'🏦 Debts', tab_proyector:'🎯 Projector',
-    tab_emergency:'🛡 Emergency', tab_fornow:'💳 Funds', tab_historial:'📅 History',
-    // Mobile nav
-    mnav_resumen:'Summary', mnav_alertas:'Alerts', mnav_checklist:'Payments',
-    mnav_deudas:'Debts', mnav_gastos:'Expenses', mnav_emergency:'Emergency',
-    mnav_fornow:'Funds', mnav_historial:'History', mnav_proyector:'Projector',
-    // KPI labels
-    kpi_income:'Income', kpi_expenses:'Total Expenses', kpi_surplus:'Monthly Surplus', kpi_networth:'Net Worth',
-    kpi_surplus_pct:'% of income ✓', kpi_deficit:'⚠ Deficit', kpi_savings_ef:'Savings+EF − Debts',
-    // Score card
-    score_title:'Financial Health',
-    score_grades:{excellent:'Excellent',good:'Good',fair:'Fair',poor:'At Risk',critical:'Critical'},
-    // CF bar
-    cf_dist:'Income Distribution', cf_expenses:'Expenses', cf_remainder:'Surplus',
-    cf_withdrawusd:'Withdraw USD', cf_rate:'USD Rate', cf_savings:'This month savings', cf_committed:'Committed',
-    // Gastos table
-    gastostbl_title:'Expenses & Monthly Debts', gastostbl_paid:'Total Paid', gastostbl_pending:'Pending this month',
-    gastostbl_desc:'Description', gastostbl_tipo:'Type', gastostbl_pagado:'Paid (RD$)', gastostbl_cuota:'Payment (RD$)',
-    gastostbl_pctinc:'% Inc', gastostbl_day:'Due Day', gastostbl_rate:'Rate %', gastostbl_balance:'Balance (RD$)',
-    gastostbl_status:'Status', gastostbl_total:'TOTALS',
-    gastostbl_thismonth:'✓ This month', gastostbl_done:'✓ Paid', gastostbl_partial:'◑ Partial',
-    gastostbl_pending2:'⏳ Pending',
-    // Deuda KPIs
-    deuda_total:'Total Debt', deuda_mostexpensive:'Most expensive debt', deuda_monthly:'Monthly Payment',
-    deuda_progress:'Payment Progress', deuda_annualrate:'% annual', deuda_onlybalance:'Debts with balance only',
-    // Deuda cards
-    dcard_monthly:'Monthly payment', dcard_intmonthly:'Monthly interest', dcard_payday:'Payment day',
-    dcard_rate:'Interest rate', dcard_expires:'Expires', dcard_oftotal:'% of total debt',
-    // Deuda summary
-    deuda_summary_title:'Total Debt Summary', deuda_balancetotal:'Total Balance',
-    deuda_original:'Original Amount', deuda_paidtodate:'Paid to date', deuda_advance:'Progress',
-    deuda_globalprogress:'Overall payment progress',
-    // Net Worth alert
-    nw_negative:'Negative Net Worth', nw_positive:'Positive Net Worth',
-    nw_advice_neg:'Prioritize paying high-rate debts', nw_advice_pos:'Great job keeping assets above liabilities.',
-    nw_interest_label:'Total monthly interest', nw_peryear:'in interest only',
-    // Emergency KPIs
-    ef_balance:'Emergency Balance', ef_missing:'Still Needed', ef_surplus:'Monthly Surplus',
-    ef_available:'Available', ef_deficit:'Deficit', ef_completed:'% completed',
-    ef_goal:'of', ef_balance_lbl:'Balance:', ef_goal_lbl:'Goal:', ef_missing_lbl:'Missing:',
-    // Cashflow rows
-    cf_monthlyincome:'Monthly Income', cf_monthlygasto:'Total Monthly Expenses', cf_rate_global:'USD Rate',
-    cf_withdrawusd2:'Withdraw in USD', cf_remainder2:'Remainder (Income−Expenses)', cf_savings2:'Savings this month',
-    cf_savingsbalance:'Savings Balance', cf_esenciales:'Sum of Essentials', cf_global:'Global configuration',
-    cf_expensedivrate:'Expenses ÷ Rate', cf_surplus2:'Surplus ✓', cf_deficit2:'⚠ Deficit',
-    cf_manual:'Manual', cf_accumulated:'Accumulated',
-    // Historial
-    hist_lasmonth:'Last month recorded', hist_income:'Income', hist_networth:'Net Worth',
-    hist_months:'Months recorded', hist_recent:'Most recent data', hist_monthlydata:'Month income',
-    hist_assetminusliab:'Assets − Liabilities', hist_totalrecorded:'Total in history',
-    hist_table_title:'Complete Monthly Record',
-    hist_col_month:'Month', hist_col_year:'Year', hist_col_income:'Income (RD$)', hist_col_expense:'Expenses (RD$)',
-    hist_col_savings:'Net Savings', hist_col_savingsrate:'Savings Rate', hist_col_debts:'Debts (RD$)',
-    hist_col_emergency:'Emergency (RD$)', hist_col_nw:'Net Worth (RD$)', hist_col_rate:'Rate $',
-    hist_note:'📌 Use the <strong>"🗓 Close Month"</strong> button in the header to record the current month with a guided wizard.',
-    hist_evolnw:'Net Worth & Debt Evolution', hist_incvsexp:'Income vs Expenses by Month', hist_debttrend:'Debt Balance by Month',
-    // Alertas
-    alert_novenc:'✅ No upcoming due dates', alert_nofinancial:'✅ No financial alerts',
-    alert_overdueago:'Overdue by', alert_days:'days', alert_dueday:'Due on day',
-    alert_today:'Today!', alert_deadline:'Deadline', alert_balance_lbl:'Balance:',
-    alert_overspend_title:'Expenses exceed income', alert_overspend_sub:'You are spending % more than you earn',
-    alert_highexp_title:'High expenses', alert_highexp_sub:'% of income committed',
-    alert_highdebt_title:'Very high debt', alert_highdebt_sub:'% of annual income in debt',
-    alert_highrate_title:'High rate:', alert_highrate_sub:'% annual — RD$ outstanding',
-    alert_ef_critical_title:'Emergency fund critical', alert_ef_critical_sub:'% completed — RD$ to reach goal',
-    alert_ef_low_title:'Emergency fund low', alert_ef_low_sub:'% completed — keep contributing monthly',
-    alert_interest_title:'High interest burden', alert_interest_sub:'RD$/month in interest — % of your surplus',
-    // Situacion
-    sit_expenses:'Expense Control', sit_surplus:'Monthly Surplus', sit_debt:'Debt Ratio',
-    sit_payments:'Upcoming payments', sit_used:'% of income used', sit_available:'available',
-    sit_deficit:'Deficit of RD$', sit_annualincome:'% of annual income', sit_uptodate:'On track this month',
-    // Checklist
-    chk_title:'Monthly Payments', chk_of:'of', chk_marked:'payments marked',
-    chk_pending_lbl:'Pending:', chk_paid_lbl:'Paid:',
-    chk_markall:'✓ All', chk_saved:'💾 Saved', chk_saveexcel:'💾 Save to Excel', chk_reset:'↺ Reset',
-    chk_unsaved:'⚠️ You have unsaved changes. Press <strong>💾 Save to Excel</strong> to keep them when reloading the file.',
-    chk_allpaid:'🎉 All paid this month!', chk_nonemarked:'No payments marked yet',
-    chk_day:'Day', chk_income:'% inc', chk_paidmonth:'✓ Paid this month',
-    chk_pending_tab:'⏳ Pending', chk_done_tab:'✅ Paid', chk_interest_title:'💸 Interest Cost on Debts',
-    chk_interest_annual:'Annual Interest on Debts', chk_interest_monthly:'Monthly Interest', chk_interest_count:'Debts with Rate',
-    chk_tbl_debt:'Debt', chk_tbl_balance:'Balance', chk_tbl_rate:'Rate %', chk_tbl_intmonth:'Monthly Interest', chk_tbl_intannual:'Annual Interest',
-    // Proyector
-    proy_config_title:'⚙️ Projection Parameter',
-    proy_slider_label:'Available monthly extra payment (RD$) — drag the slider or type an amount',
-    proy_per_month:'RD$/month', proy_allsurplus:'All surplus', proy_redirectsavings:'+ Redirect savings',
-    proy_extra_label:'Extra/month', proy_surplus_label:'Monthly surplus',
-    proy_cost_title:'💸 Real Cost of Your Debts',
-    proy_annual_interest:'Annual Interest', proy_monthly_interest:'Monthly Interest', proy_wtd_rate:'Weighted Rate',
-    proy_interest_pct_surplus:'Interest as % of surplus',
-    proy_cost_col_debt:'Debt', proy_cost_col_balance:'Balance', proy_cost_col_rate:'Rate',
-    proy_cost_col_intmonth:'Interest/month', proy_cost_col_monthly:'Payment/month', proy_cost_col_capital:'Actual principal paid',
-    proy_cost_col_efficiency:'Efficiency',
-    proy_cost_tip:'💡 <strong>Actual principal paid</strong> = monthly payment minus that month\'s interest. If negative (⚠), the debt grows even though you pay.',
-    proy_refi_title:'🔄 Refinancing Simulator',
-    proy_refi_desc:'How much would you save if you refinanced a debt at a lower rate? Enter the target rate for each.',
-    proy_refi_col_debt:'Debt', proy_refi_col_current:'Current rate', proy_refi_col_target:'Target rate',
-    proy_refi_col_monthly:'Monthly savings', proy_refi_col_annual:'Annual savings',
-    proy_refi_tip:'💡 <strong>Common options in DR:</strong> Consolidate in a personal bank loan (12–20%), transfer card balance (some banks offer 0% for the first months), or negotiate directly with the creditor.',
-    proy_whatif_title:'🎯 What If…? Scenarios',
-    proy_whatif_col_scenario:'Scenario', proy_whatif_col_free:'Debt-free in', proy_whatif_col_interest:'Total interest paid',
-    proy_whatif_col_vs:'vs. Base scenario', proy_whatif_col_saved:'Interest saved',
-    proy_whatif_only_min:'Minimums only (RD$0 extra)', proy_whatif_pct25:'% of surplus)',
-    proy_whatif_current:'current)', proy_whatif_pct50:'% of surplus',
-    proy_whatif_redirect:'Redirect savings (extra + RD$', proy_whatif_all:'All surplus (RD$',
-    proy_whatif_before:'m earlier', proy_whatif_after:'m later',
-    proy_whatif_saves:'Save RD$', proy_whatif_more:'Pay RD$ more',
-    proy_whatif_tip:'⚡ <strong>Avalanche Strategy</strong> applied in all scenarios (highest rate first). Freed minimum payments from paid-off debts roll over automatically to the next target.',
-    proy_chart_title:'Total Debt Balance Projection',
-    proy_avalanche_title:'🔥 Avalanche Strategy', proy_avalanche_sub:'(highest rate first)',
-    proy_snowball_title:'⛄ Snowball Strategy', proy_snowball_sub:'(lowest balance first)',
-    // Panel section titles
-    panel_alertas_venc:'🔴 Upcoming Due Dates', panel_alertas_gen:'⚠️ Financial Alerts',
-    panel_alertas_sit:'📋 Situation Summary',
-    panel_gastos_chart:'Paid vs Pending by Commitment',
-    panel_checklist_progress:'Monthly Payment Progress',
-    panel_deudas_dist:'Debt Distribution',
-    panel_ef_progress:'Emergency Funds · Progress', panel_ef_cashflow:'Detailed Monthly Cashflow',
-    panel_ef_chart:'Total Progress vs Goal',
-    panel_hist_chart:'Net Worth & Debt Evolution',
-    // For Now
-    fornow_total:'Total in Accounts', fornow_committed:'Committed', fornow_available:'Real Available',
-    fornow_accounts:'Sum of all balances', fornow_commitments:'Monthly commitments', fornow_aftercommit:'After commitments',
-    fornow_updated:'Updated', fornow_current:'Current balance',
-    // Cierre wizard
-    cierre_title:'🗓 MONTH CLOSE',
-    cierre_step1_title:'Step 1 · USD Rate', cierre_step1_sub:'Update the dollar rate for this month',
-    cierre_step2_title:'Step 2 · Month & Year', cierre_step2_sub:'Confirm the period you are closing',
-    cierre_step3_title:'Step 3 · USD Income', cierre_step3_sub:'How much did you earn this month in dollars?',
-    cierre_step4_title:'Step 4 · Actual Monthly Expenses', cierre_step4_sub:'How much did you spend in total this month? (RD$)',
-    cierre_step5_title:'Step 5 · Account Balances', cierre_step5_sub:'Update your current account balances',
-    cierre_step6_title:'Step 6 · Savings', cierre_step6_sub:'Record your savings for the month',
-    cierre_step7_title:'Step 7 · Confirm & Close', cierre_step7_sub:'Review the summary and add to history',
-    cierre_prev:'← Previous', cierre_next:'Next →', cierre_confirm:'✓ Confirm and close month',
-    cierre_note:'Confirming adds this month to History and applies all changes to the dashboard.',
-    cierre_success:'🗓 Month closed · Excel downloaded with history and payments reset ✓',
-    // Edit modal
-    edit_title:'Edit Data', edit_sub:'Changes apply to the dashboard and you can download the updated Excel',
-    edit_save:'💾 Save & export Excel', edit_apply:'✓ Save', edit_close:'✕ Close',
-    edit_tab_config:'⚙️ Settings', edit_tab_gastos:'💸 Expenses & Debts',
-    edit_tab_fornow:'💳 Funds', edit_tab_emergency:'🛡 Emergency', edit_tab_historial:'📅 History',
-    // Loader
-    loader_title:'Personal Finance', loader_tagline:'Choose how to start.',
-    loader_privacy:'🔒 Your data never leaves your device.',
-    loader_saved:'✅ Saved data', loader_continue:'▶ Continue where I left off',
-    loader_or_other:'or start another way', loader_or:'or',
-    loader_import:'Import .xlsx file',
-    loader_import_sub:'Drag or tap to select · <span>updates existing data</span>',
-    loader_scratch:'Start from scratch',
-    loader_scratch_sub:'Set up the dashboard with a wizard and generate my initial Excel',
-    loader_processing:'Processing…',
-    loader_offline:'Works offline · All processed locally · Data saved in your browser',
-    loader_clearcache:'🔄 Clear cache · Force update',
-    loader_clearcache2:'🔄 Clear cache',
-    // Setup wizard
-    setup_title:'Initial Setup', setup_sub:'Complete these steps to generate your dashboard',
-    setup_prev:'← Previous', setup_next:'Next →', setup_create:'✓ Create dashboard',
-    setup_step1_title:'Step 1 · Basic parameters', setup_step1_sub:'Set the period and your monthly income',
-    setup_step2_title:'Step 2 · Available accounts', setup_step2_sub:'Which accounts do you have money in right now?',
-    setup_step3_title:'Step 3 · Expenses & commitments', setup_step3_sub:'Add your fixed expenses, debts and monthly payments',
-    setup_step4_title:'Step 4 · Emergency funds', setup_step4_sub:'Set up your emergency funds',
-    setup_step5_title:'Step 5 · All set!', setup_step5_sub:'Your dashboard is configured',
-    // Toasts
-    toast_saved:'💾 Payment status saved to Excel and local memory',
-    toast_autosaved:'💾 Auto-saved',
-    toast_changes:'✓ Changes applied',
-    toast_monthclosed:'🗓 Month closed · Excel downloaded with history and payments reset ✓',
-    // Months
-    months:['January','February','March','April','May','June','July','August','September','October','November','December'],
-  }
-};
-
-function t(key){ return (LANG[_lang]||LANG.es)[key]||key; }
-
-function applyI18n(){
-  // Update all static elements with data-i18n
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const key=el.getAttribute('data-i18n');
-    const val=t(key);
-    if(val) el.innerHTML=val;
-  });
-  // Update dashboard lang button
-  const lb=document.getElementById('langBtn');
-  if(lb) lb.textContent=t('langbtn');
-  // Update loader lang button
-  const llb=document.getElementById('loaderLangBtn');
-  if(llb) llb.textContent=t('langbtn');
-  // Update mobile overflow lang label
-  const lbm=document.getElementById('langBtnMobileLabel');
-  if(lbm) lbm.textContent=t('langswitch');
-}
-
-function toggleLoaderLang(){
-  _lang = _lang==='es'?'en':'es';
-  localStorage.setItem('cnt_lang',_lang);
-  applyI18n();
-}
-
-function toggleLang(){
-  _lang = _lang==='es'?'en':'es';
-  localStorage.setItem('cnt_lang',_lang);
-  applyI18n();
-  if(_editData&&_editData.config&&_editData.config.mes){
-    buildDashboard({..._editData});
-  }
-  closeOverflow();
-}
-
-// Apply language on page load (loader screen)
-document.addEventListener('DOMContentLoaded',()=>applyI18n());
+const fmt=n=>{if(n===undefined||n===null||isNaN(n))return'—';return Math.abs(n).toLocaleString('es-DO',{maximumFractionDigits:0})};
+const fmtUSD=n=>n===undefined||isNaN(n)?'—':'$'+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0});
 const clean=v=>{
   if(v===null||v===undefined)return 0;
   if(typeof v==='number')return v;
@@ -1481,12 +1043,7 @@ async function autoSave(){
   }
 }
 
-window.addEventListener('load',()=>{
-  checkSavedData();
-  // Set initial active on mobile nav
-  const firstMnav=document.getElementById('mnavResumen');
-  if(firstMnav)firstMnav.classList.add('active');
-});
+window.addEventListener('load',()=>checkSavedData());
 
 // ══════════════════════════════════
 // SWIPE GESTURES — mobile tab nav
@@ -1535,6 +1092,7 @@ function defaultEditData(){
     gastos:[],
     forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
     emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,resta:0,ahorros:0,balanceAhorros:0}},
+    metas:[],
     historial:[],
     filename:'cnt.xlsx'
   };
@@ -1599,48 +1157,19 @@ const _setupSteps=[
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div><label class="cierre-label">Año</label><input class="cierre-input" type="number" id="sw-anio" value="${_editData.config.anio}"></div>
-        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="number" step="0.01" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
+        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="number" step="0.01" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5"></div>
       </div>
-      <div style="margin-top:14px">
-        <label class="cierre-label">Ingreso mensual</label>
-        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px">
-          <button type="button" id="sw-ing-usd-btn"
-            onclick="swSetIngresoCurrency('USD')"
-            style="flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--accent);color:#fff">
-            💵 USD
-          </button>
-          <button type="button" id="sw-ing-rd-btn"
-            onclick="swSetIngresoCurrency('RD')"
-            style="flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--surface2);color:var(--muted)">
-            🇩🇴 RD$
-          </button>
-        </div>
-        <div style="position:relative">
-          <span id="sw-ing-prefix" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--muted);pointer-events:none">USD</span>
-          <input class="cierre-input" type="number" id="sw-ingreso"
-            value="${_editData.config.ingresoUSD||''}"
-            placeholder="ej. 1500"
-            style="padding-left:52px"
-            oninput="swUpdateIngresoPreview()">
-        </div>
-        <div id="sw-ingreso-preview" style="margin-top:8px;padding:8px 12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:12px;color:var(--accent);display:none"></div>
-      </div>
+      <div style="margin-top:14px"><label class="cierre-label">Ingreso mensual (USD)</label><input class="cierre-input" type="number" id="sw-ingreso" value="${_editData.config.ingresoUSD||''}" placeholder="ej. 4000"></div>
       <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="number" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
     `,
     save:()=>{
       _editData.config.mes=document.getElementById('sw-mes').value;
       _editData.config.anio=parseInt(document.getElementById('sw-anio').value)||new Date().getFullYear();
       _editData.config.tasa=parseFloat(document.getElementById('sw-tasa').value)||60;
+      _editData.config.ingresoUSD=parseFloat(document.getElementById('sw-ingreso').value)||0;
+      _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
       _editData.config.diasAlerta=parseInt(document.getElementById('sw-alerta').value)||5;
-      const rawVal=parseFloat(document.getElementById('sw-ingreso').value)||0;
-      const currency=document.getElementById('sw-ing-rd-btn')?.style.background==='var(--accent)'?'RD':'USD';
-      if(currency==='RD'){
-        _editData.config.ingresoRD=rawVal;
-        _editData.config.ingresoUSD=_editData.config.tasa>0?rawVal/_editData.config.tasa:0;
-      } else {
-        _editData.config.ingresoUSD=rawVal;
-        _editData.config.ingresoRD=rawVal*_editData.config.tasa;
-      }
+      // Bug 1 fix: single source of truth — cf.ingreso always = ingresoUSD × tasa
       _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
       _editData.emerg.cashflow.tasa=_editData.config.tasa;
     }
@@ -1770,56 +1299,6 @@ function closeSetup(){
   document.body.style.overflow='';
 }
 
-// ── Setup wizard: income currency toggle helpers ──
-function swSetIngresoCurrency(currency){
-  const usdBtn=document.getElementById('sw-ing-usd-btn');
-  const rdBtn=document.getElementById('sw-ing-rd-btn');
-  const prefix=document.getElementById('sw-ing-prefix');
-  const input=document.getElementById('sw-ingreso');
-  if(!usdBtn||!rdBtn)return;
-  const tasa=parseFloat(document.getElementById('sw-tasa')?.value)||60;
-  const currentVal=parseFloat(input.value)||0;
-
-  if(currency==='USD'){
-    // If switching FROM RD to USD, convert the current value
-    if(rdBtn.style.background==='var(--accent)'&&currentVal>0){
-      input.value=tasa>0?Math.round(currentVal/tasa*100)/100:'';
-    }
-    usdBtn.style.background='var(--accent)';usdBtn.style.color='#fff';
-    rdBtn.style.background='var(--surface2)';rdBtn.style.color='var(--muted)';
-    prefix.textContent='USD';
-    input.placeholder='ej. 1500';
-  } else {
-    // If switching FROM USD to RD, convert the current value
-    if(usdBtn.style.background==='var(--accent)'&&currentVal>0){
-      input.value=Math.round(currentVal*tasa);
-    }
-    rdBtn.style.background='var(--accent)';rdBtn.style.color='#fff';
-    usdBtn.style.background='var(--surface2)';usdBtn.style.color='var(--muted)';
-    prefix.textContent='RD$';
-    input.placeholder='ej. 240,000';
-  }
-  swUpdateIngresoPreview();
-}
-
-function swUpdateIngresoPreview(){
-  const preview=document.getElementById('sw-ingreso-preview');
-  const input=document.getElementById('sw-ingreso');
-  const rdBtn=document.getElementById('sw-ing-rd-btn');
-  if(!preview||!input||!rdBtn)return;
-  const tasa=parseFloat(document.getElementById('sw-tasa')?.value)||60;
-  const val=parseFloat(input.value)||0;
-  const isRD=rdBtn.style.background==='var(--accent)';
-  if(!val){preview.style.display='none';return;}
-  preview.style.display='block';
-  if(isRD){
-    const usd=tasa>0?val/tasa:0;
-    preview.textContent=`≈ ${fmtUSD(Math.round(usd*100)/100)} USD (a tasa RD$ ${tasa})`;
-  } else {
-    preview.textContent=`≈ RD$ ${fmt(Math.round(val*tasa))} (a tasa RD$ ${tasa})`;
-  }
-}
-
 function renderSetup(){
   const total=_setupSteps.length;
   const s=_setupSteps[_setupStep];
@@ -1928,9 +1407,11 @@ function processWorkbook(wb,filename){
     const forNow=parseForNow(sheetArr(wb,'for'));
     const emerg=parseEmergency(sheetArr(wb,'emerg'));
     const historial=parseHistorial(sheetArr(wb,'historial'));
+    // Bug 1 fix: enforce single source of truth — always derive ingreso from ingresoUSD × tasa
+    emerg.cashflow.ingreso = config.ingresoUSD * config.tasa;
+    config.ingresoRD = config.ingresoUSD * config.tasa;
     _editData={config,gastos,forNow,emerg,historial,filename};
     buildDashboard({config,gastos,forNow,emerg,historial,filename});
-    applyI18n();
     document.getElementById('loaderScreen').style.display='none';
     document.getElementById('dashApp').style.display='block';
     navigateToHash();
@@ -2100,17 +1581,17 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
   const alertasVenc=document.getElementById('alertasVenc');
   alertasVenc.innerHTML='';
   if(vencPasados.length===0&&vencProx.length===0&&limProx.length===0){
-    alertasVenc.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_novenc')}</div>`;
+    alertasVenc.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">✅ Sin vencimientos próximos</div>`;
   }
   vencPasados.forEach(g=>{
-    alertasVenc.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🚨</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_overdueago')} ${g.daysLate} ${t('alert_days')} — <span style="color:var(--red);font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:var(--red)">-${g.daysLate}d</div></div>`;
+    alertasVenc.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🚨</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">Venció hace ${g.daysLate} días — <span style="color:var(--red);font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:var(--red)">-${g.daysLate}d</div></div>`;
   });
   vencProx.forEach(g=>{
     const cls=g.urgente?'urgent':'warning';
-    alertasVenc.innerHTML+=`<div class="alert-item ${cls}"><div class="alert-icon">${g.urgente?'⚠️':'🔔'}</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_dueday')} ${g.dia} — <span style="font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:${g.urgente?'var(--red)':'var(--yellow)'}">${g.daysUntil===0?t('alert_today'):g.daysUntil+'d'}</div></div>`;
+    alertasVenc.innerHTML+=`<div class="alert-item ${cls}"><div class="alert-icon">${g.urgente?'⚠️':'🔔'}</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">Vence día ${g.dia} — <span style="font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:${g.urgente?'var(--red)':'var(--yellow)'}">${g.daysUntil===0?'¡Hoy!':g.daysUntil+'d'}</div></div>`;
   });
   limProx.forEach(g=>{
-    alertasVenc.innerHTML+=`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · ${t('alert_deadline')}</div><div class="alert-sub">${fmtFecha(g.fl,{day:'numeric',month:'long',year:'numeric'})} — ${t('alert_balance_lbl')} <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`;
+    alertasVenc.innerHTML+=`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · Fecha límite</div><div class="alert-sub">${fmtFecha(g.fl,{day:'numeric',month:'long',year:'numeric'})} — Balance: <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`;
   });
   // ALERTAS GENERALES — declare ag first so tab-dot logic can reference it
   const ag=document.getElementById('alertasGen');ag.innerHTML='';
@@ -2119,29 +1600,32 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
   const tabAl=document.getElementById('tabAlertas');
   const existDot=tabAl.querySelector('.alert-dot');
   if(existDot)existDot.remove();
-  if(urgentCount>0)tabAl.innerHTML=`🔔 ${t('tab_alertas').replace('🔔 ','')} <span class="alert-dot"></span>`;
+  if(urgentCount>0)tabAl.innerHTML=`🔔 Alertas <span class="alert-dot"></span>`;
   const gpct=ingreso>0?gasto/ingreso:1;
-  if(gpct>1)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🔴</div><div class="alert-text"><div class="alert-title">${t('alert_overspend_title')}</div><div class="alert-sub">${t('alert_overspend_sub').replace('%',Math.round((gpct-1)*100)+'%')}</div></div></div>`;
-  else if(gpct>0.85)ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">⚠️</div><div class="alert-text"><div class="alert-title">${t('alert_highexp_title')}</div><div class="alert-sub">${t('alert_highexp_sub').replace('%',Math.round(gpct*100)+'%')}</div></div></div>`;
+  if(gpct>1)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🔴</div><div class="alert-text"><div class="alert-title">Gastos superan ingresos</div><div class="alert-sub">Estás gastando ${Math.round((gpct-1)*100)}% más de lo que ingresas</div></div></div>`;
+  else if(gpct>0.85)ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">⚠️</div><div class="alert-text"><div class="alert-title">Gastos elevados</div><div class="alert-sub">${Math.round(gpct*100)}% del ingreso comprometido</div></div></div>`;
   const dRatio=ingreso>0?totalBalance/(ingreso*12):1;
-  if(dRatio>1.5)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">${t('alert_highdebt_title')}</div><div class="alert-sub">${t('alert_highdebt_sub').replace('%',(dRatio*100).toFixed(0)+'%')}</div></div></div>`;
+  if(dRatio>1.5)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">Deuda muy alta</div><div class="alert-sub">${(dRatio*100).toFixed(0)}% del ingreso anual en deudas</div></div></div>`;
   const altaTasa=gastos.filter(g=>g.tasa>15&&g.balance>0);
-  altaTasa.forEach(g=>ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${g.tasa}% ${_lang==='es'?'anual':'annual'} — RD$${fmt(g.balance)} ${_lang==='es'?'pendiente':'outstanding'}</div></div></div>`);
+  altaTasa.forEach(g=>ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">Tasa alta: ${escH(g.nombre)}</div><div class="alert-sub">${g.tasa}% anual — RD$${fmt(g.balance)} pendiente</div></div></div>`);
+  // Fondo de emergencia bajo
   if(emerg){
     const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
     const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
     const efPct=efMeta>0?efTotal/efMeta:0;
-    if(efPct<0.25)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_critical_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — RD$'+fmt(Math.round(efMeta-efTotal))+' para alcanzar la meta':'completed — RD$'+fmt(Math.round(efMeta-efTotal))+' to reach goal'}</div></div></div>`;
-    else if(efPct<0.5)ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_low_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — sigue aportando mensualmente':'completed — keep contributing monthly'}</div></div></div>`;
+    if(efPct<0.25)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">Fondo de emergencia crítico</div><div class="alert-sub">${Math.round(efPct*100)}% completado — RD$${fmt(Math.round(efMeta-efTotal))} para alcanzar la meta</div></div></div>`;
+    else if(efPct<0.5)ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">Fondo de emergencia bajo</div><div class="alert-sub">${Math.round(efPct*100)}% completado — sigue aportando mensualmente</div></div></div>`;
   }
-  if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)ag.innerHTML+=`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">RD$${fmt(Math.round(interesMensual))}/mes ${_lang==='es'?'en intereses':'in interest'} — ${Math.round(interesMensual/resta*100)}% ${_lang==='es'?'de tu superávit':'of your surplus'}</div></div></div>`;
-  if(!ag.innerHTML)ag.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_nofinancial')}</div>`;
+  // Carga de intereses vs superávit
+  if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)ag.innerHTML+=`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">Carga de intereses elevada</div><div class="alert-sub">RD$${fmt(Math.round(interesMensual))}/mes en intereses — ${Math.round(interesMensual/resta*100)}% de tu superávit</div></div></div>`;
+  if(!ag.innerHTML)ag.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">✅ Sin alertas financieras</div>`;
+  // SITUACIÓN
   const as=document.getElementById('alertasSit');
   const items=[
-    {icon:gpct<=.8?'✅':'⚠️',l:t('sit_expenses'),v:`${Math.round(gpct*100)}% ${t('sit_used')}`,c:gpct<=.8?'var(--green)':gpct<=.9?'var(--yellow)':'var(--red)'},
-    {icon:resta>0?'✅':'🔴',l:t('sit_surplus'),v:resta>0?`RD$${fmt(resta)} ${t('sit_available')}`:`${t('sit_deficit')}${fmt(Math.abs(resta))}`,c:resta>0?'var(--green)':'var(--red)'},
-    {icon:dRatio<0.5?'✅':'⚠️',l:t('sit_debt'),v:`${(dRatio*100).toFixed(0)}% ${t('sit_annualincome')}`,c:dRatio<0.5?'var(--green)':dRatio<1?'var(--yellow)':'var(--red)'},
-    {icon:vencProx.length>0?'📅':'✅',l:t('sit_payments'),v:vencProx.length>0?vencProx.map(p=>`${p.nombre.split(' ')[0]} (${p.daysUntil===0?(_lang==='es'?'¡hoy!':'today!'):p.daysUntil+'d'})`).join(' · '):t('sit_uptodate'),c:vencProx.some(p=>p.urgente)?'var(--red)':vencProx.length>0?'var(--yellow)':'var(--green)'},
+    {icon:gpct<=.8?'✅':'⚠️',l:'Control de Gastos',v:`${Math.round(gpct*100)}% del ingreso usado`,c:gpct<=.8?'var(--green)':gpct<=.9?'var(--yellow)':'var(--red)'},
+    {icon:resta>0?'✅':'🔴',l:'Superávit Mensual',v:resta>0?`RD$${fmt(resta)} disponible`:'Déficit de RD$'+fmt(Math.abs(resta)),c:resta>0?'var(--green)':'var(--red)'},
+    {icon:dRatio<0.5?'✅':'⚠️',l:'Ratio Deuda',v:`${(dRatio*100).toFixed(0)}% del ingreso anual`,c:dRatio<0.5?'var(--green)':dRatio<1?'var(--yellow)':'var(--red)'},
+    {icon:vencProx.length>0?'📅':'✅',l:'Próximos pagos',v:vencProx.length>0?vencProx.map(p=>`${p.nombre.split(' ')[0]} (${p.daysUntil===0?'¡hoy!':p.daysUntil+'d'})`).join(' · '):'Al día este mes',c:vencProx.some(p=>p.urgente)?'var(--red)':vencProx.length>0?'var(--yellow)':'var(--green)'},
   ];
   as.innerHTML=`<div class="grid g2" style="gap:10px">${items.map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:14px 16px;border-left:3px solid ${i.c}"><div style="font-size:20px;margin-bottom:6px">${i.icon}</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">${i.l}</div><div style="font-size:13px;font-weight:700;margin-top:4px;color:${i.c}">${i.v}</div></div>`).join('')}</div>`;
 }
@@ -2163,27 +1647,29 @@ function buildChecklist(gastos){
   const doneMonPct=totalMonto>0?Math.round(doneMonto/totalMonto*100):0;
 
   const saveBtn=_pendingSave
-    ?`<button onclick="saveChecklistToExcel()" class="btn btn-success btn-sm" style="animation:pulse 2s ease-in-out infinite">${t('chk_saveexcel')}</button>`
-    :`<button class="btn btn-ghost btn-sm" style="opacity:.4;cursor:default">${t('chk_saved')}</button>`;
+    ?`<button onclick="saveChecklistToExcel()" class="btn btn-success btn-sm" style="animation:pulse 2s ease-in-out infinite">💾 Guardar en Excel</button>`
+    :`<button class="btn btn-ghost btn-sm" style="opacity:.4;cursor:default">💾 Guardado</button>`;
 
   document.getElementById('checklistProgress').innerHTML=`
     <div class="checklist-progress">
       <div class="checklist-pct" style="color:${doneMonPct===100?'var(--green)':doneMonPct>50?'var(--yellow)':'var(--accent)'}">${doneMonPct}%</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;margin-bottom:6px">${done.length} ${t('chk_of')} ${total} ${t('chk_marked')} · <span style="color:var(--green)">RD$${fmt(doneMonto)}</span> ${t('chk_of')} <span style="color:var(--muted)">RD$${fmt(totalMonto)}</span></div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">${done.length} de ${total} pagos marcados · <span style="color:var(--green)">RD$${fmt(doneMonto)}</span> de <span style="color:var(--muted)">RD$${fmt(totalMonto)}</span></div>
         <div class="progress-wrap" style="margin:0"><div class="progress-bar" style="width:${doneMonPct}%;background:linear-gradient(90deg,var(--green),var(--accent2))"></div></div>
         <div style="font-size:11px;color:var(--muted);margin-top:6px">
-          ${t('chk_pending_lbl')} <span style="color:var(--red);font-weight:700">RD$${fmt(pendMonto)}</span>
-          &nbsp;·&nbsp; ${t('chk_paid_lbl')} <span style="color:var(--green);font-weight:700">RD$${fmt(doneMonto)}</span>
+          Pendiente: <span style="color:var(--red);font-weight:700">RD$${fmt(pendMonto)}</span>
+          &nbsp;·&nbsp; Pagado: <span style="color:var(--green);font-weight:700">RD$${fmt(doneMonto)}</span>
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button onclick="markAllChecklist()" class="btn btn-ghost btn-sm" title="${_lang==='es'?'Marcar todos':'Mark all'}">${t('chk_markall')}</button>
+        <button onclick="markAllChecklist()" class="btn btn-ghost btn-sm" title="Marcar todos">✓ Todo</button>
         ${saveBtn}
-        <button onclick="resetChecklist()" class="btn btn-ghost btn-sm" title="${_lang==='es'?'Desmarcar todos':'Unmark all'}">${t('chk_reset')}</button>
+        <button onclick="resetChecklist()" class="btn btn-ghost btn-sm" title="Desmarcar todos">↺ Reset</button>
       </div>
     </div>
-    ${_pendingSave?`<div style="font-size:11px;color:var(--yellow);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.08);border-radius:8px;border:1px solid rgba(245,200,66,.2)">${t('chk_unsaved')}</div>`:''}`;
+    ${_pendingSave?`<div style="font-size:11px;color:var(--yellow);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.08);border-radius:8px;border:1px solid rgba(245,200,66,.2)">
+      ⚠️ Tienes cambios sin guardar. Presiona <strong>💾 Guardar en Excel</strong> para que persistan al recargar el archivo.
+    </div>`:''}`;
 
   const ingreso=_editData.emerg?.cashflow?.ingreso||1;
   const mkRow=(g,isDone)=>{
@@ -2197,10 +1683,10 @@ function buildChecklist(gastos){
       <div class="check-name">${escH(g.nombre)}</div>
       <div class="check-day">
         <span class="pill" style="background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'—')}</span>
-        &nbsp;· ${t('chk_day')} <strong>${g.dia||'—'}</strong>
-        &nbsp;· <span style="color:var(--muted)">${pct}% ${t('chk_income')}</span>
-        ${intMes>0?`&nbsp;· <span style="color:var(--red);font-size:10px">~RD$${fmt(intMes)}/mes ${_lang==='es'?'interés':'interest'}</span>`:''}
-        ${isDone?`<span style="color:var(--green);margin-left:8px;font-size:11px;font-weight:700">✓ ${t('chk_paidmonth')}</span>`:''}
+        &nbsp;· Día <strong>${g.dia||'—'}</strong>
+        &nbsp;· <span style="color:var(--muted)">${pct}% ing</span>
+        ${intMes>0?`&nbsp;· <span style="color:var(--red);font-size:10px">~RD$${fmt(intMes)}/mes interés</span>`:''}
+        ${isDone?'<span style="color:var(--green);margin-left:8px;font-size:11px;font-weight:700">✓ Pagado este mes</span>':''}
       </div>
     </div>
     <div class="check-amount" style="color:${isDone?'var(--green)':'var(--red)'}">RD$${fmt(g.adeudado)}</div>
@@ -2209,11 +1695,11 @@ function buildChecklist(gastos){
 
   document.getElementById('checklistPending').innerHTML=pending.length
     ?pending.map(g=>mkRow(g,false)).join('')
-    :`<div style="text-align:center;padding:28px;color:var(--green);font-size:14px;font-weight:700">${t('chk_allpaid')}</div>`;
+    :`<div style="text-align:center;padding:28px;color:var(--green);font-size:14px;font-weight:700">🎉 ¡Todo pagado este mes!</div>`;
 
   document.getElementById('checklistDone').innerHTML=done.length
     ?done.map(g=>mkRow(g,true)).join('')
-    :`<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px">${t('chk_nonemarked')}</div>`;
+    :`<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px">Ningún pago marcado aún</div>`;
 
   // Interest Analysis — fix title and tasa color threshold
   const deudas=gastos.filter(g=>g.balance>0&&g.tasa>0);
@@ -2221,17 +1707,17 @@ function buildChecklist(gastos){
   const totalIntAnual=totalIntMes*12;
   document.getElementById('interestAnalysis').innerHTML=`
     <div class="grid g3" style="gap:10px;margin-bottom:16px">
-      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${t('chk_interest_annual')}</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--red);margin-top:4px">RD$${fmt(Math.round(totalIntAnual))}</div></div>
-      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${t('chk_interest_monthly')}</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--yellow);margin-top:4px">RD$${fmt(Math.round(totalIntMes))}</div></div>
-      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${t('chk_interest_count')}</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px">${deudas.length}</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Interés Anual en Deudas</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--red);margin-top:4px">RD$${fmt(Math.round(totalIntAnual))}</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Interés Mensual</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--yellow);margin-top:4px">RD$${fmt(Math.round(totalIntMes))}</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Deudas con Tasa</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px">${deudas.length}</div></div>
     </div>
-    <div class="tbl-wrap"><table class="mobile-card-table"><thead><tr><th>${t('chk_tbl_debt')}</th><th>${t('chk_tbl_balance')}</th><th>${t('chk_tbl_rate')}</th><th>${t('chk_tbl_intmonth')}</th><th>${t('chk_tbl_intannual')}</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table><thead><tr><th>Deuda</th><th>Balance</th><th>Tasa %</th><th>Interés Mensual</th><th>Interés Anual</th></tr></thead><tbody>
     ${deudas.sort((a,b)=>b.tasa-a.tasa).map(g=>`<tr>
-      <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
-      <td data-label="${t('chk_tbl_balance')}" class="num" style="color:var(--red)">RD$${fmt(g.balance)}</td>
-      <td data-label="${t('chk_tbl_rate')}" class="mono" style="color:${g.tasa>15?'var(--red)':'var(--yellow)'};text-align:center">${g.tasa}%</td>
-      <td data-label="${t('chk_tbl_intmonth')}" class="num" style="color:var(--yellow)">RD$${fmt(Math.round(g.balance*(g.tasa/100/12)))}</td>
-      <td data-label="${t('chk_tbl_intannual')}" class="num" style="color:var(--red)">RD$${fmt(Math.round(g.balance*(g.tasa/100)))}</td>
+      <td style="font-weight:700">${escH(g.nombre)}</td>
+      <td class="num" style="color:var(--red)">RD$${fmt(g.balance)}</td>
+      <td class="mono" style="color:${g.tasa>15?'var(--red)':'var(--yellow)'};text-align:center">${g.tasa}%</td>
+      <td class="num" style="color:var(--yellow)">RD$${fmt(Math.round(g.balance*(g.tasa/100/12)))}</td>
+      <td class="num" style="color:var(--red)">RD$${fmt(Math.round(g.balance*(g.tasa/100)))}</td>
     </tr>`).join('')}
     </tbody></table></div>`;
 }
@@ -2293,7 +1779,7 @@ function saveChecklistToExcel(){
   buildChecklist(_editData.gastos);
   buildAlerts({gastos:_editData.gastos,config:_editData.config,ingreso:_editData.emerg.cashflow.ingreso,gasto:_editData.emerg.cashflow.gasto,totalBalance:_editData.gastos.reduce((a,g)=>a+g.balance,0),resta:_editData.emerg.cashflow.resta,emerg:_editData.emerg,interesMensual:_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0)});
   autoSave();
-  showToast(t('toast_saved'));
+  showToast('💾 Estado de pagos guardado en Excel y memoria local');
 }
 
 function resetChecklist(){
@@ -2341,16 +1827,16 @@ function buildProyector({gastos,ingreso,gasto,config}){
       <div style="flex:1;min-width:200px">
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Pago extra mensual disponible (RD$) — arrastra el slider o escribe un monto</div>
         <input type="range" id="extraSlider" min="0" max="${Math.max(1,resta*2)}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
-        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
           <input type="number" id="extraInput" value="${extraPayment}" min="0" max="${Math.round(resta*2)}" step="1000"
             oninput="document.getElementById('extraSlider').value=this.value;updateProyector()"
-            style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:140px;min-width:100px">
+            style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:160px">
           <span style="font-size:12px;color:var(--muted)">RD$/mes</span>
           <button onclick="document.getElementById('extraSlider').value=${Math.round(resta)};document.getElementById('extraInput').value=${Math.round(resta)};updateProyector()"
-            style="padding:8px 12px;background:rgba(34,211,160,.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">
+            style="padding:6px 12px;background:rgba(34,211,160,.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
             Todo el superávit</button>
           ${savingsMonthly>0?`<button onclick="document.getElementById('extraSlider').value=${extraPayment+savingsMonthly};document.getElementById('extraInput').value=${extraPayment+savingsMonthly};updateProyector()"
-            style="padding:8px 12px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">
+            style="padding:6px 12px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
             + Redirigir ahorros (RD$${fmt(savingsMonthly)})</button>`:''}
         </div>
       </div>
@@ -2370,13 +1856,13 @@ function buildProyector({gastos,ingreso,gasto,config}){
     const netPaydown=g.adeudado-intMes;
     const pctInterest=g.adeudado>0?Math.round(intMes/g.adeudado*100):0;
     return `<tr>
-      <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
-      <td data-label="Balance" class="mono" style="text-align:right">RD$${fmt(g.balance)}</td>
-      <td data-label="Tasa" class="mono" style="color:${g.tasa>30?'var(--red)':g.tasa>18?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa}%</td>
-      <td data-label="Int/mes" class="mono" style="color:var(--red);text-align:right">RD$${fmt(intMes)}</td>
-      <td data-label="Cuota/mes" class="mono" style="text-align:right">RD$${fmt(g.adeudado)}</td>
-      <td data-label="Capital pagado" class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}RD$${fmt(Math.abs(netPaydown))}</td>
-      <td data-label="Eficiencia" style="text-align:center">
+      <td style="font-weight:700">${escH(g.nombre)}</td>
+      <td class="mono" style="text-align:right">RD$${fmt(g.balance)}</td>
+      <td class="mono" style="color:${g.tasa>30?'var(--red)':g.tasa>18?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa}%</td>
+      <td class="mono" style="color:var(--red);text-align:right">RD$${fmt(intMes)}</td>
+      <td class="mono" style="text-align:right">RD$${fmt(g.adeudado)}</td>
+      <td class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}RD$${fmt(Math.abs(netPaydown))}</td>
+      <td style="text-align:center">
         <div style="background:var(--border);border-radius:99px;height:6px;width:80px;overflow:hidden;display:inline-block">
           <div style="height:6px;border-radius:99px;width:${Math.min(pctInterest,100)}%;background:${pctInterest>50?'var(--red)':pctInterest>25?'var(--yellow)':'var(--green)'}"></div>
         </div>
@@ -2407,7 +1893,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
         </div>
       </div>
     </div>
-    <div class="tbl-wrap"><table class="mobile-card-table">
+    <div class="tbl-wrap"><table>
       <thead><tr>
         <th>Deuda</th><th style="text-align:right">Balance</th><th style="text-align:center">Tasa</th>
         <th style="text-align:right">Interés/mes</th><th style="text-align:right">Cuota/mes</th>
@@ -2426,21 +1912,21 @@ function buildProyector({gastos,ingreso,gasto,config}){
     const refiIntAnual=g.balance*(refiRate/100);
     const saving=currentIntAnual-refiIntAnual;
     return `<tr>
-      <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
-      <td data-label="Tasa actual" class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
-      <td data-label="Tasa objetivo"><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="0.5"
+      <td style="font-weight:700">${escH(g.nombre)}</td>
+      <td class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
+      <td><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="0.5"
         oninput="updateRefiRow(${i})"
         style="background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);width:80px">
         <span style="font-size:11px;color:var(--muted)">%</span></td>
-      <td data-label="Ahorro/mes" class="mono" style="color:var(--green);text-align:right" id="refi-saving-${i}">RD$${fmt(Math.round(saving/12))}/mes</td>
-      <td data-label="Ahorro/año" class="mono" style="color:var(--accent);text-align:right" id="refi-saving-yr-${i}">RD$${fmt(Math.round(saving))}/año</td>
+      <td class="mono" style="color:var(--green);text-align:right" id="refi-saving-${i}">RD$${fmt(Math.round(saving/12))}/mes</td>
+      <td class="mono" style="color:var(--accent);text-align:right" id="refi-saving-yr-${i}">RD$${fmt(Math.round(saving))}/año</td>
     </tr>`;
   }).join('');
 
   document.getElementById('refiSimulator').innerHTML=`
     <div class="card-title" style="margin-bottom:16px">🔄 Simulador de Refinanciamiento</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px">¿Cuánto ahorrarías si refinanciaras una deuda a una tasa menor? Ingresa la tasa objetivo para cada una.</div>
-    <div class="tbl-wrap"><table class="mobile-card-table">
+    <div class="tbl-wrap"><table>
       <thead><tr>
         <th>Deuda</th><th style="text-align:center">Tasa actual</th><th>Tasa objetivo</th>
         <th style="text-align:right">Ahorro mensual</th><th style="text-align:right">Ahorro anual</th>
@@ -2485,13 +1971,13 @@ function buildProyector({gastos,ingreso,gasto,config}){
     const monthsDiff=baseRef.months-result.months;
     const intDiff=baseRef.interest-result.interest;
     return `<tr style="${highlight?'background:rgba(34,211,160,.06);':''}">
-      <td data-label="" style="font-weight:${highlight?'800':'600'}">${label}</td>
-      <td data-label="Libre en" class="mono" style="text-align:center;font-weight:${highlight?'800':'400'};color:${highlight?'var(--green)':'var(--text)'}">${result.display}</td>
-      <td data-label="Interés total" class="mono" style="color:var(--red);text-align:right">RD$${fmt(result.interest)}</td>
-      <td data-label="vs base" class="mono" style="text-align:center;color:${monthsDiff>0?'var(--green)':monthsDiff<0?'var(--red)':'var(--muted)'}">
+      <td style="font-weight:${highlight?'800':'600'}">${label}</td>
+      <td class="mono" style="text-align:center;font-weight:${highlight?'800':'400'};color:${highlight?'var(--green)':'var(--text)'}">${result.display}</td>
+      <td class="mono" style="color:var(--red);text-align:right">RD$${fmt(result.interest)}</td>
+      <td class="mono" style="text-align:center;color:${monthsDiff>0?'var(--green)':monthsDiff<0?'var(--red)':'var(--muted)'}">
         ${monthsDiff>0?`▲ ${monthsDiff}m antes`:monthsDiff<0?`▼ ${Math.abs(monthsDiff)}m después`:'—'}
       </td>
-      <td data-label="Interés ahorrado" class="mono" style="text-align:right;color:${intDiff>0?'var(--green)':intDiff<0?'var(--red)':'var(--muted)'}">
+      <td class="mono" style="text-align:right;color:${intDiff>0?'var(--green)':intDiff<0?'var(--red)':'var(--muted)'}">
         ${intDiff>0?`Ahorras RD$${fmt(intDiff)}`:intDiff<0?`Pagas RD$${fmt(Math.abs(intDiff))} más`:'—'}
       </td>
     </tr>`;
@@ -2499,7 +1985,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
 
   document.getElementById('whatIfScenarios').innerHTML=`
     <div class="card-title" style="margin-bottom:16px">🎯 Escenarios ¿Qué Pasaría Si…?</div>
-    <div class="tbl-wrap"><table class="mobile-card-table">
+    <div class="tbl-wrap"><table>
       <thead><tr>
         <th>Escenario</th>
         <th style="text-align:center">Libre de deudas</th>
@@ -2584,9 +2070,12 @@ function updateProyector(){
             if(d.paidMonth>deadlineMonths) deadlineWarn=`<span style="color:var(--red);font-size:10px;font-weight:700"> ⚠ Vence en ${deadlineMonths}m</span>`;
           }
         }
+        // Feature C: exact calendar payoff date
+        const _pDate=new Date(today); _pDate.setMonth(_pDate.getMonth()+d.paidMonth);
+        const _pStr=_pDate.toLocaleDateString('es-DO',{month:'short',year:'numeric'});
         return `<div class="timeline-item">
           <div class="timeline-dot" style="background:${COLORS[i%COLORS.length]}"></div>
-          <div class="timeline-info"><div class="timeline-name">${escH(d.nombre)}${deadlineWarn}</div><div class="timeline-date">${Math.floor(d.paidMonth/12)}a ${d.paidMonth%12}m · Tasa ${d.tasa}%</div></div>
+          <div class="timeline-info"><div class="timeline-name">${escH(d.nombre)}${deadlineWarn}</div><div class="timeline-date">${Math.floor(d.paidMonth/12)}a ${d.paidMonth%12}m · <strong style="color:var(--accent)">${_pStr}</strong> · ${d.tasa}%</div></div>
           <div class="timeline-int" style="color:var(--red)">~RD$${fmt(d.interestPaid||0)}<br><span style="font-size:10px;color:var(--muted)">interés total</span></div>
         </div>`;
       }).join('');
@@ -2639,7 +2128,8 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const totalBalance=gastos.reduce((a,g)=>a+g.balance,0);
   // Fix: when originalRD=0 but balance>0, use balance as fallback so "Pagado" and "Avance" are not negative
   const totalOriginal=gastos.reduce((a,g)=>a+Math.max(g.originalRD||0, g.balance||0),0);
-  const ingreso=cf.ingreso||config.ingresoRD;
+  // Bug1 fix: single source of truth — always ingresoUSD × tasa; cf.ingreso only as last fallback for very old data
+  const ingreso=config.ingresoUSD>0&&config.tasa>0?(config.ingresoUSD*config.tasa):(config.ingresoRD||cf.ingreso||0);
   const gasto=cf.gasto||totalPagado;
   const resta=cf.resta!==undefined?cf.resta:ingreso-gasto;
   const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
@@ -2671,10 +2161,10 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
 
   // ── KPIs ──
   document.getElementById('kpiRow').innerHTML=[
-    {l:t('kpi_income'),v:`RD$${fmt(ingreso)}`,s:`≈ ${fmtUSD(config.ingresoUSD)} · Tasa RD$${config.tasa}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
-    {l:t('kpi_expenses'),v:`RD$${fmt(gasto)}`,s:`${gastoPct}% del ingreso · interés: RD$${fmt(Math.round(interesMensual))}/mes`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
-    {l:t('kpi_surplus'),v:`RD$${fmt(resta)}`,s:resta>=0?`${Math.round(resta/ingreso*100)}% ${t('kpi_surplus_pct')}`:t('kpi_deficit'),c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
-    {l:t('kpi_networth'),v:`RD$${netWorth<0?'('+fmt(Math.abs(netWorth))+')':fmt(netWorth)}`,s:t('kpi_savings_ef'),c:netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
+    {l:'Ingresos',v:`RD$${fmt(ingreso)}`,s:`≈ ${fmtUSD(config.ingresoUSD)} · Tasa RD$${config.tasa}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
+    {l:'Gastos Totales',v:`RD$${fmt(gasto)}`,s:`${gastoPct}% del ingreso · interés: RD$${fmt(Math.round(interesMensual))}/mes`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
+    {l:'Superávit del Mes',v:`RD$${fmt(resta)}`,s:resta>=0?`${Math.round(resta/ingreso*100)}% del ingreso ✓`:'⚠ Déficit',c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
+    {l:'Net Worth',v:`RD$${netWorth<0?'('+fmt(Math.abs(netWorth))+')':fmt(netWorth)}`,s:`Ahorros+EF − Deudas`,c:netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   // ── Score ──
@@ -2682,7 +2172,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const r=50;const circ=2*Math.PI*r;const dash=circ*(sc.score/100);
   const scoreColor=sc.grade.c;
   document.getElementById('scoreCard').innerHTML=`
-    <div class="card-title" style="margin-bottom:6px">${t('score_title')}</div>
+    <div class="card-title" style="margin-bottom:6px">Salud Financiera</div>
     <div class="score-ring-wrap">
       <div class="score-ring">
         <svg width="110" height="110" viewBox="0 0 110 110">
@@ -2707,18 +2197,18 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   // ── CF Bar ──
   document.getElementById('cfBarCard').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div class="card-title" style="margin:0">${t('cf_dist')} · RD$${fmt(ingreso)}</div>
+      <div class="card-title" style="margin:0">Distribución del Ingreso · RD$${fmt(ingreso)}</div>
       <div style="display:flex;gap:16px;font-size:12px">
-        <span style="color:var(--muted)">${t('cf_expenses')}: <span class="mono" style="color:var(--red)">RD$${fmt(gasto)}</span></span>
-        <span style="color:var(--muted)">${t('cf_remainder')}: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span></span>
+        <span style="color:var(--muted)">Gastos: <span class="mono" style="color:var(--red)">RD$${fmt(gasto)}</span></span>
+        <span style="color:var(--muted)">Sobrante: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span></span>
       </div>
     </div>
     <div class="cf-bar">
-      <div class="cf-seg" style="width:${Math.min(gastoPct,100)}%;background:linear-gradient(90deg,#f4606a,#fb923c);color:#fff">${t('cf_expenses')} ${gastoPct}%</div>
-      <div class="cf-seg" style="width:${Math.max(0,sobrante)}%;background:linear-gradient(90deg,#22d3a0,#06b6d4);color:#052e16">${t('cf_remainder')} ${sobrante}%</div>
+      <div class="cf-seg" style="width:${Math.min(gastoPct,100)}%;background:linear-gradient(90deg,#f4606a,#fb923c);color:#fff">Gastos ${gastoPct}%</div>
+      <div class="cf-seg" style="width:${Math.max(0,sobrante)}%;background:linear-gradient(90deg,#22d3a0,#06b6d4);color:#052e16">Sobrante ${sobrante}%</div>
     </div>
     <div class="grid g4" style="margin-top:14px;gap:10px">
-      ${[{l:t('cf_withdrawusd'),v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)'},{l:t('cf_rate'),v:`RD$${config.tasa}`,c:'var(--yellow)'},{l:t('cf_savings'),v:`RD$${fmt(cf.ahorros||0)}`,c:'var(--green)'},{l:t('cf_committed'),v:`RD$${fmt(gasto)}`,c:'var(--red)'}]
+      ${[{l:'Retirar USD',v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)'},{l:'Tasa Dólar',v:`RD$${config.tasa}`,c:'var(--yellow)'},{l:'Ahorros este mes',v:`RD$${fmt(cf.ahorros||0)}`,c:'var(--green)'},{l:'Comprometido',v:`RD$${fmt(gasto)}`,c:'var(--red)'}]
         .map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:10px 14px"><div style="font-size:10px;color:var(--muted)">${i.l}</div><div class="mono" style="font-size:15px;font-weight:700;color:${i.c};margin-top:4px">${i.v}</div></div>`).join('')}
     </div>`;
 
@@ -2730,33 +2220,34 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   gastos.forEach(g=>{
     const tc=tipoColors[g.tipo]||'#94a3b8';
     const pctIng=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
+    // Estado unificado: pagadoMes (checklist) tiene prioridad sobre pagado (monto)
     let estLabel,estBg,estFg;
-    if(g.pagadoMes){estLabel=t('gastostbl_thismonth');estBg='#052e16';estFg='#22d3a0';}
-    else if(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0){estLabel=t('gastostbl_done');estBg='#052e16';estFg='#22d3a0';}
-    else if(g.pagado>0&&g.adeudado>0){estLabel=t('gastostbl_partial');estBg='#1e1b4b';estFg='#93c5fd';}
-    else if(g.adeudado>0){estLabel=t('gastostbl_pending2');estBg='#450a0a';estFg='#f4606a';}
+    if(g.pagadoMes){estLabel='✓ Este mes';estBg='#052e16';estFg='#22d3a0';}
+    else if(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0){estLabel='✓ Pagado';estBg='#052e16';estFg='#22d3a0';}
+    else if(g.pagado>0&&g.adeudado>0){estLabel='◑ Parcial';estBg='#1e1b4b';estFg='#93c5fd';}
+    else if(g.adeudado>0){estLabel='⏳ Pendiente';estBg='#450a0a';estFg='#f4606a';}
     else{estLabel='—';estBg='transparent';estFg='var(--muted)';}
     tbody.innerHTML+=`<tr>
       <td data-label="" style="font-weight:600">${escH(g.nombre)}</td>
-      <td data-label="${t('gastostbl_tipo')}"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
-      <td data-label="${t('gastostbl_pagado')}" class="num" style="color:${g.pagado>0?'var(--green)':'var(--muted)'}">${g.pagado>0?'RD$'+fmt(g.pagado):'—'}</td>
-      <td data-label="${t('gastostbl_cuota')}" class="num">${g.adeudado>0?'RD$'+fmt(g.adeudado):'—'}</td>
-      <td data-label="${t('gastostbl_pctinc')}" class="mono" style="color:${pctIng>15?'var(--red)':pctIng>8?'var(--yellow)':'var(--muted)'};text-align:center">${g.adeudado>0?pctIng+'%':'—'}</td>
-      <td data-label="${t('gastostbl_day')}" class="mono" style="color:var(--muted);text-align:center">${g.dia||'—'}</td>
-      <td data-label="${t('gastostbl_rate')}" class="mono" style="color:${g.tasa>15?'var(--red)':g.tasa>0?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa>0?g.tasa+'%':'—'}</td>
-      <td data-label="${t('gastostbl_balance')}" class="num" style="color:${g.balance>0?'var(--red)':'var(--muted)'}">${g.balance>0?'RD$'+fmt(g.balance):'—'}</td>
-      <td data-label="${t('gastostbl_status')}"><span class="pill" style="background:${estBg};color:${estFg}">${estLabel}</span></td>
+      <td data-label="Tipo"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
+      <td data-label="Pagado" class="num" style="color:${g.pagado>0?'var(--green)':'var(--muted)'}">${g.pagado>0?'RD$'+fmt(g.pagado):'—'}</td>
+      <td data-label="Cuota" class="num">${g.adeudado>0?'RD$'+fmt(g.adeudado):'—'}</td>
+      <td data-label="% Ing" class="mono" style="color:${pctIng>15?'var(--red)':pctIng>8?'var(--yellow)':'var(--muted)'};text-align:center">${g.adeudado>0?pctIng+'%':'—'}</td>
+      <td data-label="Día" class="mono" style="color:var(--muted);text-align:center">${g.dia||'—'}</td>
+      <td data-label="Tasa" class="mono" style="color:${g.tasa>15?'var(--red)':g.tasa>0?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa>0?g.tasa+'%':'—'}</td>
+      <td data-label="Balance" class="num" style="color:${g.balance>0?'var(--red)':'var(--muted)'}">${g.balance>0?'RD$'+fmt(g.balance):'—'}</td>
+      <td data-label="Estado"><span class="pill" style="background:${estBg};color:${estFg}">${estLabel}</span></td>
     </tr>`;
   });
   const totalCuotas=gastos.reduce((a,g)=>a+g.adeudado,0);
-  tbody.innerHTML+=`<tr style="background:rgba(59,130,246,.04)"><td colspan="2" style="font-weight:800">${t('gastostbl_total')}</td><td class="num" style="font-weight:800;color:var(--green)">RD$${fmt(totalPagado)}</td><td class="num" style="font-weight:800">RD$${fmt(totalCuotas)}</td><td class="mono" style="text-align:center;font-weight:800;color:var(--muted)">${ingreso>0?Math.round(totalCuotas/ingreso*100)+'%':'—'}</td><td colspan="2"></td><td class="num" style="font-weight:800;color:var(--red)">RD$${fmt(totalBalance)}</td><td></td></tr>`;
+  tbody.innerHTML+=`<tr style="background:rgba(59,130,246,.04)"><td colspan="2" style="font-weight:800">TOTALES</td><td class="num" style="font-weight:800;color:var(--green)">RD$${fmt(totalPagado)}</td><td class="num" style="font-weight:800">RD$${fmt(totalCuotas)}</td><td class="mono" style="text-align:center;font-weight:800;color:var(--muted)">${ingreso>0?Math.round(totalCuotas/ingreso*100)+'%':'—'}</td><td colspan="2"></td><td class="num" style="font-weight:800;color:var(--red)">RD$${fmt(totalBalance)}</td><td></td></tr>`;
 
   // ── Deuda KPIs ──
   document.getElementById('deudaKpis').innerHTML=[
-    {l:t('deuda_total'),v:`RD$${fmt(totalBalance)}`,s:`≈ ${fmtUSD(totalBalance/config.tasa)}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
-    {l:t('deuda_mostexpensive'),v:masCaraDeuda?escH(masCaraDeuda.nombre):'—',s:masCaraDeuda?`${masCaraDeuda.tasa}% ${t('deuda_annualrate')}`:'—',c:'var(--yellow)',b:'rgba(245,200,66,.1)'},
-    {l:t('deuda_monthly'),v:`RD$${fmt(cuotaDeudas)}`,s:`${t('deuda_onlybalance')} · ${allDeudas.length} ${_lang==='es'?'deudas':'debts'}`,c:'var(--red)',b:'rgba(244,96,106,.1)'},
-    {l:t('deuda_progress'),v:`${deudaPct}%`,s:`${_lang==='es'?'Pagado':'Paid'} RD$${fmt(Math.round(pagadoReal))}`,c:'var(--accent)',b:'rgba(59,130,246,.1)'},
+    {l:'Deuda Total',v:`RD$${fmt(totalBalance)}`,s:`≈ ${fmtUSD(totalBalance/config.tasa)}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
+    {l:'Deuda más cara',v:masCaraDeuda?escH(masCaraDeuda.nombre):'—',s:masCaraDeuda?`${masCaraDeuda.tasa}% anual`:'—',c:'var(--yellow)',b:'rgba(245,200,66,.1)'},
+    {l:'Cuota Mensual',v:`RD$${fmt(cuotaDeudas)}`,s:`Solo deudas con balance · ${allDeudas.length} deudas`,c:'var(--red)',b:'rgba(244,96,106,.1)'},
+    {l:'Avance de Pago',v:`${deudaPct}%`,s:`Pagado RD$${fmt(Math.round(pagadoReal))}`,c:'var(--accent)',b:'rgba(59,130,246,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:20px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   // ── Deuda Cards ──
@@ -2768,23 +2259,23 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     dc.innerHTML+=`<div class="debt-card">
       <div class="debt-header">
         <div><div class="debt-name">${escH(d.nombre)}</div><span class="pill" style="background:${(tipoColors[d.tipo]||'#64748b')}22;color:${tipoColors[d.tipo]||'#94a3b8'};margin-top:4px;display:inline-block">${escH(d.tipo)}</span></div>
-        <div style="text-align:right"><div class="debt-amount">RD$${fmt(d.balance)}</div>${d.tasa>0?`<div style="font-size:12px;color:${d.tasa>15?'var(--red)':'var(--yellow)'};margin-top:2px">${d.tasa}% ${t('deuda_annualrate')}</div>`:''}</div>
+        <div style="text-align:right"><div class="debt-amount">RD$${fmt(d.balance)}</div>${d.tasa>0?`<div style="font-size:12px;color:${d.tasa>15?'var(--red)':'var(--yellow)'};margin-top:2px">${d.tasa}% anual</div>`:''}</div>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${pct}% ${t('dcard_oftotal')}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${pct}% del total de deudas</div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       <div class="debt-meta">
-        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${_lang==='es'?'Día':'Day'} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
+        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">Cuota mensual</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">Interés mensual</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">Día de pago</div><div class="dmi-val">Día ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">Tasa interés</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">Vence</div><div class="dmi-val">${fStr}</div></div></div>
     </div>`;
   });
 
   // ── Deuda Summary ──
   document.getElementById('deudaSummary').innerHTML=`
-    <div class="card-title">${t('deuda_summary_title')}</div>
+    <div class="card-title">Resumen de Deudas Totales</div>
     <div class="grid g4" style="gap:10px;margin-bottom:14px">
-      ${[{l:t('deuda_balancetotal'),v:`RD$${fmt(totalBalance)}`,c:'var(--red)'},{l:t('deuda_original'),v:`RD$${fmt(totalOriginal)}`,c:'var(--muted)'},{l:t('deuda_paidtodate'),v:`RD$${fmt(Math.round(pagadoReal))}`,c:'var(--green)'},{l:t('deuda_advance'),v:`${deudaPct}%`,c:'var(--accent)'}]
+      ${[{l:'Balance Total',v:`RD$${fmt(totalBalance)}`,c:'var(--red)'},{l:'Monto Original',v:`RD$${fmt(totalOriginal)}`,c:'var(--muted)'},{l:'Pagado hasta hoy',v:`RD$${fmt(Math.round(pagadoReal))}`,c:'var(--green)'},{l:'Avance',v:`${deudaPct}%`,c:'var(--accent)'}]
         .map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:12px 16px"><div style="font-size:10px;color:var(--muted)">${i.l}</div><div class="mono" style="font-size:18px;font-weight:700;color:${i.c};margin-top:4px">${i.v}</div></div>`).join('')}
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${t('deuda_globalprogress')}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Progreso global de pago</div>
     <div class="progress-wrap"><div class="progress-bar" style="width:${deudaPct}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>
     <div class="chart-wrap" style="margin-top:16px"><canvas id="deudaBar"></canvas></div>`;
 
@@ -2792,16 +2283,16 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   document.getElementById('netWorthAlert').innerHTML=`<div class="${netWorth<0?'alert-box':'card'}" style="${netWorth>=0?'border-color:rgba(34,211,160,.2)':''}">
     <div style="font-size:22px">${netWorth<0?'⚠️':'✅'}</div>
     <div style="flex:1">
-      <div style="font-weight:700;color:${netWorth<0?'var(--red)':'var(--green)'};font-size:14px">${netWorth<0?t('nw_negative')+': (RD$'+fmt(Math.abs(netWorth))+')':t('nw_positive')+': RD$'+fmt(netWorth)}</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">${netWorth<0?t('nw_advice_neg')+(masCaraDeuda?' ('+escH(masCaraDeuda.nombre)+' '+masCaraDeuda.tasa+'%).':'.' ):t('nw_advice_pos')}</div>
-      ${interesMensual>0?`<div style="font-size:11px;margin-top:8px;padding:6px 10px;background:rgba(244,96,106,.08);border-radius:6px;color:var(--muted)">💸 ${t('nw_interest_label')}: <span style="color:var(--red);font-weight:700;font-family:var(--mono)">RD$${fmt(Math.round(interesMensual))}</span> — <span style="color:var(--yellow)">RD$${fmt(Math.round(interesMensual*12))}/año ${t('nw_peryear')}</span></div>`:''}
+      <div style="font-weight:700;color:${netWorth<0?'var(--red)':'var(--green)'};font-size:14px">Net Worth ${netWorth<0?'Negativo: (RD$'+fmt(Math.abs(netWorth))+')':'Positivo: RD$'+fmt(netWorth)}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${netWorth<0?'Priorizar reducción de deudas con tasas altas'+(masCaraDeuda?' ('+escH(masCaraDeuda.nombre)+' '+masCaraDeuda.tasa+'%)':'')+'.':'Buen trabajo manteniendo activos sobre pasivos.'}</div>
+      ${interesMensual>0?`<div style="font-size:11px;margin-top:8px;padding:6px 10px;background:rgba(244,96,106,.08);border-radius:6px;color:var(--muted)">💸 Interés mensual total: <span style="color:var(--red);font-weight:700;font-family:var(--mono)">RD$${fmt(Math.round(interesMensual))}</span> — <span style="color:var(--yellow)">RD$${fmt(Math.round(interesMensual*12))}/año</span> solo en intereses</div>`:''}
     </div></div>`;
 
   // ── Emergency KPIs ──
   document.getElementById('efKpis').innerHTML=[
-    {l:t('ef_balance'),v:`RD$${fmt(efTotal)}`,s:`${t('ef_goal')} RD$${fmt(efMeta)} ${_lang==='es'?'meta':'goal'}`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
-    {l:t('ef_missing'),v:`RD$${fmt(efMeta-efTotal)}`,s:`${efMeta>0?Math.round((efTotal/efMeta)*100):0}% ${t('ef_completed')}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
-    {l:t('ef_surplus'),v:`RD$${fmt(resta)}`,s:resta>=0?t('ef_available'):t('ef_deficit'),c:resta>=0?'var(--green)':'var(--red)',b:'rgba(34,211,160,.1)'},
+    {l:'Balance Emergencia',v:`RD$${fmt(efTotal)}`,s:`de RD$${fmt(efMeta)} meta`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
+    {l:'Falta Cubrir',v:`RD$${fmt(efMeta-efTotal)}`,s:`${efMeta>0?Math.round((efTotal/efMeta)*100):0}% completado`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
+    {l:'Superávit Mensual',v:`RD$${fmt(resta)}`,s:resta>=0?'Disponible':'Déficit',c:resta>=0?'var(--green)':'var(--red)',b:'rgba(34,211,160,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   const efEl=document.getElementById('efFunds');efEl.innerHTML='';
@@ -2810,9 +2301,9 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const bc=pct>=90?'linear-gradient(90deg,#22d3a0,#06b6d4)':pct>30?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#f4606a,#c026d3)';
     efEl.innerHTML+=`<div class="ef-row"><div class="ef-header"><div class="ef-name">${escH(e.fondo)}</div>
       <div class="ef-nums">
-        <span style="color:var(--muted)">${t('ef_balance_lbl')} <span class="mono" style="color:var(--yellow);font-weight:700">RD$${fmt(e.balance)}</span></span>
-        <span style="color:var(--muted)">${t('ef_goal_lbl')} <span class="mono" style="color:var(--muted);font-weight:700">RD$${fmt(e.meta)}</span></span>
-        <span style="color:var(--muted)">${t('ef_missing_lbl')} <span class="mono" style="color:var(--red);font-weight:700">RD$${fmt(e.falta)}</span></span>
+        <span style="color:var(--muted)">Balance: <span class="mono" style="color:var(--yellow);font-weight:700">RD$${fmt(e.balance)}</span></span>
+        <span style="color:var(--muted)">Meta: <span class="mono" style="color:var(--muted);font-weight:700">RD$${fmt(e.meta)}</span></span>
+        <span style="color:var(--muted)">Falta: <span class="mono" style="color:var(--red);font-weight:700">RD$${fmt(e.falta)}</span></span>
       </div></div>
       <div style="display:flex;align-items:center;gap:10px"><div class="progress-wrap" style="flex:1;margin:0"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       <span class="mono" style="font-size:12px;color:${pct>90?'var(--green)':'var(--muted)'};min-width:36px;text-align:right">${pct}%</span></div>
@@ -2820,31 +2311,31 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   });
 
   document.getElementById('cfRows').innerHTML=[
-    {l:t('cf_monthlyincome'),v:`RD$${fmt(ingreso)}`,c:'var(--green)',d:`${fmtUSD(config.ingresoUSD)} × RD$${config.tasa}`},
-    {l:t('cf_monthlygasto'),v:`RD$${fmt(gasto)}`,c:'var(--red)',d:t('cf_esenciales')},
-    {l:t('cf_rate_global'),v:`RD$${config.tasa}`,c:'var(--yellow)',d:t('cf_global')},
-    {l:t('cf_withdrawusd2'),v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)',d:t('cf_expensedivrate')},
-    {l:t('cf_remainder2'),v:`RD$${fmt(resta)}`,c:resta>=0?'var(--green)':'var(--red)',d:resta>=0?t('cf_surplus2'):t('cf_deficit2')},
-    {l:t('cf_savings2'),v:`RD$${fmt(cf.ahorros||0)}`,c:'var(--purple)',d:t('cf_manual')},
-    {l:t('cf_savingsbalance'),v:`RD$${fmt(cf.balanceAhorros||0)}`,c:'var(--purple)',d:t('cf_accumulated')},
+    {l:'Ingreso Mensual',v:`RD$${fmt(ingreso)}`,c:'var(--green)',d:`${fmtUSD(config.ingresoUSD)} × RD$${config.tasa}`},
+    {l:'Gasto Mensual Total',v:`RD$${fmt(gasto)}`,c:'var(--red)',d:'Suma de Esenciales'},
+    {l:'Tasa Dólar',v:`RD$${config.tasa}`,c:'var(--yellow)',d:'Configuración global'},
+    {l:'Retirar en USD',v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)',d:'Gasto ÷ Tasa'},
+    {l:'Resta (Ingreso-Gasto)',v:`RD$${fmt(resta)}`,c:resta>=0?'var(--green)':'var(--red)',d:resta>=0?'Superávit ✓':'⚠ Déficit'},
+    {l:'Ahorros este mes',v:`RD$${fmt(cf.ahorros||0)}`,c:'var(--purple)',d:'Manual'},
+    {l:'Balance Ahorros',v:`RD$${fmt(cf.balanceAhorros||0)}`,c:'var(--purple)',d:'Acumulado'},
   ].map(r=>`<div class="cf-row"><div><div class="cf-label">${r.l}</div><div class="cf-desc">${r.d}</div></div><div class="cf-val" style="color:${r.c}">${r.v}</div></div>`).join('');
 
   const meses=resta>0&&(efMeta-efTotal)>0?Math.ceil((efMeta-efTotal)/(resta*0.5)):'—';
   const intMensualEf=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
   const intPct=resta>0?Math.round(intMensualEf/resta*100):0;
-  document.getElementById('efTip').innerHTML=`<div style="margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:var(--yellow)">⚡ ${_lang==='es'?'Plan sugerido':'Suggested plan'}</div></div>
-    <div style="font-size:13px;color:var(--muted);line-height:2">${_lang==='es'?'Superávit':'Surplus'}: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span>/mes<br>50% ${_lang==='es'?'a emergencia':'to emergency'}: <span class="mono" style="color:var(--accent)">RD$${fmt(Math.round(resta*0.5))}/mes</span><br><br>${_lang==='es'?'Tiempo para meta:':'Time to goal:'}<br><span class="mono" style="color:var(--yellow);font-size:20px;font-weight:700">~${meses} ${_lang==='es'?'meses':'months'}</span></div>
-    ${intMensualEf>0?`<div style="margin-top:16px;padding:10px 14px;background:rgba(244,96,106,.07);border-radius:8px;border:1px solid rgba(244,96,106,.2)"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">⚠️ ${_lang==='es'?'Carga de intereses':'Interest burden'}</div><div style="font-size:12px;color:var(--muted)">RD$${fmt(Math.round(intMensualEf))}/mes ${_lang==='es'?'en intereses':'in interest'} = <span style="color:${intPct>80?'var(--red)':'var(--yellow)'};font-weight:700">${intPct}% ${_lang==='es'?'del superávit':'of surplus'}</span>. ${_lang==='es'?'Reducir deuda aumenta capacidad de ahorro.':'Reducing debt increases savings capacity.'}</div></div>`:''}`;
+  document.getElementById('efTip').innerHTML=`<div style="margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:var(--yellow)">⚡ Plan sugerido</div></div>
+    <div style="font-size:13px;color:var(--muted);line-height:2">Superávit: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span>/mes<br>50% a emergencia: <span class="mono" style="color:var(--accent)">RD$${fmt(Math.round(resta*0.5))}/mes</span><br><br>Tiempo para meta:<br><span class="mono" style="color:var(--yellow);font-size:20px;font-weight:700">~${meses} meses</span></div>
+    ${intMensualEf>0?`<div style="margin-top:16px;padding:10px 14px;background:rgba(244,96,106,.07);border-radius:8px;border:1px solid rgba(244,96,106,.2)"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">⚠️ Carga de intereses</div><div style="font-size:12px;color:var(--muted)">RD$${fmt(Math.round(intMensualEf))}/mes en intereses = <span style="color:${intPct>80?'var(--red)':'var(--yellow)'};font-weight:700">${intPct}% del superávit</span>. Reducir deuda aumenta capacidad de ahorro.</div></div>`:''}`;
 
   // ── ForNow ──
   document.getElementById('forNowKpis').innerHTML=forNow.cuentas.slice(0,4).map(c=>
-    `<div class="card"><div class="card-title">${escH(c.nombre)}</div><div class="kpi-val" style="color:${c.saldo>0?'var(--green)':'var(--muted)'};font-size:22px">RD$${fmt(c.saldo)}</div><div class="kpi-sub">${t('fornow_current')}</div></div>`
+    `<div class="card"><div class="card-title">${escH(c.nombre)}</div><div class="kpi-val" style="color:${c.saldo>0?'var(--green)':'var(--muted)'};font-size:22px">RD$${fmt(c.saldo)}</div><div class="kpi-sub">Saldo actual</div></div>`
   ).join('');
-  const fDate=forNow.fecha instanceof Date?forNow.fecha.toLocaleDateString(_lang==='es'?'es-DO':'en-US',{day:'2-digit',month:'long',year:'numeric'}):forNow.fecha?String(forNow.fecha).slice(0,10):'—';
-  document.getElementById('forNowDetail').innerHTML=`<div class="card-title">${_lang==='es'?'Disponibilidad':'Availability'} · ${t('fornow_updated')} ${fDate}</div>
-    ${[{l:t('fornow_total'),v:`RD$${fmt(forNow.total)}`,c:'var(--text)',d:t('fornow_accounts'),st:''},
-       {l:t('fornow_committed'),v:`(RD$${fmt(Math.abs(forNow.comprometido))})`,c:'var(--red)',d:t('fornow_commitments'),st:''},
-       {l:t('fornow_available'),v:forNow.disponible<0?`(RD$${fmt(Math.abs(forNow.disponible))})`:`RD$${fmt(forNow.disponible)}`,c:forNow.disponible>=0?'var(--green)':'var(--red)',d:t('fornow_aftercommit'),st:'background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:10px;'}]
+  const fDate=forNow.fecha instanceof Date?forNow.fecha.toLocaleDateString('es-DO',{day:'2-digit',month:'long',year:'numeric'}):forNow.fecha?String(forNow.fecha).slice(0,10):'—';
+  document.getElementById('forNowDetail').innerHTML=`<div class="card-title">Disponibilidad · Actualizado ${fDate}</div>
+    ${[{l:'Total en Cuentas',v:`RD$${fmt(forNow.total)}`,c:'var(--text)',d:'Suma todos los saldos',st:''},
+       {l:'Comprometido',v:`(RD$${fmt(Math.abs(forNow.comprometido))})`,c:'var(--red)',d:'Compromisos del mes',st:''},
+       {l:'Disponible Real',v:forNow.disponible<0?`(RD$${fmt(Math.abs(forNow.disponible))})`:`RD$${fmt(forNow.disponible)}`,c:forNow.disponible>=0?'var(--green)':'var(--red)',d:'Después de compromisos',st:'background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:10px;'}]
       .map(r=>`<div class="cf-row" style="${r.st}"><div><div class="cf-label">${r.l}</div><div class="cf-desc">${r.d}</div></div><div class="cf-val" style="color:${r.c}">${r.v}</div></div>`).join('')}`;
 
   // Charts
@@ -2906,6 +2397,148 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,interesMensual});
   buildChecklist(gastos);
   buildProyector({gastos,ingreso,gasto,config});
+  buildBudgetVsActual(gastos,ingreso);
+  buildMetas(_editData.metas||[],ingreso);
+  buildExpenseTrend(historial,gastos);
+}
+
+// ══════════════════════════════════
+// FEATURE B: Budget vs Actual by Category
+// ══════════════════════════════════
+function buildBudgetVsActual(gastos,ingreso){
+  var el=document.getElementById('budgetVsActual');if(!el)return;
+  var tipos={};
+  gastos.forEach(function(g){
+    var k=g.tipo||'Otro';
+    if(!tipos[k])tipos[k]={budget:0,actual:0};
+    tipos[k].budget+=(g.adeudado||0);
+    tipos[k].actual+=(g.pagado||0);
+  });
+  var rows=Object.entries(tipos).sort(function(a,b){return b[1].budget-a[1].budget;});
+  var totalB=rows.reduce(function(a,r){return a+r[1].budget;},0);
+  var totalA=rows.reduce(function(a,r){return a+r[1].actual;},0);
+  var diff=totalA-totalB;
+  var html='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">'
+    +'<div class="card-title" style="margin:0">📊 Presupuesto vs Real por Categoría</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +'<div style="background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2);border-radius:8px;padding:6px 12px;font-size:12px"><span style="color:var(--muted)">Ppto: </span><span class="mono" style="color:var(--green);font-weight:700">RD$'+fmt(totalB)+'</span></div>'
+    +'<div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:6px 12px;font-size:12px"><span style="color:var(--muted)">Real: </span><span class="mono" style="color:var(--accent);font-weight:700">RD$'+fmt(totalA)+'</span></div>'
+    +'<div style="background:'+(diff>0?'rgba(244,96,106,.1)':'rgba(34,211,160,.1)')+';border:1px solid '+(diff>0?'rgba(244,96,106,.2)':'rgba(34,211,160,.2)')+';border-radius:8px;padding:6px 12px;font-size:12px"><span style="color:var(--muted)">Dif: </span><span class="mono" style="color:'+(diff>0?'var(--red)':'var(--green)')+';font-weight:700">'+(diff>=0?'+':'')+'RD$'+fmt(diff)+'</span></div>'
+    +'</div></div><div>';
+  rows.forEach(function(entry){
+    var tipo=entry[0],v=entry[1];
+    var pct=v.budget>0?Math.round(v.actual/v.budget*100):100;
+    var over=v.actual>v.budget;
+    var barW=Math.min(100,pct);
+    var barC=pct>100?'var(--red)':pct>85?'var(--yellow)':'var(--green)';
+    html+='<div style="margin-bottom:14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+      +'<span style="font-size:12px;font-weight:700">'+escH(tipo)+'</span>'
+      +'<div style="display:flex;gap:12px;font-size:11px">'
+      +'<span style="color:var(--muted)">Ppto: <span class="mono">RD$'+fmt(v.budget)+'</span></span>'
+      +'<span style="color:var(--accent)">Real: <span class="mono">RD$'+fmt(v.actual)+'</span></span>'
+      +'<span style="color:'+(over?'var(--red)':'var(--green)')+';font-weight:700">'+pct+'%'+(over?' ⚠':'')+'</span>'
+      +'</div></div>'
+      +'<div style="background:var(--border);border-radius:99px;height:8px;overflow:hidden">'
+      +'<div style="height:8px;border-radius:99px;width:'+barW+'%;background:'+barC+';transition:width .4s"></div>'
+      +'</div></div>';
+  });
+  html+='</div><div style="font-size:11px;color:var(--muted);margin-top:10px">💡 <strong>Ppto</strong> = cuota configurada. <strong>Real</strong> = pagado este mes.</div>';
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════
+// FEATURE A: Savings Goal Tracker
+// ══════════════════════════════════
+function buildMetas(metas,ingreso){
+  if(!Array.isArray(metas))metas=[];
+  var metasEl=document.getElementById('metasCards');
+  var emptyEl=document.getElementById('metasEmpty');
+  var kpisEl=document.getElementById('metasKpis');
+  if(!metasEl)return;
+  if(!metas.length){
+    metasEl.innerHTML='';
+    if(emptyEl)emptyEl.style.display='block';
+    if(kpisEl)kpisEl.innerHTML='';
+    return;
+  }
+  if(emptyEl)emptyEl.style.display='none';
+  var totalMeta=metas.reduce(function(a,m){return a+m.meta;},0);
+  var totalBal=metas.reduce(function(a,m){return a+m.balance;},0);
+  var totalAporte=metas.reduce(function(a,m){return a+(m.aporte||0);},0);
+  var pctT=totalMeta>0?Math.round(totalBal/totalMeta*100):0;
+  if(kpisEl){
+    var kdata=[
+      {l:'Total Metas',v:'RD$'+fmt(totalMeta),s:metas.length+' meta'+(metas.length!==1?'s':''),c:'var(--accent)',bg:'rgba(59,130,246,.1)'},
+      {l:'Ahorrado',v:'RD$'+fmt(totalBal),s:pctT+'% del objetivo',c:'var(--green)',bg:'rgba(34,211,160,.1)'},
+      {l:'Falta',v:'RD$'+fmt(Math.max(0,totalMeta-totalBal)),s:'Para completar',c:'var(--yellow)',bg:'rgba(245,200,66,.1)'},
+      {l:'Aporte/mes',v:'RD$'+fmt(totalAporte),s:ingreso>0?(Math.round(totalAporte/ingreso*100)+'% del ingreso'):'',c:'var(--purple)',bg:'rgba(167,139,250,.1)'},
+    ];
+    kpisEl.innerHTML=kdata.map(function(k){
+      return '<div class="card" style="border-color:'+k.bg+'"><div class="card-title">'+k.l+'</div><div class="kpi-val" style="color:'+k.c+';font-size:20px">'+k.v+'</div><div class="kpi-sub">'+k.s+'</div></div>';
+    }).join('');
+  }
+  var cards=metas.map(function(m){
+    var pct=m.meta>0?Math.round(m.balance/m.meta*100):0;
+    var falta=Math.max(0,m.meta-m.balance);
+    var mR=m.aporte>0?Math.ceil(falta/m.aporte):null;
+    var etaStr=mR!=null?(mR<=0?'¡Meta lograda! 🎉':'~'+(Math.floor(mR/12)>0?Math.floor(mR/12)+'a ':'')+mR%12+'m'):'—';
+    var etaDate=mR!=null&&mR>0?new Date(Date.now()+mR*30*24*60*60*1000).toLocaleDateString('es-DO',{month:'short',year:'numeric'}):null;
+    var bc=pct>=100?'var(--green)':pct>=50?'var(--accent)':pct>=25?'var(--yellow)':'var(--red)';
+    var h='<div class="card" style="border-color:'+bc+'33;margin-bottom:0">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
+    h+='<div><div style="font-size:15px;font-weight:800">'+escH(m.nombre)+'</div>';
+    if(m.notas)h+='<div style="font-size:11px;color:var(--muted);margin-top:2px">'+escH(m.notas)+'</div>';
+    h+='</div><div style="font-size:24px;font-weight:900;color:'+bc+'">'+pct+'%</div></div>';
+    h+='<div style="background:var(--border);border-radius:99px;height:10px;overflow:hidden;margin-bottom:12px">';
+    h+='<div style="height:10px;border-radius:99px;width:'+Math.min(100,pct)+'%;background:'+bc+';transition:width .5s"></div></div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">';
+    h+='<div style="background:var(--surface2);border-radius:8px;padding:8px"><div style="color:var(--muted)">Ahorrado</div><div class="mono" style="font-size:13px;font-weight:700;color:var(--green)">RD$'+fmt(m.balance)+'</div></div>';
+    h+='<div style="background:var(--surface2);border-radius:8px;padding:8px"><div style="color:var(--muted)">Meta</div><div class="mono" style="font-size:13px;font-weight:700">RD$'+fmt(m.meta)+'</div></div>';
+    h+='<div style="background:var(--surface2);border-radius:8px;padding:8px"><div style="color:var(--muted)">Falta</div><div class="mono" style="font-size:13px;font-weight:700;color:'+(falta>0?'var(--red)':'var(--green)')+'">'+( falta<=0?'¡Listo!':'RD$'+fmt(falta))+'</div></div>';
+    h+='<div style="background:var(--surface2);border-radius:8px;padding:8px"><div style="color:var(--muted)">ETA</div><div class="mono" style="font-size:12px;font-weight:700;color:var(--accent)">'+etaStr+(etaDate?'<div style="font-size:10px;color:var(--muted)">'+etaDate+'</div>':'')+'</div></div>';
+    h+='</div>';
+    if(m.aporte>0)h+='<div style="margin-top:10px;padding:6px 10px;background:rgba(59,130,246,.08);border-radius:8px;font-size:11px;color:var(--muted)">💰 Aporte mensual: <strong class="mono">RD$'+fmt(m.aporte)+'</strong></div>';
+    h+='</div>';
+    return h;
+  });
+  metasEl.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px">'+cards.join('')+'</div>';
+}
+
+// ══════════════════════════════════
+// FEATURE D: Recurring Expense Trend
+// ══════════════════════════════════
+function buildExpenseTrend(historial,gastos){
+  var el=document.getElementById('expenseTrend');if(!el)return;
+  if(historial.length<2){
+    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">📈 Se necesitan al menos 2 meses en el historial para ver tendencias.</div>';
+    return;
+  }
+  var tipoNow={};
+  gastos.forEach(function(g){var k=g.tipo||'Otro';tipoNow[k]=(tipoNow[k]||0)+(g.pagado||0);});
+  var totalNow=Object.values(tipoNow).reduce(function(a,b){return a+b;},0);
+  var recent=historial.slice(0,Math.min(3,historial.length));
+  var mom=((historial[0].gasto-historial[1].gasto)/Math.max(1,historial[1].gasto)*100);
+  var mom3=historial.length>=3?((historial[0].gasto-historial[2].gasto)/Math.max(1,historial[2].gasto)*100):null;
+  var avgGasto=recent.reduce(function(a,h){return a+h.gasto;},0)/recent.length;
+  var html='<div class="card-title" style="margin-bottom:16px">📈 Tendencia de Gastos por Mes</div>';
+  html+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">';
+  html+='<div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;font-size:12px"><div style="color:var(--muted)">vs mes anterior</div><div class="mono" style="font-size:16px;font-weight:800;color:'+(mom>0?'var(--red)':'var(--green)')+'">'+(mom>=0?'+':'')+mom.toFixed(1)+'%</div></div>';
+  if(mom3!==null)html+='<div style="background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);border-radius:8px;padding:8px 14px;font-size:12px"><div style="color:var(--muted)">vs hace 3 meses</div><div class="mono" style="font-size:16px;font-weight:800;color:'+(mom3>0?'var(--red)':'var(--green)')+'">'+(mom3>=0?'+':'')+mom3.toFixed(1)+'%</div></div>';
+  html+='<div style="background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.2);border-radius:8px;padding:8px 14px;font-size:12px"><div style="color:var(--muted)">Promedio '+recent.length+' meses</div><div class="mono" style="font-size:16px;font-weight:800;color:var(--green)">RD$'+fmt(Math.round(avgGasto))+'</div></div>';
+  html+='</div><div>';
+  var rows=Object.entries(tipoNow).sort(function(a,b){return b[1]-a[1];});
+  rows.slice(0,8).forEach(function(entry){
+    var tipo=entry[0],val=entry[1];
+    var pct=totalNow>0?Math.round(val/totalNow*100):0;
+    html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px">';
+    html+='<span style="min-width:110px;color:var(--muted)">'+escH(tipo)+'</span>';
+    html+='<div style="flex:1;background:var(--border);border-radius:99px;height:6px;overflow:hidden"><div style="height:6px;border-radius:99px;width:'+pct+'%;background:var(--accent)"></div></div>';
+    html+='<span class="mono" style="font-weight:700;min-width:90px;text-align:right">RD$'+fmt(val)+'</span>';
+    html+='<span style="color:var(--muted);min-width:28px;text-align:right">'+pct+'%</span></div>';
+  });
+  html+='</div><div style="font-size:11px;color:var(--muted);margin-top:10px">💡 Basado en lo pagado este mes por categoría. % = % del gasto total.</div>';
+  el.innerHTML=html;
 }
 
 // ══════════════════════════════════
@@ -2918,13 +2551,13 @@ function buildHistorial(historial,config){
   const ultimo=historial[0];
   if(ultimo){
     document.getElementById('histKpis').innerHTML=[
-      {l:t('hist_lasmonth'),v:`${ultimo.mes} ${ultimo.anio}`,s:t('hist_recent'),c:'var(--accent)',b:'rgba(59,130,246,.1)'},
-      {l:t('hist_income'),v:`RD$${fmt(ultimo.ingresos)}`,s:t('hist_monthlydata'),c:'var(--green)',b:'rgba(34,211,160,.1)'},
-      {l:t('hist_networth'),v:`RD$${ultimo.netWorth<0?'('+fmt(Math.abs(ultimo.netWorth))+')':fmt(ultimo.netWorth)}`,s:t('hist_assetminusliab'),c:ultimo.netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
-      {l:t('hist_months'),v:String(historial.length),s:t('hist_totalrecorded'),c:'var(--purple)',b:'rgba(167,139,250,.1)'},
-    ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:${k.l===t('hist_lasmonth')?'18':'22'}px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
+      {l:'Último mes registrado',v:`${ultimo.mes} ${ultimo.anio}`,s:'Datos más recientes',c:'var(--accent)',b:'rgba(59,130,246,.1)'},
+      {l:'Ingresos',v:`RD$${fmt(ultimo.ingresos)}`,s:'Ingreso del mes',c:'var(--green)',b:'rgba(34,211,160,.1)'},
+      {l:'Net Worth',v:`RD$${ultimo.netWorth<0?'('+fmt(Math.abs(ultimo.netWorth))+')':fmt(ultimo.netWorth)}`,s:'Activos − Pasivos',c:ultimo.netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
+      {l:'Meses registrados',v:String(historial.length),s:'Total en historial',c:'var(--purple)',b:'rgba(167,139,250,.1)'},
+    ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:${k.l==='Último mes registrado'?'18':'22'}px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
   }
-  document.getElementById('histCount').textContent=`${historial.length} ${_lang==='es'?'mes':'month'}${historial.length!==1?(_lang==='es'?'es':'s'):''} ${_lang==='es'?'registrado':'recorded'}${historial.length!==1&&_lang==='es'?'s':''}`;
+  document.getElementById('histCount').textContent=`${historial.length} mes${historial.length!==1?'es':''} registrado${historial.length!==1?'s':''}`;
   const hb=document.getElementById('histBody');hb.innerHTML='';
   historial.forEach(h=>{
     const nwColor=h.netWorth<0?'var(--red)':'var(--green)';
@@ -2932,23 +2565,23 @@ function buildHistorial(historial,config){
     const tasaStr=typeof h.tasaAhorro==='number'?(h.tasaAhorro*100).toFixed(1)+'%':String(h.tasaAhorro||'—');
     hb.innerHTML+=`<tr>
       <td data-label="" style="font-weight:700">${escH(h.mes)}</td>
-      <td data-label="${t('hist_col_year')}" class="mono" style="color:var(--muted);text-align:right">${h.anio}</td>
-      <td data-label="${t('hist_col_income')}" class="num" style="color:var(--green)">RD$${fmt(h.ingresos)}</td>
-      <td data-label="${t('hist_col_expense')}" class="num" style="color:var(--red)">RD$${fmt(h.gasto)}</td>
-      <td data-label="${t('hist_col_savings')}" class="num" style="color:${ahorroColor}">${h.ahorro<0?'(RD$'+fmt(Math.abs(h.ahorro))+')':'RD$'+fmt(h.ahorro)}</td>
-      <td data-label="${t('hist_col_savingsrate')}" class="mono" style="color:${h.ahorro<0?'var(--red)':'var(--green)'};text-align:right">${tasaStr}</td>
-      <td data-label="${t('hist_col_debts')}" class="num" style="color:var(--red)">RD$${fmt(h.deudas)}</td>
-      <td data-label="${t('hist_col_emergency')}" class="num" style="color:var(--yellow)">RD$${fmt(h.emergencia)}</td>
-      <td data-label="${t('hist_col_nw')}" class="num" style="color:${nwColor}">${h.netWorth<0?'(RD$'+fmt(Math.abs(h.netWorth))+')':'RD$'+fmt(h.netWorth)}</td>
-      <td data-label="${t('hist_col_rate')}" class="mono" style="color:var(--muted);text-align:right">${h.tasa||'—'}</td>
+      <td data-label="Año" class="mono" style="color:var(--muted);text-align:right">${h.anio}</td>
+      <td data-label="Ingresos" class="num" style="color:var(--green)">RD$${fmt(h.ingresos)}</td>
+      <td data-label="Gasto" class="num" style="color:var(--red)">RD$${fmt(h.gasto)}</td>
+      <td data-label="Ahorro Neto" class="num" style="color:${ahorroColor}">${h.ahorro<0?'(RD$'+fmt(Math.abs(h.ahorro))+')':'RD$'+fmt(h.ahorro)}</td>
+      <td data-label="Tasa Ahorro" class="mono" style="color:${h.ahorro<0?'var(--red)':'var(--green)'};text-align:right">${tasaStr}</td>
+      <td data-label="Deudas" class="num" style="color:var(--red)">RD$${fmt(h.deudas)}</td>
+      <td data-label="Emergencia" class="num" style="color:var(--yellow)">RD$${fmt(h.emergencia)}</td>
+      <td data-label="Net Worth" class="num" style="color:${nwColor}">${h.netWorth<0?'(RD$'+fmt(Math.abs(h.netWorth))+')':'RD$'+fmt(h.netWorth)}</td>
+      <td data-label="Tasa $" class="mono" style="color:var(--muted);text-align:right">${h.tasa||'—'}</td>
     </tr>`;
   });
   if(!historial.length)return;
   charts.histLine=new Chart(document.getElementById('histLine'),{
     type:'line',
     data:{labels,datasets:[
-      {label:_lang==='es'?'Net Worth (RD$)':'Net Worth (RD$)',data:reversed.map(h=>h.netWorth),borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#22d3a0'},
-      {label:_lang==='es'?'Balance Deudas (RD$)':'Debt Balance (RD$)',data:reversed.map(h=>-h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
+      {label:'Net Worth (RD$)',data:reversed.map(h=>h.netWorth),borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#22d3a0'},
+      {label:'Balance Deudas (RD$)',data:reversed.map(h=>-h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(Math.abs(ctx.raw))}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:11}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:v<=-1e6?`(${(-v/1e6).toFixed(1)}M)`:`${(v/1000).toFixed(0)}k`}}}}
@@ -2956,8 +2589,8 @@ function buildHistorial(historial,config){
   charts.histBar=new Chart(document.getElementById('histBar'),{
     type:'bar',
     data:{labels,datasets:[
-      {label:_lang==='es'?'Ingresos':'Income',data:reversed.map(h=>h.ingresos),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
-      {label:_lang==='es'?'Gastos':'Expenses',data:reversed.map(h=>h.gasto),backgroundColor:'#f4606a66',borderColor:'#f4606a',borderWidth:2,borderRadius:6},
+      {label:'Ingresos',data:reversed.map(h=>h.ingresos),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
+      {label:'Gastos',data:reversed.map(h=>h.gasto),backgroundColor:'#f4606a66',borderColor:'#f4606a',borderWidth:2,borderRadius:6},
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
@@ -2965,8 +2598,8 @@ function buildHistorial(historial,config){
   charts.histDeudaLine=new Chart(document.getElementById('histDeudaLine'),{
     type:'line',
     data:{labels,datasets:[
-      {label:_lang==='es'?'Balance Deudas':'Debt Balance',data:reversed.map(h=>h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
-      {label:_lang==='es'?'Fondos Emergencia':'Emergency Funds',data:reversed.map(h=>h.emergencia),borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f5c842'},
+      {label:'Balance Deudas',data:reversed.map(h=>h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
+      {label:'Fondos Emergencia',data:reversed.map(h=>h.emergencia),borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f5c842'},
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
@@ -2978,13 +2611,14 @@ function buildHistorial(historial,config){
 // ══════════════════════════════════
 let _cierreStep=0;
 const _cierreSteps=[
-  {titleKey:'cierre_step1_title',subKey:'cierre_step1_sub',fields:[{id:'cw-tasa',label:'Tasa Dólar (RD$/USD)',type:'number',key:'tasa',step:'0.01'}]},
-  {titleKey:'cierre_step2_title',subKey:'cierre_step2_sub',fields:[{id:'cw-mes',label:'Mes',type:'text',key:'mes'},{id:'cw-anio',label:'Año',type:'number',key:'anio'}]},
-  {titleKey:'cierre_step3_title',subKey:'cierre_step3_sub',fields:[{id:'cw-ingreso',label:'Ingreso Mensual (USD)',type:'number',key:'ingresoUSD',step:'1'}]},
-  {titleKey:'cierre_step4_title',subKey:'cierre_step4_sub',fields:[{id:'cw-gasto',label:'Gasto Total del Mes (RD$)',type:'number',key:'gasto',step:'any'}]},
-  {titleKey:'cierre_step5_title',subKey:'cierre_step5_sub',fields:[]},
-  {titleKey:'cierre_step6_title',subKey:'cierre_step6_sub',fields:[{id:'cw-ahorros',label:'Ahorros este mes (RD$)',type:'number',key:'ahorros'},{id:'cw-balAh',label:'Balance total de ahorros (RD$) — sugerido: balance anterior + este mes',type:'number',key:'balanceAhorros'}]},
-  {titleKey:'cierre_step7_title',subKey:'cierre_step7_sub',fields:[]},
+  {title:'Paso 1 · Tasa Dólar',sub:'Actualiza la tasa del dólar para este mes',fields:[{id:'cw-tasa',label:'Tasa Dólar (RD$/USD)',type:'number',key:'tasa',step:'0.01'}]},
+  {title:'Paso 2 · Mes y Año',sub:'Confirma el período que estás cerrando',fields:[{id:'cw-mes',label:'Mes',type:'text',key:'mes'},{id:'cw-anio',label:'Año',type:'number',key:'anio'}]},
+  {title:'Paso 3 · Ingreso USD',sub:'¿Cuánto ingresaste este mes en dólares?',fields:[{id:'cw-ingreso',label:'Ingreso Mensual (USD)',type:'number',key:'ingresoUSD',step:'1'}]},
+  // Fix #2: add explicit gasto step so historial doesn't inherit stale value
+  {title:'Paso 4 · Gasto Real del Mes',sub:'¿Cuánto gastaste en total este mes? (RD$)',fields:[{id:'cw-gasto',label:'Gasto Total del Mes (RD$)',type:'number',key:'gasto',step:'any'}]},
+  {title:'Paso 5 · Saldos de Cuentas',sub:'Actualiza los saldos actuales de tus cuentas',fields:[]},
+  {title:'Paso 6 · Ahorros',sub:'Registra tus ahorros del mes',fields:[{id:'cw-ahorros',label:'Ahorros este mes (RD$)',type:'number',key:'ahorros'},{id:'cw-balAh',label:'Balance total de ahorros acumulados (RD$)',type:'number',key:'balanceAhorros'}]},
+  {title:'Paso 7 · Confirmar y cerrar',sub:'Revisa el resumen y agrega al historial',fields:[]},
 ];
 function openCierre(){
   _cierreStep=0;
@@ -2998,39 +2632,38 @@ function renderCierre(){
   const total=_cierreSteps.length;
   document.getElementById('stepDots').innerHTML=_cierreSteps.map((_,i)=>`<div class="step-dot ${i===_cierreStep?'active':i<_cierreStep?'done':''}"></div>`).join('');
   const s=_cierreSteps[_cierreStep];
-  let html=`<div class="cierre-title">${t(s.titleKey)}</div><div class="cierre-sub">${t(s.subKey)}</div>`;
+  let html=`<div class="cierre-title">${s.title}</div><div class="cierre-sub">${s.sub}</div>`;
   if(_cierreStep===4){
-    // Saldos cuentas — use numeric index for IDs (account names may contain spaces/special chars)
-    html+=_editData.forNow.cuentas.map((c,idx)=>{
-      return `<div class="cierre-field"><label class="cierre-label">${escH(c.nombre)}</label><input class="cierre-input" type="number" step="any" placeholder="${fmt(c.saldo)}" id="cw-saldo-${idx}" value="${c.saldo||0}"></div>`;
+    // Saldos cuentas — Fix #15: deduplicate names to avoid duplicate input IDs
+    const seen={};
+    html+=_editData.forNow.cuentas.map(c=>{
+      let label=c.nombre;
+      seen[label]=(seen[label]||0)+1;
+      if(seen[label]>1)label=`${label} (${seen[label]})`;
+      return `<div class="cierre-field"><label class="cierre-label">${escH(label)}</label><input class="cierre-input" type="number" step="any" placeholder="${fmt(c.saldo)}" id="cw-saldo-${escH(c.nombre)}-${seen[label]}" value="${c.saldo||0}"></div>`;
     }).join('');
   } else if(_cierreStep===6){
-    // Resumen
+    // Resumen — Bug 3 fix: use same income derivation as calcDerivedMetrics
     const cf=_editData.emerg.cashflow;
-    const ingreso=_editData.config.ingresoRD||0;
+    const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?(_editData.config.ingresoUSD*_editData.config.tasa):(_editData.config.ingresoRD||cf.ingreso||0);
     const gasto=cf.gasto||0;
     const resta=ingreso-gasto;
     const tbl=`<div style="background:var(--surface2);border-radius:12px;padding:16px">
-      ${[
-        [_lang==='es'?'Mes/Año':'Month/Year',`${_editData.config.mes} ${_editData.config.anio}`],
-        [_lang==='es'?'Tasa Dólar':'USD Rate',`RD$${_editData.config.tasa}`],
-        [_lang==='es'?'Ingreso':'Income',`${fmtUSD(_editData.config.ingresoUSD)} = RD$${fmt(ingreso)}`],
-        [_lang==='es'?'Gasto':'Expenses',`RD$${fmt(gasto)}`],
-        [_lang==='es'?'Superávit':'Surplus',`RD$${fmt(resta)}`],
-        [_lang==='es'?'Ahorros':'Savings',`RD$${fmt(cf.ahorros||0)}`]
-      ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--muted)">${l}</span><span style="font-weight:700;font-family:var(--mono)">${v}</span></div>`).join('')}
+      ${[['Mes/Año',`${_editData.config.mes} ${_editData.config.anio}`],['Tasa Dólar',`RD$${_editData.config.tasa}`],['Ingreso',`${fmtUSD(_editData.config.ingresoUSD)} = RD$${fmt(ingreso)}`],['Gasto',`RD$${fmt(gasto)}`],['Superávit',`RD$${fmt(resta)}`],['Ahorros',`RD$${fmt(cf.ahorros||0)}`]]
+        .map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--muted)">${l}</span><span style="font-weight:700;font-family:var(--mono)">${v}</span></div>`).join('')}
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-top:12px;padding:10px;background:rgba(59,130,246,.06);border-radius:8px">${t('cierre_note')}</div>`;
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;padding:10px;background:rgba(59,130,246,.06);border-radius:8px">Al confirmar se agrega este mes al Historial y se aplican todos los cambios al dashboard.</div>`;
     html+=tbl;
+  } else if(_cierreStep===5){
+    // Bug 2 fix: pre-populate balAh with previousBalance + ahorros as accumulated total suggestion
+    const _prevBal=_editData.emerg?.cashflow?.balanceAhorros||0;
+    const _ahEst=_editData.emerg?.cashflow?.ahorros||0;
+    const _suggestedBal=_prevBal+_ahEst;
+    html+=`<div class="cierre-field"><label class="cierre-label">Ahorros este mes (RD$)</label><input class="cierre-input" type="number" step="any" id="cw-ahorros" value="${_ahEst||''}"></div>`;
+    html+=`<div class="cierre-field"><label class="cierre-label">Balance total de ahorros acumulados (RD$) <span style="font-size:11px;color:var(--green)">← se acumula automáticamente</span></label><input class="cierre-input" type="number" step="any" id="cw-balAh" value="${_suggestedBal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">Balance anterior: RD$${fmt(_prevBal)} + ahorros este mes. Edita si el total real es diferente.</div></div>`;
   } else {
     s.fields.forEach(f=>{
-      let curVal=f.key?(_editData.config[f.key]!==undefined?_editData.config[f.key]:(_editData.emerg?.cashflow[f.key]!==undefined?_editData.emerg.cashflow[f.key]:'')):'';
-      // For balanceAhorros, suggest current balance + this month's savings as a helpful default
-      if(f.id==='cw-balAh'){
-        const ahorrosInput=document.getElementById('cw-ahorros');
-        const ahorrosEste=ahorrosInput?parseFloat(ahorrosInput.value)||0:(_editData.emerg?.cashflow?.ahorros||0);
-        curVal=(_editData.emerg?.cashflow?.balanceAhorros||0)+ahorrosEste;
-      }
+      const curVal=f.key?(_editData.config[f.key]||_editData.emerg?.cashflow[f.key]||''):'';
       html+=`<div class="cierre-field"><label class="cierre-label">${f.label}</label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"></div>`;
     });
   }
@@ -3041,29 +2674,39 @@ function renderCierre(){
 function cierreNav(dir){
   if(dir===1){
     const s=_cierreSteps[_cierreStep];
-    if(_cierreStep===0){_editData.config.tasa=parseFloat(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;}
+    if(_cierreStep===0){_editData.config.tasa=parseFloat(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     else if(_cierreStep===1){_editData.config.mes=document.getElementById('cw-mes')?.value||_editData.config.mes;_editData.config.anio=parseInt(document.getElementById('cw-anio')?.value)||_editData.config.anio;}
     else if(_cierreStep===2){_editData.config.ingresoUSD=parseFloat(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     // Fix #2: step 3 = gasto real
     else if(_cierreStep===3){const g=parseFloat(document.getElementById('cw-gasto')?.value);if(!isNaN(g)&&g>0)_editData.emerg.cashflow.gasto=g;}
     else if(_cierreStep===4){
-      _editData.forNow.cuentas.forEach((c,idx)=>{
-        const el=document.getElementById(`cw-saldo-${idx}`);
+      const seen2={};
+      _editData.forNow.cuentas.forEach(c=>{
+        seen2[c.nombre]=(seen2[c.nombre]||0)+1;
+        const el=document.getElementById(`cw-saldo-${escH(c.nombre)}-${seen2[c.nombre]}`);
         if(el)c.saldo=parseFloat(el.value)||0;
       });
       _editData.forNow.total=_editData.forNow.cuentas.reduce((a,c)=>a+c.saldo,0);
     }
     else if(_cierreStep===5){
-      const ahorrosEste=parseFloat(document.getElementById('cw-ahorros')?.value)||0;
-      _editData.emerg.cashflow.ahorros=ahorrosEste;
-      // Auto-accumulate: add this month's savings to the running balance
-      const newBalAh=parseFloat(document.getElementById('cw-balAh')?.value);
-      _editData.emerg.cashflow.balanceAhorros=isNaN(newBalAh)?(_editData.emerg.cashflow.balanceAhorros||0)+ahorrosEste:newBalAh;
+      const _ah=parseFloat(document.getElementById('cw-ahorros')?.value)||0;
+      const _balRaw=parseFloat(document.getElementById('cw-balAh')?.value);
+      const _balComputed=isNaN(_balRaw)?(_editData.emerg.cashflow.balanceAhorros||0)+_ah:_balRaw;
+      // Bug2: warn if balance suspiciously equals exactly one month's income
+      const _ing=(_editData.config.ingresoUSD&&_editData.config.tasa)?(_editData.config.ingresoUSD*_editData.config.tasa):(_editData.config.ingresoRD||0);
+      if(Math.abs(_balComputed-_ing)<50&&_balComputed>0){
+        if(!confirm('⚠ El balance de ahorros (RD$'+Math.round(_balComputed).toLocaleString()+') es igual a tu ingreso mensual. ¿Es correcto?\n\nSi es el acumulado total, continúa. Si lo pusiste por error, cancela y corrígelo.'))return;
+      }
+      _editData.emerg.cashflow.ahorros=_ah;
+      _editData.emerg.cashflow.balanceAhorros=_balComputed;
     }
     else if(_cierreStep===6){
-      // Confirm: add to historial
+      // Confirm: add to historial — Bug 3 fix: same formula as calcDerivedMetrics
       const cf=_editData.emerg.cashflow;
-      const ingreso=_editData.config.ingresoRD;
+      const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?(_editData.config.ingresoUSD*_editData.config.tasa):(_editData.config.ingresoRD||cf.ingreso||0);
+      // Also sync cf.ingreso and config.ingresoRD so dashboard matches
+      _editData.config.ingresoRD=ingreso;
+      cf.ingreso=ingreso;
       const gasto=cf.gasto||_editData.gastos.reduce((a,g)=>a+g.pagado,0);
       const totalDeudas=_editData.gastos.reduce((a,g)=>a+g.balance,0);
       const efTotal=_editData.emerg.fondos.reduce((a,f)=>a+f.balance,0);
@@ -3076,10 +2719,10 @@ function cierreNav(dir){
       _pendingSave=false;
       closeCierre();
       buildDashboard({..._editData});
-      showTab('historial',document.querySelector(".tab-btn[onclick*=\"'historial'\"]"));
+      showTab('historial',document.querySelectorAll('.tab-btn')[8]);
       generateExcel();
       autoSave();
-      showToast(t('cierre_success'),'var(--green)');
+      showToast('🗓 Mes cerrado · Excel descargado con historial y pagos reseteados ✓','var(--green)');
       return;
     }
     if(_cierreStep<_cierreSteps.length-1){_cierreStep++;renderCierre();}
@@ -3190,7 +2833,7 @@ function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
 function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';}
-function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function fmtFecha(f,opts){
   // Normaliza cualquier formato de fecha (Date, string ISO, string larga) a fecha local en español
   if(!f)return'—';
@@ -3274,9 +2917,26 @@ function buildEditForms(){
       <td><button class="row-del-btn" onclick="deleteHistorialRow(${i})">✕</button></td>
     </tr>`;
   });
+  // METAS edit render
+  if(!_editData.metas)_editData.metas=[];
+  var mb=document.getElementById('metasEditBody');
+  if(mb){mb.innerHTML='';
+    _editData.metas.forEach(function(m,i){
+      mb.innerHTML+='<tr>'
+        +'<td><input class="tbl-input" value="'+escH(m.nombre)+'" oninput="markChanged(this);_editData.metas['+i+'].nombre=this.value" style="min-width:140px"></td>'
+        +'<td><input class="tbl-input" type="number" step="any" value="'+(m.balance||0)+'" oninput="markChanged(this);_editData.metas['+i+'].balance=parseFloat(this.value)||0"></td>'
+        +'<td><input class="tbl-input" type="number" step="any" value="'+(m.meta||0)+'" oninput="markChanged(this);_editData.metas['+i+'].meta=parseFloat(this.value)||0"></td>'
+        +'<td><input class="tbl-input" type="number" step="any" value="'+(m.aporte||0)+'" oninput="markChanged(this);_editData.metas['+i+'].aporte=parseFloat(this.value)||0"></td>'
+        +'<td><input class="tbl-input" value="'+escH(m.notas||'')+'" oninput="markChanged(this);_editData.metas['+i+'].notas=this.value" style="min-width:120px"></td>'
+        +'<td><button class="row-del-btn" onclick="deleteMetaRow('+i+')">✕</button></td>'
+        +'</tr>';
+    });
+  }
 }
 
 function deleteGastoRow(i){_editData.gastos.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteMetaRow(i){if(!_editData.metas)_editData.metas=[];_editData.metas.splice(i,1);markChanged(document.body);buildEditForms();}
+function addMetaRow(){if(!_editData.metas)_editData.metas=[];_editData.metas.push({nombre:'Nueva Meta',balance:0,meta:0,aporte:0,notas:''});markChanged(document.body);buildEditForms();}
 function deleteFornowRow(i){_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
@@ -3294,7 +2954,7 @@ function readConfigFromForm(){
   _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
   _editData.forNow.fecha=document.getElementById('fornow-fecha')?.value||null;
 }
-function applyChanges(){readConfigFromForm();buildDashboard({..._editData,filename:_editData.filename});autoSave();closeEditModal();showToast(t('toast_changes'));}
+function applyChanges(){readConfigFromForm();buildDashboard({..._editData,filename:_editData.filename});autoSave();closeEditModal();showToast('✓ Cambios guardados y aplicados');}
 function applyAndDownload(){readConfigFromForm();buildDashboard({..._editData,filename:_editData.filename});autoSave();generateExcel();closeEditModal();}
 
 // ══════════════════════════════════
