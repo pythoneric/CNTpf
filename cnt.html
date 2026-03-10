@@ -1929,6 +1929,9 @@ function processWorkbook(wb,filename){
     const emerg=parseEmergency(sheetArr(wb,'emerg'));
     const historial=parseHistorial(sheetArr(wb,'historial'));
     _editData={config,gastos,forNow,emerg,historial,filename};
+    // Bug 1 fix: enforce single source of truth after Excel load
+    _editData.config.ingresoRD = config.ingresoUSD * config.tasa;
+    _editData.emerg.cashflow.ingreso = config.ingresoUSD * config.tasa;
     buildDashboard({config,gastos,forNow,emerg,historial,filename});
     applyI18n();
     document.getElementById('loaderScreen').style.display='none';
@@ -2639,7 +2642,8 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const totalBalance=gastos.reduce((a,g)=>a+g.balance,0);
   // Fix: when originalRD=0 but balance>0, use balance as fallback so "Pagado" and "Avance" are not negative
   const totalOriginal=gastos.reduce((a,g)=>a+Math.max(g.originalRD||0, g.balance||0),0);
-  const ingreso=cf.ingreso||config.ingresoRD;
+  // Bug 1 fix: single source of truth — always ingresoUSD × tasa; stale cf.ingreso only as absolute last resort
+  const ingreso=config.ingresoUSD>0&&config.tasa>0?(config.ingresoUSD*config.tasa):(config.ingresoRD||cf.ingreso||0);
   const gasto=cf.gasto||totalPagado;
   const resta=cf.resta!==undefined?cf.resta:ingreso-gasto;
   const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
@@ -3005,9 +3009,9 @@ function renderCierre(){
       return `<div class="cierre-field"><label class="cierre-label">${escH(c.nombre)}</label><input class="cierre-input" type="number" step="any" placeholder="${fmt(c.saldo)}" id="cw-saldo-${idx}" value="${c.saldo||0}"></div>`;
     }).join('');
   } else if(_cierreStep===6){
-    // Resumen
+    // Bug 3 fix: use same income formula as calcDerivedMetrics — never stale config.ingresoRD
     const cf=_editData.emerg.cashflow;
-    const ingreso=_editData.config.ingresoRD||0;
+    const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?(_editData.config.ingresoUSD*_editData.config.tasa):(_editData.config.ingresoRD||cf.ingreso||0);
     const gasto=cf.gasto||0;
     const resta=ingreso-gasto;
     const tbl=`<div style="background:var(--surface2);border-radius:12px;padding:16px">
@@ -3025,11 +3029,14 @@ function renderCierre(){
   } else {
     s.fields.forEach(f=>{
       let curVal=f.key?(_editData.config[f.key]!==undefined?_editData.config[f.key]:(_editData.emerg?.cashflow[f.key]!==undefined?_editData.emerg.cashflow[f.key]:'')):'';
-      // For balanceAhorros, suggest current balance + this month's savings as a helpful default
+      // Bug 2 fix: for balanceAhorros, pre-populate with previousBalance + this month's savings, show breakdown hint
       if(f.id==='cw-balAh'){
+        const prevBal=_editData.emerg?.cashflow?.balanceAhorros||0;
         const ahorrosInput=document.getElementById('cw-ahorros');
         const ahorrosEste=ahorrosInput?parseFloat(ahorrosInput.value)||0:(_editData.emerg?.cashflow?.ahorros||0);
-        curVal=(_editData.emerg?.cashflow?.balanceAhorros||0)+ahorrosEste;
+        curVal=prevBal+ahorrosEste;
+        html+=`<div class="cierre-field"><label class="cierre-label">${f.label} <span style="font-size:11px;color:var(--green)">← se acumula automáticamente</span></label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">Balance anterior: RD$${fmt(prevBal)} + ahorros este mes. Edita si el total real es diferente.</div></div>`;
+        return;
       }
       html+=`<div class="cierre-field"><label class="cierre-label">${f.label}</label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"></div>`;
     });
@@ -3041,7 +3048,7 @@ function renderCierre(){
 function cierreNav(dir){
   if(dir===1){
     const s=_cierreSteps[_cierreStep];
-    if(_cierreStep===0){_editData.config.tasa=parseFloat(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;}
+    if(_cierreStep===0){_editData.config.tasa=parseFloat(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     else if(_cierreStep===1){_editData.config.mes=document.getElementById('cw-mes')?.value||_editData.config.mes;_editData.config.anio=parseInt(document.getElementById('cw-anio')?.value)||_editData.config.anio;}
     else if(_cierreStep===2){_editData.config.ingresoUSD=parseFloat(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     // Fix #2: step 3 = gasto real
@@ -3062,8 +3069,11 @@ function cierreNav(dir){
     }
     else if(_cierreStep===6){
       // Confirm: add to historial
+      // Bug 3 fix: same income formula as calcDerivedMetrics, and sync both income fields before saving
       const cf=_editData.emerg.cashflow;
-      const ingreso=_editData.config.ingresoRD;
+      const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?(_editData.config.ingresoUSD*_editData.config.tasa):(_editData.config.ingresoRD||cf.ingreso||0);
+      _editData.config.ingresoRD=ingreso;
+      cf.ingreso=ingreso;
       const gasto=cf.gasto||_editData.gastos.reduce((a,g)=>a+g.pagado,0);
       const totalDeudas=_editData.gastos.reduce((a,g)=>a+g.balance,0);
       const efTotal=_editData.emerg.fondos.reduce((a,f)=>a+f.balance,0);
