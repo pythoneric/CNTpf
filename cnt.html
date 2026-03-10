@@ -556,15 +556,6 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
     <div id="errorMsg"></div>
     <div id="loadingSpinner"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)" data-i18n="loader_processing">Procesando…</div></div>
-
-    <!-- Cache reset -->
-    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);text-align:center">
-      <button onclick="hardResetCache()" title="Limpia el Service Worker y caché, luego recarga desde el servidor"
-        style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font);transition:all .2s"
-        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'"
-        data-i18n="loader_clearcache">🔄 Limpiar caché · Forzar actualización</button>
-    </div>
   </div>
 
   <div style="display:flex;align-items:center;gap:16px;justify-content:center;flex-wrap:wrap">
