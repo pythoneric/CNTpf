@@ -612,8 +612,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <button class="tab-btn" onclick="showTab('gastos',this)" data-i18n="tab_gastos">💸 Gastos</button>
     <button class="tab-btn" onclick="showTab('checklist',this)" data-i18n="tab_checklist">✅ Pagos del Mes</button>
     <button class="tab-btn" onclick="showTab('deudas',this)" data-i18n="tab_deudas">🏦 Deudas</button>
+    <button class="tab-btn" onclick="showTab('emergency',this)" data-i18n="tab_emergency">🛡 Emergencias</button>
     <button class="tab-btn" onclick="showTab('proyector',this)" data-i18n="tab_proyector">🎯 Proyector</button>
-    <button class="tab-btn" onclick="showTab('emergency',this)" data-i18n="tab_emergency">🛡 Emergencia</button>
     <button class="tab-btn" onclick="showTab('fornow',this)" data-i18n="tab_fornow">💳 Fondos</button>
     <button class="tab-btn" onclick="showTab('historial',this)" data-i18n="tab_historial">📅 Historial</button>
     <button class="tab-btn" onclick="showTab('metas',this)" data-i18n="tab_metas">🏆 Metas</button>
@@ -627,10 +627,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <button class="mnav-btn" onclick="mobileTab('checklist',this)" id="mnavChecklist"><span class="mnav-icon">✅</span><span data-i18n="mnav_checklist">Pagos</span></button>
     <button class="mnav-btn" onclick="mobileTab('deudas',this)" id="mnavDeudas"><span class="mnav-icon">🏦</span><span data-i18n="mnav_deudas">Deudas</span></button>
     <button class="mnav-btn" onclick="mobileTab('gastos',this)" id="mnavGastos"><span class="mnav-icon">💸</span><span data-i18n="mnav_gastos">Gastos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('emergency',this)" id="mnavEmergencia"><span class="mnav-icon">🛡</span><span data-i18n="mnav_emergency">Emergencia</span></button>
+    <button class="mnav-btn" onclick="mobileTab('proyector',this)" id="mnavProyector"><span class="mnav-icon">🎯</span><span data-i18n="mnav_proyector">Proyector</span></button>
     <button class="mnav-btn" onclick="mobileTab('fornow',this)" id="mnavFondos"><span class="mnav-icon">💳</span><span data-i18n="mnav_fornow">Fondos</span></button>
     <button class="mnav-btn" onclick="mobileTab('historial',this)" id="mnavHistorial"><span class="mnav-icon">📅</span><span data-i18n="mnav_historial">Historial</span></button>
-    <button class="mnav-btn" onclick="mobileTab('proyector',this)" id="mnavProyector"><span class="mnav-icon">🎯</span><span data-i18n="mnav_proyector">Proyector</span></button>
+    <button class="mnav-btn" onclick="mobileTab('emergency',this)" id="mnavEmergencia"><span class="mnav-icon">🛡</span><span data-i18n="mnav_emergency">Emergencias</span></button>
   </nav>
 
   <!-- RESUMEN -->
@@ -956,10 +956,10 @@ const LANG = {
     // Desktop tabs
     tab_resumen:'📊 Resumen', tab_alertas:'🔔 Alertas', tab_gastos:'💸 Gastos',
     tab_checklist:'✅ Pagos del Mes', tab_deudas:'🏦 Deudas', tab_proyector:'🎯 Proyector',
-    tab_emergency:'🛡 Emergencia', tab_fornow:'💳 Fondos', tab_historial:'📅 Historial',
+    tab_emergency:'🛡 Emergencias', tab_fornow:'💳 Fondos', tab_historial:'📅 Historial',
     // Mobile nav
     mnav_resumen:'Resumen', mnav_alertas:'Alertas', mnav_checklist:'Pagos',
-    mnav_deudas:'Deudas', mnav_gastos:'Gastos', mnav_emergency:'Emergencia',
+    mnav_deudas:'Deudas', mnav_gastos:'Gastos', mnav_emergency:'Emergencias',
     mnav_fornow:'Fondos', mnav_historial:'Historial', mnav_proyector:'Proyector',
     // KPI labels
     kpi_income:'Ingresos', kpi_expenses:'Gastos Totales', kpi_surplus:'Superávit del Mes', kpi_networth:'Net Worth',
@@ -1164,10 +1164,10 @@ const LANG = {
     // Desktop tabs
     tab_resumen:'📊 Summary', tab_alertas:'🔔 Alerts', tab_gastos:'💸 Expenses',
     tab_checklist:'✅ Monthly Payments', tab_deudas:'🏦 Debts', tab_proyector:'🎯 Projector',
-    tab_emergency:'🛡 Emergency', tab_fornow:'💳 Funds', tab_historial:'📅 History',
+    tab_emergency:'🛡 Emergencies', tab_fornow:'💳 Funds', tab_historial:'📅 History',
     // Mobile nav
     mnav_resumen:'Summary', mnav_alertas:'Alerts', mnav_checklist:'Payments',
-    mnav_deudas:'Debts', mnav_gastos:'Expenses', mnav_emergency:'Emergency',
+    mnav_deudas:'Debts', mnav_gastos:'Expenses', mnav_emergency:'Emergencies',
     mnav_fornow:'Funds', mnav_historial:'History', mnav_proyector:'Projector',
     // KPI labels
     kpi_income:'Income', kpi_expenses:'Total Expenses', kpi_surplus:'Monthly Surplus', kpi_networth:'Net Worth',
@@ -1591,7 +1591,7 @@ window.addEventListener('load',()=>{
 // SWIPE GESTURES — mobile tab nav
 // ══════════════════════════════════
 (()=>{
-  const TAB_ORDER=['resumen','alertas','checklist','gastos','deudas','proyector','emergency','fornow','historial','metas','analisis'];
+  const TAB_ORDER=['resumen','alertas','checklist','gastos','deudas','emergency','proyector','fornow','historial','metas','analisis'];
   let _tx=0,_ty=0;
   document.addEventListener('touchstart',e=>{
     _tx=e.touches[0].clientX;
