@@ -1087,6 +1087,8 @@ const LANG = {
     cierre_step5_title:'Paso 5 · Saldos de Cuentas', cierre_step5_sub:'Actualiza los saldos actuales de tus cuentas',
     cierre_step6_title:'Paso 6 · Ahorros', cierre_step6_sub:'Registra tus ahorros del mes',
     cierre_step7_title:'Paso 7 · Confirmar y cerrar', cierre_step7_sub:'Revisa el resumen y agrega al historial',
+    cierre_step8_title:'Paso 8 · Próximo Mes', cierre_step8_sub:'¿Cuál es el nombre del próximo mes en el dashboard?',
+    cierre_step8_mes:'Próximo Mes', cierre_step8_anio:'Año',
     cierre_prev:'← Anterior', cierre_next:'Siguiente →', cierre_confirm:'✓ Confirmar y cerrar mes',
     cierre_note:'Al confirmar se agrega este mes al Historial y se aplican todos los cambios al dashboard.',
     cierre_success:'🗓 Mes cerrado · Excel descargado con historial y pagos reseteados ✓',
@@ -1295,6 +1297,8 @@ const LANG = {
     cierre_step5_title:'Step 5 · Account Balances', cierre_step5_sub:'Update your current account balances',
     cierre_step6_title:'Step 6 · Savings', cierre_step6_sub:'Record your savings for the month',
     cierre_step7_title:'Step 7 · Confirm & Close', cierre_step7_sub:'Review the summary and add to history',
+    cierre_step8_title:'Step 8 · Next Month', cierre_step8_sub:'What will the next month be called in the dashboard?',
+    cierre_step8_mes:'Next Month', cierre_step8_anio:'Year',
     cierre_prev:'← Previous', cierre_next:'Next →', cierre_confirm:'✓ Confirm and close month',
     cierre_note:'Confirming adds this month to History and applies all changes to the dashboard.',
     cierre_success:'🗓 Month closed · Excel downloaded with history and payments reset ✓',
@@ -3446,6 +3450,7 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
 // CIERRE DE MES WIZARD
 // ══════════════════════════════════
 let _cierreStep=0;
+let _cierreNextMes='',_cierreNextAnio=0;
 const _cierreSteps=[
   {titleKey:'cierre_step1_title',subKey:'cierre_step1_sub',fields:[{id:'cw-tasa',label:'Tasa Dólar (RD$/USD)',type:'number',key:'tasa',step:'0.01'}]},
   {titleKey:'cierre_step2_title',subKey:'cierre_step2_sub',fields:[{id:'cw-mes',label:'Mes',type:'text',key:'mes'},{id:'cw-anio',label:'Año',type:'number',key:'anio'}]},
@@ -3454,9 +3459,11 @@ const _cierreSteps=[
   {titleKey:'cierre_step5_title',subKey:'cierre_step5_sub',fields:[]},
   {titleKey:'cierre_step6_title',subKey:'cierre_step6_sub',fields:[{id:'cw-ahorros',label:'Ahorros este mes (RD$)',type:'number',key:'ahorros'},{id:'cw-balAh',label:'Balance total de ahorros (RD$) — sugerido: balance anterior + este mes',type:'number',key:'balanceAhorros'}]},
   {titleKey:'cierre_step7_title',subKey:'cierre_step7_sub',fields:[]},
+  {titleKey:'cierre_step8_title',subKey:'cierre_step8_sub',fields:[]},
 ];
 function openCierre(){
   _cierreStep=0;
+  _cierreNextMes='';_cierreNextAnio=0;
   document.getElementById('cierreModal').classList.add('open');
   document.body.style.overflow='hidden';
   renderCierre();
@@ -3491,6 +3498,17 @@ function renderCierre(){
     </div>
     <div style="font-size:12px;color:var(--muted);margin-top:12px;padding:10px;background:rgba(59,130,246,.06);border-radius:8px">${t('cierre_note')}</div>`;
     html+=tbl;
+  } else if(_cierreStep===7){
+    // Next month step — auto-calculate default next month from the one being closed
+    const months=LANG[_lang].months;
+    const curIdx=months.findIndex(m=>m.toLowerCase()===(_editData.config.mes||'').toLowerCase());
+    const nextIdx=curIdx>=0?(curIdx+1)%12:0;
+    const curYear=_editData.config.anio||new Date().getFullYear();
+    const nextAnio=nextIdx===0?curYear+1:curYear;
+    const savedMes=_cierreNextMes||months[nextIdx];
+    const savedAnio=_cierreNextAnio||nextAnio;
+    html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_mes')}</label><input class="cierre-input" type="text" id="cw-nextmes" value="${savedMes}"></div>`;
+    html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_anio')}</label><input class="cierre-input" type="number" id="cw-nextanio" value="${savedAnio}"></div>`;
   } else {
     s.fields.forEach(f=>{
       let curVal=f.key?(_editData.config[f.key]!==undefined?_editData.config[f.key]:(_editData.emerg?.cashflow[f.key]!==undefined?_editData.emerg.cashflow[f.key]:'')):'';
@@ -3532,8 +3550,8 @@ function cierreNav(dir){
       const newBalAh=parseFloat(document.getElementById('cw-balAh')?.value);
       _editData.emerg.cashflow.balanceAhorros=isNaN(newBalAh)?(_editData.emerg.cashflow.balanceAhorros||0)+ahorrosEste:newBalAh;
     }
-    else if(_cierreStep===6){
-      // Confirm: add to historial
+    else if(_cierreStep===7){
+      // Confirm: add to historial, then update config to next month
       // Bug 3 fix: same income formula as calcDerivedMetrics, and sync both income fields before saving
       const cf=_editData.emerg.cashflow;
       const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?(_editData.config.ingresoUSD*_editData.config.tasa):(_editData.config.ingresoRD||cf.ingreso||0);
@@ -3546,6 +3564,11 @@ function cierreNav(dir){
       const ahorro=ingreso-gasto;
       const tasaAhorro=ingreso>0?ahorro/ingreso:0;
       _editData.historial.unshift({mes:_editData.config.mes,anio:_editData.config.anio,ingresos:ingreso,gasto,ahorro,tasaAhorro,deudas:totalDeudas,emergencia:efTotal,netWorth,tasa:_editData.config.tasa,notas:''});
+      // Update config to next month
+      const nextMes=document.getElementById('cw-nextmes')?.value.trim();
+      const nextAnio=parseInt(document.getElementById('cw-nextanio')?.value);
+      if(nextMes)_editData.config.mes=nextMes;
+      if(!isNaN(nextAnio))_editData.config.anio=nextAnio;
       // Reset pagadoMes for new month
       _editData.gastos.forEach(g=>g.pagadoMes=false);
       _pendingSave=false;
@@ -3559,6 +3582,7 @@ function cierreNav(dir){
     }
     if(_cierreStep<_cierreSteps.length-1){_cierreStep++;renderCierre();}
   } else {
+    if(_cierreStep===7){_cierreNextMes=document.getElementById('cw-nextmes')?.value.trim()||'';_cierreNextAnio=parseInt(document.getElementById('cw-nextanio')?.value)||0;}
     if(_cierreStep>0){_cierreStep--;renderCierre();}
   }
 }
