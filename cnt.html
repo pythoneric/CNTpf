@@ -982,7 +982,7 @@ const LANG = {
     deuda_progress:'Avance de Pago', deuda_annualrate:'% anual', deuda_onlybalance:'Solo deudas con balance',
     // Deuda cards
     dcard_monthly:'Cuota mensual', dcard_intmonthly:'Interés mensual', dcard_payday:'Día de pago',
-    dcard_rate:'Tasa interés', dcard_expires:'Vence', dcard_oftotal:'% del total de deudas',
+    dcard_rate:'Tasa interés', dcard_expires:'Vence', dcard_oftotal:'% del total de deudas', dcard_liquidar:'✓ Liquidar deuda', dcard_liquidar_confirm:'¿Liquidar esta deuda?\n\nBalance actual:', dcard_liquidar_confirm2:'Se pondrá el balance en 0 y se marcará como pagado este mes.', dcard_liquidar_toast:'✅ Deuda liquidada',
     // Deuda summary
     deuda_summary_title:'Resumen de Deudas Totales', deuda_balancetotal:'Balance Total',
     deuda_original:'Monto Original', deuda_paidtodate:'Pagado hasta hoy', deuda_advance:'Avance',
@@ -1192,7 +1192,7 @@ const LANG = {
     deuda_progress:'Payment Progress', deuda_annualrate:'% annual', deuda_onlybalance:'Debts with balance only',
     // Deuda cards
     dcard_monthly:'Monthly payment', dcard_intmonthly:'Monthly interest', dcard_payday:'Payment day',
-    dcard_rate:'Interest rate', dcard_expires:'Expires', dcard_oftotal:'% of total debt',
+    dcard_rate:'Interest rate', dcard_expires:'Expires', dcard_oftotal:'% of total debt', dcard_liquidar:'✓ Pay off debt', dcard_liquidar_confirm:'Pay off this debt?\n\nCurrent balance:', dcard_liquidar_confirm2:'Balance will be set to 0 and marked as paid this month.', dcard_liquidar_toast:'✅ Debt paid off',
     // Deuda summary
     deuda_summary_title:'Total Debt Summary', deuda_balancetotal:'Total Balance',
     deuda_original:'Original Amount', deuda_paidtodate:'Paid to date', deuda_advance:'Progress',
@@ -2882,6 +2882,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       <div class="debt-meta">
         ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${_lang==='es'?'Día':'Day'} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
+      <div style="margin-top:10px;text-align:right"><button class="btn btn-sm btn-success" onclick="liquidarDeuda(${gastos.indexOf(d)})">${t('dcard_liquidar')}</button></div>
     </div>`;
   });
 
@@ -3776,6 +3777,7 @@ function buildEditForms(){
 }
 
 function deleteGastoRow(i){_editData.gastos.splice(i,1);markChanged(document.body);buildEditForms();}
+function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;g.balance=0;g.adeudado=0;g.dia=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
 function deleteFornowRow(i){_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}

@@ -15,11 +15,11 @@ Puedes empezar **sin ningún archivo Excel** — un asistente de configuración 
 ## Archivos incluidos
 
 ```
-cnt-dashboard-v6.html   — El dashboard completo (toda la app en un archivo)
-manifest.json           — Configuración PWA (nombre, ícono, instalación)
-sw.js                   — Service worker (caché offline)
-icon-192.png            — Ícono de la app (requerido por Chrome para instalar)
-icon-512.png            — Ícono de la app en alta resolución
+cnt.html            — El dashboard completo (toda la app en un archivo)
+manifest.json       — Configuración PWA (nombre, ícono, instalación)
+sw.js               — Service worker (caché offline)
+icon-192.png        — Ícono de la app (requerido por Chrome para instalar)
+icon-512.png        — Ícono de la app en alta resolución
 ```
 
 Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione correctamente.
@@ -58,7 +58,7 @@ Si ya usaste el dashboard antes en este navegador, aparece esta opción automát
 - **Alertas** — Pagos próximos a vencer y pagos atrasados con días de retraso
 - **Gastos & Deudas** — Tabla completa con estado de pago por ítem
 - **Checklist de pagos** — Marca cada compromiso como pagado con persistencia automática
-- **Deudas** — Cards individuales con balance, tasa, proyección de interés
+- **Deudas** — Cards individuales con balance, tasa, proyección de interés y botón "Liquidar deuda" para saldar en un clic
 - **Proyector de deudas** — Estrategias Avalanche vs Snowball con timeline y alertas de vencimiento
 - **Fondos de emergencia** — Progreso vs meta por fondo
 - **Disponibilidad (ForNow)** — Saldos de cuentas vs comprometido del mes
@@ -69,10 +69,21 @@ Si ya usaste el dashboard antes en este navegador, aparece esta opción automát
 - Descarga Excel actualizado con todos los cambios en cualquier momento
 
 ### Cierre de Mes
-- Wizard de 7 pasos que guía el proceso mensual completo
+- Wizard de 8 pasos que guía el proceso mensual completo
 - Registra automáticamente el mes en el historial
 - Resetea checklist de pagos para el mes nuevo
 - Descarga Excel actualizado con historial
+
+| Paso | Qué haces |
+|------|-----------|
+| 1 | Actualiza la tasa del dólar |
+| 2 | Confirma el mes y año que estás cerrando |
+| 3 | Registra tu ingreso mensual en USD |
+| 4 | Ingresa el gasto real total del mes |
+| 5 | Actualiza los saldos de tus cuentas |
+| 6 | Registra ahorros del mes y balance acumulado |
+| 7 | Revisa el resumen y confirma el cierre |
+| 8 | Define el nombre del próximo mes en el dashboard |
 
 ### PWA / Offline
 - Se instala como app nativa en Android, iOS y PC
@@ -130,9 +141,9 @@ El archivo Excel tiene 5 hojas. Si empezaste desde cero, el dashboard lo genera 
 ### Opción 1 — GitHub Pages (recomendado)
 
 1. Crea un repositorio en [github.com](https://github.com)
-2. Sube los 5 archivos (`cnt-dashboard-v6.html`, `manifest.json`, `sw.js`, `icon-192.png`, `icon-512.png`)
+2. Sube los 5 archivos (`cnt.html`, `manifest.json`, `sw.js`, `icon-192.png`, `icon-512.png`)
 3. Ve a **Settings → Pages → Branch: main → Save**
-4. Tu URL: `https://tuusuario.github.io/nombre-repo/cnt-dashboard-v6.html`
+4. Tu URL: `https://tuusuario.github.io/nombre-repo/cnt.html`
 
 ### Opción 2 — Netlify Drop
 
@@ -147,7 +158,7 @@ El archivo Excel tiene 5 hojas. Si empezaste desde cero, el dashboard lo genera 
 python3 -m http.server 8080
 
 # Accede desde cualquier dispositivo en la misma red:
-# http://[IP-de-tu-PC]:8080/cnt-dashboard-v6.html
+# http://[IP-de-tu-PC]:8080/cnt.html
 ```
 
 > ⚠️ El service worker no funciona con `file://`. Usa siempre un servidor HTTP.
@@ -195,8 +206,12 @@ Durante el mes:
 
 Al cierre del mes:
   └── Header → "🗓 Cerrar Mes"
-  └── Wizard 7 pasos: tasa · mes · ingreso · gasto real · saldos · ahorros · confirmar
+  └── Wizard 8 pasos: tasa · mes · ingreso · gasto real · saldos · ahorros · confirmar · próximo mes
   └── Historial actualizado + Excel descargado + checklist reseteado
+
+Al pagar una deuda en su totalidad:
+  └── Tab Deudas → Card de la deuda → "✓ Liquidar deuda"
+  └── Confirmar → balance = 0, marcada como pagada, guardado automático
 
 Al inicio del mes nuevo:
   └── Si los gastos/deudas cambiaron → Editar → ajustar → aplicar
@@ -247,4 +262,3 @@ El service worker usa Network-first para el HTML — siempre intenta descargar l
 | Chrome / Edge | ✅ Completo | ✅ | ✅ |
 | Safari iOS 16.4+ | ✅ Completo | ✅ | ✅ |
 | Firefox | ⚠️ Sin instalación | ✅ | ✅ |
-
