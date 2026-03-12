@@ -3777,7 +3777,7 @@ function buildEditForms(){
 }
 
 function deleteGastoRow(i){_editData.gastos.splice(i,1);markChanged(document.body);buildEditForms();}
-function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;g.balance=0;g.adeudado=0;g.dia=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
+function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.gastos.splice(idx,1);buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
 function deleteFornowRow(i){_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
