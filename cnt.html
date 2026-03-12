@@ -2745,7 +2745,7 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const totalAdeudado=gastos.reduce((a,g)=>a+g.adeudado,0);
   const totalBalance=gastos.reduce((a,g)=>a+g.balance,0);
   // Fix: when originalRD=0 but balance>0, use balance as fallback so "Pagado" and "Avance" are not negative
-  const totalOriginal=gastos.reduce((a,g)=>a+Math.max(g.originalRD||0, g.balance||0),0);
+  const totalOriginal=gastos.reduce((a,g)=>a+Math.max(g.originalRD||0, g.balance||0),0)+(config.liquidadoAcum||0);
   // Bug 1 fix: single source of truth — always ingresoUSD × tasa; stale cf.ingreso only as absolute last resort
   const ingreso=config.ingresoUSD>0&&config.tasa>0?(config.ingresoUSD*config.tasa):(config.ingresoRD||cf.ingreso||0);
   const gasto=cf.gasto||totalPagado;
@@ -2758,7 +2758,7 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const allDeudas=gastos.filter(g=>g.balance>0);
   const masCaraDeuda=[...allDeudas].sort((a,b)=>b.tasa-a.tasa)[0];
   const cuotaDeudas=allDeudas.reduce((a,d)=>a+d.adeudado,0);
-  const pagadoReal=gastos.reduce((a,g)=>a+Math.max(0,(Math.max(g.originalRD||0,g.balance||0))-(g.balance||0)),0);
+  const pagadoReal=gastos.reduce((a,g)=>a+Math.max(0,(Math.max(g.originalRD||0,g.balance||0))-(g.balance||0)),0)+(config.liquidadoAcum||0);
   const deudaPct=totalOriginal>0?Math.round((pagadoReal/totalOriginal)*100):0;
   const interesMensual=allDeudas.filter(g=>g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
   return{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual};
@@ -3777,7 +3777,7 @@ function buildEditForms(){
 }
 
 function deleteGastoRow(i){_editData.gastos.splice(i,1);markChanged(document.body);buildEditForms();}
-function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.gastos.splice(idx,1);buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
+function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);_editData.gastos.splice(idx,1);buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
 function deleteFornowRow(i){_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
