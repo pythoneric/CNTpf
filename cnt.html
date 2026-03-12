@@ -727,7 +727,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <!-- EMERGENCY -->
   <div id="tab-emergency" class="panel">
     <div class="grid g3" style="margin-bottom:16px" id="efKpis"></div>
-    <div class="card" style="margin-bottom:16px"><div class="card-title">Fondos de Emergencia · Progreso</div><div id="efFunds"></div></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_progress">Fondos de Emergencia · Progreso</div><div id="efFunds"></div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-title">Cashflow Mensual Detallado</div><div id="cfRows"></div></div>
     <div class="grid g12">
       <div class="card"><div class="card-title">Progreso Total vs Meta</div><div class="chart-wrap"><canvas id="efChart"></canvas></div></div>
@@ -745,12 +745,12 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div id="tab-historial" class="panel">
     <div class="grid g4" style="margin-bottom:16px" id="histKpis"></div>
     <div class="card" style="margin-bottom:16px">
-      <div class="card-title">Evolución Net Worth & Deudas</div>
+      <div class="card-title" data-i18n="panel_hist_chart">Evolución Net Worth & Deudas</div>
       <div class="chart-wrap"><canvas id="histLine"></canvas></div>
     </div>
     <div class="grid g2" style="margin-bottom:16px">
-      <div class="card"><div class="card-title">Ingresos vs Gastos por Mes</div><div class="chart-wrap"><canvas id="histBar"></canvas></div></div>
-      <div class="card"><div class="card-title">Balance de Deudas por Mes</div><div class="chart-wrap"><canvas id="histDeudaLine"></canvas></div></div>
+      <div class="card"><div class="card-title" data-i18n="hist_incvsexp">Ingresos vs Gastos por Mes</div><div class="chart-wrap"><canvas id="histBar"></canvas></div></div>
+      <div class="card"><div class="card-title" data-i18n="hist_debttrend">Balance de Deudas por Mes</div><div class="chart-wrap"><canvas id="histDeudaLine"></canvas></div></div>
     </div>
     <!-- RECURRING EXPENSE TREND (Feature 4) -->
     <div class="card" style="margin-bottom:16px" id="expenseTrendCard">
@@ -759,7 +759,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-        <div class="card-title" style="margin:0">Registro Mensual Completo</div>
+        <div class="card-title" style="margin:0" data-i18n="hist_table_title">Registro Mensual Completo</div>
         <span style="font-size:11px;color:var(--muted)" id="histCount">—</span>
       </div>
       <div class="tbl-wrap"><table class="mobile-card-table"><thead><tr>
@@ -2443,7 +2443,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
 
   // ── Parámetro de Proyección ──
   document.getElementById('proyectorConfig').innerHTML=`
-    <div class="card-title">⚙️ Parámetro de Proyección</div>
+    <div class="card-title">${t('proy_config_title')}</div>
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="flex:1;min-width:200px">
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Pago extra mensual disponible (RD$) — arrastra el slider o escribe un monto</div>
