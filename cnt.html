@@ -2750,6 +2750,7 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const ingreso=config.ingresoUSD>0&&config.tasa>0?(config.ingresoUSD*config.tasa):(config.ingresoRD||cf.ingreso||0);
   const gasto=totalAdeudado||cf.gasto;
   const resta=cf.resta!==undefined?cf.resta:ingreso-gasto;
+  delete cf.resta; // use Excel value only on first import, then always calculate
   const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
   const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
   const netWorth=(cf.balanceAhorros||0)+efTotal-totalBalance;
