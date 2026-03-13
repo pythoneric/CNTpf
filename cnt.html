@@ -33,7 +33,8 @@ body.light{
   --green:#059669;--red:#dc2626;--yellow:#d97706;--purple:#7c3aed;--orange:#ea580c;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;overscroll-behavior-y:contain}
+body{font-family:var(--font);font-size:14px;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;overscroll-behavior-y:contain}
+@media(min-width:1024px){body{font-size:16px}}
 body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
 body.light::before{background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px)}
 body::after{content:'';position:fixed;top:-300px;right:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(59,130,246,.06) 0%,transparent 70%);pointer-events:none;z-index:0}
@@ -398,6 +399,16 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   header{padding:16px 32px}
   .tabs{padding:12px 32px 0}
   .g4{grid-template-columns:repeat(4,1fr)}
+  .card-title{font-size:13px}
+  .tab-btn{font-size:15px;padding:10px 20px}
+  .hdr-btn{font-size:14px}
+  .btn{font-size:15px}
+  .kpi-val{font-size:26px}
+  .kpi-sub{font-size:13px}
+  table{font-size:14px}
+  .tbl-input{font-size:14px}
+  .alert-title{font-size:15px}
+  .alert-sub{font-size:13px}
 }
 @media(min-width:1600px){
   .panel{padding:28px 48px}
