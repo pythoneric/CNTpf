@@ -2259,8 +2259,9 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
 function buildChecklist(gastos){
   const withPago=gastos.filter(g=>g.adeudado>0);
   // Sort pending by day of month (ascending urgency), done keeps order
-  const pending=withPago.filter(g=>!g.pagadoMes).sort((a,b)=>(a.dia||31)-(b.dia||31));
-  const done=withPago.filter(g=>g.pagadoMes);
+  const isPaid=g=>g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado);
+  const pending=withPago.filter(g=>!isPaid(g)).sort((a,b)=>(a.dia||31)-(b.dia||31));
+  const done=withPago.filter(g=>isPaid(g));
   const total=withPago.length;
   const donePct=total>0?Math.round((done.length/total)*100):0;
   // Progress by amount (more financially meaningful)
