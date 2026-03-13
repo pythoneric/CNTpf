@@ -1637,7 +1637,7 @@ function defaultEditData(){
     config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5},
     gastos:[],
     forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
-    emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,resta:0,ahorros:0,balanceAhorros:0}},
+    emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,ahorros:0,balanceAhorros:0}},
     historial:[],
     metas:[],
     filename:'cnt.xlsx'
@@ -1800,7 +1800,7 @@ const _setupSteps=[
       });
       const totalGasto=_editData.gastos.reduce((a,g)=>a+g.adeudado,0);
       _editData.emerg.cashflow.gasto=totalGasto;
-      _editData.emerg.cashflow.resta=_editData.emerg.cashflow.ingreso-totalGasto;
+      // resta is no longer stored — always calculated as ingreso - gasto
     }
   },
   {
@@ -2105,7 +2105,7 @@ function parseEmergency(rows){
       else if(kl.includes('gasto mensual'))res.cashflow.gasto=clean(r[1]);
       else if(kl.includes('tasa'))res.cashflow.tasa=clean(r[1]);
       else if(kl.includes('retirar'))res.cashflow.retirarUSD=clean(r[1]);
-      else if(kl.includes('resta'))res.cashflow.resta=clean(r[1]);
+      // resta is no longer imported — always calculated as ingreso - gasto
       else if(kl.includes('ahorros este'))res.cashflow.ahorros=clean(r[1]);
       else if(kl.includes('balance ahorros'))res.cashflow.balanceAhorros=clean(r[1]);
     }
@@ -2398,7 +2398,8 @@ function saveChecklistToExcel(){
   const stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
   XLSX.writeFile(_rawWb,`cnt_${stamp}.xlsx`);
   buildChecklist(_editData.gastos);
-  buildAlerts({gastos:_editData.gastos,config:_editData.config,ingreso:_editData.emerg.cashflow.ingreso,gasto:_editData.emerg.cashflow.gasto,totalBalance:_editData.gastos.reduce((a,g)=>a+g.balance,0),resta:_editData.emerg.cashflow.resta,emerg:_editData.emerg,interesMensual:_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0)});
+  const _ingreso=_editData.emerg.cashflow.ingreso,_gasto=_editData.emerg.cashflow.gasto;
+  buildAlerts({gastos:_editData.gastos,config:_editData.config,ingreso:_ingreso,gasto:_gasto,totalBalance:_editData.gastos.reduce((a,g)=>a+g.balance,0),resta:_ingreso-_gasto,emerg:_editData.emerg,interesMensual:_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0)});
   autoSave();
   showToast(t('toast_saved'));
 }
@@ -2749,8 +2750,7 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   // Bug 1 fix: single source of truth — always ingresoUSD × tasa; stale cf.ingreso only as absolute last resort
   const ingreso=config.ingresoUSD>0&&config.tasa>0?(config.ingresoUSD*config.tasa):(config.ingresoRD||cf.ingreso||0);
   const gasto=totalAdeudado||cf.gasto;
-  const resta=cf.resta!==undefined?cf.resta:ingreso-gasto;
-  delete cf.resta; // use Excel value only on first import, then always calculate
+  const resta=ingreso-gasto;
   const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
   const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
   const netWorth=(cf.balanceAhorros||0)+efTotal-totalBalance;
@@ -3752,7 +3752,7 @@ function buildEditForms(){
     {id:'cf-gasto',label:'Gasto Mensual Total',key:'gasto',val:cf.gasto||0},
     {id:'cf-tasa',label:'Tasa Dólar',key:'tasa',val:cf.tasa||0},
     {id:'cf-retirarUSD',label:'Retirar en USD',key:'retirarUSD',val:cf.retirarUSD||0},
-    {id:'cf-resta',label:'Resta (Ingreso-Gasto)',key:'resta',val:cf.resta||0},
+    // resta removed — always calculated as ingreso - gasto
     {id:'cf-ahorros',label:'Ahorros este mes',key:'ahorros',val:cf.ahorros||0},
     {id:'cf-balanceAhorros',label:'Balance Ahorros',key:'balanceAhorros',val:cf.balanceAhorros||0},
   ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="number" step="any" value="${f.val}" oninput="markChanged(this);_editData.emerg.cashflow['${f.key}']=parseFloat(this.value)||0"></div>`).join('');
