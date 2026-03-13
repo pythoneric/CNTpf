@@ -2355,8 +2355,7 @@ function toggleCheck(idx){
   autoSave();
   // Haptic feedback on mobile
   if(navigator.vibrate) navigator.vibrate(g.pagadoMes?[10,30,10]:30);
-  buildChecklist(_editData.gastos);
-  buildAlerts({gastos:_editData.gastos,config:_editData.config,ingreso:_editData.emerg.cashflow.ingreso,gasto:_editData.emerg.cashflow.gasto,totalBalance:_editData.gastos.reduce((a,g)=>a+g.balance,0),resta:_editData.emerg.cashflow.resta,emerg:_editData.emerg,interesMensual:_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0)});
+  buildDashboard({..._editData});
 }
 
 // ── Fix #7: shared helper to write Esenciales sheet ──
