@@ -2839,9 +2839,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const tc=tipoColors[g.tipo]||'#94a3b8';
     const pctIng=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
     let estLabel,estBg,estFg;
-    if(g.pagadoMes){estLabel=t('gastostbl_thismonth');estBg='#052e16';estFg='#22d3a0';}
-    else if(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0){estLabel=t('gastostbl_done');estBg='#052e16';estFg='#22d3a0';}
-    else if(g.pagado>0&&g.adeudado>0){estLabel=t('gastostbl_partial');estBg='#1e1b4b';estFg='#93c5fd';}
+    if(g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0)){estLabel=t('gastostbl_done');estBg='#052e16';estFg='#22d3a0';}
     else if(g.adeudado>0){estLabel=t('gastostbl_pending2');estBg='#450a0a';estFg='#f4606a';}
     else{estLabel='—';estBg='transparent';estFg='var(--muted)';}
     tbody.innerHTML+=`<tr>
