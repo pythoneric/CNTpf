@@ -2748,7 +2748,7 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const totalOriginal=gastos.reduce((a,g)=>a+Math.max(g.originalRD||0, g.balance||0),0)+(config.liquidadoAcum||0);
   // Bug 1 fix: single source of truth — always ingresoUSD × tasa; stale cf.ingreso only as absolute last resort
   const ingreso=config.ingresoUSD>0&&config.tasa>0?(config.ingresoUSD*config.tasa):(config.ingresoRD||cf.ingreso||0);
-  const gasto=cf.gasto||totalPagado;
+  const gasto=totalAdeudado||cf.gasto;
   const resta=cf.resta!==undefined?cf.resta:ingreso-gasto;
   const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
   const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
