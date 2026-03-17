@@ -750,6 +750,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div id="tab-fornow" class="panel">
     <div class="grid g4" style="margin-bottom:16px" id="forNowKpis"></div>
     <div class="card" id="forNowDetail"></div>
+    <div class="card" style="margin-top:16px;position:relative;height:280px" id="forNowChartWrap"><canvas id="forNowSavingsChart"></canvas></div>
   </div>
 
   <!-- HISTORIAL -->
@@ -870,68 +871,68 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-header-left">
         <div class="edit-icon">✏️</div>
         <div>
-          <div class="edit-title" id="editModalTitle">Editar Datos</div>
-          <div class="edit-subtitle">Los cambios se aplican al dashboard y puedes descargar el Excel actualizado</div>
+          <div class="edit-title" id="editModalTitle" data-i18n="edit_title">Editar Datos</div>
+          <div class="edit-subtitle" data-i18n="edit_sub">Los cambios se aplican al dashboard y puedes descargar el Excel actualizado</div>
         </div>
       </div>
       <div class="edit-actions">
         <span class="changes-badge" id="changesBadge" style="display:none">● <span id="changesCount">0</span> cambios</span>
-        <button class="btn btn-success" onclick="applyAndDownload()">💾 Guardar y exportar Excel</button>
-        <button class="btn btn-primary" onclick="applyChanges()">✓ Guardar</button>
-        <button class="btn btn-ghost" onclick="closeEditModal()" aria-label="Cerrar editor de datos">✕ Cerrar</button>
+        <button class="btn btn-success" onclick="applyAndDownload()" data-i18n="edit_save">💾 Guardar y exportar Excel</button>
+        <button class="btn btn-primary" onclick="applyChanges()" data-i18n="edit_apply">✓ Guardar</button>
+        <button class="btn btn-ghost" onclick="closeEditModal()" data-i18n="edit_close">✕ Cerrar</button>
       </div>
     </div>
     <div class="edit-tabs">
-      <button class="edit-tab active" onclick="showEditTab('config',this)">⚙️ Configuración</button>
-      <button class="edit-tab" onclick="showEditTab('esenciales',this)">💸 Gastos & Deudas</button>
-      <button class="edit-tab" onclick="showEditTab('fornow',this)">💳 Fondos</button>
-      <button class="edit-tab" onclick="showEditTab('emergency',this)">🛡 Emergencia</button>
-      <button class="edit-tab" onclick="showEditTab('historial',this)">📅 Historial</button>
+      <button class="edit-tab active" onclick="showEditTab('config',this)" data-i18n="edit_tab_config">⚙️ Configuración</button>
+      <button class="edit-tab" onclick="showEditTab('esenciales',this)" data-i18n="edit_tab_gastos">💸 Gastos & Deudas</button>
+      <button class="edit-tab" onclick="showEditTab('fornow',this)" data-i18n="edit_tab_fornow">💳 Fondos</button>
+      <button class="edit-tab" onclick="showEditTab('emergency',this)" data-i18n="edit_tab_emergency">🛡 Emergencia</button>
+      <button class="edit-tab" onclick="showEditTab('historial',this)" data-i18n="edit_tab_historial">📅 Historial</button>
     </div>
     <div id="esection-config" class="edit-section active">
-      <div class="edit-card"><div class="edit-card-title">⚙️ Parámetros Globales</div><div class="field-grid" id="configFields"></div></div>
+      <div class="edit-card"><div class="edit-card-title" data-i18n="edit_card_config">⚙️ Parámetros Globales</div><div class="field-grid" id="configFields"></div></div>
     </div>
     <div id="esection-esenciales" class="edit-section">
       <div class="edit-card">
-        <div class="edit-card-title">💸 Gastos & Deudas Mensuales</div>
+        <div class="edit-card-title" data-i18n="edit_card_gastos">💸 Gastos & Deudas Mensuales</div>
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr>
             <th data-i18n="eth_desc">Descripción</th><th data-i18n="eth_tipo">Tipo</th><th data-i18n="eth_pagado">Pagado (RD$)</th><th data-i18n="eth_adeudado">Adeudado (RD$)</th>
             <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_notas">Notas</th><th></th>
           </tr></thead><tbody id="esencialesEditBody"></tbody></table>
         </div>
-        <button class="row-add-btn" onclick="addEsencialRow()">+ Agregar fila</button>
+        <button class="row-add-btn" onclick="addEsencialRow()" data-i18n="edit_add_row">+ Agregar fila</button>
       </div>
     </div>
     <div id="esection-fornow" class="edit-section">
       <div class="edit-card">
-        <div class="edit-card-title">💳 Disponibilidad de Fondos</div>
+        <div class="edit-card-title" data-i18n="edit_card_fornow">💳 Disponibilidad de Fondos</div>
         <div class="field-grid" style="margin-bottom:16px">
           <div class="field-group"><label class="field-label" data-i18n="eth_fechaActualizado">Fecha Actualizado</label><input type="date" class="field-input" id="fornow-fecha" oninput="markChanged(this)"></div>
         </div>
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr><th data-i18n="eth_cuenta">Cuenta</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_saldo">Saldo</th><th data-i18n="eth_comprometido">Comprometido</th><th></th></tr></thead><tbody id="fornowEditBody"></tbody></table>
         </div>
-        <button class="row-add-btn" onclick="addForNowRow()">+ Agregar cuenta</button>
+        <button class="row-add-btn" onclick="addForNowRow()" data-i18n="edit_add_cuenta">+ Agregar cuenta</button>
       </div>
     </div>
     <div id="esection-emergency" class="edit-section">
       <div class="edit-card" style="margin-bottom:16px">
-        <div class="edit-card-title">🛡 Fondos de Emergencia</div>
+        <div class="edit-card-title" data-i18n="edit_card_emergency">🛡 Fondos de Emergencia</div>
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr><th data-i18n="eth_fondo">Fondo</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_balanceActual">Balance Actual</th><th data-i18n="eth_metaMinima">Meta Mínima</th><th></th></tr></thead><tbody id="emergFundsEditBody"></tbody></table>
         </div>
-        <button class="row-add-btn" onclick="addEmergFundRow()">+ Agregar fondo</button>
+        <button class="row-add-btn" onclick="addEmergFundRow()" data-i18n="edit_add_fondo">+ Agregar fondo</button>
       </div>
-      <div class="edit-card"><div class="edit-card-title">📊 Cashflow Mensual</div><div class="field-grid" id="cashflowFields"></div></div>
+      <div class="edit-card"><div class="edit-card-title" data-i18n="edit_card_cashflow">📊 Cashflow Mensual</div><div class="field-grid" id="cashflowFields"></div></div>
     </div>
     <div id="esection-historial" class="edit-section">
       <div class="edit-card">
-        <div class="edit-card-title">📅 Historial Mensual</div>
+        <div class="edit-card-title" data-i18n="edit_card_historial">📅 Historial Mensual</div>
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr><th data-i18n="eth_mes">Mes</th><th data-i18n="eth_anio">Año</th><th data-i18n="eth_ingresosUSD">Ingresos (USD)</th><th data-i18n="eth_gastoRD">Gasto (RD$)</th><th data-i18n="eth_tasaDolar">Tasa Dólar</th><th data-i18n="eth_deudasRD">Deudas (RD$)</th><th data-i18n="eth_emergenciaRD">Emergencia (RD$)</th><th data-i18n="eth_netWorthRD">Net Worth (RD$)</th><th data-i18n="eth_notas">Notas</th><th></th></tr></thead><tbody id="historialEditBody"></tbody></table>
         </div>
-        <button class="row-add-btn" onclick="addHistorialRow()">+ Agregar mes</button>
+        <button class="row-add-btn" onclick="addHistorialRow()" data-i18n="edit_add_mes">+ Agregar mes</button>
       </div>
     </div>
     <div class="save-bar">
@@ -1108,6 +1109,12 @@ const LANG = {
     edit_save:'💾 Guardar y exportar Excel', edit_apply:'✓ Guardar', edit_close:'✕ Cerrar',
     edit_tab_config:'⚙️ Configuración', edit_tab_gastos:'💸 Gastos & Deudas',
     edit_tab_fornow:'💳 Fondos', edit_tab_emergency:'🛡 Emergencia', edit_tab_historial:'📅 Historial',
+    edit_card_config:'⚙️ Parámetros Globales', edit_card_gastos:'💸 Gastos & Deudas Mensuales',
+    edit_card_fornow:'💳 Disponibilidad de Fondos', edit_card_emergency:'🛡 Fondos de Emergencia',
+    edit_card_cashflow:'📊 Cashflow Mensual', edit_card_historial:'📅 Historial Mensual',
+    edit_add_row:'+ Agregar fila', edit_add_cuenta:'+ Agregar cuenta',
+    edit_add_fondo:'+ Agregar fondo', edit_add_mes:'+ Agregar mes',
+    edit_changes:'cambios',
     // Edit table headers
     eth_desc:'Descripción', eth_tipo:'Tipo', eth_pagado:'Pagado (RD$)', eth_adeudado:'Adeudado (RD$)',
     eth_dia:'Día Pago', eth_tasa:'Tasa %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
@@ -1328,6 +1335,12 @@ const LANG = {
     edit_save:'💾 Save & export Excel', edit_apply:'✓ Save', edit_close:'✕ Close',
     edit_tab_config:'⚙️ Settings', edit_tab_gastos:'💸 Expenses & Debts',
     edit_tab_fornow:'💳 Funds', edit_tab_emergency:'🛡 Emergency', edit_tab_historial:'📅 History',
+    edit_card_config:'⚙️ Global Settings', edit_card_gastos:'💸 Monthly Expenses & Debts',
+    edit_card_fornow:'💳 Fund Availability', edit_card_emergency:'🛡 Emergency Funds',
+    edit_card_cashflow:'📊 Monthly Cashflow', edit_card_historial:'📅 Monthly History',
+    edit_add_row:'+ Add row', edit_add_cuenta:'+ Add account',
+    edit_add_fondo:'+ Add fund', edit_add_mes:'+ Add month',
+    edit_changes:'changes',
     // Edit table headers
     eth_desc:'Description', eth_tipo:'Type', eth_pagado:'Paid (RD$)', eth_adeudado:'Owed (RD$)',
     eth_dia:'Pay Day', eth_tasa:'Rate %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
@@ -2997,7 +3010,9 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     ${intMensualEf>0?`<div style="margin-top:16px;padding:10px 14px;background:rgba(244,96,106,.07);border-radius:8px;border:1px solid rgba(244,96,106,.2)"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">⚠️ ${_lang==='es'?'Carga de intereses':'Interest burden'}</div><div style="font-size:12px;color:var(--muted)">RD$${fmt(Math.round(intMensualEf))}/mes ${_lang==='es'?'en intereses':'in interest'} = <span style="color:${intPct>80?'var(--red)':'var(--yellow)'};font-weight:700">${intPct}% ${_lang==='es'?'del superávit':'of surplus'}</span>. ${_lang==='es'?'Reducir deuda aumenta capacidad de ahorro.':'Reducing debt increases savings capacity.'}</div></div>`:''}`;
 
   // ── ForNow ──
-  document.getElementById('forNowKpis').innerHTML=forNow.cuentas.slice(0,4).map(c=>{
+  const fnKpis=document.getElementById('forNowKpis');
+  fnKpis.className=`grid ${forNow.cuentas.length<=4?'g4':forNow.cuentas.length<=6?'g3':'g4'}`;
+  fnKpis.innerHTML=forNow.cuentas.map(c=>{
     const isUSD=c.moneda==='USD';const tasa=config.tasa||60;const saldoRD=isUSD?Math.round(c.saldo*tasa):c.saldo;
     return`<div class="card"><div class="card-title">${escH(c.nombre)}${isUSD?' <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px">USD</span>':''}</div><div class="kpi-val" style="color:${c.saldo>0?'var(--green)':'var(--muted)'};font-size:22px">${isUSD?'USD':'RD'}$${fmt(c.saldo)}</div><div class="kpi-sub">${isUSD?`≈RD$${fmt(saldoRD)} · `:''}${t('fornow_current')}</div></div>`;
   }).join('');
@@ -3065,6 +3080,27 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
         scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
     });
+    // ForNow savings chart: current balance vs historical
+    const fnChartWrap=document.getElementById('forNowChartWrap');
+    if(historial.length>0){
+      const hRev=[...historial].reverse();
+      const hLabels=hRev.map(h=>`${h.mes} ${h.anio}`);
+      hLabels.push(`${config.mes} ${config.anio}`);
+      const hBalances=hRev.map(h=>h.emergencia||0);
+      hBalances.push(fnTotal);
+      const hNW=hRev.map(h=>h.netWorth||0);
+      hNW.push((cf.balanceAhorros||0)+efTotal-totalBalance);
+      charts.forNowSavingsChart=new Chart(document.getElementById('forNowSavingsChart'),{
+        type:'line',
+        data:{labels:hLabels,datasets:[
+          {label:_lang==='es'?'Balance Disponible (RD$)':'Available Balance (RD$)',data:hBalances,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.10)',tension:.4,fill:true,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#3b82f6'},
+          {label:_lang==='es'?'Net Worth (RD$)':'Net Worth (RD$)',data:hNW,borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.06)',tension:.4,fill:false,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#22d3a0'},
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+          scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
+      });
+      fnChartWrap.style.display='';
+    } else { fnChartWrap.style.display='none'; }
   },150);
 
   buildHistorial(historial,config);
@@ -3745,9 +3781,10 @@ let _rawWb=null;
 let _changesCount=0;
 // Test helper: allows external code to set _editData and build the dashboard
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';};
+window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
-function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
+function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';}
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 // Convert fondo balance/meta to RD$ — if moneda=USD, multiply by config.tasa
