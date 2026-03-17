@@ -141,10 +141,15 @@ test.describe('Account Currency - Dashboard Display', () => {
   });
 
   test('detail view totals are calculated with currency conversion', async ({ page }) => {
+    // Committed is sourced from gastos.adeudado (not per-account comp)
     await loadApp(page, {
       cuentas: [
-        { nombre: 'Corriente', moneda: 'RD', saldo: 100000, comp: 20000, disp: 80000 },
-        { nombre: 'USD Account', moneda: 'USD', saldo: 1000, comp: 200, disp: 800 },
+        { nombre: 'Corriente', moneda: 'RD', saldo: 100000, comp: 0, disp: 100000 },
+        { nombre: 'USD Account', moneda: 'USD', saldo: 1000, comp: 0, disp: 1000 },
+      ],
+      gastos: [
+        { nombre: 'Renta', tipo: 'Fijo', pagado: 0, adeudado: 25000, dia: 1, tasa: 0, balance: 0, originalRD: 25000, originalUSD: 0, fechaLimite: null, notas: '', pagadoMes: false },
+        { nombre: 'Seguro', tipo: 'Fijo', pagado: 0, adeudado: 7000, dia: 15, tasa: 0, balance: 0, originalRD: 7000, originalUSD: 0, fechaLimite: null, notas: '', pagadoMes: false },
       ],
     });
     await goToForNowTab(page);
@@ -155,7 +160,7 @@ test.describe('Account Currency - Dashboard Display', () => {
     // Total: 100000 + (1000 * 60) = 160,000
     await expect(detail).toContainText('RD$160,000');
 
-    // Committed: 20000 + (200 * 60) = 32,000
+    // Committed: sum of gastos.adeudado = 25000 + 7000 = 32,000
     await expect(detail).toContainText('RD$32,000');
 
     // Available: 160000 - 32000 = 128,000
