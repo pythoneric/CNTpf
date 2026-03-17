@@ -716,6 +716,9 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div id="tab-proyector" class="panel">
     <div class="card" style="margin-bottom:16px" id="proyectorConfig"></div>
 
+    <!-- Committed Funds Simulation -->
+    <div class="card" style="margin-bottom:16px" id="committedSimulation"></div>
+
     <!-- Debt Cost Snapshot -->
     <div class="card" style="margin-bottom:16px" id="debtCostSnapshot"></div>
 
@@ -911,7 +914,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
           <div class="field-group"><label class="field-label" data-i18n="eth_fechaActualizado">Fecha Actualizado</label><input type="date" class="field-input" id="fornow-fecha" oninput="markChanged(this)"></div>
         </div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th data-i18n="eth_cuenta">Cuenta</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_saldo">Saldo</th><th data-i18n="eth_comprometido">Comprometido</th><th></th></tr></thead><tbody id="fornowEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_cuenta">Cuenta</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_saldo">Saldo</th><th></th></tr></thead><tbody id="fornowEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addForNowRow()" data-i18n="edit_add_cuenta">+ Agregar cuenta</button>
       </div>
@@ -1049,6 +1052,13 @@ const LANG = {
     chk_interest_annual:'Interés Anual en Deudas', chk_interest_monthly:'Interés Mensual', chk_interest_count:'Deudas con Tasa',
     chk_tbl_debt:'Deuda', chk_tbl_balance:'Balance', chk_tbl_rate:'Tasa %', chk_tbl_intmonth:'Interés Mensual', chk_tbl_intannual:'Interés Anual',
     // Proyector
+    proy_committed_title:'💳 Simulador de Fondos Comprometidos',
+    proy_committed_sub:'Cómo tus compromisos mensuales impactan tu disponibilidad real',
+    proy_committed_total:'Total en Cuentas', proy_committed_gastos:'Compromisos Mensuales',
+    proy_committed_available:'Disponible Real', proy_committed_debtpay:'Para pago de deuda',
+    proy_committed_tip:'El disponible real es lo que queda después de tus compromisos fijos. Redirigir parte al pago de deudas acelera tu libertad financiera.',
+    proy_committed_accounts:'Suma de saldos', proy_committed_expenses:'Total adeudado mensual',
+    proy_committed_aftercommit:'Después de compromisos', proy_committed_redirectable:'Monto redirigible a deudas',
     proy_config_title:'⚙️ Parámetro de Proyección',
     proy_slider_label:'Pago extra mensual disponible (RD$) — arrastra el slider o escribe un monto',
     proy_per_month:'RD$/mes', proy_allsurplus:'Todo el superávit', proy_redirectsavings:'+ Redirigir ahorros',
@@ -1285,6 +1295,13 @@ const LANG = {
     chk_interest_annual:'Annual Interest on Debts', chk_interest_monthly:'Monthly Interest', chk_interest_count:'Debts with Rate',
     chk_tbl_debt:'Debt', chk_tbl_balance:'Balance', chk_tbl_rate:'Rate %', chk_tbl_intmonth:'Monthly Interest', chk_tbl_intannual:'Annual Interest',
     // Proyector
+    proy_committed_title:'💳 Committed Funds Simulator',
+    proy_committed_sub:'How your monthly commitments impact your real availability',
+    proy_committed_total:'Total in Accounts', proy_committed_gastos:'Monthly Commitments',
+    proy_committed_available:'Real Available', proy_committed_debtpay:'For debt payoff',
+    proy_committed_tip:'Real available is what remains after your fixed commitments. Redirecting part of it to debt payments accelerates your financial freedom.',
+    proy_committed_accounts:'Sum of balances', proy_committed_expenses:'Total monthly owed',
+    proy_committed_aftercommit:'After commitments', proy_committed_redirectable:'Amount redirectable to debts',
     proy_config_title:'⚙️ Projection Parameter',
     proy_slider_label:'Available monthly extra payment (RD$) — drag the slider or type an amount',
     proy_per_month:'RD$/month', proy_allsurplus:'All surplus', proy_redirectsavings:'+ Redirect savings',
@@ -2517,6 +2534,52 @@ function buildProyector({gastos,ingreso,gasto,config}){
   const intMensual=allDeudas.reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
   const wtdAvgRate=totalBalance>0?allDeudas.reduce((a,g)=>a+g.tasa*g.balance,0)/totalBalance:0;
 
+  // ── Simulador de Fondos Comprometidos ──
+  const fnTasaProy=config.tasa||60;
+  const fnTotalProy=_editData.forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?fnTasaProy:1;return a+(c.saldo||0)*m;},0);
+  const fnCompProy=gasto;
+  const fnDispProy=fnTotalProy-fnCompProy;
+  const fnDebtRedirect=Math.max(0,Math.round(fnDispProy*0.4));
+  const fnPctUsed=fnTotalProy>0?Math.round(fnCompProy/fnTotalProy*100):0;
+  document.getElementById('committedSimulation').innerHTML=`
+    <div class="card-title" style="margin-bottom:4px">${t('proy_committed_title')}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${t('proy_committed_sub')}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="flex:1;min-width:140px;background:var(--surface2);border-radius:10px;padding:14px 18px;text-align:center">
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_total')}</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:var(--text);margin-top:2px">RD$${fmt(fnTotalProy)}</div>
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_accounts')}</div>
+      </div>
+      <div style="flex:1;min-width:140px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:10px;padding:14px 18px;text-align:center">
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_gastos')}</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:var(--red);margin-top:2px">(RD$${fmt(fnCompProy)})</div>
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_expenses')} · ${fnPctUsed}%</div>
+      </div>
+      <div style="flex:1;min-width:140px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:10px;padding:14px 18px;text-align:center">
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_available')}</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:${fnDispProy>=0?'var(--green)':'var(--red)'};margin-top:2px">${fnDispProy<0?'(':''}RD$${fmt(Math.abs(fnDispProy))}${fnDispProy<0?')':''}</div>
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_aftercommit')}</div>
+      </div>
+      <div style="flex:1;min-width:140px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px 18px;text-align:center">
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_debtpay')}</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px">RD$${fmt(fnDebtRedirect)}</div>
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_redirectable')}</div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;height:8px;background:var(--border);border-radius:99px;overflow:hidden">
+      <div style="height:8px;border-radius:99px;width:${Math.min(fnPctUsed,100)}%;background:${fnPctUsed>80?'var(--red)':fnPctUsed>60?'var(--yellow)':'var(--green)'}"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:12px">
+      <span>${fnPctUsed}% ${_lang==='es'?'comprometido':'committed'}</span>
+      <span>${100-fnPctUsed}% ${_lang==='es'?'disponible':'available'}</span>
+    </div>
+    ${fnDispProy>0&&allDeudas.length>0?`<div style="padding:10px 14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
+      💡 ${t('proy_committed_tip')}
+      <button onclick="document.getElementById('extraSlider').value=${fnDebtRedirect};document.getElementById('extraInput').value=${fnDebtRedirect};updateProyector()"
+        style="margin-left:8px;padding:4px 10px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
+        ${_lang==='es'?'Usar como pago extra':'Use as extra payment'} →</button>
+    </div>`:''}`;
+
   // ── Parámetro de Proyección ──
   document.getElementById('proyectorConfig').innerHTML=`
     <div class="card-title">${t('proy_config_title')}</div>
@@ -3039,7 +3102,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const fDate=forNow.fecha instanceof Date?forNow.fecha.toLocaleDateString(_lang==='es'?'es-DO':'en-US',{day:'2-digit',month:'long',year:'numeric'}):forNow.fecha?String(forNow.fecha).slice(0,10):'—';
   const fnTasa=config.tasa||60;
   const fnTotal=forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?fnTasa:1;return a+(c.saldo||0)*m;},0);
-  const fnComp=forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?fnTasa:1;return a+(c.comp||0)*m;},0);
+  const fnComp=gastos.reduce((a,g)=>a+(g.adeudado||0),0);
   const fnDisp=fnTotal-fnComp;
   document.getElementById('forNowDetail').innerHTML=`<div class="card-title">${_lang==='es'?'Disponibilidad':'Availability'} · ${t('fornow_updated')} ${fDate}</div>
     ${[{l:t('fornow_total'),v:`RD$${fmt(fnTotal)}`,c:'var(--text)',d:t('fornow_accounts'),st:''},
@@ -3856,7 +3919,6 @@ function buildEditForms(){
     fb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
       <td><select class="tbl-input" onchange="markChanged(this);_editData.forNow.cuentas[${i}].moneda=this.value" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
       <td><input class="tbl-input" type="number" step="any" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${c.comp||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].comp=parseFloat(this.value)||0"></td>
       <td><button class="row-del-btn" onclick="deleteFornowRow(${i})">✕</button></td></tr>`;
   });
   // EMERGENCY

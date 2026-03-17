@@ -59,9 +59,9 @@ Si ya usaste el dashboard antes en este navegador, aparece esta opción automát
 - **Gastos & Deudas** — Tabla completa con estado de pago por ítem
 - **Checklist de pagos** — Marca cada compromiso como pagado con persistencia automática
 - **Deudas** — Cards individuales con balance, tasa, proyección de interés y botón "Liquidar deuda" para saldar en un clic
-- **Proyector de deudas** — Estrategias Avalanche vs Snowball con timeline y alertas de vencimiento
+- **Proyector de deudas** — Estrategias Avalanche vs Snowball con timeline, alertas de vencimiento, y simulador de fondos comprometidos
 - **Fondos de emergencia** — Progreso vs meta por fondo
-- **Disponibilidad (ForNow)** — Saldos de cuentas vs comprometido del mes
+- **Disponibilidad (ForNow)** — Saldos de cuentas vs compromisos mensuales (calculados automáticamente desde gastos)
 - **Historial mensual** — Registro histórico con gráficos de tendencia
 
 ### Edición
