@@ -896,8 +896,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <div class="edit-card-title">💸 Gastos & Deudas Mensuales</div>
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr>
-            <th>Descripción</th><th>Tipo</th><th>Pagado (RD$)</th><th>Adeudado (RD$)</th>
-            <th>Día Pago</th><th>Tasa %</th><th>Balance (RD$)</th><th>Original (RD$)</th><th>Original (USD)</th><th>Fecha Límite</th><th>Notas</th><th></th>
+            <th data-i18n="eth_desc">Descripción</th><th data-i18n="eth_tipo">Tipo</th><th data-i18n="eth_pagado">Pagado (RD$)</th><th data-i18n="eth_adeudado">Adeudado (RD$)</th>
+            <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_notas">Notas</th><th></th>
           </tr></thead><tbody id="esencialesEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addEsencialRow()">+ Agregar fila</button>
@@ -907,10 +907,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-card">
         <div class="edit-card-title">💳 Disponibilidad de Fondos</div>
         <div class="field-grid" style="margin-bottom:16px">
-          <div class="field-group"><label class="field-label">Fecha Actualizado</label><input type="date" class="field-input" id="fornow-fecha" oninput="markChanged(this)"></div>
+          <div class="field-group"><label class="field-label" data-i18n="eth_fechaActualizado">Fecha Actualizado</label><input type="date" class="field-input" id="fornow-fecha" oninput="markChanged(this)"></div>
         </div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th>Cuenta</th><th>Saldo (RD$)</th><th>Comprometido (RD$)</th><th></th></tr></thead><tbody id="fornowEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_cuenta">Cuenta</th><th data-i18n="eth_saldo">Saldo (RD$)</th><th data-i18n="eth_comprometido">Comprometido (RD$)</th><th></th></tr></thead><tbody id="fornowEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addForNowRow()">+ Agregar cuenta</button>
       </div>
@@ -919,7 +919,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-card" style="margin-bottom:16px">
         <div class="edit-card-title">🛡 Fondos de Emergencia</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th>Fondo</th><th>Balance Actual</th><th>Meta Mínima</th><th></th></tr></thead><tbody id="emergFundsEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_fondo">Fondo</th><th data-i18n="eth_balanceActual">Balance Actual</th><th data-i18n="eth_metaMinima">Meta Mínima</th><th></th></tr></thead><tbody id="emergFundsEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addEmergFundRow()">+ Agregar fondo</button>
       </div>
@@ -929,7 +929,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-card">
         <div class="edit-card-title">📅 Historial Mensual</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th>Mes</th><th>Año</th><th>Ingresos (USD)</th><th>Gasto (RD$)</th><th>Tasa Dólar</th><th>Deudas (RD$)</th><th>Emergencia (RD$)</th><th>Net Worth (RD$)</th><th>Notas</th><th></th></tr></thead><tbody id="historialEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_mes">Mes</th><th data-i18n="eth_anio">Año</th><th data-i18n="eth_ingresosUSD">Ingresos (USD)</th><th data-i18n="eth_gastoRD">Gasto (RD$)</th><th data-i18n="eth_tasaDolar">Tasa Dólar</th><th data-i18n="eth_deudasRD">Deudas (RD$)</th><th data-i18n="eth_emergenciaRD">Emergencia (RD$)</th><th data-i18n="eth_netWorthRD">Net Worth (RD$)</th><th data-i18n="eth_notas">Notas</th><th></th></tr></thead><tbody id="historialEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addHistorialRow()">+ Agregar mes</button>
       </div>
@@ -1108,6 +1108,16 @@ const LANG = {
     edit_save:'💾 Guardar y exportar Excel', edit_apply:'✓ Guardar', edit_close:'✕ Cerrar',
     edit_tab_config:'⚙️ Configuración', edit_tab_gastos:'💸 Gastos & Deudas',
     edit_tab_fornow:'💳 Fondos', edit_tab_emergency:'🛡 Emergencia', edit_tab_historial:'📅 Historial',
+    // Edit table headers
+    eth_desc:'Descripción', eth_tipo:'Tipo', eth_pagado:'Pagado (RD$)', eth_adeudado:'Adeudado (RD$)',
+    eth_dia:'Día Pago', eth_tasa:'Tasa %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
+    eth_originalUSD:'Original (USD)', eth_fechaLimite:'Fecha Límite', eth_notas:'Notas',
+    eth_cuenta:'Cuenta', eth_saldo:'Saldo (RD$)', eth_comprometido:'Comprometido (RD$)',
+    eth_fondo:'Fondo', eth_balanceActual:'Balance Actual', eth_metaMinima:'Meta Mínima',
+    eth_mes:'Mes', eth_anio:'Año', eth_ingresosUSD:'Ingresos (USD)', eth_gastoRD:'Gasto (RD$)',
+    eth_tasaDolar:'Tasa Dólar', eth_deudasRD:'Deudas (RD$)', eth_emergenciaRD:'Emergencia (RD$)',
+    eth_netWorthRD:'Net Worth (RD$)',
+    eth_fechaActualizado:'Fecha Actualizado',
     // Loader
     loader_title:'Personal Finance', loader_tagline:'Elige cómo empezar.',
     loader_privacy:'🔒 Tus datos nunca salen de tu dispositivo.',
@@ -1318,6 +1328,16 @@ const LANG = {
     edit_save:'💾 Save & export Excel', edit_apply:'✓ Save', edit_close:'✕ Close',
     edit_tab_config:'⚙️ Settings', edit_tab_gastos:'💸 Expenses & Debts',
     edit_tab_fornow:'💳 Funds', edit_tab_emergency:'🛡 Emergency', edit_tab_historial:'📅 History',
+    // Edit table headers
+    eth_desc:'Description', eth_tipo:'Type', eth_pagado:'Paid (RD$)', eth_adeudado:'Owed (RD$)',
+    eth_dia:'Pay Day', eth_tasa:'Rate %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
+    eth_originalUSD:'Original (USD)', eth_fechaLimite:'Deadline', eth_notas:'Notes',
+    eth_cuenta:'Account', eth_saldo:'Balance (RD$)', eth_comprometido:'Committed (RD$)',
+    eth_fondo:'Fund', eth_balanceActual:'Current Balance', eth_metaMinima:'Minimum Goal',
+    eth_mes:'Month', eth_anio:'Year', eth_ingresosUSD:'Income (USD)', eth_gastoRD:'Expenses (RD$)',
+    eth_tasaDolar:'Exchange Rate', eth_deudasRD:'Debts (RD$)', eth_emergenciaRD:'Emergency (RD$)',
+    eth_netWorthRD:'Net Worth (RD$)',
+    eth_fechaActualizado:'Date Updated',
     // Loader
     loader_title:'Personal Finance', loader_tagline:'Choose how to start.',
     loader_privacy:'🔒 Your data never leaves your device.',
@@ -1781,7 +1801,7 @@ const _setupSteps=[
         if(nombre) _editData.forNow.cuentas.push({nombre,saldo,comp:0,disp:saldo});
       });
       _editData.forNow.total=_editData.forNow.cuentas.reduce((a,c)=>a+c.saldo,0);
-      _editData.forNow.fecha=new Date();
+      _editData.forNow.fecha=new Date().toISOString().slice(0,10);
     }
   },
   {
@@ -2109,7 +2129,7 @@ function parseEmergency(rows){
     if(k.includes('SECCIÓN A')){inA=true;inB=false;return;}
     if(k.includes('SECCIÓN B')){inB=true;inA=false;return;}
     if(inA&&k&&!k.includes('Fondo')&&!k.includes('TOTAL'))
-      res.fondos.push({fondo:k,balance:clean(r[1]),meta:clean(r[2]),falta:clean(r[3])});
+      res.fondos.push({fondo:k,balance:clean(r[1]),meta:clean(r[2])});
     if(inB&&k&&!k.includes('Concepto')){
       const kl=k.toLowerCase();
       if(kl.includes('ingreso mensual'))res.cashflow.ingreso=clean(r[1]);
@@ -2165,10 +2185,10 @@ function calcScore({ingreso,gasto,resta,totalBalance,config,emerg,historial}){
   const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
   const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
   const fondosIniciados=emerg.fondos.filter(f=>f.balance>0).length;
-  const fondosTotales=emerg.fondos.length||1;
+  const fondosTotales=emerg.fondos.length;
   const efPct=efMeta>0?efTotal/efMeta:0;
-  // Give partial credit: 50% weight on amount funded, 50% on # of funds started
-  const efScore=(efPct*0.5)+((fondosIniciados/fondosTotales)*0.5);
+  // Give partial credit: 50% weight on amount funded, 50% on # of funds started — 0 fondos = 0 pts
+  const efScore=fondosTotales>0?(efPct*0.5)+((fondosIniciados/fondosTotales)*0.5):0;
   const epts=Math.round(Math.min(20,efScore*20));
   score+=epts;details.push({l:'Fondos de Emergencia',v:`${Math.round(efPct*100)}% · ${fondosIniciados}/${fondosTotales} fondos`,pts:epts,max:20,c:efPct>.8?'var(--green)':efPct>.2?'var(--yellow)':'var(--red)'});
   // Tendencia net worth (max 20 pts)
@@ -2216,20 +2236,15 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
   });
   // VENCIMIENTOS
   const alertasVenc=document.getElementById('alertasVenc');
-  alertasVenc.innerHTML='';
   if(vencPasados.length===0&&vencProx.length===0&&limProx.length===0){
     alertasVenc.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_novenc')}</div>`;
+  } else {
+    const vHtml=[];
+    vencPasados.forEach(g=>{vHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🚨</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_overdueago')} ${g.daysLate} ${t('alert_days')} — <span style="color:var(--red);font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:var(--red)">-${g.daysLate}d</div></div>`);});
+    vencProx.forEach(g=>{const cls=g.urgente?'urgent':'warning';vHtml.push(`<div class="alert-item ${cls}"><div class="alert-icon">${g.urgente?'⚠️':'🔔'}</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_dueday')} ${g.dia} — <span style="font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:${g.urgente?'var(--red)':'var(--yellow)'}">${g.daysUntil===0?t('alert_today'):g.daysUntil+'d'}</div></div>`);});
+    limProx.forEach(g=>{vHtml.push(`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · ${t('alert_deadline')}</div><div class="alert-sub">${fmtFecha(g.fl,{day:'numeric',month:'long',year:'numeric'})} — ${t('alert_balance_lbl')} <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`);});
+    alertasVenc.innerHTML=vHtml.join('');
   }
-  vencPasados.forEach(g=>{
-    alertasVenc.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🚨</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_overdueago')} ${g.daysLate} ${t('alert_days')} — <span style="color:var(--red);font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:var(--red)">-${g.daysLate}d</div></div>`;
-  });
-  vencProx.forEach(g=>{
-    const cls=g.urgente?'urgent':'warning';
-    alertasVenc.innerHTML+=`<div class="alert-item ${cls}"><div class="alert-icon">${g.urgente?'⚠️':'🔔'}</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_dueday')} ${g.dia} — <span style="font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:${g.urgente?'var(--red)':'var(--yellow)'}">${g.daysUntil===0?t('alert_today'):g.daysUntil+'d'}</div></div>`;
-  });
-  limProx.forEach(g=>{
-    alertasVenc.innerHTML+=`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · ${t('alert_deadline')}</div><div class="alert-sub">${fmtFecha(g.fl,{day:'numeric',month:'long',year:'numeric'})} — ${t('alert_balance_lbl')} <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`;
-  });
   // ALERTAS GENERALES — declare ag first so tab-dot logic can reference it
   const ag=document.getElementById('alertasGen');ag.innerHTML='';
   // Update tab dot (ag must be declared before this)
@@ -2239,21 +2254,22 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
   if(existDot)existDot.remove();
   if(urgentCount>0)tabAl.innerHTML=`🔔 ${t('tab_alertas').replace('🔔 ','')} <span class="alert-dot"></span>`;
   const gpct=ingreso>0?gasto/ingreso:1;
-  if(gpct>1)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🔴</div><div class="alert-text"><div class="alert-title">${t('alert_overspend_title')}</div><div class="alert-sub">${t('alert_overspend_sub').replace('%',Math.round((gpct-1)*100)+'%')}</div></div></div>`;
-  else if(gpct>0.85)ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">⚠️</div><div class="alert-text"><div class="alert-title">${t('alert_highexp_title')}</div><div class="alert-sub">${t('alert_highexp_sub').replace('%',Math.round(gpct*100)+'%')}</div></div></div>`;
+  const agHtml=[];
+  if(gpct>1)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🔴</div><div class="alert-text"><div class="alert-title">${t('alert_overspend_title')}</div><div class="alert-sub">${t('alert_overspend_sub').replace('%',Math.round((gpct-1)*100)+'%')}</div></div></div>`);
+  else if(gpct>0.85)agHtml.push(`<div class="alert-item warning"><div class="alert-icon">⚠️</div><div class="alert-text"><div class="alert-title">${t('alert_highexp_title')}</div><div class="alert-sub">${t('alert_highexp_sub').replace('%',Math.round(gpct*100)+'%')}</div></div></div>`);
   const dRatio=ingreso>0?totalBalance/(ingreso*12):1;
-  if(dRatio>1.5)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">${t('alert_highdebt_title')}</div><div class="alert-sub">${t('alert_highdebt_sub').replace('%',(dRatio*100).toFixed(0)+'%')}</div></div></div>`;
+  if(dRatio>1.5)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">${t('alert_highdebt_title')}</div><div class="alert-sub">${t('alert_highdebt_sub').replace('%',(dRatio*100).toFixed(0)+'%')}</div></div></div>`);
   const altaTasa=gastos.filter(g=>g.tasa>15&&g.balance>0);
-  altaTasa.forEach(g=>ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${g.tasa}% ${_lang==='es'?'anual':'annual'} — RD$${fmt(g.balance)} ${_lang==='es'?'pendiente':'outstanding'}</div></div></div>`);
+  altaTasa.forEach(g=>agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${g.tasa}% ${_lang==='es'?'anual':'annual'} — RD$${fmt(g.balance)} ${_lang==='es'?'pendiente':'outstanding'}</div></div></div>`));
   if(emerg){
     const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
     const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
     const efPct=efMeta>0?efTotal/efMeta:0;
-    if(efPct<0.25)ag.innerHTML+=`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_critical_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — RD$'+fmt(Math.round(efMeta-efTotal))+' para alcanzar la meta':'completed — RD$'+fmt(Math.round(efMeta-efTotal))+' to reach goal'}</div></div></div>`;
-    else if(efPct<0.5)ag.innerHTML+=`<div class="alert-item warning"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_low_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — sigue aportando mensualmente':'completed — keep contributing monthly'}</div></div></div>`;
+    if(efPct<0.25)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_critical_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — RD$'+fmt(Math.round(efMeta-efTotal))+' para alcanzar la meta':'completed — RD$'+fmt(Math.round(efMeta-efTotal))+' to reach goal'}</div></div></div>`);
+    else if(efPct<0.5)agHtml.push(`<div class="alert-item warning"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_low_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — sigue aportando mensualmente':'completed — keep contributing monthly'}</div></div></div>`);
   }
-  if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)ag.innerHTML+=`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">RD$${fmt(Math.round(interesMensual))}/mes ${_lang==='es'?'en intereses':'in interest'} — ${Math.round(interesMensual/resta*100)}% ${_lang==='es'?'de tu superávit':'of your surplus'}</div></div></div>`;
-  if(!ag.innerHTML)ag.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_nofinancial')}</div>`;
+  if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)agHtml.push(`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">RD$${fmt(Math.round(interesMensual))}/mes ${_lang==='es'?'en intereses':'in interest'} — ${Math.round(interesMensual/resta*100)}% ${_lang==='es'?'de tu superávit':'of your surplus'}</div></div></div>`);
+  ag.innerHTML=agHtml.length?agHtml.join(''):`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_nofinancial')}</div>`;
   const as=document.getElementById('alertasSit');
   const items=[
     {icon:gpct<=.8?'✅':'⚠️',l:t('sit_expenses'),v:`${Math.round(gpct*100)}% ${t('sit_used')}`,c:gpct<=.8?'var(--green)':gpct<=.9?'var(--yellow)':'var(--red)'},
@@ -2846,7 +2862,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const pendienteMes=gastos.filter(g=>g.adeudado>0&&!g.pagadoMes).reduce((a,g)=>a+g.adeudado,0);
   document.getElementById('tPagado').textContent='RD$'+fmt(totalPagado);
   document.getElementById('tAdeudado').textContent='RD$'+fmt(pendienteMes);
-  const tbody=document.getElementById('gastosBody');tbody.innerHTML='';
+  const tbody=document.getElementById('gastosBody');const tblRows=[];
   gastos.forEach(g=>{
     const tc=tipoColors[g.tipo]||'#94a3b8';
     const pctIng=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
@@ -2854,7 +2870,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     if(g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0)){estLabel=t('gastostbl_done');estBg='#052e16';estFg='#22d3a0';}
     else if(g.adeudado>0){estLabel=t('gastostbl_pending2');estBg='#450a0a';estFg='#f4606a';}
     else{estLabel='—';estBg='transparent';estFg='var(--muted)';}
-    tbody.innerHTML+=`<tr>
+    tblRows.push(`<tr>
       <td data-label="" style="font-weight:600">${escH(g.nombre)}</td>
       <td data-label="${t('gastostbl_tipo')}"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
       <td data-label="${t('gastostbl_pagado')}" class="num" style="color:${g.pagado>0?'var(--green)':'var(--muted)'}">${g.pagado>0?'RD$'+fmt(g.pagado):'—'}</td>
@@ -2864,10 +2880,11 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       <td data-label="${t('gastostbl_rate')}" class="mono" style="color:${g.tasa>15?'var(--red)':g.tasa>0?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa>0?g.tasa+'%':'—'}</td>
       <td data-label="${t('gastostbl_balance')}" class="num" style="color:${g.balance>0?'var(--red)':'var(--muted)'}">${g.balance>0?'RD$'+fmt(g.balance):'—'}</td>
       <td data-label="${t('gastostbl_status')}"><span class="pill" style="background:${estBg};color:${estFg}">${estLabel}</span></td>
-    </tr>`;
+    </tr>`);
   });
   const totalCuotas=gastos.reduce((a,g)=>a+g.adeudado,0);
-  tbody.innerHTML+=`<tr style="background:rgba(59,130,246,.04)"><td colspan="2" style="font-weight:800">${t('gastostbl_total')}</td><td class="num" style="font-weight:800;color:var(--green)">RD$${fmt(totalPagado)}</td><td class="num" style="font-weight:800">RD$${fmt(totalCuotas)}</td><td class="mono" style="text-align:center;font-weight:800;color:var(--muted)">${ingreso>0?Math.round(totalCuotas/ingreso*100)+'%':'—'}</td><td colspan="2"></td><td class="num" style="font-weight:800;color:var(--red)">RD$${fmt(totalBalance)}</td><td></td></tr>`;
+  tblRows.push(`<tr style="background:rgba(59,130,246,.04)"><td colspan="2" style="font-weight:800">${t('gastostbl_total')}</td><td class="num" style="font-weight:800;color:var(--green)">RD$${fmt(totalPagado)}</td><td class="num" style="font-weight:800">RD$${fmt(totalCuotas)}</td><td class="mono" style="text-align:center;font-weight:800;color:var(--muted)">${ingreso>0?Math.round(totalCuotas/ingreso*100)+'%':'—'}</td><td colspan="2"></td><td class="num" style="font-weight:800;color:var(--red)">RD$${fmt(totalBalance)}</td><td></td></tr>`);
+  tbody.innerHTML=tblRows.join('');
 
   // ── Deuda KPIs ──
   document.getElementById('deudaKpis').innerHTML=[
@@ -2878,12 +2895,12 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:20px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   // ── Deuda Cards ──
-  const dc=document.getElementById('deudaCards');dc.innerHTML='';
-  allDeudas.forEach(d=>{
+  const dc=document.getElementById('deudaCards');
+  dc.innerHTML=allDeudas.map(d=>{
     const pct=totalBalance>0?Math.round((d.balance/totalBalance)*100):0;
     const bc=d.tasa>15?'linear-gradient(90deg,#f4606a,#fb923c)':d.tasa>0?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#93c5fd,#818cf8)';
     const fStr=fmtFecha(d.fechaLimite,{month:'short',year:'numeric'});
-    dc.innerHTML+=`<div class="debt-card">
+    return `<div class="debt-card">
       <div class="debt-header">
         <div><div class="debt-name">${escH(d.nombre)}</div><span class="pill" style="background:${(tipoColors[d.tipo]||'#64748b')}22;color:${tipoColors[d.tipo]||'#94a3b8'};margin-top:4px;display:inline-block">${escH(d.tipo)}</span></div>
         <div style="text-align:right"><div class="debt-amount">RD$${fmt(d.balance)}</div>${d.tasa>0?`<div style="font-size:12px;color:${d.tasa>15?'var(--red)':'var(--yellow)'};margin-top:2px">${d.tasa}% ${t('deuda_annualrate')}</div>`:''}</div>
@@ -2894,7 +2911,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
         ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${_lang==='es'?'Día':'Day'} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
       <div style="margin-top:10px;text-align:right"><button class="btn btn-sm btn-success" onclick="liquidarDeuda(${gastos.indexOf(d)})">${t('dcard_liquidar')}</button></div>
     </div>`;
-  });
+  }).join('');
 
   // ── Deuda Summary ──
   document.getElementById('deudaSummary').innerHTML=`
@@ -2927,13 +2944,13 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const halfSurplus=Math.max(0,resta*0.5);
   const totalFalta=emerg.fondos.reduce((a,f)=>a+Math.max(0,f.meta-f.balance),0);
   const sortedFondos=[...emerg.fondos].sort((a,b)=>{const pa=a.meta>0?a.balance/a.meta:1;const pb=b.meta>0?b.balance/b.meta:1;return pa-pb;});
-  sortedFondos.forEach(e=>{
+  efEl.innerHTML=sortedFondos.map(e=>{
     const pct=e.meta>0?Math.min(Math.round((e.balance/e.meta)*100),100):0;
     const falta=Math.max(0,e.meta-e.balance);
     const aporteSug=totalFalta>0&&halfSurplus>0?Math.round(halfSurplus*(falta/totalFalta)):0;
     const mesesFondo=aporteSug>0?Math.ceil(falta/aporteSug):'—';
     const bc=pct>=90?'linear-gradient(90deg,#22d3a0,#06b6d4)':pct>30?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#f4606a,#c026d3)';
-    efEl.innerHTML+=`<div class="ef-row"><div class="ef-header"><div class="ef-name">${escH(e.fondo)}</div>
+    return `<div class="ef-row"><div class="ef-header"><div class="ef-name">${escH(e.fondo)}</div>
       <div class="ef-nums">
         <span style="color:var(--muted)">${t('ef_balance_lbl')} <span class="mono" style="color:var(--yellow);font-weight:700">RD$${fmt(e.balance)}</span></span>
         <span style="color:var(--muted)">${t('ef_goal_lbl')} <span class="mono" style="color:var(--muted);font-weight:700">RD$${fmt(e.meta)}</span></span>
@@ -2943,7 +2960,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       <span class="mono" style="font-size:12px;color:${pct>90?'var(--green)':'var(--muted)'};min-width:36px;text-align:right">${pct}%</span></div>
       ${falta>0?`<div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--muted)"><span>${_lang==='es'?'Aporte sugerido':'Suggested'}: <span class="mono" style="color:var(--accent)">RD$${fmt(aporteSug)}/mes</span></span><span>${_lang==='es'?'Meta en':'Goal in'} <span class="mono" style="color:var(--yellow)">~${mesesFondo} ${_lang==='es'?'meses':'mo'}</span></span></div>`:''}
     </div>`;
-  });
+  }).join('');
 
   document.getElementById('cfRows').innerHTML=[
     {l:t('cf_monthlyincome'),v:`RD$${fmt(ingreso)}`,c:'var(--green)',d:`${fmtUSD(config.ingresoUSD)} × RD$${config.tasa}`},
@@ -3886,7 +3903,7 @@ function generateExcel(){
   if(fnName){
     const fnSheet=_rawWb.Sheets[fnName];
     const rows=XLSX.utils.sheet_to_json(fnSheet,{header:1,defval:null});
-    rows.forEach((r,ri)=>{if(String(r[0]||'').toLowerCase().includes('fecha')){fnSheet[XLSX.utils.encode_cell({r:ri,c:1})]={t:'s',v:forNow.fecha||''};}});
+    rows.forEach((r,ri)=>{if(String(r[0]||'').toLowerCase().includes('fecha')){const fv=forNow.fecha instanceof Date?forNow.fecha.toISOString().slice(0,10):String(forNow.fecha||'').slice(0,10);fnSheet[XLSX.utils.encode_cell({r:ri,c:1})]={t:'s',v:fv};}});
     let hi2=-1;rows.forEach((r,i)=>{if(String(r[0]||'').toLowerCase().includes('cuenta'))hi2=i;});
     if(hi2>=0){forNow.cuentas.forEach((c,i)=>{const ri=hi2+1+i;fnSheet[XLSX.utils.encode_cell({r:ri,c:0})]={t:'s',v:c.nombre};fnSheet[XLSX.utils.encode_cell({r:ri,c:1})]={t:'n',v:c.saldo||0};fnSheet[XLSX.utils.encode_cell({r:ri,c:2})]={t:'n',v:c.comp||0};});}
   }
