@@ -24,73 +24,113 @@ async function loadApp(page) {
   });
 }
 
-/** Switch the app language to English */
 async function switchToEnglish(page) {
   await page.evaluate(() => window._testSetLang('en'));
 }
 
-/** Switch the app language to Spanish */
 async function switchToSpanish(page) {
   await page.evaluate(() => window._testSetLang('es'));
 }
 
-/** Open the edit modal */
 async function openEdit(page) {
   await page.evaluate(() => window.openEditModal());
   await expect(page.locator('#editModal')).toHaveClass(/open/);
 }
 
 test.describe('Edit Modal - i18n', () => {
-  test('edit modal shows English when language is set to English', async ({ page }) => {
+  test('edit modal header translates to English', async ({ page }) => {
     await loadApp(page);
     await switchToEnglish(page);
     await openEdit(page);
 
     const modal = page.locator('#editModal');
-
-    // Title should be in English
     await expect(modal.locator('.edit-title')).toHaveText('Edit Data');
-
-    // Subtitle
     await expect(modal.locator('.edit-subtitle')).toContainText('Changes apply to the dashboard');
-
-    // Tabs should be in English
-    await expect(modal.locator('.edit-tab', { hasText: /Settings/ })).toBeVisible();
-    await expect(modal.locator('.edit-tab', { hasText: /Expenses/ })).toBeVisible();
-    await expect(modal.locator('.edit-tab', { hasText: /Funds/ })).toBeVisible();
-    await expect(modal.locator('.edit-tab', { hasText: /Emergency/ })).toBeVisible();
-    await expect(modal.locator('.edit-tab', { hasText: /History/ })).toBeVisible();
-
-    // Buttons should be in English
-    await expect(modal.locator('button', { hasText: /Save & export/ })).toBeVisible();
-    await expect(modal.locator('button', { hasText: /Save/ }).first()).toBeVisible();
-    await expect(modal.locator('button', { hasText: /Close/ })).toBeVisible();
-
-    // Card title should be in English
-    await expect(modal.locator('.edit-card-title', { hasText: /Global Settings/ })).toBeVisible();
   });
 
-  test('edit modal shows Spanish when language is set to Spanish', async ({ page }) => {
+  test('edit modal header stays Spanish when language is Spanish', async ({ page }) => {
     await loadApp(page);
     await switchToSpanish(page);
     await openEdit(page);
 
     const modal = page.locator('#editModal');
-
     await expect(modal.locator('.edit-title')).toHaveText('Editar Datos');
-    await expect(modal.locator('.edit-tab', { hasText: /Configuración/ })).toBeVisible();
-    await expect(modal.locator('.edit-tab', { hasText: /Gastos/ })).toBeVisible();
-    await expect(modal.locator('.edit-card-title', { hasText: /Parámetros Globales/ })).toBeVisible();
+    await expect(modal.locator('.edit-subtitle')).toContainText('Los cambios se aplican');
   });
 
-  test('edit modal card titles translate to English for all sections', async ({ page }) => {
+  test('edit modal tabs translate to English', async ({ page }) => {
+    await loadApp(page);
+    await switchToEnglish(page);
+    await openEdit(page);
+
+    const modal = page.locator('#editModal');
+    await expect(modal.locator('.edit-tab', { hasText: /Settings/ })).toBeVisible();
+    await expect(modal.locator('.edit-tab', { hasText: /Expenses/ })).toBeVisible();
+    await expect(modal.locator('.edit-tab', { hasText: /Funds/ })).toBeVisible();
+    await expect(modal.locator('.edit-tab', { hasText: /Emergency/ })).toBeVisible();
+    await expect(modal.locator('.edit-tab', { hasText: /History/ })).toBeVisible();
+  });
+
+  test('edit modal action buttons translate to English', async ({ page }) => {
     await loadApp(page);
     await switchToEnglish(page);
     await openEdit(page);
 
     const modal = page.locator('#editModal');
 
-    // Navigate to each tab and verify card titles are English
+    // Header buttons
+    await expect(modal.locator('.edit-actions button', { hasText: /Save & export/ })).toBeVisible();
+    await expect(modal.locator('.edit-actions button', { hasText: /Save/ }).first()).toBeVisible();
+    await expect(modal.locator('.edit-actions button', { hasText: /Close/ })).toBeVisible();
+
+    // Save bar buttons at the bottom
+    await expect(modal.locator('.save-bar button', { hasText: /Save & export/ })).toBeVisible();
+    await expect(modal.locator('.save-bar button', { hasText: /Save/ }).first()).toBeVisible();
+  });
+
+  test('config section field labels translate to English', async ({ page }) => {
+    await loadApp(page);
+    await switchToEnglish(page);
+    await openEdit(page);
+
+    const config = page.locator('#esection-config');
+    await expect(config).toBeVisible();
+
+    // Config field labels should be English
+    await expect(config).toContainText('Exchange Rate (RD$/USD)');
+    await expect(config).toContainText('Current Month');
+    await expect(config).toContainText('Current Year');
+    await expect(config).toContainText('Monthly Income (USD)');
+    await expect(config).toContainText('Payment alert days');
+
+    // Notes should be English
+    await expect(config).toContainText('Update monthly');
+    await expect(config).toContainText('In dollars');
+  });
+
+  test('config section field labels show Spanish when language is Spanish', async ({ page }) => {
+    await loadApp(page);
+    await switchToSpanish(page);
+    await openEdit(page);
+
+    const config = page.locator('#esection-config');
+    await expect(config).toContainText('Tasa Dólar (RD$/USD)');
+    await expect(config).toContainText('Mes Actual');
+    await expect(config).toContainText('Año Actual');
+    await expect(config).toContainText('Ingreso Mensual (USD)');
+    await expect(config).toContainText('Días alerta vencimiento');
+  });
+
+  test('all card titles translate to English across sections', async ({ page }) => {
+    await loadApp(page);
+    await switchToEnglish(page);
+    await openEdit(page);
+
+    const modal = page.locator('#editModal');
+
+    // Config section (already visible)
+    await expect(modal.locator('.edit-card-title', { hasText: /Global Settings/ })).toBeVisible();
+
     // Expenses tab
     await modal.locator('.edit-tab', { hasText: /Expenses/ }).click();
     await expect(modal.locator('.edit-card-title', { hasText: /Monthly Expenses/ })).toBeVisible();
@@ -113,47 +153,129 @@ test.describe('Edit Modal - i18n', () => {
     await expect(modal.locator('.row-add-btn', { hasText: /Add month/ })).toBeVisible();
   });
 
-  test('edit modal table headers translate to English', async ({ page }) => {
+  test('table headers translate to English', async ({ page }) => {
     await loadApp(page);
     await switchToEnglish(page);
     await openEdit(page);
 
     const modal = page.locator('#editModal');
 
-    // Funds tab - check table headers
+    // Expenses table headers
+    await modal.locator('.edit-tab', { hasText: /Expenses/ }).click();
+    const expTable = modal.locator('#esection-esenciales thead');
+    await expect(expTable).toContainText('Description');
+    await expect(expTable).toContainText('Type');
+    await expect(expTable).toContainText('Deadline');
+
+    // Funds table headers
     await modal.locator('.edit-tab', { hasText: /Funds/ }).click();
     const fornowTable = modal.locator('#esection-fornow thead');
     await expect(fornowTable).toContainText('Account');
     await expect(fornowTable).toContainText('Currency');
-    await expect(fornowTable).toContainText('Balance');
     await expect(fornowTable).toContainText('Committed');
 
-    // Emergency tab
+    // Funds date label
+    await expect(modal.locator('#esection-fornow')).toContainText('Date Updated');
+
+    // Emergency table headers
     await modal.locator('.edit-tab', { hasText: /Emergency/ }).click();
     const emergTable = modal.locator('#esection-emergency thead');
     await expect(emergTable).toContainText('Fund');
-    await expect(emergTable).toContainText('Currency');
     await expect(emergTable).toContainText('Current Balance');
     await expect(emergTable).toContainText('Minimum Goal');
+
+    // History table headers
+    await modal.locator('.edit-tab', { hasText: /History/ }).click();
+    const histTable = modal.locator('#esection-historial thead');
+    await expect(histTable).toContainText('Month');
+    await expect(histTable).toContainText('Year');
+    await expect(histTable).toContainText('Income (USD)');
   });
 
-  test('switching language and reopening edit modal updates correctly', async ({ page }) => {
+  test('cashflow field labels translate to English', async ({ page }) => {
+    await loadApp(page);
+    await switchToEnglish(page);
+    await openEdit(page);
+
+    const modal = page.locator('#editModal');
+
+    // Navigate to emergency tab (cashflow is there)
+    await modal.locator('.edit-tab', { hasText: /Emergency/ }).click();
+    const cashflow = modal.locator('#cashflowFields');
+    await expect(cashflow).toBeVisible();
+
+    await expect(cashflow).toContainText('Monthly Income (RD$)');
+    await expect(cashflow).toContainText('Total Monthly Expenses');
+    await expect(cashflow).toContainText('Exchange Rate');
+    await expect(cashflow).toContainText('Withdraw in USD');
+    await expect(cashflow).toContainText('Savings this month');
+    await expect(cashflow).toContainText('Savings Balance');
+  });
+
+  test('cashflow field labels show Spanish when language is Spanish', async ({ page }) => {
+    await loadApp(page);
+    await switchToSpanish(page);
+    await openEdit(page);
+
+    const modal = page.locator('#editModal');
+    await modal.locator('.edit-tab', { hasText: /Emergencia/ }).click();
+    const cashflow = modal.locator('#cashflowFields');
+
+    await expect(cashflow).toContainText('Ingreso Mensual (RD$)');
+    await expect(cashflow).toContainText('Gasto Mensual Total');
+    await expect(cashflow).toContainText('Tasa Dólar');
+    await expect(cashflow).toContainText('Retirar en USD');
+    await expect(cashflow).toContainText('Ahorros este mes');
+    await expect(cashflow).toContainText('Balance Ahorros');
+  });
+
+  test('switching language and reopening edit modal updates all fields', async ({ page }) => {
     await loadApp(page);
 
-    // Open in Spanish first
+    // Open in Spanish
     await switchToSpanish(page);
     await openEdit(page);
     await expect(page.locator('#editModal .edit-title')).toHaveText('Editar Datos');
+    await expect(page.locator('#esection-config')).toContainText('Tasa Dólar (RD$/USD)');
 
-    // Close modal
+    // Close
     await page.evaluate(() => window.closeEditModal());
 
-    // Switch to English
+    // Switch to English and reopen
     await switchToEnglish(page);
-
-    // Reopen - should now be in English
     await openEdit(page);
     await expect(page.locator('#editModal .edit-title')).toHaveText('Edit Data');
+    await expect(page.locator('#esection-config')).toContainText('Exchange Rate (RD$/USD)');
     await expect(page.locator('#editModal .edit-tab', { hasText: /Settings/ })).toBeVisible();
+  });
+
+  test('no Spanish text remains in edit modal when set to English', async ({ page }) => {
+    await loadApp(page);
+    await switchToEnglish(page);
+    await openEdit(page);
+
+    const modal = page.locator('#editModal');
+
+    // Check config section (visible by default)
+    const configText = await modal.locator('#esection-config').innerText();
+    expect(configText).not.toContain('Tasa Dólar');
+    expect(configText).not.toContain('Mes Actual');
+    expect(configText).not.toContain('Año Actual');
+    expect(configText).not.toContain('Actualizar mensualmente');
+    expect(configText).not.toContain('En dólares');
+
+    // Check header area
+    const headerText = await modal.locator('.edit-header').innerText();
+    expect(headerText).not.toContain('Editar Datos');
+    expect(headerText).not.toContain('Guardar');
+    expect(headerText).not.toContain('Cerrar');
+
+    // Check tabs
+    const tabsText = await modal.locator('.edit-tabs').innerText();
+    expect(tabsText).not.toContain('Configuración');
+    expect(tabsText).not.toContain('Gastos');
+    expect(tabsText).not.toContain('Fondos');
+    expect(tabsText).not.toContain('Emergencia');
+    expect(tabsText).not.toContain('Historial');
   });
 });

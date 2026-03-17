@@ -876,7 +876,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         </div>
       </div>
       <div class="edit-actions">
-        <span class="changes-badge" id="changesBadge" style="display:none">● <span id="changesCount">0</span> cambios</span>
+        <span class="changes-badge" id="changesBadge" style="display:none">● <span id="changesCount">0</span> <span data-i18n="edit_changes">cambios</span></span>
         <button class="btn btn-success" onclick="applyAndDownload()" data-i18n="edit_save">💾 Guardar y exportar Excel</button>
         <button class="btn btn-primary" onclick="applyChanges()" data-i18n="edit_apply">✓ Guardar</button>
         <button class="btn btn-ghost" onclick="closeEditModal()" data-i18n="edit_close">✕ Cerrar</button>
@@ -937,8 +937,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     </div>
     <div class="save-bar">
       <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn btn-success" onclick="applyAndDownload()">💾 Guardar y exportar Excel</button>
-        <button class="btn btn-primary" onclick="applyChanges()">✓ Guardar</button>
+        <button class="btn btn-success" onclick="applyAndDownload()" data-i18n="edit_save">💾 Guardar y exportar Excel</button>
+        <button class="btn btn-primary" onclick="applyChanges()" data-i18n="edit_apply">✓ Guardar</button>
       </div>
     </div>
   </div>
@@ -1115,6 +1115,16 @@ const LANG = {
     edit_add_row:'+ Agregar fila', edit_add_cuenta:'+ Agregar cuenta',
     edit_add_fondo:'+ Agregar fondo', edit_add_mes:'+ Agregar mes',
     edit_changes:'cambios',
+    // Config field labels
+    ecfg_tasa:'Tasa Dólar (RD$/USD)', ecfg_tasa_note:'Actualizar mensualmente',
+    ecfg_mes:'Mes Actual', ecfg_mes_note:'Nombre del mes',
+    ecfg_anio:'Año Actual', ecfg_anio_note:'',
+    ecfg_ingreso:'Ingreso Mensual (USD)', ecfg_ingreso_note:'En dólares',
+    ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Días antes para alertar',
+    // Cashflow field labels
+    ecf_ingreso:'Ingreso Mensual (RD$)', ecf_gasto:'Gasto Mensual Total',
+    ecf_tasa:'Tasa Dólar', ecf_retirarUSD:'Retirar en USD',
+    ecf_ahorros:'Ahorros este mes', ecf_balanceAhorros:'Balance Ahorros',
     // Edit table headers
     eth_desc:'Descripción', eth_tipo:'Tipo', eth_pagado:'Pagado (RD$)', eth_adeudado:'Adeudado (RD$)',
     eth_dia:'Día Pago', eth_tasa:'Tasa %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
@@ -1341,6 +1351,16 @@ const LANG = {
     edit_add_row:'+ Add row', edit_add_cuenta:'+ Add account',
     edit_add_fondo:'+ Add fund', edit_add_mes:'+ Add month',
     edit_changes:'changes',
+    // Config field labels
+    ecfg_tasa:'Exchange Rate (RD$/USD)', ecfg_tasa_note:'Update monthly',
+    ecfg_mes:'Current Month', ecfg_mes_note:'Month name',
+    ecfg_anio:'Current Year', ecfg_anio_note:'',
+    ecfg_ingreso:'Monthly Income (USD)', ecfg_ingreso_note:'In dollars',
+    ecfg_dias:'Payment alert days', ecfg_dias_note:'Days before to alert',
+    // Cashflow field labels
+    ecf_ingreso:'Monthly Income (RD$)', ecf_gasto:'Total Monthly Expenses',
+    ecf_tasa:'Exchange Rate', ecf_retirarUSD:'Withdraw in USD',
+    ecf_ahorros:'Savings this month', ecf_balanceAhorros:'Savings Balance',
     // Edit table headers
     eth_desc:'Description', eth_tipo:'Type', eth_pagado:'Paid (RD$)', eth_adeudado:'Owed (RD$)',
     eth_dia:'Pay Day', eth_tasa:'Rate %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
@@ -2038,17 +2058,19 @@ async function hardResetCache(){
   const btn=event?.currentTarget;
   if(btn){btn.style.opacity='0.5';btn.style.pointerEvents='none';}
   try{
-    // 1. Unregister all Service Workers
-    if('serviceWorker' in navigator){
+    // 1. Unregister all Service Workers (only works on http/https origins)
+    if('serviceWorker' in navigator && location.protocol.startsWith('http')){
       const regs=await navigator.serviceWorker.getRegistrations();
       await Promise.all(regs.map(r=>r.unregister()));
     }
     // 2. Clear all Cache Storage caches
-    if('caches' in window){
+    if('caches' in window && location.protocol.startsWith('http')){
       const keys=await caches.keys();
       await Promise.all(keys.map(k=>caches.delete(k)));
     }
-    // 3. Show brief toast then hard reload
+    // 3. Clear IndexedDB saved data
+    try{await dbDelete(STORE_DATA,'editData');await dbDelete(STORE_DATA,'meta');await dbDelete(STORE_WB,'rawWb');}catch(e){}
+    // 4. Show brief toast then hard reload
     showToast('🔄 Caché limpiado — recargando...');
     setTimeout(()=>location.reload(true),800);
   }catch(e){
@@ -3803,11 +3825,11 @@ function buildEditForms(){
   const {config,gastos,forNow,emerg,historial}=_editData;
   // CONFIG
   document.getElementById('configFields').innerHTML=[
-    {id:'cfg-tasa',label:'Tasa Dólar (RD$/USD)',note:'Actualizar mensualmente',key:'tasa',val:config.tasa},
-    {id:'cfg-mes',label:'Mes Actual',note:'Nombre del mes',key:'mes',val:config.mes,type:'text'},
-    {id:'cfg-anio',label:'Año Actual',note:'',key:'anio',val:config.anio},
-    {id:'cfg-ingreso',label:'Ingreso Mensual (USD)',note:'En dólares',key:'ingresoUSD',val:config.ingresoUSD},
-    {id:'cfg-diasAlerta',label:'Días alerta vencimiento',note:'Días antes para alertar',key:'diasAlerta',val:config.diasAlerta||5},
+    {id:'cfg-tasa',label:t('ecfg_tasa'),note:t('ecfg_tasa_note'),key:'tasa',val:config.tasa},
+    {id:'cfg-mes',label:t('ecfg_mes'),note:t('ecfg_mes_note'),key:'mes',val:config.mes,type:'text'},
+    {id:'cfg-anio',label:t('ecfg_anio'),note:t('ecfg_anio_note'),key:'anio',val:config.anio},
+    {id:'cfg-ingreso',label:t('ecfg_ingreso'),note:t('ecfg_ingreso_note'),key:'ingresoUSD',val:config.ingresoUSD},
+    {id:'cfg-diasAlerta',label:t('ecfg_dias'),note:t('ecfg_dias_note'),key:'diasAlerta',val:config.diasAlerta||5},
   ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="${f.type||'number'}" value="${f.val}" oninput="markChanged(this)" step="any"><div class="field-note">${f.note}</div></div>`).join('');
   // ESENCIALES
   const eb=document.getElementById('esencialesEditBody');eb.innerHTML='';
@@ -3852,13 +3874,13 @@ function buildEditForms(){
   // CASHFLOW
   const cf=emerg.cashflow;
   document.getElementById('cashflowFields').innerHTML=[
-    {id:'cf-ingreso',label:'Ingreso Mensual (RD$)',key:'ingreso',val:cf.ingreso||0},
-    {id:'cf-gasto',label:'Gasto Mensual Total',key:'gasto',val:cf.gasto||0},
-    {id:'cf-tasa',label:'Tasa Dólar',key:'tasa',val:cf.tasa||0},
-    {id:'cf-retirarUSD',label:'Retirar en USD',key:'retirarUSD',val:cf.retirarUSD||0},
+    {id:'cf-ingreso',label:t('ecf_ingreso'),key:'ingreso',val:cf.ingreso||0},
+    {id:'cf-gasto',label:t('ecf_gasto'),key:'gasto',val:cf.gasto||0},
+    {id:'cf-tasa',label:t('ecf_tasa'),key:'tasa',val:cf.tasa||0},
+    {id:'cf-retirarUSD',label:t('ecf_retirarUSD'),key:'retirarUSD',val:cf.retirarUSD||0},
     // resta removed — always calculated as ingreso - gasto
-    {id:'cf-ahorros',label:'Ahorros este mes',key:'ahorros',val:cf.ahorros||0},
-    {id:'cf-balanceAhorros',label:'Balance Ahorros',key:'balanceAhorros',val:cf.balanceAhorros||0},
+    {id:'cf-ahorros',label:t('ecf_ahorros'),key:'ahorros',val:cf.ahorros||0},
+    {id:'cf-balanceAhorros',label:t('ecf_balanceAhorros'),key:'balanceAhorros',val:cf.balanceAhorros||0},
   ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="number" step="any" value="${f.val}" oninput="markChanged(this);_editData.emerg.cashflow['${f.key}']=parseFloat(this.value)||0"></div>`).join('');
   // HISTORIAL
   const hb=document.getElementById('historialEditBody');hb.innerHTML='';
