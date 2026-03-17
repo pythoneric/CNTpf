@@ -919,7 +919,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-card" style="margin-bottom:16px">
         <div class="edit-card-title">🛡 Fondos de Emergencia</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th data-i18n="eth_fondo">Fondo</th><th data-i18n="eth_balanceActual">Balance Actual</th><th data-i18n="eth_metaMinima">Meta Mínima</th><th></th></tr></thead><tbody id="emergFundsEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_fondo">Fondo</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_balanceActual">Balance Actual</th><th data-i18n="eth_metaMinima">Meta Mínima</th><th></th></tr></thead><tbody id="emergFundsEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addEmergFundRow()">+ Agregar fondo</button>
       </div>
@@ -1113,7 +1113,7 @@ const LANG = {
     eth_dia:'Día Pago', eth_tasa:'Tasa %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
     eth_originalUSD:'Original (USD)', eth_fechaLimite:'Fecha Límite', eth_notas:'Notas',
     eth_cuenta:'Cuenta', eth_saldo:'Saldo (RD$)', eth_comprometido:'Comprometido (RD$)',
-    eth_fondo:'Fondo', eth_balanceActual:'Balance Actual', eth_metaMinima:'Meta Mínima',
+    eth_fondo:'Fondo', eth_moneda:'Moneda', eth_balanceActual:'Balance Actual', eth_metaMinima:'Meta Mínima',
     eth_mes:'Mes', eth_anio:'Año', eth_ingresosUSD:'Ingresos (USD)', eth_gastoRD:'Gasto (RD$)',
     eth_tasaDolar:'Tasa Dólar', eth_deudasRD:'Deudas (RD$)', eth_emergenciaRD:'Emergencia (RD$)',
     eth_netWorthRD:'Net Worth (RD$)',
@@ -1333,7 +1333,7 @@ const LANG = {
     eth_dia:'Pay Day', eth_tasa:'Rate %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
     eth_originalUSD:'Original (USD)', eth_fechaLimite:'Deadline', eth_notas:'Notes',
     eth_cuenta:'Account', eth_saldo:'Balance (RD$)', eth_comprometido:'Committed (RD$)',
-    eth_fondo:'Fund', eth_balanceActual:'Current Balance', eth_metaMinima:'Minimum Goal',
+    eth_fondo:'Fund', eth_moneda:'Currency', eth_balanceActual:'Current Balance', eth_metaMinima:'Minimum Goal',
     eth_mes:'Month', eth_anio:'Year', eth_ingresosUSD:'Income (USD)', eth_gastoRD:'Expenses (RD$)',
     eth_tasaDolar:'Exchange Rate', eth_deudasRD:'Debts (RD$)', eth_emergenciaRD:'Emergency (RD$)',
     eth_netWorthRD:'Net Worth (RD$)',
@@ -1679,7 +1679,7 @@ function defaultEditData(){
 function renderSwCuenta(i,c){
   return`<div class="sw-cuenta-row" style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
     <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
-    <input class="cierre-input sw-cnt-saldo" type="number" placeholder="Saldo RD$" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
+    <input class="cierre-input sw-cnt-saldo" type="number" step="any" placeholder="Saldo RD$" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
     <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
   </div>`;
 }
@@ -1697,10 +1697,10 @@ function renderSwGasto(i,g){
       <button class="row-del-btn" onclick="this.closest('.sw-gasto-row').remove()">✕</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (RD$)</div><input class="cierre-input sw-g-adeudado" type="number" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="number" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="number" step="0.01" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="number" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (RD$)</div><input class="cierre-input sw-g-adeudado" type="number" step="any" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="number" step="any" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="number" step="any" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="number" step="any" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
     </div>
   </div>`;
 }
@@ -1708,15 +1708,17 @@ function addSwGasto(){
   document.getElementById('sw-gastos-list').insertAdjacentHTML('beforeend',renderSwGasto(Date.now(),{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0}));
 }
 function renderSwFondo(i,f){
-  return`<div class="sw-fondo-row" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
+  const mon=f.moneda||'RD';
+  return`<div class="sw-fondo-row" style="display:grid;grid-template-columns:1fr auto 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
     <input class="cierre-input sw-f-nombre" placeholder="Nombre fondo" value="${escH(f.fondo)}" style="font-size:13px;padding:8px 10px">
-    <input class="cierre-input sw-f-balance" type="number" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
-    <input class="cierre-input sw-f-meta" type="number" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
+    <select class="cierre-input sw-f-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
+    <input class="cierre-input sw-f-balance" type="number" step="any" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-meta" type="number" step="any" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
     <button class="row-del-btn" onclick="this.closest('.sw-fondo-row').remove()">✕</button>
   </div>`;
 }
 function addSwFondo(){
-  document.getElementById('sw-fondos-list').insertAdjacentHTML('beforeend',renderSwFondo(Date.now(),{fondo:'',balance:0,meta:0}));
+  document.getElementById('sw-fondos-list').insertAdjacentHTML('beforeend',renderSwFondo(Date.now(),{fondo:'',balance:0,meta:0,moneda:'RD'}));
 }
 
 // ── _setupSteps defined BEFORE startFromScratch so it's assigned when the function runs ──
@@ -1733,8 +1735,8 @@ const _setupSteps=[
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div><label class="cierre-label">Año</label><input class="cierre-input" type="number" id="sw-anio" value="${_editData.config.anio}"></div>
-        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="number" step="0.01" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
+        <div><label class="cierre-label">Año</label><input class="cierre-input" type="number" step="any" id="sw-anio" value="${_editData.config.anio}"></div>
+        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="number" step="any" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
       </div>
       <div style="margin-top:14px">
         <label class="cierre-label">Ingreso mensual</label>
@@ -1752,7 +1754,7 @@ const _setupSteps=[
         </div>
         <div style="position:relative">
           <span id="sw-ing-prefix" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--muted);pointer-events:none">USD</span>
-          <input class="cierre-input" type="number" id="sw-ingreso"
+          <input class="cierre-input" type="number" step="any" id="sw-ingreso"
             value="${_editData.config.ingresoUSD||''}"
             placeholder="ej. 1500"
             style="padding-left:52px"
@@ -1760,7 +1762,7 @@ const _setupSteps=[
         </div>
         <div id="sw-ingreso-preview" style="margin-top:8px;padding:8px 12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:12px;color:var(--accent);display:none"></div>
       </div>
-      <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="number" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
+      <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="number" step="any" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
     `,
     save:()=>{
       _editData.config.mes=document.getElementById('sw-mes').value;
@@ -1847,7 +1849,7 @@ const _setupSteps=[
       <button class="row-add-btn" onclick="addSwFondo()" style="margin-top:8px">+ Agregar fondo</button>
       <div style="margin-top:16px">
         <label class="cierre-label">Balance de ahorros acumulados (RD$)</label>
-        <input class="cierre-input" type="number" id="sw-balAh" value="${_editData.emerg.cashflow.balanceAhorros||0}" placeholder="0">
+        <input class="cierre-input" type="number" step="any" id="sw-balAh" value="${_editData.emerg.cashflow.balanceAhorros||0}" placeholder="0">
       </div>
     `,
     save:()=>{
@@ -1856,9 +1858,10 @@ const _setupSteps=[
       rows.forEach(row=>{
         const fondo=row.querySelector('.sw-f-nombre').value.trim();
         if(!fondo)return;
+        const moneda=row.querySelector('.sw-f-moneda').value||'RD';
         const balance=parseFloat(row.querySelector('.sw-f-balance').value)||0;
         const meta=parseFloat(row.querySelector('.sw-f-meta').value)||0;
-        _editData.emerg.fondos.push({fondo,balance,meta,falta:Math.max(0,meta-balance)});
+        _editData.emerg.fondos.push({fondo,balance,meta,falta:Math.max(0,meta-balance),moneda});
       });
       _editData.emerg.cashflow.balanceAhorros=parseFloat(document.getElementById('sw-balAh').value)||0;
     }
@@ -2128,8 +2131,11 @@ function parseEmergency(rows){
     const k=String(r[0]||'').trim();
     if(k.includes('SECCIÓN A')){inA=true;inB=false;return;}
     if(k.includes('SECCIÓN B')){inB=true;inA=false;return;}
-    if(inA&&k&&!k.includes('Fondo')&&!k.includes('TOTAL'))
-      res.fondos.push({fondo:k,balance:clean(r[1]),meta:clean(r[2])});
+    if(inA&&k&&!k.includes('Fondo')&&!k.includes('TOTAL')){
+      const mon=String(r[1]||'').trim().toUpperCase();
+      const isUSD=mon==='USD';
+      res.fondos.push({fondo:k,moneda:isUSD?'USD':'RD',balance:clean(r[isUSD?2:1]),meta:clean(r[isUSD?3:2])});
+    }
     if(inB&&k&&!k.includes('Concepto')){
       const kl=k.toLowerCase();
       if(kl.includes('ingreso mensual'))res.cashflow.ingreso=clean(r[1]);
@@ -2182,8 +2188,8 @@ function calcScore({ingreso,gasto,resta,totalBalance,config,emerg,historial}){
   const dpts=Math.round(Math.max(0,Math.min(30,(1-Math.min(dRatio,1))*30)));
   score+=dpts;details.push({l:'Deuda vs Ingreso Anual',v:`${(dRatio*100).toFixed(0)}%`,pts:dpts,max:30,c:dRatio<.5?'var(--green)':dRatio<1?'var(--yellow)':'var(--red)'});
   // Fix #11: Fondos emergencia — ponderar fondos iniciados vs completos
-  const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
-  const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
+  const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
+  const efMeta=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).meta,0);
   const fondosIniciados=emerg.fondos.filter(f=>f.balance>0).length;
   const fondosTotales=emerg.fondos.length;
   const efPct=efMeta>0?efTotal/efMeta:0;
@@ -2262,8 +2268,8 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
   const altaTasa=gastos.filter(g=>g.tasa>15&&g.balance>0);
   altaTasa.forEach(g=>agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${g.tasa}% ${_lang==='es'?'anual':'annual'} — RD$${fmt(g.balance)} ${_lang==='es'?'pendiente':'outstanding'}</div></div></div>`));
   if(emerg){
-    const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
-    const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
+    const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
+    const efMeta=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).meta,0);
     const efPct=efMeta>0?efTotal/efMeta:0;
     if(efPct<0.25)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_critical_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — RD$'+fmt(Math.round(efMeta-efTotal))+' para alcanzar la meta':'completed — RD$'+fmt(Math.round(efMeta-efTotal))+' to reach goal'}</div></div></div>`);
     else if(efPct<0.5)agHtml.push(`<div class="alert-item warning"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_low_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — sigue aportando mensualmente':'completed — keep contributing monthly'}</div></div></div>`);
@@ -2477,7 +2483,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Pago extra mensual disponible (RD$) — arrastra el slider o escribe un monto</div>
         <input type="range" id="extraSlider" min="0" max="${Math.max(1,resta*2)}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
-          <input type="number" id="extraInput" value="${extraPayment}" min="0" max="${Math.round(resta*2)}" step="1000"
+          <input type="number" id="extraInput" value="${extraPayment}" min="0" max="${Math.round(resta*2)}" step="any"
             oninput="document.getElementById('extraSlider').value=this.value;updateProyector()"
             style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:140px;min-width:100px">
           <span style="font-size:12px;color:var(--muted)">RD$/mes</span>
@@ -2563,7 +2569,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
     return `<tr>
       <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
       <td data-label="Tasa actual" class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
-      <td data-label="Tasa objetivo"><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="0.5"
+      <td data-label="Tasa objetivo"><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="any"
         oninput="updateRefiRow(${i})"
         style="background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);width:80px">
         <span style="font-size:11px;color:var(--muted)">%</span></td>
@@ -2778,8 +2784,8 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const ingreso=config.ingresoUSD>0&&config.tasa>0?(config.ingresoUSD*config.tasa):(config.ingresoRD||cf.ingreso||0);
   const gasto=totalAdeudado||cf.gasto;
   const resta=ingreso-gasto;
-  const efTotal=emerg.fondos.reduce((a,f)=>a+f.balance,0);
-  const efMeta=emerg.fondos.reduce((a,f)=>a+f.meta,0);
+  const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
+  const efMeta=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).meta,0);
   const netWorth=(cf.balanceAhorros||0)+efTotal-totalBalance;
   const gastoPct=ingreso>0?Math.round((gasto/ingreso)*100):0;
   const sobrante=100-gastoPct;
@@ -2942,23 +2948,25 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
 
   const efEl=document.getElementById('efFunds');efEl.innerHTML='';
   const halfSurplus=Math.max(0,resta*0.5);
-  const totalFalta=emerg.fondos.reduce((a,f)=>a+Math.max(0,f.meta-f.balance),0);
-  const sortedFondos=[...emerg.fondos].sort((a,b)=>{const pa=a.meta>0?a.balance/a.meta:1;const pb=b.meta>0?b.balance/b.meta:1;return pa-pb;});
+  const totalFalta=emerg.fondos.reduce((a,f)=>{const rd=fondoToRD(f);return a+Math.max(0,rd.meta-rd.balance);},0);
+  const sortedFondos=[...emerg.fondos].sort((a,b)=>{const ra=fondoToRD(a),rb=fondoToRD(b);const pa=ra.meta>0?ra.balance/ra.meta:1;const pb=rb.meta>0?rb.balance/rb.meta:1;return pa-pb;});
   efEl.innerHTML=sortedFondos.map(e=>{
-    const pct=e.meta>0?Math.min(Math.round((e.balance/e.meta)*100),100):0;
-    const falta=Math.max(0,e.meta-e.balance);
-    const aporteSug=totalFalta>0&&halfSurplus>0?Math.round(halfSurplus*(falta/totalFalta)):0;
-    const mesesFondo=aporteSug>0?Math.ceil(falta/aporteSug):'—';
+    const rd=fondoToRD(e);const cur=fondosCurrency(e);
+    const pct=rd.meta>0?Math.min(Math.round((rd.balance/rd.meta)*100),100):0;
+    const faltaRD=Math.max(0,rd.meta-rd.balance);
+    const aporteSug=totalFalta>0&&halfSurplus>0?Math.round(halfSurplus*(faltaRD/totalFalta)):0;
+    const mesesFondo=aporteSug>0?Math.ceil(faltaRD/aporteSug):'—';
     const bc=pct>=90?'linear-gradient(90deg,#22d3a0,#06b6d4)':pct>30?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#f4606a,#c026d3)';
-    return `<div class="ef-row"><div class="ef-header"><div class="ef-name">${escH(e.fondo)}</div>
+    const showOrig=e.moneda==='USD'?` <span style="font-size:10px;color:var(--muted)">(${cur}${fmt(e.balance)} × ${_editData.config.tasa})</span>`:'';
+    return `<div class="ef-row"><div class="ef-header"><div class="ef-name">${escH(e.fondo)}${e.moneda==='USD'?' <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px">USD</span>':''}</div>
       <div class="ef-nums">
-        <span style="color:var(--muted)">${t('ef_balance_lbl')} <span class="mono" style="color:var(--yellow);font-weight:700">RD$${fmt(e.balance)}</span></span>
-        <span style="color:var(--muted)">${t('ef_goal_lbl')} <span class="mono" style="color:var(--muted);font-weight:700">RD$${fmt(e.meta)}</span></span>
-        <span style="color:var(--muted)">${t('ef_missing_lbl')} <span class="mono" style="color:var(--red);font-weight:700">RD$${fmt(falta)}</span></span>
+        <span style="color:var(--muted)">${t('ef_balance_lbl')} <span class="mono" style="color:var(--yellow);font-weight:700">RD$${fmt(rd.balance)}</span>${showOrig}</span>
+        <span style="color:var(--muted)">${t('ef_goal_lbl')} <span class="mono" style="color:var(--muted);font-weight:700">RD$${fmt(rd.meta)}</span></span>
+        <span style="color:var(--muted)">${t('ef_missing_lbl')} <span class="mono" style="color:var(--red);font-weight:700">RD$${fmt(faltaRD)}</span></span>
       </div></div>
       <div style="display:flex;align-items:center;gap:10px"><div class="progress-wrap" style="flex:1;margin:0"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       <span class="mono" style="font-size:12px;color:${pct>90?'var(--green)':'var(--muted)'};min-width:36px;text-align:right">${pct}%</span></div>
-      ${falta>0?`<div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--muted)"><span>${_lang==='es'?'Aporte sugerido':'Suggested'}: <span class="mono" style="color:var(--accent)">RD$${fmt(aporteSug)}/mes</span></span><span>${_lang==='es'?'Meta en':'Goal in'} <span class="mono" style="color:var(--yellow)">~${mesesFondo} ${_lang==='es'?'meses':'mo'}</span></span></div>`:''}
+      ${faltaRD>0?`<div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--muted)"><span>${_lang==='es'?'Aporte sugerido':'Suggested'}: <span class="mono" style="color:var(--accent)">RD$${fmt(aporteSug)}/mes</span></span><span>${_lang==='es'?'Meta en':'Goal in'} <span class="mono" style="color:var(--yellow)">~${mesesFondo} ${_lang==='es'?'meses':'mo'}</span></span></div>`:''}
     </div>`;
   }).join('');
 
@@ -3036,9 +3044,9 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     });
     charts.efChart=new Chart(document.getElementById('efChart'),{
       type:'bar',
-      data:{labels:emerg.fondos.map(e=>e.fondo),datasets:[
-        {label:'Balance Actual',data:emerg.fondos.map(e=>e.balance),backgroundColor:'#22d3a099',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
-        {label:'Meta',data:emerg.fondos.map(e=>e.meta),backgroundColor:'rgba(26,37,64,.5)',borderColor:'#1a2540',borderWidth:1,borderRadius:6},
+      data:{labels:emerg.fondos.map(e=>e.fondo+(e.moneda==='USD'?' (USD)':'')),datasets:[
+        {label:'Balance Actual (RD$)',data:emerg.fondos.map(e=>fondoToRD(e).balance),backgroundColor:'#22d3a099',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
+        {label:'Meta (RD$)',data:emerg.fondos.map(e=>fondoToRD(e).meta),backgroundColor:'rgba(26,37,64,.5)',borderColor:'#1a2540',borderWidth:1,borderRadius:6},
       ]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
         scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
@@ -3246,19 +3254,19 @@ function buildSavingsGoals(){
         <div class="grid g3" style="gap:12px">
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_saved')}</div>
-            <input type="number" value="${saved}" min="0"
+            <input type="number" step="any" value="${saved}" min="0"
               oninput="_editData.metas[${i}].saved=parseFloat(this.value)||0;autoSave();buildSavingsGoals()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green);width:100%;outline:none">
           </div>
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_goal')}</div>
-            <input type="number" value="${goal}" min="1"
+            <input type="number" step="any" value="${goal}" min="1"
               oninput="_editData.metas[${i}].goal=parseFloat(this.value)||1;autoSave();buildSavingsGoals()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:100%;outline:none">
           </div>
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_monthly')}</div>
-            <input type="number" value="${monthly}" min="0"
+            <input type="number" step="any" value="${monthly}" min="0"
               oninput="_editData.metas[${i}].monthly=parseFloat(this.value)||0;autoSave();buildSavingsGoals()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);width:100%;outline:none">
           </div>
@@ -3543,7 +3551,7 @@ function renderCierre(){
     const savedMes=_cierreNextMes||months[nextIdx];
     const savedAnio=_cierreNextAnio||nextAnio;
     html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_mes')}</label><input class="cierre-input" type="text" id="cw-nextmes" value="${savedMes}"></div>`;
-    html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_anio')}</label><input class="cierre-input" type="number" id="cw-nextanio" value="${savedAnio}"></div>`;
+    html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_anio')}</label><input class="cierre-input" type="number" step="any" id="cw-nextanio" value="${savedAnio}"></div>`;
   } else {
     s.fields.forEach(f=>{
       let curVal=f.key?(_editData.config[f.key]!==undefined?_editData.config[f.key]:(_editData.emerg?.cashflow[f.key]!==undefined?_editData.emerg.cashflow[f.key]:'')):'';
@@ -3594,7 +3602,7 @@ function cierreNav(dir){
       cf.ingreso=ingreso;
       const gasto=cf.gasto||_editData.gastos.reduce((a,g)=>a+g.pagado,0);
       const totalDeudas=_editData.gastos.reduce((a,g)=>a+g.balance,0);
-      const efTotal=_editData.emerg.fondos.reduce((a,f)=>a+f.balance,0);
+      const efTotal=_editData.emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
       const netWorth=(cf.balanceAhorros||0)+efTotal-totalDeudas;
       const ahorro=ingreso-gasto;
       const tasaAhorro=ingreso>0?ahorro/ingreso:0;
@@ -3725,6 +3733,9 @@ function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(
 function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';}
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// Convert fondo balance/meta to RD$ — if moneda=USD, multiply by config.tasa
+function fondoToRD(f){const tasa=_editData.config.tasa||60;const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
+function fondosCurrency(f){return f.moneda==='USD'?'USD':'RD$';}
 function fmtFecha(f,opts){
   // Normaliza cualquier formato de fecha (Date, string ISO, string larga) a fecha local en español
   if(!f)return'—';
@@ -3751,7 +3762,7 @@ function buildEditForms(){
       <td><input class="tbl-input" style="min-width:90px" value="${escH(g.tipo)}" oninput="markChanged(this);_editData.gastos[${i}].tipo=this.value"></td>
       <td><input class="tbl-input" type="number" step="any" value="${g.pagado||0}" oninput="markChanged(this);_editData.gastos[${i}].pagado=parseFloat(this.value)||0"></td>
       <td><input class="tbl-input" type="number" step="any" value="${g.adeudado||0}" oninput="markChanged(this);_editData.gastos[${i}].adeudado=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" value="${g.dia||0}" oninput="markChanged(this);_editData.gastos[${i}].dia=parseFloat(this.value)||0" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="number" step="any" value="${g.dia||0}" oninput="markChanged(this);_editData.gastos[${i}].dia=parseFloat(this.value)||0" style="min-width:60px"></td>
       <td><input class="tbl-input" type="number" step="any" value="${g.tasa||0}" oninput="markChanged(this);_editData.gastos[${i}].tasa=parseFloat(this.value)||0" style="min-width:60px"></td>
       <td><input class="tbl-input" type="number" step="any" value="${g.balance||0}" oninput="markChanged(this);_editData.gastos[${i}].balance=parseFloat(this.value)||0"></td>
       <td><input class="tbl-input" type="number" step="any" value="${g.originalRD||0}" oninput="markChanged(this);_editData.gastos[${i}].originalRD=parseFloat(this.value)||0"></td>
@@ -3774,7 +3785,9 @@ function buildEditForms(){
   // EMERGENCY
   const efb=document.getElementById('emergFundsEditBody');efb.innerHTML='';
   emerg.fondos.forEach((f,i)=>{
+    const mon=f.moneda||'RD';
     efb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(f.fondo)}" oninput="markChanged(this);_editData.emerg.fondos[${i}].fondo=this.value" style="min-width:140px"></td>
+      <td><select class="tbl-input" onchange="markChanged(this);_editData.emerg.fondos[${i}].moneda=this.value" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
       <td><input class="tbl-input" type="number" step="any" value="${f.balance||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].balance=parseFloat(this.value)||0"></td>
       <td><input class="tbl-input" type="number" step="any" value="${f.meta||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].meta=parseFloat(this.value)||0"></td>
       <td><button class="row-del-btn" onclick="deleteEmergFundRow(${i})">✕</button></td></tr>`;
@@ -3796,7 +3809,7 @@ function buildEditForms(){
     const ingRaw=h.tasa>0&&h.ingresos>h.tasa*100?Math.round(h.ingresos/h.tasa):h.ingresos;
     hb.innerHTML+=`<tr>
       <td><input class="tbl-input" value="${escH(h.mes)}" oninput="markChanged(this);_editData.historial[${i}].mes=this.value" style="min-width:90px"></td>
-      <td><input class="tbl-input" type="number" value="${h.anio}" oninput="markChanged(this);_editData.historial[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="number" step="any" value="${h.anio}" oninput="markChanged(this);_editData.historial[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
       <td><input class="tbl-input" type="number" step="any" value="${ingRaw}" oninput="markChanged(this);_editData.historial[${i}].ingresos=parseFloat(this.value)||0"></td>
       <td><input class="tbl-input" type="number" step="any" value="${h.gasto||0}" oninput="markChanged(this);_editData.historial[${i}].gasto=parseFloat(this.value)||0"></td>
       <td><input class="tbl-input" type="number" step="any" value="${h.tasa||60}" oninput="markChanged(this);_editData.historial[${i}].tasa=parseFloat(this.value)||60" style="min-width:60px"></td>
@@ -3816,7 +3829,7 @@ function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(do
 function deleteHistorialRow(i){_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
 function addEsencialRow(){_editData.gastos.push({nombre:'Nueva entrada',tipo:'Variable',pagado:0,adeudado:0,dia:1,tasa:0,balance:0,originalRD:0,originalUSD:0,fechaLimite:'',notas:'',pagadoMes:false});markChanged(document.body);buildEditForms();}
 function addForNowRow(){_editData.forNow.cuentas.push({nombre:'Nueva cuenta',saldo:0,comp:0,disp:0});markChanged(document.body);buildEditForms();}
-function addEmergFundRow(){_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:0,falta:0});markChanged(document.body);buildEditForms();}
+function addEmergFundRow(){_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:0,falta:0,moneda:'RD'});markChanged(document.body);buildEditForms();}
 function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:60,notas:''});markChanged(document.body);buildEditForms();}
 
 function readConfigFromForm(){
@@ -3863,8 +3876,8 @@ function buildNewWorkbook(){
   const cf = emerg.cashflow;
   const emRows = [
     ['SECCIÓN A — Fondos de Emergencia'],
-    ['Fondo','Balance','Meta'],
-    ...emerg.fondos.map(f=>[f.fondo,f.balance||0,f.meta||0]),
+    ['Fondo','Moneda','Balance','Meta'],
+    ...emerg.fondos.map(f=>[f.fondo,f.moneda||'RD',f.balance||0,f.meta||0]),
     [''],
     ['SECCIÓN B — Cashflow'],
     ['Ingreso Mensual RD$', cf.ingreso||0],
@@ -3913,7 +3926,7 @@ function generateExcel(){
     const rows=XLSX.utils.sheet_to_json(emSheet,{header:1,defval:null});
     let inA=false,hi3=-1;
     rows.forEach((r,i)=>{const k=String(r[0]||'').trim();if(k.includes('SECCIÓN A'))inA=true;if(inA&&k.includes('Fondo'))hi3=i;});
-    if(hi3>=0){emerg.fondos.forEach((f,i)=>{const ri=hi3+1+i;[f.fondo,f.balance,f.meta].forEach((v,ci)=>{const ref=XLSX.utils.encode_cell({r:ri,c:ci});if(typeof v==='number')emSheet[ref]={t:'n',v};else emSheet[ref]={t:'s',v:String(v||'')};});});}
+    if(hi3>=0){emerg.fondos.forEach((f,i)=>{const ri=hi3+1+i;[f.fondo,f.moneda||'RD',f.balance,f.meta].forEach((v,ci)=>{const ref=XLSX.utils.encode_cell({r:ri,c:ci});if(typeof v==='number')emSheet[ref]={t:'n',v};else emSheet[ref]={t:'s',v:String(v||'')};});});}
     const cf=emerg.cashflow;
     rows.forEach((r,ri)=>{
       const k=String(r[0]||'').toLowerCase().trim();const ref=XLSX.utils.encode_cell({r:ri,c:1});
