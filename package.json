@@ -1,0 +1,29 @@
+{
+  "name": "cntpf",
+  "version": "1.0.0",
+  "description": "> Dashboard financiero personal construido como PWA (Progressive Web App). Funciona en móvil, tablet y PC. Tus datos nunca salen de tu dispositivo.",
+  "main": "sw.js",
+  "scripts": {
+    "start": "serve . -l 8080 --no-clipboard",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pythoneric/CNTpf.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/pythoneric/CNTpf/issues"
+  },
+  "homepage": "https://github.com/pythoneric/CNTpf#readme",
+  "dependencies": {
+    "playwright": "^1.58.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "serve": "^14.2.6"
+  }
+}
