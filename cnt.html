@@ -2068,9 +2068,7 @@ async function hardResetCache(){
       const keys=await caches.keys();
       await Promise.all(keys.map(k=>caches.delete(k)));
     }
-    // 3. Clear IndexedDB saved data
-    try{await dbDelete(STORE_DATA,'editData');await dbDelete(STORE_DATA,'meta');await dbDelete(STORE_WB,'rawWb');}catch(e){}
-    // 4. Show brief toast then hard reload
+    // 3. Show brief toast then hard reload
     showToast('🔄 Caché limpiado — recargando...');
     setTimeout(()=>location.reload(true),800);
   }catch(e){
