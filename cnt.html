@@ -919,7 +919,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-card" style="margin-bottom:16px">
         <div class="edit-card-title">🛡 Fondos de Emergencia</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th>Fondo</th><th>Aportado Este Mes</th><th>Balance Actual</th><th>Meta Mínima</th><th></th></tr></thead><tbody id="emergFundsEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th>Fondo</th><th>Balance Actual</th><th>Meta Mínima</th><th></th></tr></thead><tbody id="emergFundsEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addEmergFundRow()">+ Agregar fondo</button>
       </div>
@@ -1821,7 +1821,7 @@ const _setupSteps=[
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Opcional. Define tus fondos de emergencia con su balance actual y meta mínima.</div>
       <div id="sw-fondos-list">
         ${_editData.emerg.fondos.length===0
-          ? renderSwFondo(0,{fondo:'',balance:0,meta:0,aportado:0})
+          ? renderSwFondo(0,{fondo:'',balance:0,meta:0})
           : _editData.emerg.fondos.map((f,i)=>renderSwFondo(i,f)).join('')}
       </div>
       <button class="row-add-btn" onclick="addSwFondo()" style="margin-top:8px">+ Agregar fondo</button>
@@ -1838,7 +1838,7 @@ const _setupSteps=[
         if(!fondo)return;
         const balance=parseFloat(row.querySelector('.sw-f-balance').value)||0;
         const meta=parseFloat(row.querySelector('.sw-f-meta').value)||0;
-        _editData.emerg.fondos.push({fondo,balance,meta,aportado:0,falta:Math.max(0,meta-balance)});
+        _editData.emerg.fondos.push({fondo,balance,meta,falta:Math.max(0,meta-balance)});
       });
       _editData.emerg.cashflow.balanceAhorros=parseFloat(document.getElementById('sw-balAh').value)||0;
     }
@@ -2109,7 +2109,7 @@ function parseEmergency(rows){
     if(k.includes('SECCIÓN A')){inA=true;inB=false;return;}
     if(k.includes('SECCIÓN B')){inB=true;inA=false;return;}
     if(inA&&k&&!k.includes('Fondo')&&!k.includes('TOTAL'))
-      res.fondos.push({fondo:k,aportado:clean(r[1]),balance:clean(r[2]),meta:clean(r[3]),falta:clean(r[4])});
+      res.fondos.push({fondo:k,balance:clean(r[1]),meta:clean(r[2]),falta:clean(r[3])});
     if(inB&&k&&!k.includes('Concepto')){
       const kl=k.toLowerCase();
       if(kl.includes('ingreso mensual'))res.cashflow.ingreso=clean(r[1]);
@@ -2924,17 +2924,24 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   const efEl=document.getElementById('efFunds');efEl.innerHTML='';
-  emerg.fondos.forEach(e=>{
+  const halfSurplus=Math.max(0,resta*0.5);
+  const totalFalta=emerg.fondos.reduce((a,f)=>a+Math.max(0,f.meta-f.balance),0);
+  const sortedFondos=[...emerg.fondos].sort((a,b)=>{const pa=a.meta>0?a.balance/a.meta:1;const pb=b.meta>0?b.balance/b.meta:1;return pa-pb;});
+  sortedFondos.forEach(e=>{
     const pct=e.meta>0?Math.min(Math.round((e.balance/e.meta)*100),100):0;
+    const falta=Math.max(0,e.meta-e.balance);
+    const aporteSug=totalFalta>0&&halfSurplus>0?Math.round(halfSurplus*(falta/totalFalta)):0;
+    const mesesFondo=aporteSug>0?Math.ceil(falta/aporteSug):'—';
     const bc=pct>=90?'linear-gradient(90deg,#22d3a0,#06b6d4)':pct>30?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#f4606a,#c026d3)';
     efEl.innerHTML+=`<div class="ef-row"><div class="ef-header"><div class="ef-name">${escH(e.fondo)}</div>
       <div class="ef-nums">
         <span style="color:var(--muted)">${t('ef_balance_lbl')} <span class="mono" style="color:var(--yellow);font-weight:700">RD$${fmt(e.balance)}</span></span>
         <span style="color:var(--muted)">${t('ef_goal_lbl')} <span class="mono" style="color:var(--muted);font-weight:700">RD$${fmt(e.meta)}</span></span>
-        <span style="color:var(--muted)">${t('ef_missing_lbl')} <span class="mono" style="color:var(--red);font-weight:700">RD$${fmt(e.falta)}</span></span>
+        <span style="color:var(--muted)">${t('ef_missing_lbl')} <span class="mono" style="color:var(--red);font-weight:700">RD$${fmt(falta)}</span></span>
       </div></div>
       <div style="display:flex;align-items:center;gap:10px"><div class="progress-wrap" style="flex:1;margin:0"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       <span class="mono" style="font-size:12px;color:${pct>90?'var(--green)':'var(--muted)'};min-width:36px;text-align:right">${pct}%</span></div>
+      ${falta>0?`<div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--muted)"><span>${_lang==='es'?'Aporte sugerido':'Suggested'}: <span class="mono" style="color:var(--accent)">RD$${fmt(aporteSug)}/mes</span></span><span>${_lang==='es'?'Meta en':'Goal in'} <span class="mono" style="color:var(--yellow)">~${mesesFondo} ${_lang==='es'?'meses':'mo'}</span></span></div>`:''}
     </div>`;
   });
 
@@ -3751,7 +3758,6 @@ function buildEditForms(){
   const efb=document.getElementById('emergFundsEditBody');efb.innerHTML='';
   emerg.fondos.forEach((f,i)=>{
     efb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(f.fondo)}" oninput="markChanged(this);_editData.emerg.fondos[${i}].fondo=this.value" style="min-width:140px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${f.aportado||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].aportado=parseFloat(this.value)||0"></td>
       <td><input class="tbl-input" type="number" step="any" value="${f.balance||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].balance=parseFloat(this.value)||0"></td>
       <td><input class="tbl-input" type="number" step="any" value="${f.meta||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].meta=parseFloat(this.value)||0"></td>
       <td><button class="row-del-btn" onclick="deleteEmergFundRow(${i})">✕</button></td></tr>`;
@@ -3793,7 +3799,7 @@ function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(do
 function deleteHistorialRow(i){_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
 function addEsencialRow(){_editData.gastos.push({nombre:'Nueva entrada',tipo:'Variable',pagado:0,adeudado:0,dia:1,tasa:0,balance:0,originalRD:0,originalUSD:0,fechaLimite:'',notas:'',pagadoMes:false});markChanged(document.body);buildEditForms();}
 function addForNowRow(){_editData.forNow.cuentas.push({nombre:'Nueva cuenta',saldo:0,comp:0,disp:0});markChanged(document.body);buildEditForms();}
-function addEmergFundRow(){_editData.emerg.fondos.push({fondo:'Nuevo Fondo',aportado:0,balance:0,meta:0,falta:0});markChanged(document.body);buildEditForms();}
+function addEmergFundRow(){_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:0,falta:0});markChanged(document.body);buildEditForms();}
 function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:60,notas:''});markChanged(document.body);buildEditForms();}
 
 function readConfigFromForm(){
@@ -3840,8 +3846,8 @@ function buildNewWorkbook(){
   const cf = emerg.cashflow;
   const emRows = [
     ['SECCIÓN A — Fondos de Emergencia'],
-    ['Fondo','Aportado','Balance','Meta'],
-    ...emerg.fondos.map(f=>[f.fondo,f.aportado||0,f.balance||0,f.meta||0]),
+    ['Fondo','Balance','Meta'],
+    ...emerg.fondos.map(f=>[f.fondo,f.balance||0,f.meta||0]),
     [''],
     ['SECCIÓN B — Cashflow'],
     ['Ingreso Mensual RD$', cf.ingreso||0],
@@ -3890,7 +3896,7 @@ function generateExcel(){
     const rows=XLSX.utils.sheet_to_json(emSheet,{header:1,defval:null});
     let inA=false,hi3=-1;
     rows.forEach((r,i)=>{const k=String(r[0]||'').trim();if(k.includes('SECCIÓN A'))inA=true;if(inA&&k.includes('Fondo'))hi3=i;});
-    if(hi3>=0){emerg.fondos.forEach((f,i)=>{const ri=hi3+1+i;[f.fondo,f.aportado,f.balance,f.meta].forEach((v,ci)=>{const ref=XLSX.utils.encode_cell({r:ri,c:ci});if(typeof v==='number')emSheet[ref]={t:'n',v};else emSheet[ref]={t:'s',v:String(v||'')};});});}
+    if(hi3>=0){emerg.fondos.forEach((f,i)=>{const ri=hi3+1+i;[f.fondo,f.balance,f.meta].forEach((v,ci)=>{const ref=XLSX.utils.encode_cell({r:ri,c:ci});if(typeof v==='number')emSheet[ref]={t:'n',v};else emSheet[ref]={t:'s',v:String(v||'')};});});}
     const cf=emerg.cashflow;
     rows.forEach((r,ri)=>{
       const k=String(r[0]||'').toLowerCase().trim();const ref=XLSX.utils.encode_cell({r:ri,c:1});
