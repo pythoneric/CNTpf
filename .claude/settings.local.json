@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(explorer \"c:\\\\Users\\\\qwerty\\\\Repos\\\\CNTpf\\\\cnt.html\")",
+      "Bash(export PATH=\"$PATH:/c/Program Files/nodejs\")",
+      "Bash(node test-cierre.mjs)",
+      "Bash(git checkout:*)",
+      "Bash(grep -v '^\\\\* main$')",
+      "Bash(git branch:*)",
+      "Bash(gh pr:*)",
+      "WebFetch(domain:pythoneric.github.io)",
+      "Bash(npx playwright:*)",
+      "Bash(node -e \":*)"
+    ]
+  }
+}

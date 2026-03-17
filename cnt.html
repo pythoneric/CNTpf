@@ -1139,7 +1139,7 @@ const LANG = {
     eth_desc:'Descripción', eth_tipo:'Tipo', eth_pagado:'Pagado (RD$)', eth_adeudado:'Adeudado (RD$)',
     eth_dia:'Día Pago', eth_tasa:'Tasa %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
     eth_originalUSD:'Original (USD)', eth_fechaLimite:'Fecha Límite', eth_notas:'Notas',
-    eth_cuenta:'Cuenta', eth_saldo:'Saldo', eth_comprometido:'Comprometido',
+    eth_cuenta:'Cuenta', eth_saldo:'Saldo',
     eth_fondo:'Fondo', eth_moneda:'Moneda', eth_balanceActual:'Balance Actual', eth_metaMinima:'Meta Mínima',
     eth_mes:'Mes', eth_anio:'Año', eth_ingresosUSD:'Ingresos (USD)', eth_gastoRD:'Gasto (RD$)',
     eth_tasaDolar:'Tasa Dólar', eth_deudasRD:'Deudas (RD$)', eth_emergenciaRD:'Emergencia (RD$)',
@@ -1382,7 +1382,7 @@ const LANG = {
     eth_desc:'Description', eth_tipo:'Type', eth_pagado:'Paid (RD$)', eth_adeudado:'Owed (RD$)',
     eth_dia:'Pay Day', eth_tasa:'Rate %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
     eth_originalUSD:'Original (USD)', eth_fechaLimite:'Deadline', eth_notas:'Notes',
-    eth_cuenta:'Account', eth_saldo:'Balance', eth_comprometido:'Committed',
+    eth_cuenta:'Account', eth_saldo:'Balance',
     eth_fondo:'Fund', eth_moneda:'Currency', eth_balanceActual:'Current Balance', eth_metaMinima:'Minimum Goal',
     eth_mes:'Month', eth_anio:'Year', eth_ingresosUSD:'Income (USD)', eth_gastoRD:'Expenses (RD$)',
     eth_tasaDolar:'Exchange Rate', eth_deudasRD:'Debts (RD$)', eth_emergenciaRD:'Emergency (RD$)',
@@ -2117,7 +2117,7 @@ function processWorkbook(wb,filename){
     _rawWb=wb;
     const config=parseConfig(sheetArr(wb,'config'));
     const gastos=parseGastos(sheetArr(wb,'esencial'),config);
-    const forNow=parseForNow(sheetArr(wb,'for'));
+    const forNow=parseForNow(sheetArr(wb,'for'),config.tasa);
     const emerg=parseEmergency(sheetArr(wb,'emerg'));
     const historial=parseHistorial(sheetArr(wb,'historial'));
     _editData={config,gastos,forNow,emerg,historial,filename};
@@ -2163,7 +2163,7 @@ function parseGastos(rows){
   }
   return gastos;
 }
-function parseForNow(rows){
+function parseForNow(rows,tasa){
   const res={cuentas:[],fecha:null,total:0,comprometido:0,disponible:0};
   if(!rows.length)return res;
   rows.forEach(r=>{
@@ -2178,7 +2178,8 @@ function parseForNow(rows){
       else res.cuentas.push({nombre:k,moneda:'RD',saldo:clean(r[1]),comp:clean(r[2]),disp:clean(r[3])});
     }
   });
-  res.total=res.cuentas.reduce((a,c)=>a+c.saldo,0);
+  const _tasa=tasa||60;
+  res.total=res.cuentas.reduce((a,c)=>a+(c.saldo||0)*(c.moneda==='USD'?_tasa:1),0);
   return res;
 }
 
@@ -3056,7 +3057,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const totalFalta=emerg.fondos.reduce((a,f)=>{const rd=fondoToRD(f);return a+Math.max(0,rd.meta-rd.balance);},0);
   const sortedFondos=[...emerg.fondos].sort((a,b)=>{const ra=fondoToRD(a),rb=fondoToRD(b);const pa=ra.meta>0?ra.balance/ra.meta:1;const pb=rb.meta>0?rb.balance/rb.meta:1;return pa-pb;});
   efEl.innerHTML=sortedFondos.map(e=>{
-    const rd=fondoToRD(e);const cur=fondosCurrency(e);
+    const rd=fondoToRD(e);
     const pct=rd.meta>0?Math.min(Math.round((rd.balance/rd.meta)*100),100):0;
     const faltaRD=Math.max(0,rd.meta-rd.balance);
     const aporteSug=totalFalta>0&&halfSurplus>0?Math.round(halfSurplus*(faltaRD/totalFalta)):0;
@@ -3169,14 +3170,14 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       const hRev=[...historial].reverse();
       const hLabels=hRev.map(h=>`${h.mes} ${h.anio}`);
       hLabels.push(`${config.mes} ${config.anio}`);
-      const hBalances=hRev.map(h=>h.emergencia||0);
-      hBalances.push(fnTotal);
+      const hBalances=hRev.map(h=>(h.emergencia||0)+(h.netWorth||0));
+      hBalances.push(efTotal+netWorth);
       const hNW=hRev.map(h=>h.netWorth||0);
       hNW.push((cf.balanceAhorros||0)+efTotal-totalBalance);
       charts.forNowSavingsChart=new Chart(document.getElementById('forNowSavingsChart'),{
         type:'line',
         data:{labels:hLabels,datasets:[
-          {label:_lang==='es'?'Balance Disponible (RD$)':'Available Balance (RD$)',data:hBalances,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.10)',tension:.4,fill:true,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#3b82f6'},
+          {label:_lang==='es'?'Patrimonio Total (RD$)':'Total Assets (RD$)',data:hBalances,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.10)',tension:.4,fill:true,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#3b82f6'},
           {label:_lang==='es'?'Net Worth (RD$)':'Net Worth (RD$)',data:hNW,borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.06)',tension:.4,fill:false,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#22d3a0'},
         ]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
@@ -3862,18 +3863,17 @@ document.addEventListener('keydown',e=>{
 let _editData={};
 let _rawWb=null;
 let _changesCount=0;
+let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';};
 window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
-function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
+function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';_balanceSnapshot=(_editData.gastos||[]).map(g=>g.balance||0);buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';}
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 // Convert fondo balance/meta to RD$ — if moneda=USD, multiply by config.tasa
 function fondoToRD(f){const tasa=_editData.config.tasa||60;const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
-function cuentaToRD(c){const tasa=_editData.config.tasa||60;const m=c.moneda==='USD'?tasa:1;return{saldo:(c.saldo||0)*m,comp:(c.comp||0)*m};}
-function fondosCurrency(f){return f.moneda==='USD'?'USD':'RD$';}
 function fmtFecha(f,opts){
   // Normaliza cualquier formato de fecha (Date, string ISO, string larga) a fecha local en español
   if(!f)return'—';
@@ -3961,7 +3961,7 @@ function buildEditForms(){
   });
 }
 
-function deleteGastoRow(i){_editData.gastos.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteGastoRow(i){_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
 function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);_editData.gastos.splice(idx,1);buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
 function deleteFornowRow(i){_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
@@ -3980,8 +3980,9 @@ function readConfigFromForm(){
   _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
   _editData.forNow.fecha=document.getElementById('fornow-fecha')?.value||null;
 }
-function applyChanges(){readConfigFromForm();buildDashboard({..._editData,filename:_editData.filename});autoSave();closeEditModal();showToast(t('toast_changes'));}
-function applyAndDownload(){readConfigFromForm();buildDashboard({..._editData,filename:_editData.filename});autoSave();generateExcel();closeEditModal();}
+function _detectPaymentsFromBalanceChanges(){_editData.gastos.forEach((g,i)=>{if(i>=_balanceSnapshot.length)return;const diff=_balanceSnapshot[i]-(g.balance||0);if(diff>0){g.pagado=(g.pagado||0)+diff;if(!g.pagadoMes&&g.adeudado>0&&g.pagado>=g.adeudado)g.pagadoMes=true;}});_balanceSnapshot=[];}
+function applyChanges(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();closeEditModal();showToast(t('toast_changes'));}
+function applyAndDownload(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();generateExcel();closeEditModal();}
 
 // ══════════════════════════════════
 // EXCEL EXPORT
@@ -4007,8 +4008,8 @@ function buildNewWorkbook(){
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(esRows), 'Esenciales');
 
   // ── ForNow sheet ──
-  const fnRows = [['Fecha', forNow.fecha ? new Date(forNow.fecha).toLocaleDateString('es-DO') : ''],[''],['Cuenta','Moneda','Saldo','Comprometido']];
-  forNow.cuentas.forEach(c => fnRows.push([c.nombre, c.moneda||'RD', c.saldo||0, c.comp||0]));
+  const fnRows = [['Fecha', forNow.fecha ? new Date(forNow.fecha).toLocaleDateString('es-DO') : ''],[''],['Cuenta','Moneda','Saldo']];
+  forNow.cuentas.forEach(c => fnRows.push([c.nombre, c.moneda||'RD', c.saldo||0]));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fnRows), 'ForNow');
 
   // ── Emergency sheet ──
@@ -4057,7 +4058,7 @@ function generateExcel(){
     const rows=XLSX.utils.sheet_to_json(fnSheet,{header:1,defval:null});
     rows.forEach((r,ri)=>{if(String(r[0]||'').toLowerCase().includes('fecha')){const fv=forNow.fecha instanceof Date?forNow.fecha.toISOString().slice(0,10):String(forNow.fecha||'').slice(0,10);fnSheet[XLSX.utils.encode_cell({r:ri,c:1})]={t:'s',v:fv};}});
     let hi2=-1;rows.forEach((r,i)=>{if(String(r[0]||'').toLowerCase().includes('cuenta'))hi2=i;});
-    if(hi2>=0){forNow.cuentas.forEach((c,i)=>{const ri=hi2+1+i;fnSheet[XLSX.utils.encode_cell({r:ri,c:0})]={t:'s',v:c.nombre};fnSheet[XLSX.utils.encode_cell({r:ri,c:1})]={t:'n',v:c.saldo||0};fnSheet[XLSX.utils.encode_cell({r:ri,c:2})]={t:'n',v:c.comp||0};});}
+    if(hi2>=0){forNow.cuentas.forEach((c,i)=>{const ri=hi2+1+i;fnSheet[XLSX.utils.encode_cell({r:ri,c:0})]={t:'s',v:c.nombre};fnSheet[XLSX.utils.encode_cell({r:ri,c:1})]={t:'s',v:c.moneda||'RD'};fnSheet[XLSX.utils.encode_cell({r:ri,c:2})]={t:'n',v:c.saldo||0};});}
   }
   const emName=_rawWb.SheetNames.find(n=>n.toLowerCase().includes('emerg'));
   if(emName){
