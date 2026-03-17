@@ -3863,12 +3863,13 @@ document.addEventListener('keydown',e=>{
 let _editData={};
 let _rawWb=null;
 let _changesCount=0;
+let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';};
 window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
-function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
+function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';_balanceSnapshot=(_editData.gastos||[]).map(g=>g.balance||0);buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';}
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 // Convert fondo balance/meta to RD$ — if moneda=USD, multiply by config.tasa
@@ -3960,7 +3961,7 @@ function buildEditForms(){
   });
 }
 
-function deleteGastoRow(i){_editData.gastos.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteGastoRow(i){_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
 function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);_editData.gastos.splice(idx,1);buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
 function deleteFornowRow(i){_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
@@ -3979,8 +3980,9 @@ function readConfigFromForm(){
   _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
   _editData.forNow.fecha=document.getElementById('fornow-fecha')?.value||null;
 }
-function applyChanges(){readConfigFromForm();buildDashboard({..._editData,filename:_editData.filename});autoSave();closeEditModal();showToast(t('toast_changes'));}
-function applyAndDownload(){readConfigFromForm();buildDashboard({..._editData,filename:_editData.filename});autoSave();generateExcel();closeEditModal();}
+function _detectPaymentsFromBalanceChanges(){_editData.gastos.forEach((g,i)=>{if(i>=_balanceSnapshot.length)return;const diff=_balanceSnapshot[i]-(g.balance||0);if(diff>0){g.pagado=(g.pagado||0)+diff;if(!g.pagadoMes&&g.adeudado>0&&g.pagado>=g.adeudado)g.pagadoMes=true;}});_balanceSnapshot=[];}
+function applyChanges(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();closeEditModal();showToast(t('toast_changes'));}
+function applyAndDownload(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();generateExcel();closeEditModal();}
 
 // ══════════════════════════════════
 // EXCEL EXPORT
