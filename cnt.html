@@ -780,10 +780,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <span style="font-size:11px;color:var(--muted)" id="histCount">—</span>
       </div>
       <div class="tbl-wrap"><table class="mobile-card-table"><thead><tr>
-        <th>Mes</th><th style="text-align:right">Año</th><th style="text-align:right">Ingresos (RD$)</th><th style="text-align:right">Gasto (RD$)</th>
-        <th style="text-align:right">Ahorro Neto</th><th style="text-align:right">Tasa Ahorro</th><th style="text-align:right">Deudas (RD$)</th><th style="text-align:right">Emergencia (RD$)</th><th style="text-align:right">Net Worth (RD$)</th><th style="text-align:right">Tasa $</th>
+        <th data-i18n="hist_col_month">Mes</th><th style="text-align:right" data-i18n="hist_col_year">Año</th><th style="text-align:right" data-i18n="hist_col_income">Ingresos (RD$)</th><th style="text-align:right" data-i18n="hist_col_expense">Gasto (RD$)</th>
+        <th style="text-align:right" data-i18n="hist_col_savings">Ahorro Neto</th><th style="text-align:right" data-i18n="hist_col_savingsrate">Tasa Ahorro</th><th style="text-align:right" data-i18n="hist_col_debts">Deudas (RD$)</th><th style="text-align:right" data-i18n="hist_col_emergency">Emergencia (RD$)</th><th style="text-align:right" data-i18n="hist_col_nw">Net Worth (RD$)</th><th style="text-align:right" data-i18n="hist_col_rate">Tasa $</th>
       </tr></thead><tbody id="histBody"></tbody></table></div>
-      <div class="hist-note">📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.</div>
+      <div class="hist-note" data-i18n="hist_note">📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.</div>
     </div>
   </div>
 
@@ -1042,6 +1042,23 @@ const LANG = {
     hist_col_emergency:'Emergencia (RD$)', hist_col_nw:'Net Worth (RD$)', hist_col_rate:'Tasa $',
     hist_note:'📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.',
     hist_evolnw:'Evolución Net Worth & Deudas', hist_incvsexp:'Ingresos vs Gastos por Mes', hist_debttrend:'Balance de Deudas por Mes',
+    hist_count:'{n} meses registrados', hist_count_one:'1 mes registrado',
+    hist_chart_nw:'Net Worth (RD$)', hist_chart_debt:'Balance Deudas (RD$)',
+    hist_chart_income:'Ingresos', hist_chart_expense:'Gastos',
+    hist_chart_debtbal:'Balance Deudas', hist_chart_ef:'Fondos Emergencia',
+    hist_empty_title:'Sin historial registrado',
+    hist_empty_sub:'Cierra tu primer mes con el botón <strong>"🗓 Cerrar Mes"</strong> para empezar a rastrear tu progreso financiero.',
+    hist_rate_note:'Los montos en RD$ pueden reflejar distintas tasas de cambio entre meses. Consulta la columna Tasa $ para contexto.',
+    hist_savings_benchmark:'Meta recomendada: ≥20% (regla 50/30/20)',
+    // Score labels
+    score_expense_ratio:'Ratio Gasto/Ingreso', score_debt_ratio:'Deuda vs Ingreso Anual',
+    score_ef:'Fondos de Emergencia', score_nw_trend:'Tendencia Net Worth',
+    score_improving:'↑ Mejorando', score_declining:'↓ Bajando', score_nodata:'Sin datos',
+    score_excellent:'Excelente', score_good:'Bien', score_fair:'Regular', score_critical:'Crítico',
+    // Trend rows
+    trend_total_expense:'Gasto Total', trend_income:'Ingresos', trend_net_savings:'Ahorro Neto',
+    trend_debt_balance:'Balance Deudas', trend_ef:'Fondo Emergencia',
+    trend_type_breakdown:'Distribución por Tipo (Mes Actual)',
     // Alertas
     alert_novenc:'✅ Sin vencimientos próximos', alert_nofinancial:'✅ Sin alertas financieras',
     alert_overdueago:'Venció hace', alert_days:'días', alert_dueday:'Vence día',
@@ -1328,6 +1345,23 @@ const LANG = {
     hist_col_emergency:'Emergency (RD$)', hist_col_nw:'Net Worth (RD$)', hist_col_rate:'Rate $',
     hist_note:'📌 Use the <strong>"🗓 Close Month"</strong> button in the header to record the current month with a guided wizard.',
     hist_evolnw:'Net Worth & Debt Evolution', hist_incvsexp:'Income vs Expenses by Month', hist_debttrend:'Debt Balance by Month',
+    hist_count:'{n} months recorded', hist_count_one:'1 month recorded',
+    hist_chart_nw:'Net Worth (RD$)', hist_chart_debt:'Debt Balance (RD$)',
+    hist_chart_income:'Income', hist_chart_expense:'Expenses',
+    hist_chart_debtbal:'Debt Balance', hist_chart_ef:'Emergency Funds',
+    hist_empty_title:'No history recorded',
+    hist_empty_sub:'Close your first month with the <strong>"🗓 Close Month"</strong> button to start tracking your financial progress.',
+    hist_rate_note:'RD$ amounts may reflect different exchange rates across months. See the Rate $ column for context.',
+    hist_savings_benchmark:'Recommended target: ≥20% (50/30/20 rule)',
+    // Score labels
+    score_expense_ratio:'Expense/Income Ratio', score_debt_ratio:'Debt vs Annual Income',
+    score_ef:'Emergency Funds', score_nw_trend:'Net Worth Trend',
+    score_improving:'↑ Improving', score_declining:'↓ Declining', score_nodata:'No data',
+    score_excellent:'Excellent', score_good:'Good', score_fair:'Fair', score_critical:'Critical',
+    // Trend rows
+    trend_total_expense:'Total Expenses', trend_income:'Income', trend_net_savings:'Net Savings',
+    trend_debt_balance:'Debt Balance', trend_ef:'Emergency Fund',
+    trend_type_breakdown:'Type Breakdown (Current Month)',
     // Alertas
     alert_novenc:'✅ No upcoming due dates', alert_nofinancial:'✅ No financial alerts',
     alert_overdueago:'Overdue by', alert_days:'days', alert_dueday:'Due on day',
@@ -2313,11 +2347,12 @@ function parseHistorial(rows){
     const anio=clean(r[1])||2026;
     const tasa=clean(r[9])||60;
     const ingresosRaw=clean(r[2]);
-    // Fix #1/#17: if value looks like USD (< 50k and tasa available), convert to RD$
-    // Store a flag col 11 to know unit; fall back to heuristic but clamp properly
-    const ingresos=ingresosRaw>0&&ingresosRaw<50000&&tasa>1?ingresosRaw*tasa:ingresosRaw;
+    // Fix #1: Always read income as RD$. The cierre wizard saves income in RD$ (ingresoUSD × tasa).
+    // Legacy data stored in USD is converted on import — the export also stores in RD$ now.
+    const ingresos=ingresosRaw;
     const gasto=clean(r[3]);
-    const ahorro=ingresosRaw>0&&ingresosRaw<50000&&tasa>1?(ingresos-gasto):clean(r[4]);
+    // Fix #2: Always read ahorro from stored value — don't recalculate
+    const ahorro=clean(r[4]);
     const tasaAhorro=ingresos>0?ahorro/ingresos:0;
     const deudas=clean(r[6]);const emergencia=clean(r[7]);const netWorth=clean(r[8]);
     const notas=String(r[10]||'');
@@ -2334,29 +2369,30 @@ function calcScore({ingreso,gasto,resta,totalBalance,config,emerg,historial}){
   // Ratio gasto/ingreso (max 30 pts)
   const gpct=ingreso>0?gasto/ingreso:1;
   const gpts=Math.round(Math.max(0,Math.min(30,(1-gpct)*60)));
-  score+=gpts;details.push({l:'Ratio Gasto/Ingreso',v:`${Math.round(gpct*100)}%`,pts:gpts,max:30,c:gpct<.7?'var(--green)':gpct<.9?'var(--yellow)':'var(--red)'});
-  // Ratio deuda/ingreso anual (max 30 pts)
+  score+=gpts;details.push({l:t('score_expense_ratio'),v:`${Math.round(gpct*100)}%`,pts:gpts,max:30,c:gpct<.7?'var(--green)':gpct<.9?'var(--yellow)':'var(--red)'});
+  // Fix #8: DTI thresholds — standard: <36% healthy, 36-50% concerning, >50% high risk
   const dRatio=ingreso>0?totalBalance/(ingreso*12):1;
   const dpts=Math.round(Math.max(0,Math.min(30,(1-Math.min(dRatio,1))*30)));
-  score+=dpts;details.push({l:'Deuda vs Ingreso Anual',v:`${(dRatio*100).toFixed(0)}%`,pts:dpts,max:30,c:dRatio<.5?'var(--green)':dRatio<1?'var(--yellow)':'var(--red)'});
-  // Fix #11: Fondos emergencia — ponderar fondos iniciados vs completos
+  score+=dpts;details.push({l:t('score_debt_ratio'),v:`${(dRatio*100).toFixed(0)}%`,pts:dpts,max:30,c:dRatio<.36?'var(--green)':dRatio<.5?'var(--yellow)':'var(--red)'});
+  // Fondos emergencia — 80% weight on amount funded, 20% on # of funds started
   const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
   const efMeta=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).meta,0);
   const fondosIniciados=emerg.fondos.filter(f=>f.balance>0).length;
   const fondosTotales=emerg.fondos.length;
   const efPct=efMeta>0?efTotal/efMeta:0;
-  // Give partial credit: 80% weight on amount funded, 20% on # of funds started — 0 fondos = 0 pts
   const efScore=fondosTotales>0?(efPct*0.8)+((fondosIniciados/fondosTotales)*0.2):0;
   const epts=Math.round(Math.min(20,efScore*20));
-  score+=epts;details.push({l:'Fondos de Emergencia',v:`${Math.round(efPct*100)}% · ${fondosIniciados}/${fondosTotales} fondos`,pts:epts,max:20,c:efPct>.8?'var(--green)':efPct>.2?'var(--yellow)':'var(--red)'});
-  // Tendencia net worth (max 20 pts)
+  score+=epts;details.push({l:t('score_ef'),v:`${Math.round(efPct*100)}% · ${fondosIniciados}/${fondosTotales}`,pts:epts,max:20,c:efPct>.8?'var(--green)':efPct>.2?'var(--yellow)':'var(--red)'});
+  // Fix #7: 0 pts for no history (was 10). Fix #17: percentage-based threshold
   let tpts=0;
   if(historial.length>=2){
     const diff=historial[0].netWorth-historial[1].netWorth;
-    tpts=diff>0?20:diff>-50000?10:0;
-  } else tpts=10;
-  score+=tpts;details.push({l:'Tendencia Net Worth',v:historial.length>=2?(historial[0].netWorth>historial[1].netWorth?'↑ Mejorando':'↓ Bajando'):'Sin datos',pts:tpts,max:20,c:tpts>=15?'var(--green)':tpts>=10?'var(--yellow)':'var(--red)'});
-  const grade=score>=80?{l:'Excelente',c:'#22d3a0'}:score>=60?{l:'Bien',c:'#f5c842'}:score>=40?{l:'Regular',c:'#fb923c'}:{l:'Crítico',c:'#f4606a'};
+    const prevNW=Math.abs(historial[1].netWorth);
+    const pctChange=prevNW>0?diff/prevNW:diff>0?1:diff<0?-1:0;
+    tpts=pctChange>0?20:pctChange>-0.05?10:0;
+  }
+  score+=tpts;details.push({l:t('score_nw_trend'),v:historial.length>=2?(historial[0].netWorth>historial[1].netWorth?t('score_improving'):t('score_declining')):t('score_nodata'),pts:tpts,max:20,c:tpts>=15?'var(--green)':tpts>=10?'var(--yellow)':'var(--red)'});
+  const grade=score>=80?{l:t('score_excellent'),c:'#22d3a0'}:score>=60?{l:t('score_good'),c:'#f5c842'}:score>=40?{l:t('score_fair'),c:'#fb923c'}:{l:t('score_critical'),c:'#f4606a'};
   return{score,grade,details};
 }
 
@@ -3378,39 +3414,52 @@ function buildHistorial(historial,config){
   const labels=reversed.map(h=>`${h.mes} ${h.anio}`);
   const soloUno=historial.length===1;
   const ultimo=historial[0];
-  if(ultimo){
-    document.getElementById('histKpis').innerHTML=[
-      {l:t('hist_lasmonth'),v:`${ultimo.mes} ${ultimo.anio}`,s:t('hist_recent'),c:'var(--accent)',b:'rgba(59,130,246,.1)'},
-      {l:t('hist_income'),v:`RD$${fmt(ultimo.ingresos)}`,s:t('hist_monthlydata'),c:'var(--green)',b:'rgba(34,211,160,.1)'},
-      {l:t('hist_networth'),v:`RD$${ultimo.netWorth<0?'('+fmt(Math.abs(ultimo.netWorth))+')':fmt(ultimo.netWorth)}`,s:t('hist_assetminusliab'),c:ultimo.netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
-      {l:t('hist_months'),v:String(historial.length),s:t('hist_totalrecorded'),c:'var(--purple)',b:'rgba(167,139,250,.1)'},
-    ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:${k.l===t('hist_lasmonth')?'18':'22'}px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
+  // Fix #16: empty state
+  if(!ultimo){
+    document.getElementById('histKpis').innerHTML=`<div class="card" style="grid-column:1/-1;text-align:center;padding:28px;color:var(--muted)"><div style="font-size:14px;font-weight:700;margin-bottom:8px">${t('hist_empty_title')}</div><div style="font-size:12px;line-height:1.6">${t('hist_empty_sub')}</div></div>`;
+    document.getElementById('histCount').textContent=historial.length===1?t('hist_count_one'):t('hist_count').replace('{n}',historial.length);
+    return;
   }
-  document.getElementById('histCount').textContent=`${historial.length} ${_lang==='es'?'mes':'month'}${historial.length!==1?(_lang==='es'?'es':'s'):''} ${_lang==='es'?'registrado':'recorded'}${historial.length!==1&&_lang==='es'?'s':''}`;
+  document.getElementById('histKpis').innerHTML=[
+    {l:t('hist_lasmonth'),v:`${ultimo.mes} ${ultimo.anio}`,s:t('hist_recent'),c:'var(--accent)',b:'rgba(59,130,246,.1)'},
+    {l:t('hist_income'),v:`RD$${fmt(ultimo.ingresos)}`,s:t('hist_monthlydata'),c:'var(--green)',b:'rgba(34,211,160,.1)'},
+    {l:t('hist_networth'),v:`RD$${ultimo.netWorth<0?'('+fmt(Math.abs(ultimo.netWorth))+')':fmt(ultimo.netWorth)}`,s:t('hist_assetminusliab'),c:ultimo.netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
+    {l:t('hist_months'),v:String(historial.length),s:t('hist_totalrecorded'),c:'var(--purple)',b:'rgba(167,139,250,.1)'},
+  ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:${k.l===t('hist_lasmonth')?'18':'22'}px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
+  // Fix #12: histCount i18n
+  document.getElementById('histCount').textContent=historial.length===1?t('hist_count_one'):t('hist_count').replace('{n}',historial.length);
   const hb=document.getElementById('histBody');hb.innerHTML='';
   historial.forEach(h=>{
     const nwColor=h.netWorth<0?'var(--red)':'var(--green)';
     const ahorroColor=h.ahorro<0?'var(--red)':'var(--green)';
     const tasaStr=typeof h.tasaAhorro==='number'?(h.tasaAhorro*100).toFixed(1)+'%':String(h.tasaAhorro||'—');
+    // Fix #13: color-code savings rate — green ≥20%, yellow 10-20%, red <10%
+    const srPct=typeof h.tasaAhorro==='number'?h.tasaAhorro:0;
+    const srColor=srPct>=0.2?'var(--green)':srPct>=0.1?'var(--yellow)':'var(--red)';
     hb.innerHTML+=`<tr>
       <td data-label="" style="font-weight:700">${escH(h.mes)}</td>
       <td data-label="${t('hist_col_year')}" class="mono" style="color:var(--muted);text-align:right">${h.anio}</td>
       <td data-label="${t('hist_col_income')}" class="num" style="color:var(--green)">RD$${fmt(h.ingresos)}</td>
       <td data-label="${t('hist_col_expense')}" class="num" style="color:var(--red)">RD$${fmt(h.gasto)}</td>
       <td data-label="${t('hist_col_savings')}" class="num" style="color:${ahorroColor}">${h.ahorro<0?'(RD$'+fmt(Math.abs(h.ahorro))+')':'RD$'+fmt(h.ahorro)}</td>
-      <td data-label="${t('hist_col_savingsrate')}" class="mono" style="color:${h.ahorro<0?'var(--red)':'var(--green)'};text-align:right">${tasaStr}</td>
+      <td data-label="${t('hist_col_savingsrate')}" class="mono" style="color:${srColor};text-align:right">${tasaStr}</td>
       <td data-label="${t('hist_col_debts')}" class="num" style="color:var(--red)">RD$${fmt(h.deudas)}</td>
       <td data-label="${t('hist_col_emergency')}" class="num" style="color:var(--yellow)">RD$${fmt(h.emergencia)}</td>
       <td data-label="${t('hist_col_nw')}" class="num" style="color:${nwColor}">${h.netWorth<0?'(RD$'+fmt(Math.abs(h.netWorth))+')':'RD$'+fmt(h.netWorth)}</td>
       <td data-label="${t('hist_col_rate')}" class="mono" style="color:var(--muted);text-align:right">${h.tasa||'—'}</td>
     </tr>`;
   });
-  if(!historial.length)return;
+  // Fix #13: savings rate benchmark + Fix #15: exchange rate note
+  document.getElementById('histBody').insertAdjacentHTML('afterend',
+    `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:10px;color:var(--muted);padding:6px 12px">`+
+    `<span>📊 ${t('hist_savings_benchmark')}</span>`+
+    `<span>💱 ${t('hist_rate_note')}</span></div>`);
+  // Fix #9: chart labels i18n
   charts.histLine=new Chart(document.getElementById('histLine'),{
     type:'line',
     data:{labels,datasets:[
-      {label:_lang==='es'?'Net Worth (RD$)':'Net Worth (RD$)',data:reversed.map(h=>h.netWorth),borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#22d3a0'},
-      {label:_lang==='es'?'Balance Deudas (RD$)':'Debt Balance (RD$)',data:reversed.map(h=>-h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
+      {label:t('hist_chart_nw'),data:reversed.map(h=>h.netWorth),borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#22d3a0'},
+      {label:t('hist_chart_debt'),data:reversed.map(h=>-h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(Math.abs(ctx.raw))}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:11}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:v<=-1e6?`(${(-v/1e6).toFixed(1)}M)`:`${(v/1000).toFixed(0)}k`}}}}
@@ -3418,8 +3467,8 @@ function buildHistorial(historial,config){
   charts.histBar=new Chart(document.getElementById('histBar'),{
     type:'bar',
     data:{labels,datasets:[
-      {label:_lang==='es'?'Ingresos':'Income',data:reversed.map(h=>h.ingresos),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
-      {label:_lang==='es'?'Gastos':'Expenses',data:reversed.map(h=>h.gasto),backgroundColor:'#f4606a66',borderColor:'#f4606a',borderWidth:2,borderRadius:6},
+      {label:t('hist_chart_income'),data:reversed.map(h=>h.ingresos),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
+      {label:t('hist_chart_expense'),data:reversed.map(h=>h.gasto),backgroundColor:'#f4606a66',borderColor:'#f4606a',borderWidth:2,borderRadius:6},
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
@@ -3427,8 +3476,8 @@ function buildHistorial(historial,config){
   charts.histDeudaLine=new Chart(document.getElementById('histDeudaLine'),{
     type:'line',
     data:{labels,datasets:[
-      {label:_lang==='es'?'Balance Deudas':'Debt Balance',data:reversed.map(h=>h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
-      {label:_lang==='es'?'Fondos Emergencia':'Emergency Funds',data:reversed.map(h=>h.emergencia),borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f5c842'},
+      {label:t('hist_chart_debtbal'),data:reversed.map(h=>h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
+      {label:t('hist_chart_ef'),data:reversed.map(h=>h.emergencia),borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f5c842'},
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
@@ -3449,23 +3498,20 @@ function buildExpenseTrend(historial,gastos){
   const prev=historial[1];// one month earlier
   // For recurring expense trend we compare gasto and ahorro (top-level monthly totals)
   // We also show per-type breakdown from current gastos vs what the historial shows for prev month
+  // Fix #6: use direction property instead of keyword matching. Fix #10: i18n row names
   const rows=[
-    {name:_lang==='es'?'Gasto Total':'Total Expenses',curr:curr.gasto,prev:prev.gasto},
-    {name:_lang==='es'?'Ingresos':'Income',curr:curr.ingresos,prev:prev.ingresos},
-    {name:_lang==='es'?'Ahorro Neto':'Net Savings',curr:curr.ahorro,prev:prev.ahorro},
-    {name:_lang==='es'?'Balance Deudas':'Debt Balance',curr:curr.deudas,prev:prev.deudas},
-    {name:_lang==='es'?'Fondo Emergencia':'Emergency Fund',curr:curr.emergencia,prev:prev.emergencia},
+    {name:t('trend_total_expense'),curr:curr.gasto,prev:prev.gasto,upIsGood:false},
+    {name:t('trend_income'),curr:curr.ingresos,prev:prev.ingresos,upIsGood:true},
+    {name:t('trend_net_savings'),curr:curr.ahorro,prev:prev.ahorro,upIsGood:true},
+    {name:t('trend_debt_balance'),curr:curr.deudas,prev:prev.deudas,upIsGood:false},
+    {name:t('trend_ef'),curr:curr.emergencia,prev:prev.emergencia,upIsGood:true},
   ];
-  // Add per-type expense breakdown from current gastos
   const tipoMap={};
   gastos.forEach(g=>{const k=g.tipo||'Otro';if(!tipoMap[k])tipoMap[k]=0;tipoMap[k]+=g.adeudado||0;});
   const html=rows.map(r=>{
     const delta=r.curr-r.prev;
     const pct=r.prev!==0?Math.round(delta/Math.abs(r.prev)*100):0;
-    const isExpense=r.name.toLowerCase().includes('gasto')||r.name.toLowerCase().includes('expense')||r.name.toLowerCase().includes('deu');
-    // For expenses+debts: going up is bad (red); for income/savings: going up is good (green)
-    const upIsGood=r.name.toLowerCase().includes('ingreso')||r.name.toLowerCase().includes('income')||r.name.toLowerCase().includes('ahorro')||r.name.toLowerCase().includes('saving')||r.name.toLowerCase().includes('emergencia')||r.name.toLowerCase().includes('emergency');
-    const arrowColor=delta===0?'var(--muted)':((delta>0)===upIsGood?'var(--green)':'var(--red)');
+    const arrowColor=delta===0?'var(--muted)':((delta>0)===r.upIsGood?'var(--green)':'var(--red)');
     const arrow=delta>0?'▲':delta<0?'▼':'→';
     const pctStr=delta===0?'—':`${arrow} ${Math.abs(pct)}%`;
     return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(26,37,64,.4)">
@@ -3496,7 +3542,7 @@ function buildExpenseTrend(historial,gastos){
         <span style="font-size:11px;color:var(--muted)">${Math.round(val/curr.gasto*100)||0}%</span>
       </div>`;
     }).join('');
-    el.innerHTML+=`<div style="margin-top:16px;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">${_lang==='es'?'Distribución por Tipo (Mes Actual)':'Type Breakdown (Current Month)'}</div>`+typeHtml;
+    el.innerHTML+=`<div style="margin-top:16px;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">${t('trend_type_breakdown')}</div>`+typeHtml;
   }
 }
 
@@ -4131,11 +4177,11 @@ function buildEditForms(){
   // HISTORIAL
   const hb=document.getElementById('historialEditBody');hb.innerHTML='';
   historial.forEach((h,i)=>{
-    const ingRaw=h.tasa>0&&h.ingresos>h.tasa*100?Math.round(h.ingresos/h.tasa):h.ingresos;
+    // Fix #1: income stored in RD$ — no reverse conversion needed
     hb.innerHTML+=`<tr>
       <td><input class="tbl-input" value="${escH(h.mes)}" oninput="markChanged(this);_editData.historial[${i}].mes=this.value" style="min-width:90px"></td>
       <td><input class="tbl-input" type="number" step="any" value="${h.anio}" oninput="markChanged(this);_editData.historial[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${ingRaw}" oninput="markChanged(this);_editData.historial[${i}].ingresos=parseFloat(this.value)||0"></td>
+      <td><input class="tbl-input" type="number" step="any" value="${h.ingresos||0}" oninput="markChanged(this);_editData.historial[${i}].ingresos=parseFloat(this.value)||0"></td>
       <td><input class="tbl-input" type="number" step="any" value="${h.gasto||0}" oninput="markChanged(this);_editData.historial[${i}].gasto=parseFloat(this.value)||0"></td>
       <td><input class="tbl-input" type="number" step="any" value="${h.tasa||60}" oninput="markChanged(this);_editData.historial[${i}].tasa=parseFloat(this.value)||60" style="min-width:60px"></td>
       <td><input class="tbl-input" type="number" step="any" value="${h.deudas||0}" oninput="markChanged(this);_editData.historial[${i}].deudas=parseFloat(this.value)||0"></td>
@@ -4271,8 +4317,8 @@ function generateExcel(){
       for(let ri=hi4+1;ri<hi4+30;ri++){for(let ci=0;ci<=10;ci++){delete hisSheet[XLSX.utils.encode_cell({r:ri,c:ci})];}}
       historial.forEach((h,i)=>{
         const ri=hi4+1+i;
-        const ingRaw=h.tasa>0&&h.ingresos>h.tasa*100?Math.round(h.ingresos/h.tasa):h.ingresos;
-        [h.mes,h.anio,ingRaw,h.gasto,h.ahorro||0,h.tasaAhorro||0,h.deudas,h.emergencia,h.netWorth,h.tasa,h.notas||''].forEach((v,ci)=>{
+        // Fix #1: income stored in RD$ — no reverse conversion
+        [h.mes,h.anio,h.ingresos,h.gasto,h.ahorro||0,h.tasaAhorro||0,h.deudas,h.emergencia,h.netWorth,h.tasa,h.notas||''].forEach((v,ci)=>{
           const ref=XLSX.utils.encode_cell({r:ri,c:ci});
           if(v===null||v===''||v===undefined){delete hisSheet[ref];return;}
           if(typeof v==='number')hisSheet[ref]={t:'n',v};else hisSheet[ref]={t:'s',v:String(v)};
