@@ -1079,6 +1079,14 @@ const LANG = {
     proy_refi_col_debt:'Deuda', proy_refi_col_current:'Tasa actual', proy_refi_col_target:'Tasa objetivo',
     proy_refi_col_monthly:'Ahorro mensual', proy_refi_col_annual:'Ahorro anual',
     proy_refi_tip:'💡 <strong>Opciones comunes para RD:</strong> Consolidar en préstamo personal de banco (12–20%), transferir saldo de tarjeta (algunos bancos ofrecen 0% los primeros meses), o negociar directamente con el acreedor.',
+    proy_refi_note:'Ahorros mostrados antes de comisiones. Compara con los costos de refinanciamiento de tu entidad.',
+    proy_committed_pct:'comprometido', proy_committed_avail_pct:'disponible',
+    proy_committed_use_extra:'Usar como pago extra',
+    proy_cost_interest_pct:'interés', proy_cost_principal_pct:'va a capital',
+    proy_interest_note:'Interés calculado como aproximación mensual simple.',
+    dpd_balance_lbl:'Balance:', dpd_rate_lbl:'Tasa:', dpd_payment_lbl:'Cuota:',
+    dpd_intmonth:'Interés/mes', dpd_capitalmonth:'Capital/mes', dpd_progress_lbl:'Progreso total pagado',
+    dcard_payoff_progress:'Avance individual',
     proy_whatif_title:'🎯 Escenarios ¿Qué Pasaría Si…?',
     proy_whatif_col_scenario:'Escenario', proy_whatif_col_free:'Libre de deudas', proy_whatif_col_interest:'Interés total pagado',
     proy_whatif_col_vs:'vs. Escenario base', proy_whatif_col_saved:'Interés ahorrado',
@@ -1326,6 +1334,14 @@ const LANG = {
     proy_refi_col_debt:'Debt', proy_refi_col_current:'Current rate', proy_refi_col_target:'Target rate',
     proy_refi_col_monthly:'Monthly savings', proy_refi_col_annual:'Annual savings',
     proy_refi_tip:'💡 <strong>Common options in DR:</strong> Consolidate in a personal bank loan (12–20%), transfer card balance (some banks offer 0% for the first months), or negotiate directly with the creditor.',
+    proy_refi_note:'Savings shown before fees. Compare with your lender\'s refinancing costs.',
+    proy_committed_pct:'committed', proy_committed_avail_pct:'available',
+    proy_committed_use_extra:'Use as extra payment',
+    proy_cost_interest_pct:'interest', proy_cost_principal_pct:'goes to principal',
+    proy_interest_note:'Interest calculated as simple monthly approximation.',
+    dpd_balance_lbl:'Balance:', dpd_rate_lbl:'Rate:', dpd_payment_lbl:'Payment:',
+    dpd_intmonth:'Interest/mo', dpd_capitalmonth:'Principal/mo', dpd_progress_lbl:'Total payoff progress',
+    dcard_payoff_progress:'Individual progress',
     proy_whatif_title:'🎯 What If…? Scenarios',
     proy_whatif_col_scenario:'Scenario', proy_whatif_col_free:'Debt-free in', proy_whatif_col_interest:'Total interest paid',
     proy_whatif_col_vs:'vs. Base scenario', proy_whatif_col_saved:'Interest saved',
@@ -2586,14 +2602,14 @@ function buildProyector({gastos,ingreso,gasto,config}){
       <div style="height:8px;border-radius:99px;width:${Math.min(fnPctUsed,100)}%;background:${fnPctUsed>80?'var(--red)':fnPctUsed>60?'var(--yellow)':'var(--green)'}"></div>
     </div>
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:12px">
-      <span>${fnPctUsed}% ${_lang==='es'?'comprometido':'committed'}</span>
-      <span>${100-fnPctUsed}% ${_lang==='es'?'disponible':'available'}</span>
+      <span>${fnPctUsed}% ${t('proy_committed_pct')}</span>
+      <span>${100-fnPctUsed}% ${t('proy_committed_avail_pct')}</span>
     </div>
     ${fnDispProy>0&&allDeudas.length>0?`<div style="padding:10px 14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
       💡 ${t('proy_committed_tip')}
       <button onclick="document.getElementById('extraSlider').value=${fnDebtRedirect};document.getElementById('extraInput').value=${fnDebtRedirect};updateProyector()"
         style="margin-left:8px;padding:4px 10px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
-        ${_lang==='es'?'Usar como pago extra':'Use as extra payment'} →</button>
+        ${t('proy_committed_use_extra')} →</button>
     </div>`:''}`;
 
   // ── Parámetro de Proyección ──
@@ -2601,7 +2617,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
     <div class="card-title">${t('proy_config_title')}</div>
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="flex:1;min-width:200px">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Pago extra mensual disponible (RD$) — arrastra el slider o escribe un monto</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${t('proy_slider_label')}</div>
         <input type="range" id="extraSlider" min="0" max="${Math.max(1,resta*2)}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
           <input type="number" id="extraInput" value="${extraPayment}" min="0" max="${Math.round(resta*2)}" step="any"
@@ -2638,47 +2654,50 @@ function buildProyector({gastos,ingreso,gasto,config}){
       <td data-label="Int/mes" class="mono" style="color:var(--red);text-align:right">RD$${fmt(intMes)}</td>
       <td data-label="Cuota/mes" class="mono" style="text-align:right">RD$${fmt(g.adeudado)}</td>
       <td data-label="Capital pagado" class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}RD$${fmt(Math.abs(netPaydown))}</td>
-      <td data-label="Eficiencia" style="text-align:center">
+      <td data-label="${t('proy_cost_col_efficiency')}" style="text-align:center">
         <div style="background:var(--border);border-radius:99px;height:6px;width:80px;overflow:hidden;display:inline-block">
-          <div style="height:6px;border-radius:99px;width:${Math.min(pctInterest,100)}%;background:${pctInterest>50?'var(--red)':pctInterest>25?'var(--yellow)':'var(--green)'}"></div>
+          <div style="height:6px;border-radius:99px;width:${Math.min(100-pctInterest,100)}%;background:${pctInterest>50?'var(--red)':pctInterest>25?'var(--yellow)':'var(--green)'}"></div>
         </div>
-        <span style="font-size:10px;color:var(--muted);margin-left:4px">${pctInterest}% interés</span>
+        <span style="font-size:10px;color:var(--muted);margin-left:4px">${Math.max(0,100-pctInterest)}% ${t('proy_cost_principal_pct')}</span>
       </td>
     </tr>`;
   }).join('');
 
   document.getElementById('debtCostSnapshot').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
-      <div class="card-title" style="margin:0">💸 Costo Real de Tus Deudas</div>
+      <div class="card-title" style="margin:0">${t('proy_cost_title')}</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
-          <div style="font-size:10px;color:var(--muted)">Interés mensual total</div>
+          <div style="font-size:10px;color:var(--muted)">${t('proy_monthly_interest')}</div>
           <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">RD$${fmt(intMensual)}</div>
         </div>
         <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
-          <div style="font-size:10px;color:var(--muted)">Interés anual total</div>
+          <div style="font-size:10px;color:var(--muted)">${t('proy_annual_interest')}</div>
           <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">RD$${fmt(intMensual*12)}</div>
         </div>
         <div style="background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);border-radius:8px;padding:8px 14px;text-align:center">
-          <div style="font-size:10px;color:var(--muted)">Tasa promedio ponderada</div>
+          <div style="font-size:10px;color:var(--muted)">${t('proy_wtd_rate')}</div>
           <div class="mono" style="font-size:18px;font-weight:800;color:var(--yellow)">${wtdAvgRate.toFixed(2)}%</div>
         </div>
         <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center">
-          <div style="font-size:10px;color:var(--muted)">Interés como % del superávit</div>
+          <div style="font-size:10px;color:var(--muted)">${t('proy_interest_pct_surplus')}</div>
           <div class="mono" style="font-size:18px;font-weight:800;color:${intMensual>resta?'var(--red)':'var(--accent)'}">${resta>0?Math.round(intMensual/resta*100):'∞'}%</div>
         </div>
       </div>
     </div>
     <div class="tbl-wrap"><table class="mobile-card-table">
       <thead><tr>
-        <th>Deuda</th><th style="text-align:right">Balance</th><th style="text-align:center">Tasa</th>
-        <th style="text-align:right">Interés/mes</th><th style="text-align:right">Cuota/mes</th>
-        <th style="text-align:right">Capital real pagado</th><th style="text-align:center">Eficiencia</th>
+        <th>${t('proy_cost_col_debt')}</th><th style="text-align:right">${t('proy_cost_col_balance')}</th><th style="text-align:center">${t('proy_cost_col_rate')}</th>
+        <th style="text-align:right">${t('proy_cost_col_intmonth')}</th><th style="text-align:right">${t('proy_cost_col_monthly')}</th>
+        <th style="text-align:right">${t('proy_cost_col_capital')}</th><th style="text-align:center">${t('proy_cost_col_efficiency')}</th>
       </tr></thead>
       <tbody>${costRows}</tbody>
     </table></div>
     <div style="font-size:11px;color:var(--muted);margin-top:10px;padding:8px 12px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);border-radius:8px">
-      💡 <strong>Capital real pagado</strong> = cuota mensual menos el interés del mes. Si es negativo (⚠), la deuda crece aunque pagues.
+      ${t('proy_cost_tip')}
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px;padding:6px 12px">
+      📐 ${t('proy_interest_note')}
     </div>`;
 
   // ── Simulador de Refinanciamiento ──
@@ -2700,17 +2719,20 @@ function buildProyector({gastos,ingreso,gasto,config}){
   }).join('');
 
   document.getElementById('refiSimulator').innerHTML=`
-    <div class="card-title" style="margin-bottom:16px">🔄 Simulador de Refinanciamiento</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">¿Cuánto ahorrarías si refinanciaras una deuda a una tasa menor? Ingresa la tasa objetivo para cada una.</div>
+    <div class="card-title" style="margin-bottom:16px">${t('proy_refi_title')}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${t('proy_refi_desc')}</div>
     <div class="tbl-wrap"><table class="mobile-card-table">
       <thead><tr>
-        <th>Deuda</th><th style="text-align:center">Tasa actual</th><th>Tasa objetivo</th>
-        <th style="text-align:right">Ahorro mensual</th><th style="text-align:right">Ahorro anual</th>
+        <th>${t('proy_refi_col_debt')}</th><th style="text-align:center">${t('proy_refi_col_current')}</th><th>${t('proy_refi_col_target')}</th>
+        <th style="text-align:right">${t('proy_refi_col_monthly')}</th><th style="text-align:right">${t('proy_refi_col_annual')}</th>
       </tr></thead>
       <tbody>${refiRows}</tbody>
     </table></div>
     <div style="margin-top:12px;padding:10px 14px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
-      💡 <strong>Opciones comunes para RD:</strong> Consolidar en préstamo personal de banco (12–20%), transferir saldo de tarjeta (algunos bancos ofrecen 0% los primeros meses), o negociar directamente con el acreedor.
+      ${t('proy_refi_tip')}
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px;padding:6px 12px">
+      ⚠️ ${t('proy_refi_note')}
     </div>`;
 
   // ── Escenarios What-If ──
@@ -2842,7 +2864,7 @@ function updateProyector(){
         if(d.fechaLimite){
           const fl=d.fechaLimite instanceof Date?d.fechaLimite:new Date(d.fechaLimite);
           if(!isNaN(fl.getTime())){
-            const deadlineMonths=Math.round((fl-today)/(1000*60*60*24*30));
+            const deadlineMonths=Math.round((fl-today)/(1000*60*60*24*30.4375));
             if(d.paidMonth>deadlineMonths) deadlineWarn=`<span style="color:var(--red);font-size:10px;font-weight:700"> ⚠ Vence en ${deadlineMonths}m</span>`;
           }
         }
@@ -2859,12 +2881,13 @@ function updateProyector(){
   if(charts.proyectorChart)charts.proyectorChart.destroy();
   const months=Math.min(60,Math.max(...avalancha.map(d=>d.paidMonth))+3);
   const labels=Array.from({length:months},(_,i)=>`M${i+1}`);
-  const calcProgress=(ds,sortFn)=>{
+  const calcProgress=(ds,sortFn,extraOverride)=>{
+    const ex=extraOverride!==undefined?extraOverride:extra;
     const debts=ds.map(d=>({...d}));
     return Array.from({length:months},(_,mo)=>{
       debts.sort(sortFn);
       const freedMins=debts.filter(d=>d.balance<=0).reduce((a,d)=>a+d.adeudado,0);
-      let extraLeft=extra+freedMins;
+      let extraLeft=ex+freedMins;
       debts.forEach(d=>{
         if(d.balance<=0)return;
         const mi=d.balance*(d.tasa/100/12);
@@ -2877,7 +2900,7 @@ function updateProyector(){
   };
   const avData=calcProgress(deudas.map(d=>({...d})),(a,b)=>b.tasa-a.tasa);
   const niData=calcProgress(deudas.map(d=>({...d})),(a,b)=>a.balance-b.balance);
-  const noExtra=calcProgress(deudas.map(d=>({...d,adeudado:d.adeudado})),()=>0);
+  const noExtra=calcProgress(deudas.map(d=>({...d})),(a,b)=>b.tasa-a.tasa,0);
   charts.proyectorChart=new Chart(document.getElementById('proyectorChart'),{
     type:'line',
     data:{labels,datasets:[
@@ -3027,6 +3050,8 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const dc=document.getElementById('deudaCards');
   dc.innerHTML=allDeudas.map(d=>{
     const pct=totalBalance>0?Math.round((d.balance/totalBalance)*100):0;
+    const origAmt=Math.max(d.originalRD||0,d.balance||0);
+    const indivPct=origAmt>0?Math.round((1-d.balance/origAmt)*100):0;
     const bc=d.tasa>15?'linear-gradient(90deg,#f4606a,#fb923c)':d.tasa>0?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#93c5fd,#818cf8)';
     const fStr=fmtFecha(d.fechaLimite,{month:'short',year:'numeric'});
     return `<div class="debt-card">
@@ -3036,8 +3061,10 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${pct}% ${t('dcard_oftotal')}</div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
+      ${indivPct>0?`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;margin-bottom:2px"><span>${t('dcard_payoff_progress')}</span><span>${indivPct}%</span></div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${indivPct}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>`:''}
       <div class="debt-meta">
-        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${_lang==='es'?'Día':'Day'} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
+        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${t('chk_day')} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
       <div style="margin-top:10px;text-align:right"><button class="btn btn-sm btn-success" onclick="liquidarDeuda(${gastos.indexOf(d)})">${t('dcard_liquidar')}</button></div>
     </div>`;
   }).join('');
@@ -3566,16 +3593,28 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
   const COLORS_DPD=['#22d3a0','#3b82f6','#a78bfa','#f5c842','#fb923c','#f87171','#c4b5fd','#93c5fd'];
 
   const calcPayoff=(balance,monthlyRate,payment)=>{
-    // Months to pay off: n = -ln(1 - (r*PV)/PMT) / ln(1+r)  [standard amortisation]
+    // Iterative simulation — matches the projector's method exactly
     if(monthlyRate<=0)return payment>0?Math.ceil(balance/payment):Infinity;
-    if(payment<=balance*monthlyRate)return Infinity;// payment doesn't cover interest
-    const n=Math.log(1-(monthlyRate*balance)/payment)/Math.log(1+monthlyRate);
-    return Math.ceil(Math.abs(n));
+    if(payment<=balance*monthlyRate)return Infinity;
+    let bal=balance,months=0,intTotal=0;
+    while(bal>0&&months<360){
+      months++;
+      const mi=bal*monthlyRate;
+      intTotal+=mi;
+      bal=Math.max(0,bal+mi-payment);
+    }
+    return months;
   };
 
   const calcTotalInterest=(balance,monthlyRate,payment,months)=>{
     if(months===Infinity)return Infinity;
-    return Math.round(payment*months-balance);
+    let bal=balance,intTotal=0;
+    for(let m=0;m<months&&bal>0;m++){
+      const mi=bal*monthlyRate;
+      intTotal+=mi;
+      bal=Math.max(0,bal+mi-payment);
+    }
+    return Math.round(intTotal);
   };
 
   const rows=debts.map((d,i)=>{
@@ -3597,11 +3636,11 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
         <div>
           <div style="font-size:14px;font-weight:800;color:var(--text)">${escH(d.nombre)}</div>
           <div style="margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
-            <span>Balance: <strong class="mono" style="color:var(--red)">RD$${fmt(d.balance)}</strong></span>
+            <span>${t('dpd_balance_lbl')} <strong class="mono" style="color:var(--red)">RD$${fmt(d.balance)}</strong></span>
             <span>·</span>
-            <span>Tasa: <strong class="mono" style="color:${d.tasa>30?'var(--red)':d.tasa>18?'var(--yellow)':'var(--muted)'}">${d.tasa}%</strong></span>
+            <span>${t('dpd_rate_lbl')} <strong class="mono" style="color:${d.tasa>30?'var(--red)':d.tasa>18?'var(--yellow)':'var(--muted)'}">${d.tasa}%</strong></span>
             <span>·</span>
-            <span>Cuota: <strong class="mono">RD$${fmt(d.adeudado)}/mes</strong></span>
+            <span>${t('dpd_payment_lbl')} <strong class="mono">RD$${fmt(d.adeudado)}/${t('kpi_exp_month')}</strong></span>
           </div>
         </div>
         <div style="text-align:right">
@@ -3618,18 +3657,18 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
           </div>
         </div>
         <div style="background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
-          <div style="font-size:10px;color:var(--muted)">Interés/mes</div>
+          <div style="font-size:10px;color:var(--muted)">${t('dpd_intmonth')}</div>
           <div class="mono" style="font-size:16px;font-weight:800;color:var(--text)">RD$${fmt(Math.round(d.balance*monthlyRate))}</div>
         </div>
         <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
-          <div style="font-size:10px;color:var(--muted)">Capital/mes</div>
+          <div style="font-size:10px;color:var(--muted)">${t('dpd_capitalmonth')}</div>
           <div class="mono" style="font-size:16px;font-weight:800;color:${d.adeudado>d.balance*monthlyRate?'var(--accent)':'var(--red)'}">
             ${d.adeudado>d.balance*monthlyRate?'RD$'+fmt(Math.round(d.adeudado-d.balance*monthlyRate)):'⚠ Negativo'}
           </div>
         </div>
       </div>
       ${paidPct>0?`<div style="margin-top:12px">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>Progreso total pagado</span><span>${paidPct}%</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>${t('dpd_progress_lbl')}</span><span>${paidPct}%</span></div>
         <div class="progress-wrap"><div class="progress-bar" style="width:${paidPct}%;background:${color}"></div></div>
       </div>`:''}
     </div>`;
@@ -3979,7 +4018,7 @@ function buildEditForms(){
 }
 
 function deleteGastoRow(i){_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
-function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);_editData.gastos.splice(idx,1);buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
+function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);g.balance=0;g.adeudado=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
 function deleteFornowRow(i){_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
