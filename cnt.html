@@ -722,6 +722,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <!-- Debt Cost Snapshot -->
     <div class="card" style="margin-bottom:16px" id="debtCostSnapshot"></div>
 
+    <!-- Strategy explanation -->
+    <div class="card" style="margin-bottom:16px" id="strategyExplainer"></div>
     <!-- Strategy timelines -->
     <div class="grid g2" style="margin-bottom:16px">
       <div class="card"><div class="card-title"><span data-i18n="proy_avalanche_title">🔥 Estrategia Avalancha</span> <span style="font-size:10px;color:var(--muted)" data-i18n="proy_avalanche_sub">(mayor tasa primero)</span></div><div id="avalanchaTimeline"></div></div>
@@ -735,7 +737,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="card" style="margin-bottom:16px" id="whatIfScenarios"></div>
 
     <!-- Chart -->
-    <div class="card"><div class="card-title">Proyección de Balance Total de Deudas</div><div class="chart-wrap"><canvas id="proyectorChart"></canvas></div></div>
+    <div class="card"><div class="card-title" data-i18n="proy_chart_title">Proyección de Balance Total de Deudas</div><div class="chart-wrap"><canvas id="proyectorChart"></canvas></div></div>
   </div>
 
   <!-- EMERGENCY -->
@@ -1111,6 +1113,18 @@ const LANG = {
     proy_chart_title:'Proyección de Balance Total de Deudas',
     proy_avalanche_title:'🔥 Estrategia Avalancha', proy_avalanche_sub:'(mayor tasa primero)',
     proy_snowball_title:'⛄ Estrategia Bola de Nieve', proy_snowball_sub:'(menor balance primero)',
+    proy_debtfree_in:'Libre de deudas en:', proy_int_total:'interés total',
+    proy_rate_label:'Tasa', proy_deadline_warn:'Vence en',
+    proy_no_debts:'¡Sin deudas con tasa!', proy_chart_avalancha:'Avalancha',
+    proy_chart_snowball:'Bola de Nieve', proy_chart_noextra:'Sin extra',
+    proy_neg_amort_warn:'⚠️ <strong>{name}</strong>: tu cuota mensual (RD${payment}) no cubre el interés (RD${interest}). La deuda crece RD${growth}/mes aunque pagues.',
+    proy_strategy_title:'🔀 ¿Cuál estrategia elegir?',
+    proy_strategy_explain:'<strong>Avalancha</strong> paga primero la deuda con mayor tasa de interés — es matemáticamente óptima y te ahorra más dinero. <strong>Bola de Nieve</strong> paga primero la deuda con menor balance — genera victorias rápidas y motivación psicológica. Ambas funcionan; elige según tu personalidad.',
+    proy_no_surplus_warn:'Tu gasto supera tu ingreso — no hay superávit para pagos extra. Reduce gastos o aumenta ingresos primero.',
+    proy_committed_runway:'meses de cobertura',
+    proy_committed_runway_label:'Reserva de Liquidez',
+    proy_committed_runway_tip:'Tus saldos cubren este número de meses de gastos. Redirigir todo a deuda puede dejarte sin liquidez — mantén al menos 1–2 meses de reserva.',
+    proy_refi_approx:'Estimación simplificada del primer mes. El ahorro real disminuye conforme baja el balance.',
     // Panel section titles (HTML)
     panel_alertas_venc:'🔴 Vencimientos Próximos', panel_alertas_gen:'⚠️ Alertas Financieras',
     panel_alertas_sit:'📋 Resumen de Situación',
@@ -1378,6 +1392,18 @@ const LANG = {
     proy_chart_title:'Total Debt Balance Projection',
     proy_avalanche_title:'🔥 Avalanche Strategy', proy_avalanche_sub:'(highest rate first)',
     proy_snowball_title:'⛄ Snowball Strategy', proy_snowball_sub:'(lowest balance first)',
+    proy_debtfree_in:'Debt-free in:', proy_int_total:'total interest',
+    proy_rate_label:'Rate', proy_deadline_warn:'Due in',
+    proy_no_debts:'No debts with interest!', proy_chart_avalancha:'Avalanche',
+    proy_chart_snowball:'Snowball', proy_chart_noextra:'No extra',
+    proy_neg_amort_warn:'⚠️ <strong>{name}</strong>: your monthly payment (RD${payment}) doesn\'t cover interest (RD${interest}). The debt grows RD${growth}/mo even though you pay.',
+    proy_strategy_title:'🔀 Which strategy to choose?',
+    proy_strategy_explain:'<strong>Avalanche</strong> pays the highest-rate debt first — mathematically optimal, saves you the most money. <strong>Snowball</strong> pays the smallest balance first — creates quick wins and psychological momentum. Both work; choose based on your personality.',
+    proy_no_surplus_warn:'Your expenses exceed your income — no surplus for extra payments. Reduce expenses or increase income first.',
+    proy_committed_runway:'months of coverage',
+    proy_committed_runway_label:'Liquidity Reserve',
+    proy_committed_runway_tip:'Your balances cover this many months of expenses. Redirecting everything to debt may leave you illiquid — keep at least 1–2 months as a reserve.',
+    proy_refi_approx:'Simplified first-month estimate. Actual savings decrease as the balance drops.',
     // Panel section titles
     panel_alertas_venc:'🔴 Upcoming Due Dates', panel_alertas_gen:'⚠️ Financial Alerts',
     panel_alertas_sit:'📋 Situation Summary',
@@ -2590,12 +2616,17 @@ function buildProyector({gastos,ingreso,gasto,config}){
   const intMensual=allDeudas.reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
   const wtdAvgRate=totalBalance>0?allDeudas.reduce((a,g)=>a+g.tasa*g.balance,0)/totalBalance:0;
 
-  // ── Simulador de Fondos Comprometidos ──
+  // ── Fix #3: Committed Funds — show months-of-runway instead of stock-minus-flow ──
   const fnTasaProy=config.tasa||60;
   const fnTotalProy=_editData.forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?fnTasaProy:1;return a+(c.saldo||0)*m;},0);
   const fnCompProy=gasto;
-  const fnDispProy=fnTotalProy-fnCompProy;
-  const fnDebtRedirect=Math.max(0,Math.round(fnDispProy*0.4));
+  const fnRunwayMonths=fnCompProy>0?(fnTotalProy/fnCompProy):Infinity;
+  const fnRunwayDisplay=fnRunwayMonths===Infinity?'∞':fnRunwayMonths.toFixed(1);
+  const fnRunwayColor=fnRunwayMonths>=3?'var(--green)':fnRunwayMonths>=1?'var(--yellow)':'var(--red)';
+  // Safe redirectable: only surplus beyond 2 months reserve
+  const fnReserve=fnCompProy*2;
+  const fnSafeAvailable=Math.max(0,fnTotalProy-fnReserve);
+  const fnDebtRedirect=Math.max(0,Math.round(fnSafeAvailable*0.4));
   const fnPctUsed=fnTotalProy>0?Math.round(fnCompProy/fnTotalProy*100):0;
   document.getElementById('committedSimulation').innerHTML=`
     <div class="card-title" style="margin-bottom:4px">${t('proy_committed_title')}</div>
@@ -2609,12 +2640,12 @@ function buildProyector({gastos,ingreso,gasto,config}){
       <div style="flex:1;min-width:140px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:10px;padding:14px 18px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_gastos')}</div>
         <div class="mono" style="font-size:22px;font-weight:800;color:var(--red);margin-top:2px">(RD$${fmt(fnCompProy)})</div>
-        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_expenses')} · ${fnPctUsed}%</div>
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_expenses')}</div>
       </div>
       <div style="flex:1;min-width:140px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:10px;padding:14px 18px;text-align:center">
-        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_available')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:${fnDispProy>=0?'var(--green)':'var(--red)'};margin-top:2px">${fnDispProy<0?'(':''}RD$${fmt(Math.abs(fnDispProy))}${fnDispProy<0?')':''}</div>
-        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_aftercommit')}</div>
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_runway_label')}</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:${fnRunwayColor};margin-top:2px">${fnRunwayDisplay}</div>
+        <div style="font-size:10px;color:var(--muted)">${t('proy_committed_runway')}</div>
       </div>
       <div style="flex:1;min-width:140px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px 18px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_debtpay')}</div>
@@ -2627,57 +2658,64 @@ function buildProyector({gastos,ingreso,gasto,config}){
     </div>
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:12px">
       <span>${fnPctUsed}% ${t('proy_committed_pct')}</span>
-      <span>${100-fnPctUsed}% ${t('proy_committed_avail_pct')}</span>
+      <span>${Math.max(0,100-fnPctUsed)}% ${t('proy_committed_avail_pct')}</span>
     </div>
-    ${fnDispProy>0&&allDeudas.length>0?`<div style="padding:10px 14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
+    <div style="padding:8px 12px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:8px">
+      💡 ${t('proy_committed_runway_tip')}
+    </div>
+    ${fnSafeAvailable>0&&allDeudas.length>0?`<div style="padding:10px 14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
       💡 ${t('proy_committed_tip')}
       <button onclick="document.getElementById('extraSlider').value=${fnDebtRedirect};document.getElementById('extraInput').value=${fnDebtRedirect};updateProyector()"
         style="margin-left:8px;padding:4px 10px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
         ${t('proy_committed_use_extra')} →</button>
     </div>`:''}`;
 
-  // ── Parámetro de Proyección ──
+  // ── Fix #10: Slider — handle zero/negative surplus ──
+  const sliderMax=resta>0?Math.round(resta*2):Math.max(10000,totalAdeudado);
   document.getElementById('proyectorConfig').innerHTML=`
     <div class="card-title">${t('proy_config_title')}</div>
+    ${resta<=0?`<div style="padding:10px 14px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">⚠️ ${t('proy_no_surplus_warn')}</div>`:''}
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="flex:1;min-width:200px">
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${t('proy_slider_label')}</div>
-        <input type="range" id="extraSlider" min="0" max="${Math.max(1,resta*2)}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
+        <input type="range" id="extraSlider" min="0" max="${sliderMax}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
-          <input type="number" id="extraInput" value="${extraPayment}" min="0" max="${Math.round(resta*2)}" step="any"
+          <input type="number" id="extraInput" value="${extraPayment}" min="0" step="any"
             oninput="document.getElementById('extraSlider').value=this.value;updateProyector()"
             style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:140px;min-width:100px">
-          <span style="font-size:12px;color:var(--muted)">RD$/mes</span>
-          <button onclick="document.getElementById('extraSlider').value=${Math.round(resta)};document.getElementById('extraInput').value=${Math.round(resta)};updateProyector()"
+          <span style="font-size:12px;color:var(--muted)">${t('proy_per_month')}</span>
+          ${resta>0?`<button onclick="document.getElementById('extraSlider').value=${Math.round(resta)};document.getElementById('extraInput').value=${Math.round(resta)};updateProyector()"
             style="padding:8px 12px;background:rgba(34,211,160,.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">
-            Todo el superávit</button>
+            ${t('proy_allsurplus')}</button>`:''}
           ${savingsMonthly>0?`<button onclick="document.getElementById('extraSlider').value=${extraPayment+savingsMonthly};document.getElementById('extraInput').value=${extraPayment+savingsMonthly};updateProyector()"
             style="padding:8px 12px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">
-            + Redirigir ahorros (RD$${fmt(savingsMonthly)})</button>`:''}
+            ${t('proy_redirectsavings')} (RD$${fmt(savingsMonthly)})</button>`:''}
         </div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:12px 18px;min-width:140px;text-align:center">
-        <div style="font-size:10px;color:var(--muted)">Pago extra/mes</div>
+        <div style="font-size:10px;color:var(--muted)">${t('proy_extra_label')}</div>
         <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px" id="extraVal">RD$${fmt(extraPayment)}</div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:12px 18px;min-width:140px;text-align:center">
-        <div style="font-size:10px;color:var(--muted)">Superávit mensual</div>
+        <div style="font-size:10px;color:var(--muted)">${t('proy_surplus_label')}</div>
         <div class="mono" style="font-size:22px;font-weight:800;color:${resta>0?'var(--green)':'var(--red)'};margin-top:2px">RD$${fmt(resta)}</div>
       </div>
     </div>`;
 
   // ── Costo Real de la Deuda ──
+  // Fix #4: Detect negative amortization for warning banner
+  const negAmortDebts=allDeudas.filter(g=>{const intMes=g.balance*(g.tasa/100/12);return g.adeudado<=intMes;});
   const costRows=allDeudas.map(g=>{
     const intMes=g.balance*(g.tasa/100/12);
     const netPaydown=g.adeudado-intMes;
     const pctInterest=g.adeudado>0?Math.round(intMes/g.adeudado*100):0;
     return `<tr>
       <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
-      <td data-label="Balance" class="mono" style="text-align:right">RD$${fmt(g.balance)}</td>
-      <td data-label="Tasa" class="mono" style="color:${g.tasa>30?'var(--red)':g.tasa>18?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa}%</td>
-      <td data-label="Int/mes" class="mono" style="color:var(--red);text-align:right">RD$${fmt(intMes)}</td>
-      <td data-label="Cuota/mes" class="mono" style="text-align:right">RD$${fmt(g.adeudado)}</td>
-      <td data-label="Capital pagado" class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}RD$${fmt(Math.abs(netPaydown))}</td>
+      <td data-label="${t('proy_cost_col_balance')}" class="mono" style="text-align:right">RD$${fmt(g.balance)}</td>
+      <td data-label="${t('proy_cost_col_rate')}" class="mono" style="color:${g.tasa>30?'var(--red)':g.tasa>18?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa}%</td>
+      <td data-label="${t('proy_cost_col_intmonth')}" class="mono" style="color:var(--red);text-align:right">RD$${fmt(intMes)}</td>
+      <td data-label="${t('proy_cost_col_monthly')}" class="mono" style="text-align:right">RD$${fmt(g.adeudado)}</td>
+      <td data-label="${t('proy_cost_col_capital')}" class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}RD$${fmt(Math.abs(netPaydown))}</td>
       <td data-label="${t('proy_cost_col_efficiency')}" style="text-align:center">
         <div style="background:var(--border);border-radius:99px;height:6px;width:80px;overflow:hidden;display:inline-block">
           <div style="height:6px;border-radius:99px;width:${Math.min(100-pctInterest,100)}%;background:${pctInterest>50?'var(--red)':pctInterest>25?'var(--yellow)':'var(--green)'}"></div>
@@ -2688,6 +2726,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
   }).join('');
 
   document.getElementById('debtCostSnapshot').innerHTML=`
+    ${negAmortDebts.map(g=>{const intMes=g.balance*(g.tasa/100/12);const growth=intMes-g.adeudado;return `<div style="padding:10px 14px;background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.3);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">${t('proy_neg_amort_warn').replace('{name}',escH(g.nombre)).replace('{payment}',fmt(g.adeudado)).replace('{interest}',fmt(intMes)).replace('{growth}',fmt(Math.round(growth)))}</div>`;}).join('')}
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
       <div class="card-title" style="margin:0">${t('proy_cost_title')}</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -2732,13 +2771,13 @@ function buildProyector({gastos,ingreso,gasto,config}){
     const saving=currentIntAnual-refiIntAnual;
     return `<tr>
       <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
-      <td data-label="Tasa actual" class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
-      <td data-label="Tasa objetivo"><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="any"
+      <td data-label="${t('proy_refi_col_current')}" class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
+      <td data-label="${t('proy_refi_col_target')}"><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="any"
         oninput="updateRefiRow(${i})"
         style="background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);width:80px">
         <span style="font-size:11px;color:var(--muted)">%</span></td>
-      <td data-label="Ahorro/mes" class="mono" style="color:var(--green);text-align:right" id="refi-saving-${i}">RD$${fmt(Math.round(saving/12))}/mes</td>
-      <td data-label="Ahorro/año" class="mono" style="color:var(--accent);text-align:right" id="refi-saving-yr-${i}">RD$${fmt(Math.round(saving))}/año</td>
+      <td data-label="${t('proy_refi_col_monthly')}" class="mono" style="color:var(--green);text-align:right" id="refi-saving-${i}">RD$${fmt(Math.round(saving/12))}/${t('kpi_exp_month')}</td>
+      <td data-label="${t('proy_refi_col_annual')}" class="mono" style="color:var(--accent);text-align:right" id="refi-saving-yr-${i}">RD$${fmt(Math.round(saving))}/año</td>
     </tr>`;
   }).join('');
 
@@ -2756,10 +2795,10 @@ function buildProyector({gastos,ingreso,gasto,config}){
       ${t('proy_refi_tip')}
     </div>
     <div style="font-size:10px;color:var(--muted);margin-top:6px;padding:6px 12px">
-      ⚠️ ${t('proy_refi_note')}
+      ⚠️ ${t('proy_refi_note')} ${t('proy_refi_approx')}
     </div>`;
 
-  // ── Escenarios What-If ──
+  // ── Escenarios What-If (Fix #6: i18n, Fix #7: unified simulation) ──
   const runFwd=(ds,extra)=>{
     let months=0;
     const debts=ds.map(d=>({...d,interestPaid:0}));
@@ -2772,9 +2811,12 @@ function buildProyector({gastos,ingreso,gasto,config}){
         if(d.balance<=0)return;
         const mi=d.balance*(d.tasa/100/12);
         d.interestPaid+=mi;
-        const pay=d.adeudado+Math.min(el,d.balance);
-        el=Math.max(0,el-Math.max(0,pay-d.adeudado));
-        d.balance=Math.max(0,d.balance+mi-pay);
+        // Fix #2: cap extra to post-interest balance minus minimum
+        const balAfterInt=d.balance+mi;
+        const extraForThis=Math.min(el,Math.max(0,balAfterInt-d.adeudado));
+        const pay=d.adeudado+extraForThis;
+        el=Math.max(0,el-extraForThis);
+        d.balance=Math.max(0,balAfterInt-pay);
         if(d.balance<=0&&!d.paidMonth)d.paidMonth=months;
       });
     }
@@ -2784,6 +2826,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
   };
 
   const baseResult=runFwd(allDeudas.map(d=>({...d})),extraPayment);
+  const pct25Result=runFwd(allDeudas.map(d=>({...d})),Math.round(resta*0.25));
   const maxSurplus=runFwd(allDeudas.map(d=>({...d})),Math.round(resta));
   const plusSavings=savingsMonthly>0?runFwd(allDeudas.map(d=>({...d})),extraPayment+savingsMonthly):null;
   const zeroExtra=runFwd(allDeudas.map(d=>({...d})),0);
@@ -2794,38 +2837,38 @@ function buildProyector({gastos,ingreso,gasto,config}){
     const intDiff=baseRef.interest-result.interest;
     return `<tr style="${highlight?'background:rgba(34,211,160,.06);':''}">
       <td data-label="" style="font-weight:${highlight?'800':'600'}">${label}</td>
-      <td data-label="Libre en" class="mono" style="text-align:center;font-weight:${highlight?'800':'400'};color:${highlight?'var(--green)':'var(--text)'}">${result.display}</td>
-      <td data-label="Interés total" class="mono" style="color:var(--red);text-align:right">RD$${fmt(result.interest)}</td>
-      <td data-label="vs base" class="mono" style="text-align:center;color:${monthsDiff>0?'var(--green)':monthsDiff<0?'var(--red)':'var(--muted)'}">
-        ${monthsDiff>0?`▲ ${monthsDiff}m antes`:monthsDiff<0?`▼ ${Math.abs(monthsDiff)}m después`:'—'}
+      <td data-label="${t('proy_whatif_col_free')}" class="mono" style="text-align:center;font-weight:${highlight?'800':'400'};color:${highlight?'var(--green)':'var(--text)'}">${result.display}</td>
+      <td data-label="${t('proy_whatif_col_interest')}" class="mono" style="color:var(--red);text-align:right">RD$${fmt(result.interest)}</td>
+      <td data-label="${t('proy_whatif_col_vs')}" class="mono" style="text-align:center;color:${monthsDiff>0?'var(--green)':monthsDiff<0?'var(--red)':'var(--muted)'}">
+        ${monthsDiff>0?`▲ ${monthsDiff}${t('proy_whatif_before')}`:monthsDiff<0?`▼ ${Math.abs(monthsDiff)}${t('proy_whatif_after')}`:'—'}
       </td>
-      <td data-label="Interés ahorrado" class="mono" style="text-align:right;color:${intDiff>0?'var(--green)':intDiff<0?'var(--red)':'var(--muted)'}">
-        ${intDiff>0?`Ahorras RD$${fmt(intDiff)}`:intDiff<0?`Pagas RD$${fmt(Math.abs(intDiff))} más`:'—'}
+      <td data-label="${t('proy_whatif_col_saved')}" class="mono" style="text-align:right;color:${intDiff>0?'var(--green)':intDiff<0?'var(--red)':'var(--muted)'}">
+        ${intDiff>0?`${t('proy_whatif_saves')}${fmt(intDiff)}`:intDiff<0?`${t('proy_whatif_more').replace('RD$',`RD$${fmt(Math.abs(intDiff))}`)}`:'—'}
       </td>
     </tr>`;
   };
 
   document.getElementById('whatIfScenarios').innerHTML=`
-    <div class="card-title" style="margin-bottom:16px">🎯 Escenarios ¿Qué Pasaría Si…?</div>
+    <div class="card-title" style="margin-bottom:16px">${t('proy_whatif_title')}</div>
     <div class="tbl-wrap"><table class="mobile-card-table">
       <thead><tr>
-        <th>Escenario</th>
-        <th style="text-align:center">Libre de deudas</th>
-        <th style="text-align:right">Interés total pagado</th>
-        <th style="text-align:center">vs. Escenario base</th>
-        <th style="text-align:right">Interés ahorrado</th>
+        <th>${t('proy_whatif_col_scenario')}</th>
+        <th style="text-align:center">${t('proy_whatif_col_free')}</th>
+        <th style="text-align:right">${t('proy_whatif_col_interest')}</th>
+        <th style="text-align:center">${t('proy_whatif_col_vs')}</th>
+        <th style="text-align:right">${t('proy_whatif_col_saved')}</th>
       </tr></thead>
       <tbody>
-        ${scRow(`Solo mínimos (RD$0 extra)`,zeroExtra,baseResult)}
-        ${scRow(`Pago extra: RD$${fmt(Math.round(resta*0.25))}/mes (25% superávit)`,runFwd(allDeudas.map(d=>({...d})),Math.round(resta*0.25)),baseResult)}
-        ${scRow(`Pago extra: RD$${fmt(extraPayment)}/mes (actual)`,baseResult,baseResult)}
-        ${scRow(`50% del superávit (RD$${fmt(Math.round(resta*0.5))}/mes)`,half,baseResult)}
-        ${plusSavings?scRow(`Redirigir ahorros (extra + RD$${fmt(savingsMonthly)}/mes)`,plusSavings,baseResult,true):''}
-        ${scRow(`Todo el superávit (RD$${fmt(Math.round(resta))}/mes)`,maxSurplus,baseResult,!plusSavings)}
+        ${scRow(t('proy_whatif_only_min'),zeroExtra,baseResult)}
+        ${scRow(`RD$${fmt(Math.round(resta*0.25))}/${t('kpi_exp_month')} (25${t('proy_whatif_pct25')}`,pct25Result,baseResult)}
+        ${scRow(`RD$${fmt(extraPayment)}/${t('kpi_exp_month')} (${t('proy_whatif_current')}`,baseResult,baseResult)}
+        ${scRow(`${t('proy_whatif_pct50')} (RD$${fmt(Math.round(resta*0.5))}/${t('kpi_exp_month')})`,half,baseResult)}
+        ${plusSavings?scRow(`${t('proy_whatif_redirect')}${fmt(savingsMonthly)}/${t('kpi_exp_month')})`,plusSavings,baseResult,true):''}
+        ${scRow(`${t('proy_whatif_all')}${fmt(Math.round(resta))}/${t('kpi_exp_month')})`,maxSurplus,baseResult,!plusSavings)}
       </tbody>
     </table></div>
     <div style="margin-top:12px;padding:10px 14px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
-      ⚡ <strong>Estrategia Avalancha</strong> aplicada en todos los escenarios (mayor tasa primero). Los pagos mínimos liberados de deudas saldadas se acumulan automáticamente al siguiente objetivo.
+      ${t('proy_whatif_tip')}
     </div>`;
 
   updateProyector();
@@ -2838,76 +2881,83 @@ function updateRefiRow(i){
   const saving=g.balance*(g.tasa-newRate)/100;
   const savMes=document.getElementById(`refi-saving-${i}`);
   const savYr=document.getElementById(`refi-saving-yr-${i}`);
-  if(savMes)savMes.textContent=`RD$${fmt(Math.round(saving/12))}/mes`;
+  if(savMes)savMes.textContent=`RD$${fmt(Math.round(saving/12))}/${t('kpi_exp_month')}`;
   if(savYr)savYr.textContent=`RD$${fmt(Math.round(saving))}/año`;
 }
 
 function updateProyector(){
   const extra=parseFloat(document.getElementById('extraSlider')?.value||0);
   document.getElementById('extraVal').textContent='RD$'+fmt(extra);
-  // Sync number input if it exists and differs
   const inp=document.getElementById('extraInput');
   if(inp&&parseFloat(inp.value)!==extra)inp.value=extra;
   const deudas=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).map(g=>({...g}));
+  // Fix #11: Strategy explainer
+  const explainerEl=document.getElementById('strategyExplainer');
+  if(explainerEl) explainerEl.innerHTML=`<div class="card-title" style="margin-bottom:8px">${t('proy_strategy_title')}</div><div style="font-size:12px;color:var(--muted);line-height:1.7">${t('proy_strategy_explain')}</div>`;
   if(!deudas.length){
-    ['avalanchaTimeline','nieveTimeline'].forEach(id=>{document.getElementById(id).innerHTML='<div style="text-align:center;padding:20px;color:var(--green);font-size:13px">¡Sin deudas con tasa! 🎉</div>';});
+    ['avalanchaTimeline','nieveTimeline'].forEach(id=>{document.getElementById(id).innerHTML=`<div style="text-align:center;padding:20px;color:var(--green);font-size:13px">${t('proy_no_debts')} 🎉</div>`;});
     return;
   }
+  // Fix #7: Unified simulation used by both timelines and chart
+  // Fix #1: Snowball sorts by originalBalance (captured once), not current balance
+  // Fix #2: Extra payment capped to post-interest balance minus minimum
   const runStrategy=(ds,sortFn)=>{
     let months=0;const maxM=360;
-    const debts=ds.map(d=>({...d,interestPaid:0}));
+    const debts=ds.map(d=>({...d,originalBalance:d.balance,interestPaid:0}));
     while(debts.some(d=>d.balance>0)&&months<maxM){
       months++;
       debts.sort(sortFn);
-      // Freed minimum payments from already-paid debts roll into the extra pool each month
       const freedMins=debts.filter(d=>d.balance<=0).reduce((a,d)=>a+d.adeudado,0);
       let extraLeft=extra+freedMins;
       debts.forEach(d=>{
         if(d.balance<=0)return;
         const monthlyInt=d.balance*(d.tasa/100/12);
         d.interestPaid=(d.interestPaid||0)+monthlyInt;
-        const payment=d.adeudado+Math.min(extraLeft,d.balance);
-        extraLeft=Math.max(0,extraLeft-Math.max(0,payment-d.adeudado));
-        d.balance=Math.max(0,d.balance+monthlyInt-payment);
+        const balAfterInt=d.balance+monthlyInt;
+        const extraForThis=Math.min(extraLeft,Math.max(0,balAfterInt-d.adeudado));
+        const payment=d.adeudado+extraForThis;
+        extraLeft=Math.max(0,extraLeft-extraForThis);
+        d.balance=Math.max(0,balAfterInt-payment);
         if(d.balance<=0&&!d.paidMonth)d.paidMonth=months;
       });
     }
     return debts.map(d=>({...d,paidMonth:d.paidMonth||months}));
   };
   const avalancha=runStrategy(deudas.map(d=>({...d})),(a,b)=>b.tasa-a.tasa);
-  const nieve=runStrategy(deudas.map(d=>({...d})),(a,b)=>a.balance-b.balance);
+  // Fix #1: Snowball sorts by originalBalance (stable), not shrinking balance
+  const nieve=runStrategy(deudas.map(d=>({...d})),(a,b)=>a.originalBalance-b.originalBalance);
   const mkTimeline=(results,el)=>{
     const sorted=[...results].sort((a,b)=>a.paidMonth-b.paidMonth);
     const totalMonths=Math.max(...results.map(r=>r.paidMonth));
     const years=Math.floor(totalMonths/12);const mos=totalMonths%12;
     const today=new Date();
-    el.innerHTML=`<div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--accent)">Libre de deudas en: <span style="color:var(--green)">${years>0?years+'a ':''} ${mos>0?mos+'m':''}</span></div>`+
+    el.innerHTML=`<div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--accent)">${t('proy_debtfree_in')} <span style="color:var(--green)">${years>0?years+'a ':''} ${mos>0?mos+'m':''}</span></div>`+
       sorted.map((d,i)=>{
-        // Fix #14: warn if strategy finishes after the debt's actual deadline
         let deadlineWarn='';
         if(d.fechaLimite){
           const fl=d.fechaLimite instanceof Date?d.fechaLimite:new Date(d.fechaLimite);
           if(!isNaN(fl.getTime())){
             const deadlineMonths=Math.round((fl-today)/(1000*60*60*24*30.4375));
-            if(d.paidMonth>deadlineMonths) deadlineWarn=`<span style="color:var(--red);font-size:10px;font-weight:700"> ⚠ Vence en ${deadlineMonths}m</span>`;
+            if(d.paidMonth>deadlineMonths) deadlineWarn=`<span style="color:var(--red);font-size:10px;font-weight:700"> ⚠ ${t('proy_deadline_warn')} ${deadlineMonths}m</span>`;
           }
         }
         return `<div class="timeline-item">
           <div class="timeline-dot" style="background:${COLORS[i%COLORS.length]}"></div>
-          <div class="timeline-info"><div class="timeline-name">${escH(d.nombre)}${deadlineWarn}</div><div class="timeline-date">${Math.floor(d.paidMonth/12)}a ${d.paidMonth%12}m · Tasa ${d.tasa}%</div></div>
-          <div class="timeline-int" style="color:var(--red)">~RD$${fmt(d.interestPaid||0)}<br><span style="font-size:10px;color:var(--muted)">interés total</span></div>
+          <div class="timeline-info"><div class="timeline-name">${escH(d.nombre)}${deadlineWarn}</div><div class="timeline-date">${Math.floor(d.paidMonth/12)}a ${d.paidMonth%12}m · ${t('proy_rate_label')} ${d.tasa}%</div></div>
+          <div class="timeline-int" style="color:var(--red)">~RD$${fmt(d.interestPaid||0)}<br><span style="font-size:10px;color:var(--muted)">${t('proy_int_total')}</span></div>
         </div>`;
       }).join('');
   };
   mkTimeline(avalancha,document.getElementById('avalanchaTimeline'));
   mkTimeline(nieve,document.getElementById('nieveTimeline'));
-  // Chart
+  // Fix #5: Chart cap increased from 60 to 120 months
   if(charts.proyectorChart)charts.proyectorChart.destroy();
-  const months=Math.min(60,Math.max(...avalancha.map(d=>d.paidMonth))+3);
+  const maxPayoff=Math.max(...avalancha.map(d=>d.paidMonth));
+  const months=Math.min(120,maxPayoff+6);
   const labels=Array.from({length:months},(_,i)=>`M${i+1}`);
   const calcProgress=(ds,sortFn,extraOverride)=>{
     const ex=extraOverride!==undefined?extraOverride:extra;
-    const debts=ds.map(d=>({...d}));
+    const debts=ds.map(d=>({...d,originalBalance:d.balance}));
     return Array.from({length:months},(_,mo)=>{
       debts.sort(sortFn);
       const freedMins=debts.filter(d=>d.balance<=0).reduce((a,d)=>a+d.adeudado,0);
@@ -2915,22 +2965,24 @@ function updateProyector(){
       debts.forEach(d=>{
         if(d.balance<=0)return;
         const mi=d.balance*(d.tasa/100/12);
-        const pay=d.adeudado+Math.min(extraLeft,d.balance);
-        extraLeft=Math.max(0,extraLeft-Math.max(0,pay-d.adeudado));
-        d.balance=Math.max(0,d.balance+mi-pay);
+        const balAfterInt=d.balance+mi;
+        const extraForThis=Math.min(extraLeft,Math.max(0,balAfterInt-d.adeudado));
+        const pay=d.adeudado+extraForThis;
+        extraLeft=Math.max(0,extraLeft-extraForThis);
+        d.balance=Math.max(0,balAfterInt-pay);
       });
       return Math.round(debts.reduce((a,d)=>a+Math.max(0,d.balance),0));
     });
   };
   const avData=calcProgress(deudas.map(d=>({...d})),(a,b)=>b.tasa-a.tasa);
-  const niData=calcProgress(deudas.map(d=>({...d})),(a,b)=>a.balance-b.balance);
+  const niData=calcProgress(deudas.map(d=>({...d})),(a,b)=>a.originalBalance-b.originalBalance);
   const noExtra=calcProgress(deudas.map(d=>({...d})),(a,b)=>b.tasa-a.tasa,0);
   charts.proyectorChart=new Chart(document.getElementById('proyectorChart'),{
     type:'line',
     data:{labels,datasets:[
-      {label:'Avalancha',data:avData,borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.06)',tension:.3,fill:false,pointRadius:0},
-      {label:'Bola de Nieve',data:niData,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.06)',tension:.3,fill:false,pointRadius:0},
-      {label:'Sin extra',data:noExtra,borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.3,fill:false,pointRadius:0,borderDash:[5,5]},
+      {label:t('proy_chart_avalancha'),data:avData,borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.06)',tension:.3,fill:false,pointRadius:0},
+      {label:t('proy_chart_snowball'),data:niData,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.06)',tension:.3,fill:false,pointRadius:0},
+      {label:t('proy_chart_noextra'),data:noExtra,borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.3,fill:false,pointRadius:0,borderDash:[5,5]},
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxTicksLimit:12}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
