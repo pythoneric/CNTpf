@@ -3706,20 +3706,20 @@ function buildSavingsGoals(){
         <div class="grid g3" style="gap:12px">
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_saved')}</div>
-            <input type="number" step="any" value="${saved}" min="0"
-              oninput="_editData.metas[${i}].saved=parseFloat(this.value)||0;autoSave();_metasDebounce()"
+            <input type="text" inputmode="decimal" value="${saved}" placeholder="0"
+              oninput="_editData.metas[${i}].saved=pf(this.value);autoSave();_metasDebounce()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green);width:100%;outline:none">
           </div>
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_goal')}</div>
-            <input type="number" step="any" value="${goal||''}" min="0" placeholder="0"
-              oninput="_editData.metas[${i}].goal=parseFloat(this.value)||0;autoSave();_metasDebounce()"
+            <input type="text" inputmode="decimal" value="${goal||''}" placeholder="0"
+              oninput="_editData.metas[${i}].goal=pf(this.value);autoSave();_metasDebounce()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:100%;outline:none">
           </div>
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_monthly')}</div>
-            <input type="number" step="any" value="${monthly}" min="0"
-              oninput="_editData.metas[${i}].monthly=parseFloat(this.value)||0;autoSave();_metasDebounce()"
+            <input type="text" inputmode="decimal" value="${monthly}" placeholder="0"
+              oninput="_editData.metas[${i}].monthly=pf(this.value);autoSave();_metasDebounce()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);width:100%;outline:none">
           </div>
         </div>
