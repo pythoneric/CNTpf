@@ -980,7 +980,7 @@ const LANG = {
     mnav_fornow:'Fondos', mnav_historial:'Historial', mnav_proyector:'Proyector',
     // KPI labels
     kpi_income:'Ingresos', kpi_expenses:'Gastos Totales', kpi_surplus:'Superávit del Mes', kpi_networth:'Net Worth',
-    kpi_surplus_pct:'% del ingreso ✓', kpi_deficit:'⚠ Déficit', kpi_savings_ef:'Ahorros+EF − Deudas',
+    kpi_surplus_pct:'% del ingreso ✓', kpi_deficit:'⚠ Déficit', kpi_savings_ef:'Cuentas+Ahorros+EF − Deudas',
     kpi_exp_ofincome:'del ingreso', kpi_exp_interest:'interés', kpi_exp_month:'mes',
     deuda_debts:'deudas', deuda_paid_lbl:'Pagado',
     // Score card
@@ -1135,9 +1135,16 @@ const LANG = {
     panel_ef_chart:'Progreso Total vs Meta',
     panel_hist_chart:'Evolución Net Worth & Deudas',
     // For Now
-    fornow_total:'Total en Cuentas', fornow_committed:'Comprometido', fornow_available:'Disponible Real',
-    fornow_accounts:'Suma todos los saldos', fornow_commitments:'Compromisos del mes', fornow_aftercommit:'Después de compromisos',
+    fornow_total:'Total en Cuentas', fornow_committed:'Pendiente este Mes', fornow_available:'Disponible Real',
+    fornow_accounts:'Suma todos los saldos', fornow_commitments:'Compromisos aún no pagados', fornow_aftercommit:'Después de pendientes',
     fornow_updated:'Actualizado', fornow_current:'Saldo actual',
+    fornow_availability:'Disponibilidad',
+    fornow_stale_warn:'Tus saldos fueron actualizados hace {days} días. Considera actualizarlos para mayor precisión.',
+    fornow_negative_tip:'Tus compromisos pendientes superan tus saldos. Considera: ¿qué pagos puedes diferir? ¿Puedes transferir fondos de ahorros?',
+    fornow_empty_title:'No tienes cuentas configuradas',
+    fornow_empty_sub:'Agrega tus cuentas de banco, ahorro o efectivo en el botón <strong>✏️ Editar</strong> para ver tu disponibilidad real.',
+    fornow_snapshot_tip:'Los saldos son capturas manuales, no datos bancarios en vivo. Actualízalos regularmente con Editar o el asistente de cierre de mes.',
+    fornow_chart_assets:'Patrimonio Total (RD$)', fornow_chart_nw:'Net Worth (RD$)',
     // Cierre wizard
     cierre_title:'🗓 CIERRE DE MES',
     cierre_step1_title:'Paso 1 · Tasa Dólar', cierre_step1_sub:'Actualiza la tasa del dólar para este mes',
@@ -1259,7 +1266,7 @@ const LANG = {
     mnav_fornow:'Funds', mnav_historial:'History', mnav_proyector:'Projector',
     // KPI labels
     kpi_income:'Income', kpi_expenses:'Total Expenses', kpi_surplus:'Monthly Surplus', kpi_networth:'Net Worth',
-    kpi_surplus_pct:'% of income ✓', kpi_deficit:'⚠ Deficit', kpi_savings_ef:'Savings+EF − Debts',
+    kpi_surplus_pct:'% of income ✓', kpi_deficit:'⚠ Deficit', kpi_savings_ef:'Accounts+Savings+EF − Debts',
     kpi_exp_ofincome:'of income', kpi_exp_interest:'interest', kpi_exp_month:'mo',
     deuda_debts:'debts', deuda_paid_lbl:'Paid',
     // Score card
@@ -1414,9 +1421,16 @@ const LANG = {
     panel_ef_chart:'Total Progress vs Goal',
     panel_hist_chart:'Net Worth & Debt Evolution',
     // For Now
-    fornow_total:'Total in Accounts', fornow_committed:'Committed', fornow_available:'Real Available',
-    fornow_accounts:'Sum of all balances', fornow_commitments:'Monthly commitments', fornow_aftercommit:'After commitments',
+    fornow_total:'Total in Accounts', fornow_committed:'Pending this Month', fornow_available:'Real Available',
+    fornow_accounts:'Sum of all balances', fornow_commitments:'Unpaid commitments', fornow_aftercommit:'After pending payments',
     fornow_updated:'Updated', fornow_current:'Current balance',
+    fornow_availability:'Availability',
+    fornow_stale_warn:'Your balances were last updated {days} days ago. Consider updating them for accuracy.',
+    fornow_negative_tip:'Your pending commitments exceed your account balances. Consider: which payments can be deferred? Can you transfer funds from savings?',
+    fornow_empty_title:'No accounts configured',
+    fornow_empty_sub:'Add your bank, savings, or cash accounts via the <strong>✏️ Edit</strong> button to see your real availability.',
+    fornow_snapshot_tip:'Balances are manually entered snapshots, not live bank data. Update them regularly via Edit or the monthly close wizard.',
+    fornow_chart_assets:'Total Assets (RD$)', fornow_chart_nw:'Net Worth (RD$)',
     // Cierre wizard
     cierre_title:'🗓 MONTH CLOSE',
     cierre_step1_title:'Step 1 · USD Rate', cierre_step1_sub:'Update the dollar rate for this month',
@@ -3006,7 +3020,9 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const resta=ingreso-gasto;
   const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
   const efMeta=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).meta,0);
-  const netWorth=(cf.balanceAhorros||0)+efTotal-totalBalance;
+  // Fix: include forNow account balances in net worth (was missing — understated NW)
+  const fnTotalNW=forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?(config.tasa||60):1;return a+(c.saldo||0)*m;},0);
+  const netWorth=fnTotalNW+(cf.balanceAhorros||0)+efTotal-totalBalance;
   const gastoPct=ingreso>0?Math.round((gasto/ingreso)*100):0;
   const sobrante=100-gastoPct;
   const allDeudas=gastos.filter(g=>g.balance>0);
@@ -3229,21 +3245,42 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
 
   // ── ForNow ──
   const fnKpis=document.getElementById('forNowKpis');
-  fnKpis.className=`grid ${forNow.cuentas.length<=4?'g4':forNow.cuentas.length<=6?'g3':'g4'}`;
-  fnKpis.innerHTML=forNow.cuentas.map(c=>{
-    const isUSD=c.moneda==='USD';const tasa=config.tasa||60;const saldoRD=isUSD?Math.round(c.saldo*tasa):c.saldo;
-    return`<div class="card"><div class="card-title">${escH(c.nombre)}${isUSD?' <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px">USD</span>':''}</div><div class="kpi-val" style="color:${c.saldo>0?'var(--green)':'var(--muted)'};font-size:22px">${isUSD?'USD':'RD'}$${fmt(c.saldo)}</div><div class="kpi-sub">${isUSD?`≈RD$${fmt(saldoRD)} · `:''}${t('fornow_current')}</div></div>`;
-  }).join('');
+  // Fix #12: better grid for 7+ accounts
+  fnKpis.className=`grid ${forNow.cuentas.length<=4?'g4':forNow.cuentas.length<=6?'g3':'g2'}`;
+  // Fix #8: empty state
+  if(!forNow.cuentas.length){
+    fnKpis.innerHTML=`<div class="card" style="grid-column:1/-1;text-align:center;padding:28px;color:var(--muted)"><div style="font-size:14px;font-weight:700;margin-bottom:8px">${t('fornow_empty_title')}</div><div style="font-size:12px;line-height:1.6">${t('fornow_empty_sub')}</div></div>`;
+  } else {
+    fnKpis.innerHTML=forNow.cuentas.map(c=>{
+      const isUSD=c.moneda==='USD';const tasa=config.tasa||60;const saldoRD=isUSD?Math.round(c.saldo*tasa):c.saldo;
+      return`<div class="card"><div class="card-title">${escH(c.nombre)}${isUSD?' <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px">USD</span>':''}</div><div class="kpi-val" style="color:${c.saldo>0?'var(--green)':'var(--muted)'};font-size:22px">${isUSD?'USD':'RD'}$${fmt(c.saldo)}</div><div class="kpi-sub">${isUSD?`≈RD$${fmt(saldoRD)} · `:''}${t('fornow_current')}</div></div>`;
+    }).join('');
+  }
   const fDate=forNow.fecha instanceof Date?forNow.fecha.toLocaleDateString(_lang==='es'?'es-DO':'en-US',{day:'2-digit',month:'long',year:'numeric'}):forNow.fecha?String(forNow.fecha).slice(0,10):'—';
+  // Fix #6: stale date warning
+  let staleWarn='';
+  if(forNow.fecha){
+    const fechaDate=forNow.fecha instanceof Date?forNow.fecha:new Date(forNow.fecha);
+    if(!isNaN(fechaDate.getTime())){
+      const daysSince=Math.round((new Date()-fechaDate)/(1000*60*60*24));
+      if(daysSince>30) staleWarn=`<div style="padding:8px 12px;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:8px;font-size:11px;color:var(--yellow);margin-top:8px;line-height:1.6">⚠️ ${t('fornow_stale_warn').replace('{days}',daysSince)}</div>`;
+    }
+  }
   const fnTasa=config.tasa||60;
   const fnTotal=forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?fnTasa:1;return a+(c.saldo||0)*m;},0);
-  const fnComp=gastos.reduce((a,g)=>a+(g.adeudado||0),0);
+  // Fix #3: only subtract UNPAID commitments for this month
+  const fnComp=gastos.filter(g=>!g.pagadoMes&&g.adeudado>0).reduce((a,g)=>a+(g.adeudado||0),0);
   const fnDisp=fnTotal-fnComp;
-  document.getElementById('forNowDetail').innerHTML=`<div class="card-title">${_lang==='es'?'Disponibilidad':'Availability'} · ${t('fornow_updated')} ${fDate}</div>
+  // Fix #9: available row tint — green when positive, red when negative
+  const availSt=fnDisp>=0?'background:rgba(34,211,160,.06);border:1px solid rgba(34,211,160,.2);border-radius:10px;':'background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:10px;';
+  document.getElementById('forNowDetail').innerHTML=`<div class="card-title">${t('fornow_availability')} · ${t('fornow_updated')} ${fDate}</div>
     ${[{l:t('fornow_total'),v:`RD$${fmt(fnTotal)}`,c:'var(--text)',d:t('fornow_accounts'),st:''},
        {l:t('fornow_committed'),v:`(RD$${fmt(Math.abs(fnComp))})`,c:'var(--red)',d:t('fornow_commitments'),st:''},
-       {l:t('fornow_available'),v:fnDisp<0?`(RD$${fmt(Math.abs(fnDisp))})`:`RD$${fmt(fnDisp)}`,c:fnDisp>=0?'var(--green)':'var(--red)',d:t('fornow_aftercommit'),st:'background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:10px;'}]
-      .map(r=>`<div class="cf-row" style="${r.st}"><div><div class="cf-label">${r.l}</div><div class="cf-desc">${r.d}</div></div><div class="cf-val" style="color:${r.c}">${r.v}</div></div>`).join('')}`;
+       {l:t('fornow_available'),v:fnDisp<0?`(RD$${fmt(Math.abs(fnDisp))})`:`RD$${fmt(fnDisp)}`,c:fnDisp>=0?'var(--green)':'var(--red)',d:t('fornow_aftercommit'),st:availSt}]
+      .map(r=>`<div class="cf-row" style="${r.st}"><div><div class="cf-label">${r.l}</div><div class="cf-desc">${r.d}</div></div><div class="cf-val" style="color:${r.c}">${r.v}</div></div>`).join('')}
+    ${fnDisp<0?`<div style="padding:8px 12px;background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:8px;font-size:11px;color:var(--red);margin-top:8px;line-height:1.6">⚠️ ${t('fornow_negative_tip')}</div>`:''}
+    ${staleWarn}
+    <div style="font-size:10px;color:var(--muted);margin-top:8px;padding:6px 12px">📋 ${t('fornow_snapshot_tip')}</div>`;
 
   // Charts
   setTimeout(()=>{
@@ -3299,20 +3336,22 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
         scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
     });
     // ForNow savings chart: current balance vs historical
+    // Fix #2: Total Assets = netWorth + deudas (= gross assets, no double-counting EF)
     const fnChartWrap=document.getElementById('forNowChartWrap');
     if(historial.length>0){
       const hRev=[...historial].reverse();
       const hLabels=hRev.map(h=>`${h.mes} ${h.anio}`);
       hLabels.push(`${config.mes} ${config.anio}`);
-      const hBalances=hRev.map(h=>(h.emergencia||0)+(h.netWorth||0));
-      hBalances.push(efTotal+netWorth);
+      const hBalances=hRev.map(h=>(h.netWorth||0)+(h.deudas||0));
+      hBalances.push(netWorth+totalBalance);
       const hNW=hRev.map(h=>h.netWorth||0);
-      hNW.push((cf.balanceAhorros||0)+efTotal-totalBalance);
+      // Fix #13: reuse already-computed netWorth instead of inline formula
+      hNW.push(netWorth);
       charts.forNowSavingsChart=new Chart(document.getElementById('forNowSavingsChart'),{
         type:'line',
         data:{labels:hLabels,datasets:[
-          {label:_lang==='es'?'Patrimonio Total (RD$)':'Total Assets (RD$)',data:hBalances,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.10)',tension:.4,fill:true,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#3b82f6'},
-          {label:_lang==='es'?'Net Worth (RD$)':'Net Worth (RD$)',data:hNW,borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.06)',tension:.4,fill:false,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#22d3a0'},
+          {label:t('fornow_chart_assets'),data:hBalances,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.10)',tension:.4,fill:true,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#3b82f6'},
+          {label:t('fornow_chart_nw'),data:hNW,borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.06)',tension:.4,fill:false,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#22d3a0'},
         ]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
           scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
@@ -3884,7 +3923,8 @@ function cierreNav(dir){
       const gasto=cf.gasto||_editData.gastos.reduce((a,g)=>a+g.pagado,0);
       const totalDeudas=_editData.gastos.reduce((a,g)=>a+g.balance,0);
       const efTotal=_editData.emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
-      const netWorth=(cf.balanceAhorros||0)+efTotal-totalDeudas;
+      const fnTotalCierre=_editData.forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?(_editData.config.tasa||60):1;return a+(c.saldo||0)*m;},0);
+      const netWorth=fnTotalCierre+(cf.balanceAhorros||0)+efTotal-totalDeudas;
       const ahorro=ingreso-gasto;
       const tasaAhorro=ingreso>0?ahorro/ingreso:0;
       _editData.historial.unshift({mes:_editData.config.mes,anio:_editData.config.anio,ingresos:ingreso,gasto,ahorro,tasaAhorro,deudas:totalDeudas,emergencia:efTotal,netWorth,tasa:_editData.config.tasa,notas:''});
@@ -4064,7 +4104,7 @@ function buildEditForms(){
     const mon=c.moneda||'RD';
     fb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
       <td><select class="tbl-input" onchange="markChanged(this);_editData.forNow.cuentas[${i}].moneda=this.value" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
-      <td><input class="tbl-input" type="number" step="any" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=parseFloat(this.value)||0"></td>
+      <td><input class="tbl-input" type="number" step="any" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=parseFloat(this.value)||0;_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
       <td><button class="row-del-btn" onclick="deleteFornowRow(${i})">✕</button></td></tr>`;
   });
   // EMERGENCY
