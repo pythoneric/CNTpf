@@ -742,9 +742,9 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div id="tab-emergency" class="panel">
     <div class="grid g3" style="margin-bottom:16px" id="efKpis"></div>
     <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_progress">Fondos de Emergencia · Progreso</div><div id="efFunds"></div></div>
-    <div class="card" style="margin-bottom:16px"><div class="card-title">Cashflow Mensual Detallado</div><div id="cfRows"></div></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_cashflow">Cashflow Mensual Detallado</div><div id="cfRows"></div></div>
     <div class="grid g12">
-      <div class="card"><div class="card-title">Progreso Total vs Meta</div><div class="chart-wrap"><canvas id="efChart"></canvas></div></div>
+      <div class="card"><div class="card-title" data-i18n="panel_ef_chart">Progreso Total vs Meta</div><div class="chart-wrap"><canvas id="efChart"></canvas></div></div>
       <div class="card" id="efTip"></div>
     </div>
   </div>
@@ -1011,7 +1011,19 @@ const LANG = {
     // Emergency KPIs
     ef_balance:'Balance Emergencia', ef_missing:'Falta Cubrir', ef_surplus:'Superávit Mensual',
     ef_available:'Disponible', ef_deficit:'Déficit', ef_completed:'% completado',
-    ef_goal:'de', ef_balance_lbl:'Balance:', ef_goal_lbl:'Meta:', ef_missing_lbl:'Falta:',
+    ef_goal:'de', ef_goal_word:'meta', ef_balance_lbl:'Balance:', ef_goal_lbl:'Meta:', ef_missing_lbl:'Falta:',
+    ef_overfunded:'🎉 Meta superada', ef_suggested:'Aporte sugerido', ef_goalin:'Meta en', ef_months:'meses',
+    ef_plan_title:'⚡ Plan sugerido', ef_plan_surplus:'Superávit', ef_plan_to_ef:'a emergencia',
+    ef_plan_timetarget:'Tiempo para meta:', ef_plan_interest_title:'⚠️ Carga de intereses',
+    ef_plan_interest_tip:'Reducir deuda aumenta capacidad de ahorro.',
+    ef_plan_in_interest:'en intereses', ef_plan_of_surplus:'del superávit',
+    ef_recommended:'Meta recomendada (3–6 meses de gastos)',
+    ef_rec_min:'Mínimo (3 meses)', ef_rec_max:'Recomendado (6 meses)',
+    ef_empty_title:'No tienes fondos de emergencia configurados',
+    ef_empty_sub:'Los expertos recomiendan ahorrar 3–6 meses de gastos esenciales. Configura tus fondos en el botón <strong>✏️ Editar</strong>.',
+    ef_account_tip:'💡 Mantén tu fondo de emergencia en una cuenta de ahorros de alto rendimiento o mercado monetario — líquida y de bajo riesgo. No lo inviertas en acciones.',
+    ef_replenish_tip:'Si retiras de tu fondo de emergencia, prioriza reponerlo lo antes posible.',
+    ef_debt_priority:'Tienes deuda de alta tasa. Prioriza: 1 mes de gastos en EF, luego ataca la deuda.',
     // Cashflow rows
     cf_monthlyincome:'Ingreso Mensual', cf_monthlygasto:'Gasto Mensual Total', cf_rate_global:'Tasa Dólar',
     cf_withdrawusd2:'Retirar en USD', cf_remainder2:'Resta (Ingreso-Gasto)', cf_savings2:'Ahorros este mes',
@@ -1266,7 +1278,19 @@ const LANG = {
     // Emergency KPIs
     ef_balance:'Emergency Balance', ef_missing:'Still Needed', ef_surplus:'Monthly Surplus',
     ef_available:'Available', ef_deficit:'Deficit', ef_completed:'% completed',
-    ef_goal:'of', ef_balance_lbl:'Balance:', ef_goal_lbl:'Goal:', ef_missing_lbl:'Missing:',
+    ef_goal:'of', ef_goal_word:'goal', ef_balance_lbl:'Balance:', ef_goal_lbl:'Goal:', ef_missing_lbl:'Missing:',
+    ef_overfunded:'🎉 Goal exceeded', ef_suggested:'Suggested', ef_goalin:'Goal in', ef_months:'mo',
+    ef_plan_title:'⚡ Suggested plan', ef_plan_surplus:'Surplus', ef_plan_to_ef:'to emergency',
+    ef_plan_timetarget:'Time to goal:', ef_plan_interest_title:'⚠️ Interest burden',
+    ef_plan_interest_tip:'Reducing debt increases savings capacity.',
+    ef_plan_in_interest:'in interest', ef_plan_of_surplus:'of surplus',
+    ef_recommended:'Recommended target (3–6 months of expenses)',
+    ef_rec_min:'Minimum (3 months)', ef_rec_max:'Recommended (6 months)',
+    ef_empty_title:'No emergency funds configured',
+    ef_empty_sub:'Experts recommend saving 3–6 months of essential expenses. Set up your funds via the <strong>✏️ Edit</strong> button.',
+    ef_account_tip:'💡 Keep your emergency fund in a high-yield savings account or money market — liquid and low-risk. Don\'t invest it in stocks.',
+    ef_replenish_tip:'If you withdraw from your emergency fund, prioritize replenishing it as soon as possible.',
+    ef_debt_priority:'You have high-rate debt. Prioritize: 1 month of expenses in EF, then attack the debt.',
     // Cashflow rows
     cf_monthlyincome:'Monthly Income', cf_monthlygasto:'Total Monthly Expenses', cf_rate_global:'USD Rate',
     cf_withdrawusd2:'Withdraw in USD', cf_remainder2:'Remainder (Income−Expenses)', cf_savings2:'Savings this month',
@@ -2281,8 +2305,8 @@ function calcScore({ingreso,gasto,resta,totalBalance,config,emerg,historial}){
   const fondosIniciados=emerg.fondos.filter(f=>f.balance>0).length;
   const fondosTotales=emerg.fondos.length;
   const efPct=efMeta>0?efTotal/efMeta:0;
-  // Give partial credit: 50% weight on amount funded, 50% on # of funds started — 0 fondos = 0 pts
-  const efScore=fondosTotales>0?(efPct*0.5)+((fondosIniciados/fondosTotales)*0.5):0;
+  // Give partial credit: 80% weight on amount funded, 20% on # of funds started — 0 fondos = 0 pts
+  const efScore=fondosTotales>0?(efPct*0.8)+((fondosIniciados/fondosTotales)*0.2):0;
   const epts=Math.round(Math.min(20,efScore*20));
   score+=epts;details.push({l:'Fondos de Emergencia',v:`${Math.round(efPct*100)}% · ${fondosIniciados}/${fondosTotales} fondos`,pts:epts,max:20,c:efPct>.8?'var(--green)':efPct>.2?'var(--yellow)':'var(--red)'});
   // Tendencia net worth (max 20 pts)
@@ -3091,20 +3115,24 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
 
   // ── Emergency KPIs ──
   document.getElementById('efKpis').innerHTML=[
-    {l:t('ef_balance'),v:`RD$${fmt(efTotal)}`,s:`${t('ef_goal')} RD$${fmt(efMeta)} ${_lang==='es'?'meta':'goal'}`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
-    {l:t('ef_missing'),v:`RD$${fmt(efMeta-efTotal)}`,s:`${efMeta>0?Math.round((efTotal/efMeta)*100):0}% ${t('ef_completed')}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
+    {l:t('ef_balance'),v:`RD$${fmt(efTotal)}`,s:`${t('ef_goal')} RD$${fmt(efMeta)} ${t('ef_goal_word')}`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
+    {l:t('ef_missing'),v:efTotal>=efMeta&&efMeta>0?t('ef_overfunded'):`RD$${fmt(Math.max(0,efMeta-efTotal))}`,s:`${efMeta>0?Math.min(100,Math.round((efTotal/efMeta)*100)):0}% ${t('ef_completed')}`,c:efTotal>=efMeta&&efMeta>0?'var(--green)':'var(--red)',b:efTotal>=efMeta&&efMeta>0?'rgba(34,211,160,.12)':'rgba(244,96,106,.12)'},
     {l:t('ef_surplus'),v:`RD$${fmt(resta)}`,s:resta>=0?t('ef_available'):t('ef_deficit'),c:resta>=0?'var(--green)':'var(--red)',b:'rgba(34,211,160,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   const efEl=document.getElementById('efFunds');efEl.innerHTML='';
-  const halfSurplus=Math.max(0,resta*0.5);
+  // Fix #5: Dynamic allocation — reduce EF allocation if high-rate debt exists and EF > 1 month
+  const hasHighRateDebt=gastos.some(g=>g.balance>0&&g.tasa>15);
+  const oneMonthExpenses=gasto;
+  const efAllocationPct=hasHighRateDebt&&efTotal>=oneMonthExpenses?0.2:0.5;
+  const efSurplusAlloc=Math.max(0,resta*efAllocationPct);
   const totalFalta=emerg.fondos.reduce((a,f)=>{const rd=fondoToRD(f);return a+Math.max(0,rd.meta-rd.balance);},0);
   const sortedFondos=[...emerg.fondos].sort((a,b)=>{const ra=fondoToRD(a),rb=fondoToRD(b);const pa=ra.meta>0?ra.balance/ra.meta:1;const pb=rb.meta>0?rb.balance/rb.meta:1;return pa-pb;});
   efEl.innerHTML=sortedFondos.map(e=>{
     const rd=fondoToRD(e);
     const pct=rd.meta>0?Math.min(Math.round((rd.balance/rd.meta)*100),100):0;
     const faltaRD=Math.max(0,rd.meta-rd.balance);
-    const aporteSug=totalFalta>0&&halfSurplus>0?Math.round(halfSurplus*(faltaRD/totalFalta)):0;
+    const aporteSug=totalFalta>0&&efSurplusAlloc>0?Math.round(efSurplusAlloc*(faltaRD/totalFalta)):0;
     const mesesFondo=aporteSug>0?Math.ceil(faltaRD/aporteSug):'—';
     const bc=pct>=90?'linear-gradient(90deg,#22d3a0,#06b6d4)':pct>30?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#f4606a,#c026d3)';
     const isUSD=e.moneda==='USD';const tasa=_editData.config.tasa||60;const faltaOrig=Math.max(0,e.meta-e.balance);
@@ -3116,9 +3144,18 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       </div></div>
       <div style="display:flex;align-items:center;gap:10px"><div class="progress-wrap" style="flex:1;margin:0"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       <span class="mono" style="font-size:12px;color:${pct>90?'var(--green)':'var(--muted)'};min-width:36px;text-align:right">${pct}%</span></div>
-      ${faltaRD>0?`<div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--muted)"><span>${_lang==='es'?'Aporte sugerido':'Suggested'}: <span class="mono" style="color:var(--accent)">RD$${fmt(aporteSug)}/mes${isUSD?' (≈USD$'+fmt(Math.round(aporteSug/tasa))+')':''}</span></span><span>${_lang==='es'?'Meta en':'Goal in'} <span class="mono" style="color:var(--yellow)">~${mesesFondo} ${_lang==='es'?'meses':'mo'}</span></span></div>`:''}
+      ${faltaRD>0?`<div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--muted)"><span>${t('ef_suggested')}: <span class="mono" style="color:var(--accent)">RD$${fmt(aporteSug)}/${t('kpi_exp_month')}${isUSD?' (≈USD$'+fmt(Math.round(aporteSug/tasa))+')':''}</span></span><span>${t('ef_goalin')} <span class="mono" style="color:var(--yellow)">~${mesesFondo} ${t('ef_months')}</span></span></div>`:''}
     </div>`;
   }).join('');
+  // Fix #3: Empty state + Fix #4: Recommended target + Fix #6: Account tip + Fix #7: Replenishment tip
+  if(!emerg.fondos.length){
+    efEl.innerHTML=`<div style="text-align:center;padding:28px;color:var(--muted)"><div style="font-size:14px;font-weight:700;margin-bottom:8px">${t('ef_empty_title')}</div><div style="font-size:12px;line-height:1.6">${t('ef_empty_sub')}</div></div>`;
+  }
+  const recMin=Math.round(gasto*3);const recMax=Math.round(gasto*6);
+  if(gasto>0) efEl.innerHTML+=`<div style="margin-top:12px;padding:12px 16px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:10px;font-size:12px;color:var(--muted)"><div style="font-weight:700;margin-bottom:6px;color:var(--accent)">${t('ef_recommended')}</div><div style="display:flex;gap:16px;flex-wrap:wrap"><span>${t('ef_rec_min')}: <span class="mono" style="color:var(--yellow);font-weight:700">RD$${fmt(recMin)}</span></span><span>${t('ef_rec_max')}: <span class="mono" style="color:var(--green);font-weight:700">RD$${fmt(recMax)}</span></span></div></div>`;
+  efEl.innerHTML+=`<div style="font-size:11px;color:var(--muted);margin-top:10px;padding:8px 12px;background:rgba(34,211,160,.05);border:1px solid rgba(34,211,160,.15);border-radius:8px;line-height:1.6">${t('ef_account_tip')}<br>${t('ef_replenish_tip')}</div>`;
+  // Fix #5: Show debt priority note if applicable
+  if(hasHighRateDebt&&efTotal<oneMonthExpenses) efEl.innerHTML+=`<div style="font-size:11px;color:var(--red);margin-top:8px;padding:8px 12px;background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.18);border-radius:8px">⚠️ ${t('ef_debt_priority')}</div>`;
 
   document.getElementById('cfRows').innerHTML=[
     {l:t('cf_monthlyincome'),v:`RD$${fmt(ingreso)}`,c:'var(--green)',d:`${fmtUSD(config.ingresoUSD)} × RD$${config.tasa}`},
@@ -3130,12 +3167,13 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     {l:t('cf_savingsbalance'),v:`RD$${fmt(cf.balanceAhorros||0)}`,c:'var(--purple)',d:t('cf_accumulated')},
   ].map(r=>`<div class="cf-row"><div><div class="cf-label">${r.l}</div><div class="cf-desc">${r.d}</div></div><div class="cf-val" style="color:${r.c}">${r.v}</div></div>`).join('');
 
-  const meses=resta>0&&(efMeta-efTotal)>0?Math.ceil((efMeta-efTotal)/(resta*0.5)):'—';
+  const meses=resta>0&&(efMeta-efTotal)>0?Math.ceil((efMeta-efTotal)/efSurplusAlloc):'—';
   const intMensualEf=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
   const intPct=resta>0?Math.round(intMensualEf/resta*100):0;
-  document.getElementById('efTip').innerHTML=`<div style="margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:var(--yellow)">⚡ ${_lang==='es'?'Plan sugerido':'Suggested plan'}</div></div>
-    <div style="font-size:13px;color:var(--muted);line-height:2">${_lang==='es'?'Superávit':'Surplus'}: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span>/mes<br>50% ${_lang==='es'?'a emergencia':'to emergency'}: <span class="mono" style="color:var(--accent)">RD$${fmt(Math.round(resta*0.5))}/mes</span><br><br>${_lang==='es'?'Tiempo para meta:':'Time to goal:'}<br><span class="mono" style="color:var(--yellow);font-size:20px;font-weight:700">~${meses} ${_lang==='es'?'meses':'months'}</span></div>
-    ${intMensualEf>0?`<div style="margin-top:16px;padding:10px 14px;background:rgba(244,96,106,.07);border-radius:8px;border:1px solid rgba(244,96,106,.2)"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">⚠️ ${_lang==='es'?'Carga de intereses':'Interest burden'}</div><div style="font-size:12px;color:var(--muted)">RD$${fmt(Math.round(intMensualEf))}/mes ${_lang==='es'?'en intereses':'in interest'} = <span style="color:${intPct>80?'var(--red)':'var(--yellow)'};font-weight:700">${intPct}% ${_lang==='es'?'del superávit':'of surplus'}</span>. ${_lang==='es'?'Reducir deuda aumenta capacidad de ahorro.':'Reducing debt increases savings capacity.'}</div></div>`:''}`;
+  const allocPctDisplay=Math.round(efAllocationPct*100);
+  document.getElementById('efTip').innerHTML=`<div style="margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:var(--yellow)">${t('ef_plan_title')}</div></div>
+    <div style="font-size:13px;color:var(--muted);line-height:2">${t('ef_plan_surplus')}: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span>/${t('kpi_exp_month')}<br>${allocPctDisplay}% ${t('ef_plan_to_ef')}: <span class="mono" style="color:var(--accent)">RD$${fmt(Math.round(efSurplusAlloc))}/${t('kpi_exp_month')}</span><br><br>${t('ef_plan_timetarget')}<br><span class="mono" style="color:var(--yellow);font-size:20px;font-weight:700">~${meses} ${t('ef_months')}</span></div>
+    ${intMensualEf>0?`<div style="margin-top:16px;padding:10px 14px;background:rgba(244,96,106,.07);border-radius:8px;border:1px solid rgba(244,96,106,.2)"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">${t('ef_plan_interest_title')}</div><div style="font-size:12px;color:var(--muted)">RD$${fmt(Math.round(intMensualEf))}/${t('kpi_exp_month')} ${t('ef_plan_in_interest')} = <span style="color:${intPct>80?'var(--red)':'var(--yellow)'};font-weight:700">${intPct}% ${t('ef_plan_of_surplus')}</span>. ${t('ef_plan_interest_tip')}</div></div>`:''}`;
 
   // ── ForNow ──
   const fnKpis=document.getElementById('forNowKpis');
