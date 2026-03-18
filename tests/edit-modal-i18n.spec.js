@@ -4,6 +4,8 @@ const { test, expect } = require('@playwright/test');
  * Helper: load the app with test data.
  */
 async function loadApp(page) {
+  // Auto-accept confirm dialogs (unsaved changes warning, delete confirmations)
+  page.on('dialog', dialog => dialog.accept());
   await page.goto('/cnt.html');
   await page.waitForFunction(() => typeof window._testLoadData === 'function');
 
@@ -189,7 +191,7 @@ test.describe('Edit Modal - i18n', () => {
     const histTable = modal.locator('#esection-historial thead');
     await expect(histTable).toContainText('Month');
     await expect(histTable).toContainText('Year');
-    await expect(histTable).toContainText('Income (USD)');
+    await expect(histTable).toContainText('Income (RD$)');
   });
 
   test('cashflow field labels translate to English', async ({ page }) => {
@@ -239,7 +241,7 @@ test.describe('Edit Modal - i18n', () => {
     await expect(page.locator('#esection-config')).toContainText('Tasa Dólar (RD$/USD)');
 
     // Close
-    await page.evaluate(() => window.closeEditModal());
+    await page.evaluate(() => window.closeEditModal(true));
 
     // Switch to English and reopen
     await switchToEnglish(page);
