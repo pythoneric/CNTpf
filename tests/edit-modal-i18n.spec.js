@@ -172,7 +172,7 @@ test.describe('Edit Modal - i18n', () => {
     const fornowTable = modal.locator('#esection-fornow thead');
     await expect(fornowTable).toContainText('Account');
     await expect(fornowTable).toContainText('Currency');
-    await expect(fornowTable).toContainText('Committed');
+    await expect(fornowTable).toContainText('Balance');
 
     // Funds date label
     await expect(modal.locator('#esection-fornow')).toContainText('Date Updated');
