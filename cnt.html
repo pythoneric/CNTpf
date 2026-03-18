@@ -973,7 +973,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-card">
         <div class="edit-card-title" data-i18n="edit_card_historial">📅 Historial Mensual</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th data-i18n="eth_mes">Mes</th><th data-i18n="eth_anio">Año</th><th data-i18n="eth_ingresosUSD">Ingresos (USD)</th><th data-i18n="eth_gastoRD">Gasto (RD$)</th><th data-i18n="eth_tasaDolar">Tasa Dólar</th><th data-i18n="eth_deudasRD">Deudas (RD$)</th><th data-i18n="eth_emergenciaRD">Emergencia (RD$)</th><th data-i18n="eth_netWorthRD">Net Worth (RD$)</th><th data-i18n="eth_notas">Notas</th><th></th></tr></thead><tbody id="historialEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_mes">Mes</th><th data-i18n="eth_anio">Año</th><th data-i18n="eth_ingresosRD">Ingresos (RD$)</th><th data-i18n="eth_gastoRD">Gasto (RD$)</th><th data-i18n="eth_tasaDolar">Tasa Dólar</th><th data-i18n="eth_deudasRD">Deudas (RD$)</th><th data-i18n="eth_emergenciaRD">Emergencia (RD$)</th><th data-i18n="eth_netWorthRD">Net Worth (RD$)</th><th data-i18n="eth_notas">Notas</th><th></th></tr></thead><tbody id="historialEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addHistorialRow()" data-i18n="edit_add_mes">+ Agregar mes</button>
       </div>
@@ -1225,12 +1225,19 @@ const LANG = {
     edit_add_row:'+ Agregar fila', edit_add_cuenta:'+ Agregar cuenta',
     edit_add_fondo:'+ Agregar fondo', edit_add_mes:'+ Agregar mes',
     edit_changes:'cambios',
+    edit_unsaved_warn:'Tienes cambios sin guardar. ¿Cerrar sin guardar?',
+    edit_delete_confirm:'¿Eliminar esta fila? Esta acción no se puede deshacer.',
+    edit_cf_ingreso_note:'Se sincroniza automáticamente desde Configuración (USD × Tasa)',
+    edit_currency_convert:'¿Convertir el saldo a la nueva moneda usando la tasa actual?',
+    edit_payment_detect:'El balance de "{name}" bajó RD${amt}. ¿Registrar como pago?',
+    edit_tasa_warn:'⚠️ Usando tasa por defecto (60). Actualiza con la tasa real del mes.',
     // Config field labels
     ecfg_tasa:'Tasa Dólar (RD$/USD)', ecfg_tasa_note:'Actualizar mensualmente',
     ecfg_mes:'Mes Actual', ecfg_mes_note:'Nombre del mes',
     ecfg_anio:'Año Actual', ecfg_anio_note:'',
-    ecfg_ingreso:'Ingreso Mensual (USD)', ecfg_ingreso_note:'En dólares',
-    ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Días antes para alertar',
+    ecfg_ingreso:'Ingreso Mensual (USD)', ecfg_ingreso_note:'En dólares — se sincroniza con RD$',
+    ecfg_ingresoRD:'Ingreso Mensual (RD$)', ecfg_ingresoRD_note:'En pesos — se sincroniza con USD',
+    ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Rango: 1–30 días',
     // Cashflow field labels
     ecf_ingreso:'Ingreso Mensual (RD$)', ecf_gasto:'Gasto Mensual Total',
     ecf_tasa:'Tasa Dólar', ecf_retirarUSD:'Retirar en USD',
@@ -1241,7 +1248,7 @@ const LANG = {
     eth_originalUSD:'Original (USD)', eth_fechaLimite:'Fecha Límite', eth_notas:'Notas',
     eth_cuenta:'Cuenta', eth_saldo:'Saldo',
     eth_fondo:'Fondo', eth_moneda:'Moneda', eth_balanceActual:'Balance Actual', eth_metaMinima:'Meta Mínima',
-    eth_mes:'Mes', eth_anio:'Año', eth_ingresosUSD:'Ingresos (USD)', eth_gastoRD:'Gasto (RD$)',
+    eth_mes:'Mes', eth_anio:'Año', eth_ingresosRD:'Ingresos (RD$)', eth_gastoRD:'Gasto (RD$)',
     eth_tasaDolar:'Tasa Dólar', eth_deudasRD:'Deudas (RD$)', eth_emergenciaRD:'Emergencia (RD$)',
     eth_netWorthRD:'Net Worth (RD$)',
     eth_fechaActualizado:'Fecha Actualizado',
@@ -1541,12 +1548,19 @@ const LANG = {
     edit_add_row:'+ Add row', edit_add_cuenta:'+ Add account',
     edit_add_fondo:'+ Add fund', edit_add_mes:'+ Add month',
     edit_changes:'changes',
+    edit_unsaved_warn:'You have unsaved changes. Close without saving?',
+    edit_delete_confirm:'Delete this row? This action cannot be undone.',
+    edit_cf_ingreso_note:'Auto-synced from Settings (USD × Rate)',
+    edit_currency_convert:'Convert the balance to the new currency using the current rate?',
+    edit_payment_detect:'Balance of "{name}" decreased by RD${amt}. Record as payment?',
+    edit_tasa_warn:'⚠️ Using default rate (60). Update with this month\'s actual rate.',
     // Config field labels
     ecfg_tasa:'Exchange Rate (RD$/USD)', ecfg_tasa_note:'Update monthly',
     ecfg_mes:'Current Month', ecfg_mes_note:'Month name',
     ecfg_anio:'Current Year', ecfg_anio_note:'',
-    ecfg_ingreso:'Monthly Income (USD)', ecfg_ingreso_note:'In dollars',
-    ecfg_dias:'Payment alert days', ecfg_dias_note:'Days before to alert',
+    ecfg_ingreso:'Monthly Income (USD)', ecfg_ingreso_note:'In dollars — syncs with RD$',
+    ecfg_ingresoRD:'Monthly Income (RD$)', ecfg_ingresoRD_note:'In pesos — syncs with USD',
+    ecfg_dias:'Payment alert days', ecfg_dias_note:'Range: 1–30 days',
     // Cashflow field labels
     ecf_ingreso:'Monthly Income (RD$)', ecf_gasto:'Total Monthly Expenses',
     ecf_tasa:'Exchange Rate', ecf_retirarUSD:'Withdraw in USD',
@@ -1557,7 +1571,7 @@ const LANG = {
     eth_originalUSD:'Original (USD)', eth_fechaLimite:'Deadline', eth_notas:'Notes',
     eth_cuenta:'Account', eth_saldo:'Balance',
     eth_fondo:'Fund', eth_moneda:'Currency', eth_balanceActual:'Current Balance', eth_metaMinima:'Minimum Goal',
-    eth_mes:'Month', eth_anio:'Year', eth_ingresosUSD:'Income (USD)', eth_gastoRD:'Expenses (RD$)',
+    eth_mes:'Month', eth_anio:'Year', eth_ingresosRD:'Income (RD$)', eth_gastoRD:'Expenses (RD$)',
     eth_tasaDolar:'Exchange Rate', eth_deudasRD:'Debts (RD$)', eth_emergenciaRD:'Emergency (RD$)',
     eth_netWorthRD:'Net Worth (RD$)',
     eth_fechaActualizado:'Date Updated',
@@ -1848,11 +1862,15 @@ async function checkSavedData(){
   }catch(e){/* no data yet */}
 }
 
-// Auto-save after every significant change
+// Auto-save after every significant change (debounced to avoid rapid IndexedDB writes)
+let _autoSaveTimer=0;
 async function autoSave(){
-  if(_editData&&Object.keys(_editData).length>0){
-    await saveToDB();
-  }
+  if(!_editData||!Object.keys(_editData).length)return;
+  _pendingSave=true;
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer=setTimeout(async()=>{
+    if(_pendingSave){await saveToDB();_pendingSave=false;}
+  },500);
 }
 
 window.addEventListener('load',()=>{
@@ -4202,8 +4220,43 @@ window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',la
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
 function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';_balanceSnapshot=(_editData.gastos||[]).map(g=>g.balance||0);buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
-function closeEditModal(){document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';}
+function closeEditModal(force){
+  // Fix: warn if unsaved changes exist (skip when called programmatically with force=true)
+  if(!force&&_changesCount>0&&!confirm(t('edit_unsaved_warn')))return;
+  document.getElementById('editModal').classList.remove('open');document.body.style.overflow='';
+}
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function pf(v){return parseFloat(String(v).replace(/,/g,''))||0;}
+const TIPOS=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
+function syncConfigField(key,el){
+  const v=el.value;
+  switch(key){
+    case 'tasa':_editData.config.tasa=Math.max(1,pf(v)||60);_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl=document.getElementById('cfg-ingresoRD');if(rdEl)rdEl.value=Math.round(_editData.config.ingresoRD);const wn=document.getElementById('tasa-warn');if(wn)wn.style.display=_editData.config.tasa===60?'block':'none';break;
+    case 'mes':_editData.config.mes=v||'—';break;
+    case 'anio':_editData.config.anio=parseInt(v)||2026;break;
+    case 'ingresoUSD':_editData.config.ingresoUSD=Math.max(0,pf(v));_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl2=document.getElementById('cfg-ingresoRD');if(rdEl2)rdEl2.value=Math.round(_editData.config.ingresoRD);break;
+    case 'ingresoRD':_editData.config.ingresoRD=Math.max(0,pf(v));_editData.config.ingresoUSD=_editData.config.tasa>0?Math.round(_editData.config.ingresoRD/_editData.config.tasa*100)/100:0;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const usdEl=document.getElementById('cfg-ingreso');if(usdEl)usdEl.value=_editData.config.ingresoUSD;break;
+    case 'diasAlerta':{const d=parseInt(v);_editData.config.diasAlerta=Math.min(30,Math.max(1,isNaN(d)?5:d));}break;
+  }
+}
+function syncOriginal(idx,field,el){
+  const tasa=_editData.config.tasa||60;const v=pf(el.value);
+  if(field==='originalRD'){_editData.gastos[idx].originalRD=v;_editData.gastos[idx].originalUSD=Math.round(v/tasa*100)/100;const u=document.getElementById('origUSD-'+idx);if(u)u.value=_editData.gastos[idx].originalUSD;}
+  else{_editData.gastos[idx].originalUSD=v;_editData.gastos[idx].originalRD=Math.round(v*tasa);const r=document.getElementById('origRD-'+idx);if(r)r.value=_editData.gastos[idx].originalRD;}
+}
+function onCurrencySwitch(i,sel,collection){
+  const old=collection[i].moneda;const nw=sel.value;
+  if(old!==nw){
+    const tasa=_editData.config.tasa||60;const saldo=collection[i].saldo||collection[i].balance||0;
+    if(saldo>0&&confirm(t('edit_currency_convert'))){
+      const converted=nw==='USD'?Math.round(saldo/tasa*100)/100:Math.round(saldo*tasa);
+      if(collection[i].saldo!==undefined)collection[i].saldo=converted;
+      if(collection[i].balance!==undefined)collection[i].balance=converted;
+      if(collection[i].meta!==undefined&&collection[i].meta>0){collection[i].meta=nw==='USD'?Math.round(collection[i].meta/tasa*100)/100:Math.round(collection[i].meta*tasa);}
+    }
+  }
+  collection[i].moneda=nw;markChanged(sel);buildEditForms();
+}
 // Convert fondo balance/meta to RD$ — if moneda=USD, multiply by config.tasa
 function fondoToRD(f){const tasa=_editData.config.tasa||60;const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
 function fmtFecha(f,opts){
@@ -4216,28 +4269,30 @@ function fmtFecha(f,opts){
 
 function buildEditForms(){
   const {config,gastos,forNow,emerg,historial}=_editData;
-  // CONFIG
+  // CONFIG — Fix #4: real-time sync to _editData; Fix #1: tasa warning; Fix #2: ingresoRD field
   document.getElementById('configFields').innerHTML=[
-    {id:'cfg-tasa',label:t('ecfg_tasa'),note:t('ecfg_tasa_note'),key:'tasa',val:config.tasa},
+    {id:'cfg-tasa',label:t('ecfg_tasa'),note:t('ecfg_tasa_note'),key:'tasa',val:config.tasa,min:1,extra:`<div id="tasa-warn" class="field-note" style="color:var(--yellow);display:${config.tasa===60?'block':'none'}">${t('edit_tasa_warn')}</div>`},
     {id:'cfg-mes',label:t('ecfg_mes'),note:t('ecfg_mes_note'),key:'mes',val:config.mes,type:'text'},
     {id:'cfg-anio',label:t('ecfg_anio'),note:t('ecfg_anio_note'),key:'anio',val:config.anio},
-    {id:'cfg-ingreso',label:t('ecfg_ingreso'),note:t('ecfg_ingreso_note'),key:'ingresoUSD',val:config.ingresoUSD},
-    {id:'cfg-diasAlerta',label:t('ecfg_dias'),note:t('ecfg_dias_note'),key:'diasAlerta',val:config.diasAlerta||5},
-  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="${f.type||'number'}" value="${f.val}" oninput="markChanged(this)" step="any"><div class="field-note">${f.note}</div></div>`).join('');
+    {id:'cfg-ingreso',label:t('ecfg_ingreso'),note:t('ecfg_ingreso_note'),key:'ingresoUSD',val:config.ingresoUSD,min:0},
+    {id:'cfg-ingresoRD',label:t('ecfg_ingresoRD'),note:t('ecfg_ingresoRD_note'),key:'ingresoRD',val:Math.round(config.ingresoRD||config.ingresoUSD*(config.tasa||60)),min:0},
+    {id:'cfg-diasAlerta',label:t('ecfg_dias'),note:t('ecfg_dias_note'),key:'diasAlerta',val:config.diasAlerta||5,min:1,max:30},
+  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="${f.type||'number'}" value="${f.val}" oninput="markChanged(this);syncConfigField('${f.key}',this)" step="any"${f.min!=null?' min="'+f.min+'"':''}${f.max!=null?' max="'+f.max+'"':''}><div class="field-note">${f.note}</div>${f.extra||''}</div>`).join('');
   // ESENCIALES
   const eb=document.getElementById('esencialesEditBody');eb.innerHTML='';
   gastos.forEach((g,i)=>{
+    const tipoOpts=TIPOS.map(tp=>`<option value="${tp}" ${g.tipo===tp?'selected':''}>${tp}</option>`).join('')+(TIPOS.includes(g.tipo)?'':`<option value="${escH(g.tipo)}" selected>${escH(g.tipo)}</option>`);
     eb.innerHTML+=`<tr data-idx="${i}">
       <td><input class="tbl-input" style="min-width:140px" value="${escH(g.nombre)}" oninput="markChanged(this);_editData.gastos[${i}].nombre=this.value"></td>
-      <td><input class="tbl-input" style="min-width:90px" value="${escH(g.tipo)}" oninput="markChanged(this);_editData.gastos[${i}].tipo=this.value"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${g.pagado||0}" oninput="markChanged(this);_editData.gastos[${i}].pagado=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${g.adeudado||0}" oninput="markChanged(this);_editData.gastos[${i}].adeudado=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${g.dia||0}" oninput="markChanged(this);_editData.gastos[${i}].dia=parseFloat(this.value)||0" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${g.tasa||0}" oninput="markChanged(this);_editData.gastos[${i}].tasa=parseFloat(this.value)||0" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${g.balance||0}" oninput="markChanged(this);_editData.gastos[${i}].balance=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${g.originalRD||0}" oninput="markChanged(this);_editData.gastos[${i}].originalRD=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${g.originalUSD||0}" oninput="markChanged(this);_editData.gastos[${i}].originalUSD=parseFloat(this.value)||0" style="min-width:80px"></td>
-      <td><input class="tbl-input" value="${g.fechaLimite?String(g.fechaLimite).slice(0,10):''}" placeholder="YYYY-MM-DD" oninput="markChanged(this);_editData.gastos[${i}].fechaLimite=this.value" style="min-width:100px"></td>
+      <td><select class="tbl-input" style="min-width:90px" onchange="markChanged(this);_editData.gastos[${i}].tipo=this.value">${tipoOpts}</select></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${g.pagado||0}" oninput="markChanged(this);_editData.gastos[${i}].pagado=pf(this.value)"></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${g.adeudado||0}" oninput="markChanged(this);_editData.gastos[${i}].adeudado=pf(this.value)"></td>
+      <td><input class="tbl-input" type="number" step="1" min="1" max="31" value="${g.dia||1}" oninput="markChanged(this);_editData.gastos[${i}].dia=Math.min(31,Math.max(1,parseInt(this.value)||1))" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" max="100" value="${g.tasa||0}" oninput="markChanged(this);_editData.gastos[${i}].tasa=Math.min(100,Math.max(0,pf(this.value)))" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${g.balance||0}" oninput="markChanged(this);_editData.gastos[${i}].balance=Math.max(0,pf(this.value))"></td>
+      <td><input class="tbl-input" id="origRD-${i}" type="number" step="any" min="0" value="${g.originalRD||0}" oninput="markChanged(this);syncOriginal(${i},'originalRD',this)"></td>
+      <td><input class="tbl-input" id="origUSD-${i}" type="number" step="any" min="0" value="${g.originalUSD||0}" oninput="markChanged(this);syncOriginal(${i},'originalUSD',this)" style="min-width:80px"></td>
+      <td><input class="tbl-input" type="date" value="${g.fechaLimite?String(g.fechaLimite).slice(0,10):''}" oninput="markChanged(this);_editData.gastos[${i}].fechaLimite=this.value" style="min-width:120px"></td>
       <td><input class="tbl-input" value="${escH(g.notas||'')}" oninput="markChanged(this);_editData.gastos[${i}].notas=this.value" style="min-width:120px"></td>
       <td><button class="row-del-btn" onclick="deleteGastoRow(${i})">✕</button></td>
     </tr>`;
@@ -4249,8 +4304,8 @@ function buildEditForms(){
   forNow.cuentas.forEach((c,i)=>{
     const mon=c.moneda||'RD';
     fb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
-      <td><select class="tbl-input" onchange="markChanged(this);_editData.forNow.cuentas[${i}].moneda=this.value" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
-      <td><input class="tbl-input" type="number" step="any" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=parseFloat(this.value)||0;_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
+      <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.forNow.cuentas)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
       <td><button class="row-del-btn" onclick="deleteFornowRow(${i})">✕</button></td></tr>`;
   });
   // EMERGENCY
@@ -4258,22 +4313,22 @@ function buildEditForms(){
   emerg.fondos.forEach((f,i)=>{
     const mon=f.moneda||'RD';
     efb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(f.fondo)}" oninput="markChanged(this);_editData.emerg.fondos[${i}].fondo=this.value" style="min-width:140px"></td>
-      <td><select class="tbl-input" onchange="markChanged(this);_editData.emerg.fondos[${i}].moneda=this.value" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
-      <td><input class="tbl-input" type="number" step="any" value="${f.balance||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].balance=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${f.meta||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].meta=parseFloat(this.value)||0"></td>
+      <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.emerg.fondos)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${f.balance||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].balance=Math.max(0,pf(this.value))"></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${f.meta||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].meta=Math.max(0,pf(this.value))"></td>
       <td><button class="row-del-btn" onclick="deleteEmergFundRow(${i})">✕</button></td></tr>`;
   });
   // CASHFLOW
   const cf=emerg.cashflow;
   document.getElementById('cashflowFields').innerHTML=[
-    {id:'cf-ingreso',label:t('ecf_ingreso'),key:'ingreso',val:cf.ingreso||0},
+    {id:'cf-ingreso',label:t('ecf_ingreso'),key:'ingreso',val:cf.ingreso||0,note:t('edit_cf_ingreso_note'),readonly:true},
     {id:'cf-gasto',label:t('ecf_gasto'),key:'gasto',val:cf.gasto||0},
     {id:'cf-tasa',label:t('ecf_tasa'),key:'tasa',val:cf.tasa||0},
     {id:'cf-retirarUSD',label:t('ecf_retirarUSD'),key:'retirarUSD',val:cf.retirarUSD||0},
     // resta removed — always calculated as ingreso - gasto
     {id:'cf-ahorros',label:t('ecf_ahorros'),key:'ahorros',val:cf.ahorros||0},
     {id:'cf-balanceAhorros',label:t('ecf_balanceAhorros'),key:'balanceAhorros',val:cf.balanceAhorros||0},
-  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="number" step="any" value="${f.val}" oninput="markChanged(this);_editData.emerg.cashflow['${f.key}']=parseFloat(this.value)||0"></div>`).join('');
+  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="number" step="any" value="${f.val}" ${f.readonly?'readonly style="opacity:.6;cursor:not-allowed"':''} oninput="markChanged(this);_editData.emerg.cashflow['${f.key}']=parseFloat(this.value)||0">${f.note?`<div class="field-note">${f.note}</div>`:''}</div>`).join('');
   // HISTORIAL
   const hb=document.getElementById('historialEditBody');hb.innerHTML='';
   historial.forEach((h,i)=>{
@@ -4281,40 +4336,46 @@ function buildEditForms(){
     hb.innerHTML+=`<tr>
       <td><input class="tbl-input" value="${escH(h.mes)}" oninput="markChanged(this);_editData.historial[${i}].mes=this.value" style="min-width:90px"></td>
       <td><input class="tbl-input" type="number" step="any" value="${h.anio}" oninput="markChanged(this);_editData.historial[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.ingresos||0}" oninput="markChanged(this);_editData.historial[${i}].ingresos=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.gasto||0}" oninput="markChanged(this);_editData.historial[${i}].gasto=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.tasa||60}" oninput="markChanged(this);_editData.historial[${i}].tasa=parseFloat(this.value)||60" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.deudas||0}" oninput="markChanged(this);_editData.historial[${i}].deudas=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.emergencia||0}" oninput="markChanged(this);_editData.historial[${i}].emergencia=parseFloat(this.value)||0"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.netWorth||0}" oninput="markChanged(this);_editData.historial[${i}].netWorth=parseFloat(this.value)||0"></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.ingresos||0}" oninput="markChanged(this);_editData.historial[${i}].ingresos=pf(this.value)"></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.gasto||0}" oninput="markChanged(this);_editData.historial[${i}].gasto=pf(this.value)"></td>
+      <td><input class="tbl-input" type="number" step="any" min="1" value="${h.tasa||60}" oninput="markChanged(this);_editData.historial[${i}].tasa=Math.max(1,pf(this.value))" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.deudas||0}" oninput="markChanged(this);_editData.historial[${i}].deudas=pf(this.value)"></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.emergencia||0}" oninput="markChanged(this);_editData.historial[${i}].emergencia=pf(this.value)"></td>
+      <td><input class="tbl-input" type="number" step="any" value="${h.netWorth||0}" oninput="markChanged(this);_editData.historial[${i}].netWorth=pf(this.value)"></td>
       <td><input class="tbl-input" value="${escH(h.notas||'')}" oninput="markChanged(this);_editData.historial[${i}].notas=this.value" style="min-width:100px"></td>
       <td><button class="row-del-btn" onclick="deleteHistorialRow(${i})">✕</button></td>
     </tr>`;
   });
 }
 
-function deleteGastoRow(i){_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteGastoRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
 function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);g.balance=0;g.adeudado=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
-function deleteFornowRow(i){_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
-function deleteEmergFundRow(i){_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
-function deleteHistorialRow(i){_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteFornowRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteEmergFundRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteHistorialRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
 function addEsencialRow(){_editData.gastos.push({nombre:'Nueva entrada',tipo:'Variable',pagado:0,adeudado:0,dia:1,tasa:0,balance:0,originalRD:0,originalUSD:0,fechaLimite:'',notas:'',pagadoMes:false});markChanged(document.body);buildEditForms();}
 function addForNowRow(){_editData.forNow.cuentas.push({nombre:'Nueva cuenta',moneda:'RD',saldo:0,comp:0,disp:0});markChanged(document.body);buildEditForms();}
 function addEmergFundRow(){_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:0,falta:0,moneda:'RD'});markChanged(document.body);buildEditForms();}
-function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:60,notas:''});markChanged(document.body);buildEditForms();}
+function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:_editData.config.tasa||60,notas:''});markChanged(document.body);buildEditForms();}
 
 function readConfigFromForm(){
-  _editData.config.tasa=parseFloat(document.getElementById('cfg-tasa')?.value)||60;
+  // Final flush — re-reads DOM values using same validation as syncConfigField
+  _editData.config.tasa=Math.max(1,pf(document.getElementById('cfg-tasa')?.value)||60);
   _editData.config.mes=document.getElementById('cfg-mes')?.value||'—';
   _editData.config.anio=parseInt(document.getElementById('cfg-anio')?.value)||2026;
-  _editData.config.ingresoUSD=parseFloat(document.getElementById('cfg-ingreso')?.value)||0;
-  _editData.config.diasAlerta=parseInt(document.getElementById('cfg-diasAlerta')?.value)||5;
+  _editData.config.ingresoUSD=Math.max(0,pf(document.getElementById('cfg-ingreso')?.value));
+  _editData.config.diasAlerta=Math.min(30,Math.max(1,parseInt(document.getElementById('cfg-diasAlerta')?.value)||5));
   _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
+  _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
   _editData.forNow.fecha=document.getElementById('fornow-fecha')?.value||null;
+  // Normalize tipo to match TIPOS list (Title Case)
+  _editData.gastos.forEach(g=>{if(g.tipo){const tc=g.tipo.trim().charAt(0).toUpperCase()+g.tipo.trim().slice(1).toLowerCase();g.tipo=TIPOS.includes(tc)?tc:g.tipo.trim();}});
+  // Validate emergency fund meta ≥ 0
+  _editData.emerg.fondos.forEach(f=>{f.meta=Math.max(0,f.meta||0);f.balance=Math.max(0,f.balance||0);f.falta=Math.max(0,(f.meta||0)-(f.balance||0));});
 }
-function _detectPaymentsFromBalanceChanges(){_editData.gastos.forEach((g,i)=>{if(i>=_balanceSnapshot.length)return;const diff=_balanceSnapshot[i]-(g.balance||0);if(diff>0){g.pagado=(g.pagado||0)+diff;if(!g.pagadoMes&&g.adeudado>0&&g.pagado>=g.adeudado)g.pagadoMes=true;}});_balanceSnapshot=[];}
-function applyChanges(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();closeEditModal();showToast(t('toast_changes'));}
-function applyAndDownload(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();generateExcel();closeEditModal();}
+function _detectPaymentsFromBalanceChanges(){_editData.gastos.forEach((g,i)=>{if(i>=_balanceSnapshot.length)return;const diff=_balanceSnapshot[i]-(g.balance||0);if(diff>0){const msg=t('edit_payment_detect').replace('{name}',g.nombre).replace('{amt}',fmt(Math.round(diff)));if(confirm(msg)){g.pagado=(g.pagado||0)+diff;if(!g.pagadoMes&&g.adeudado>0&&g.pagado>=g.adeudado)g.pagadoMes=true;}}});_balanceSnapshot=[];}
+function applyChanges(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();_changesCount=0;closeEditModal(true);showToast(t('toast_changes'));}
+function applyAndDownload(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();generateExcel();_changesCount=0;closeEditModal(true);}
 
 // ══════════════════════════════════
 // EXCEL EXPORT
