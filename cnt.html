@@ -609,6 +609,15 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       </div>
     </button>
 
+    <!-- Option 4: Load demo data -->
+    <button class="btn btn-ghost" onclick="loadDemo()" style="width:100%;justify-content:center;border-style:dashed;gap:10px;padding:14px">
+      <span style="font-size:20px">👩‍💼</span>
+      <div style="text-align:left">
+        <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="loader_demo">Ver demo con datos de ejemplo</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px" data-i18n="loader_demo_sub">Explora el dashboard con datos ficticios realistas de 18 meses</div>
+      </div>
+    </button>
+
     <div id="errorMsg"></div>
     <div id="loadingSpinner"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)" data-i18n="loader_processing">Procesando…</div></div>
   </div>
@@ -1289,6 +1298,9 @@ const LANG = {
     loader_import_sub:'Arrastra o toca para seleccionar · <span>actualiza datos existentes</span>',
     loader_scratch:'Empezar desde cero',
     loader_scratch_sub:'Configuro el dashboard con un asistente y genero mi Excel inicial',
+    loader_demo:'Ver demo con datos de ejemplo',
+    loader_demo_sub:'Explora el dashboard con datos ficticios realistas de 18 meses',
+    loader_demo_error:'No se pudo cargar el archivo demo. Verifica que cnt_demo.xlsx esté en la misma carpeta.',
     loader_processing:'Procesando…',
     loader_offline:'Funciona sin conexión · Todo procesado localmente · Datos guardados en tu navegador',
     loader_clearcache:'🔄 Limpiar caché · Forzar actualización',
@@ -1632,6 +1644,9 @@ const LANG = {
     loader_import_sub:'Drag or tap to select · <span>updates existing data</span>',
     loader_scratch:'Start from scratch',
     loader_scratch_sub:'Set up the dashboard with a wizard and generate my initial Excel',
+    loader_demo:'View demo with sample data',
+    loader_demo_sub:'Explore the dashboard with realistic fictional data spanning 18 months',
+    loader_demo_error:'Could not load demo file. Make sure cnt_demo.xlsx is in the same folder.',
     loader_processing:'Processing…',
     loader_offline:'Works offline · All processed locally · Data saved in your browser',
     loader_clearcache:'🔄 Clear cache · Force update',
@@ -2349,6 +2364,16 @@ async function hardResetCache(){
     if(btn){btn.style.opacity='';btn.style.pointerEvents='';}
   }
 }
+async function loadDemo(){
+  showSpinner();
+  try{
+    const resp=await fetch('cnt_demo.xlsx');
+    if(!resp.ok)throw new Error(resp.statusText);
+    const buf=await resp.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array',cellDates:true});
+    processWorkbook(wb,'cnt_demo.xlsx');
+  }catch(e){showError(t('loader_demo_error'));}
+}
 function processFile(file){
   if(!file.name.match(/\.(xlsx|xls)$/i)){showError('⚠ Solo se aceptan archivos .xlsx o .xls');return;}
   showSpinner();
@@ -2436,7 +2461,7 @@ function parseForNow(rows,tasa){
     if(k.toLowerCase().includes('fecha'))res.fecha=r[1];
     else if(k==='TOTAL')res.comprometido=clean(r[2]);
     else if(k.toLowerCase().includes('disponible despu'))res.disponible=clean(r[3]);
-    else if(k&&!k.toLowerCase().includes('cuenta')&&!k.toLowerCase().includes('actualiz')&&!k.toLowerCase().includes('for now')&&!k.toLowerCase().includes('moneda')&&r[1]!==null){
+    else if(k&&!k.toLowerCase().includes('actualiz')&&!k.toLowerCase().includes('for now')&&!String(r[1]||'').toLowerCase().includes('moneda')&&r[1]!==null){
       const col1=String(r[1]||'').trim().toUpperCase();
       const hasMoneda=col1==='RD'||col1==='USD';
       if(hasMoneda) res.cuentas.push({nombre:k,moneda:col1,saldo:clean(r[2]),comp:clean(r[3]),disp:clean(r[4])});
@@ -2456,7 +2481,7 @@ function parseEmergency(rows){
     const k=String(r[0]||'').trim();
     if(k.includes('SECCIÓN A')){inA=true;inB=false;return;}
     if(k.includes('SECCIÓN B')){inB=true;inA=false;return;}
-    if(inA&&k&&!k.includes('Fondo')&&!k.includes('TOTAL')){
+    if(inA&&k&&!String(r[1]||'').toLowerCase().includes('moneda')&&!k.includes('TOTAL')){
       const mon=String(r[1]||'').trim().toUpperCase();
       const isUSD=mon==='USD';
       res.fondos.push({fondo:k,moneda:isUSD?'USD':'RD',balance:clean(r[isUSD?2:1]),meta:clean(r[isUSD?3:2])});
