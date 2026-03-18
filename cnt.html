@@ -662,7 +662,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <!-- ALERTAS -->
   <div id="tab-alertas" class="panel">
     <div class="grid g2" style="margin-bottom:16px">
-      <div class="card"><div class="card-title">🔴 Vencimientos Próximos</div><div id="alertasVenc"></div></div>
+      <div class="card"><div class="card-title" data-i18n="panel_alertas_venc">🔴 Vencimientos Próximos</div><div id="alertasVenc"></div></div>
       <div class="card"><div class="card-title" data-i18n="panel_alertas_gen">⚠️ Alertas Financieras</div><div id="alertasGen"></div></div>
     </div>
     <div class="card"><div class="card-title" data-i18n="panel_alertas_sit">📋 Resumen de Situación</div><div id="alertasSit"></div></div>
@@ -1037,6 +1037,7 @@ const LANG = {
     alert_ef_critical_title:'Fondo de emergencia crítico', alert_ef_critical_sub:'% completado — RD$ para alcanzar la meta',
     alert_ef_low_title:'Fondo de emergencia bajo', alert_ef_low_sub:'% completado — sigue aportando mensualmente',
     alert_interest_title:'Carga de intereses elevada', alert_interest_sub:'RD$/mes en intereses — % de tu superávit',
+    alert_interest_deficit:'RD$/mes en intereses y estás en déficit — situación crítica',
     // Situacion
     sit_expenses:'Control de Gastos', sit_surplus:'Superávit Mensual', sit_debt:'Ratio Deuda',
     sit_payments:'Próximos pagos', sit_used:'% del ingreso usado', sit_available:'disponible',
@@ -1280,6 +1281,7 @@ const LANG = {
     alert_ef_critical_title:'Emergency fund critical', alert_ef_critical_sub:'% completed — RD$ to reach goal',
     alert_ef_low_title:'Emergency fund low', alert_ef_low_sub:'% completed — keep contributing monthly',
     alert_interest_title:'High interest burden', alert_interest_sub:'RD$/month in interest — % of your surplus',
+    alert_interest_deficit:'RD$/month in interest while in deficit — critical situation',
     // Situacion
     sit_expenses:'Expense Control', sit_surplus:'Monthly Surplus', sit_debt:'Debt Ratio',
     sit_payments:'Upcoming payments', sit_used:'% of income used', sit_available:'available',
@@ -1455,7 +1457,11 @@ function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{
     const key=el.getAttribute('data-i18n');
     const val=t(key);
-    if(val) el.innerHTML=val;
+    if(!val)return;
+    // Preserve dynamically appended children (e.g. alert-dot) when updating i18n text
+    const preserved=el.querySelector('.alert-dot');
+    el.innerHTML=val;
+    if(preserved)el.appendChild(preserved);
   });
   // Update dashboard lang button
   const lb=document.getElementById('langBtn');
@@ -2318,7 +2324,7 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
   const tabAl=document.getElementById('tabAlertas');
   const existDot=tabAl.querySelector('.alert-dot');
   if(existDot)existDot.remove();
-  if(urgentCount>0)tabAl.innerHTML=`🔔 ${t('tab_alertas').replace('🔔 ','')} <span class="alert-dot"></span>`;
+  if(urgentCount>0){const d=document.createElement('span');d.className='alert-dot';tabAl.appendChild(d);}
   const gpct=ingreso>0?gasto/ingreso:1;
   const agHtml=[];
   if(gpct>1)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🔴</div><div class="alert-text"><div class="alert-title">${t('alert_overspend_title')}</div><div class="alert-sub">${t('alert_overspend_sub').replace('%',Math.round((gpct-1)*100)+'%')}</div></div></div>`);
@@ -2326,19 +2332,20 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
   const dRatio=ingreso>0?totalBalance/(ingreso*12):1;
   if(dRatio>1.5)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">${t('alert_highdebt_title')}</div><div class="alert-sub">${t('alert_highdebt_sub').replace('%',(dRatio*100).toFixed(0)+'%')}</div></div></div>`);
   const altaTasa=gastos.filter(g=>g.tasa>15&&g.balance>0);
-  altaTasa.forEach(g=>agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${g.tasa}% ${_lang==='es'?'anual':'annual'} — RD$${fmt(g.balance)} ${_lang==='es'?'pendiente':'outstanding'}</div></div></div>`));
-  if(emerg){
+  altaTasa.forEach(g=>agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${t('alert_highrate_sub').replace('%',g.tasa+'%').replace('RD$','RD$'+fmt(g.balance))}</div></div></div>`));
+  if(emerg&&emerg.fondos&&emerg.fondos.length){
     const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
     const efMeta=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).meta,0);
     const efPct=efMeta>0?efTotal/efMeta:0;
-    if(efPct<0.25)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_critical_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — RD$'+fmt(Math.round(efMeta-efTotal))+' para alcanzar la meta':'completed — RD$'+fmt(Math.round(efMeta-efTotal))+' to reach goal'}</div></div></div>`);
-    else if(efPct<0.5)agHtml.push(`<div class="alert-item warning"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_low_title')}</div><div class="alert-sub">${Math.round(efPct*100)}% ${_lang==='es'?'completado — sigue aportando mensualmente':'completed — keep contributing monthly'}</div></div></div>`);
+    if(efPct<0.25)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_critical_title')}</div><div class="alert-sub">${t('alert_ef_critical_sub').replace('%',Math.round(efPct*100)+'%').replace('RD$','RD$'+fmt(Math.round(efMeta-efTotal)))}</div></div></div>`);
+    else if(efPct<0.5)agHtml.push(`<div class="alert-item warning"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_low_title')}</div><div class="alert-sub">${t('alert_ef_low_sub').replace('%',Math.round(efPct*100)+'%')}</div></div></div>`);
   }
-  if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)agHtml.push(`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">RD$${fmt(Math.round(interesMensual))}/mes ${_lang==='es'?'en intereses':'in interest'} — ${Math.round(interesMensual/resta*100)}% ${_lang==='es'?'de tu superávit':'of your surplus'}</div></div></div>`);
+  if(interesMensual>0&&resta<=0)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">${t('alert_interest_deficit').replace('RD$','RD$'+fmt(Math.round(interesMensual)))}</div></div></div>`);
+  else if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)agHtml.push(`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">${t('alert_interest_sub').replace('RD$','RD$'+fmt(Math.round(interesMensual))).replace('%',Math.round(interesMensual/resta*100)+'%')}</div></div></div>`);
   ag.innerHTML=agHtml.length?agHtml.join(''):`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_nofinancial')}</div>`;
   const as=document.getElementById('alertasSit');
   const items=[
-    {icon:gpct<=.8?'✅':'⚠️',l:t('sit_expenses'),v:`${Math.round(gpct*100)}% ${t('sit_used')}`,c:gpct<=.8?'var(--green)':gpct<=.9?'var(--yellow)':'var(--red)'},
+    {icon:gpct<=.85?'✅':'⚠️',l:t('sit_expenses'),v:`${Math.round(gpct*100)}% ${t('sit_used')}`,c:gpct<=.85?'var(--green)':gpct<=1?'var(--yellow)':'var(--red)'},
     {icon:resta>0?'✅':'🔴',l:t('sit_surplus'),v:resta>0?`RD$${fmt(resta)} ${t('sit_available')}`:`${t('sit_deficit')}${fmt(Math.abs(resta))}`,c:resta>0?'var(--green)':'var(--red)'},
     {icon:dRatio<0.5?'✅':'⚠️',l:t('sit_debt'),v:`${(dRatio*100).toFixed(0)}% ${t('sit_annualincome')}`,c:dRatio<0.5?'var(--green)':dRatio<1?'var(--yellow)':'var(--red)'},
     {icon:vencProx.length>0?'📅':'✅',l:t('sit_payments'),v:vencProx.length>0?vencProx.map(p=>`${p.nombre.split(' ')[0]} (${p.daysUntil===0?(_lang==='es'?'¡hoy!':'today!'):p.daysUntil+'d'})`).join(' · '):t('sit_uptodate'),c:vencProx.some(p=>p.urgente)?'var(--red)':vencProx.length>0?'var(--yellow)':'var(--green)'},
