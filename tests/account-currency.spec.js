@@ -299,11 +299,12 @@ test.describe('Account Currency - Edge Cases', () => {
     expect(html).not.toContain('>USD</span>');
   });
 
-  test('no accounts shows no KPI cards', async ({ page }) => {
+  test('no accounts shows empty state with CTA', async ({ page }) => {
     await loadApp(page, { cuentas: [] });
     await goToForNowTab(page);
 
     const kpis = page.locator('#forNowKpis');
-    await expect(kpis.locator('.card')).toHaveCount(0);
+    await expect(kpis.locator('.card')).toHaveCount(1);
+    await expect(kpis).toContainText('Editar');
   });
 });
