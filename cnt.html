@@ -793,7 +793,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px">
         <div class="card-title" style="margin:0" data-i18n="metas_main_title">🏆 Metas de Ahorro</div>
-        <button onclick="addSavingsGoal()" style="padding:8px 16px;background:rgba(34,211,160,.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Agregar Meta</button>
+        <button onclick="addSavingsGoal()" data-i18n="metas_add" style="padding:8px 16px;background:rgba(34,211,160,.15);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Agregar Meta</button>
       </div>
       <div id="metasList"></div>
     </div>
@@ -1244,6 +1244,13 @@ const LANG = {
     metas_goal:'Meta (RD$)', metas_saved:'Ahorrado (RD$)', metas_monthly:'Aporte mensual (RD$)',
     metas_name_ph:'Nombre de la meta (ej: Vacaciones)', metas_eta:'Fecha estimada',
     metas_done_badge:'✅ Completada', metas_months_left:'meses restantes',
+    metas_add:'+ Agregar Meta', metas_pct_income:'del ingreso',
+    metas_chart_saved:'Ahorrado', metas_chart_remaining:'Falta',
+    metas_no_monthly:'Establece un aporte mensual para ver tu fecha estimada.',
+    metas_eta_note:'La fecha estimada asume aportes constantes sin intereses.',
+    metas_overcommit:'⚠️ Tus aportes mensuales totales (RD${total}) superan tu superávit (RD${surplus}). Ajusta tus metas para que sean alcanzables.',
+    metas_priority_tip:'💡 Prioridad financiera: Fondo de emergencia (3–6 meses) → Pagar deuda de alta tasa → Metas de ahorro.',
+    metas_overlap_note:'Los saldos de metas son objetivos de seguimiento — pueden coincidir con fondos mostrados en otras pestañas.',
     // Feature 2 – Budget vs Actual
     bva_title:'📊 Presupuesto vs Real del Mes',
     bva_chart_title:'Varianza por Categoría',
@@ -1547,6 +1554,13 @@ const LANG = {
     metas_goal:'Goal (RD$)', metas_saved:'Saved (RD$)', metas_monthly:'Monthly contribution (RD$)',
     metas_name_ph:'Goal name (e.g. Vacation)', metas_eta:'Estimated date',
     metas_done_badge:'✅ Completed', metas_months_left:'months left',
+    metas_add:'+ Add Goal', metas_pct_income:'of income',
+    metas_chart_saved:'Saved', metas_chart_remaining:'Remaining',
+    metas_no_monthly:'Set a monthly contribution to see your estimated date.',
+    metas_eta_note:'Estimated date assumes constant contributions without interest.',
+    metas_overcommit:'⚠️ Your total monthly contributions (RD${total}) exceed your surplus (RD${surplus}). Adjust your goals to be achievable.',
+    metas_priority_tip:'💡 Financial priority: Emergency fund (3–6 months) → Pay off high-rate debt → Savings goals.',
+    metas_overlap_note:'Goal balances are tracking targets — they may overlap with funds shown in other tabs.',
     // Feature 2 – Budget vs Actual
     bva_title:'📊 Budget vs Actual This Month',
     bva_chart_title:'Variance by Category',
@@ -2246,7 +2260,16 @@ function processWorkbook(wb,filename){
     const forNow=parseForNow(sheetArr(wb,'for'),config.tasa);
     const emerg=parseEmergency(sheetArr(wb,'emerg'));
     const historial=parseHistorial(sheetArr(wb,'historial'));
-    _editData={config,gastos,forNow,emerg,historial,filename};
+    // Fix #9: import Metas sheet if present
+    const metasRows=sheetArr(wb,'metas');
+    const metas=[];
+    if(metasRows.length>1){
+      for(let i=1;i<metasRows.length;i++){
+        const r=metasRows[i];if(!r[0]&&!r[1])continue;
+        metas.push({name:String(r[0]||''),goal:clean(r[1]),saved:clean(r[2]),monthly:clean(r[3])});
+      }
+    }
+    _editData={config,gastos,forNow,emerg,historial,metas,filename};
     // Bug 1 fix: enforce single source of truth after Excel load
     _editData.config.ingresoRD = config.ingresoUSD * config.tasa;
     _editData.emerg.cashflow.ingreso = config.ingresoUSD * config.tasa;
@@ -3555,6 +3578,8 @@ function buildSavingsGoals(){
   const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0
     ?(_editData.config.ingresoUSD*_editData.config.tasa)
     :(_editData.config.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
+  const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeudado||0),0);
+  const surplus=ingreso-gasto;
 
   // KPIs
   const kpiEl=document.getElementById('metasKpis');
@@ -3573,27 +3598,33 @@ function buildSavingsGoals(){
   if(!metas.length){
     listEl.innerHTML=`<p style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">${t('metas_empty')}</p>`;
   } else {
+    // Fix #11: debounce rebuild — update data immediately but delay DOM rebuild
     listEl.innerHTML=metas.map((m,i)=>{
-      const saved=m.saved||0;const goal=m.goal||1;const monthly=m.monthly||0;
-      const pct=Math.min(100,Math.round(saved/goal*100));
+      const saved=m.saved||0;const goal=m.goal||0;const monthly=m.monthly||0;
+      const effectiveGoal=goal>0?goal:1;
+      const pct=goal>0?Math.min(100,Math.round(saved/effectiveGoal*100)):0;
       const rem=Math.max(0,goal-saved);
       const isDone=saved>=goal&&goal>0;
-      const monthsLeft=monthly>0&&!isDone?Math.ceil(rem/monthly):null;
+      const monthsLeft=monthly>0&&!isDone&&rem>0?Math.ceil(rem/monthly):null;
       let eta='—';
       if(isDone)eta=t('metas_done_badge');
       else if(monthsLeft){
-        const d=new Date();d.setMonth(d.getMonth()+monthsLeft);
+        // Fix #6: use day 1 to avoid setMonth overflow (Jan 31 + 1mo = Mar 3)
+        const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+monthsLeft);
         eta=d.toLocaleDateString(_lang==='es'?'es-DO':'en-US',{month:'long',year:'numeric'});
       }
       const barColor=isDone?'var(--green)':pct>66?'var(--accent)':pct>33?'var(--yellow)':'var(--red)';
       const pctOfIncome=ingreso>0&&monthly>0?Math.round(monthly/ingreso*100):0;
+      // Fix #7: nudge when monthly=0 and not done
+      const noMonthlyWarn=!isDone&&monthly===0&&goal>0?`<div style="font-size:10px;color:var(--yellow);margin-top:4px">${t('metas_no_monthly')}</div>`:'';
       return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px">
           <div style="flex:1;min-width:160px">
             <input value="${escH(m.name||'')}" placeholder="${t('metas_name_ph')}"
               oninput="_editData.metas[${i}].name=this.value;autoSave()"
               style="font-size:15px;font-weight:700;background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text);font-family:var(--font);padding:2px 4px;width:100%;outline:none">
-            <div style="font-size:12px;color:var(--muted);margin-top:5px">${t('metas_eta')}: <strong style="color:${isDone?'var(--green)':'var(--accent)'}">${eta}</strong>${monthsLeft?` · ${monthsLeft} ${t('metas_months_left')}`:''}${pctOfIncome?` · <span style="color:var(--muted)">${pctOfIncome}% del ingreso</span>`:''}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:5px">${t('metas_eta')}: <strong style="color:${isDone?'var(--green)':'var(--accent)'}">${eta}</strong>${monthsLeft?` · ${monthsLeft} ${t('metas_months_left')}`:''}${pctOfIncome?` · <span style="color:var(--muted)">${pctOfIncome}% ${t('metas_pct_income')}</span>`:''}</div>
+            ${noMonthlyWarn}
           </div>
           <div style="display:flex;align-items:center;gap:10px">
             <div class="mono" style="font-size:22px;font-weight:800;color:${barColor}">${pct}%</div>
@@ -3608,27 +3639,34 @@ function buildSavingsGoals(){
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_saved')}</div>
             <input type="number" step="any" value="${saved}" min="0"
-              oninput="_editData.metas[${i}].saved=parseFloat(this.value)||0;autoSave();buildSavingsGoals()"
+              oninput="_editData.metas[${i}].saved=parseFloat(this.value)||0;autoSave();_metasDebounce()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green);width:100%;outline:none">
           </div>
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_goal')}</div>
-            <input type="number" step="any" value="${goal}" min="1"
-              oninput="_editData.metas[${i}].goal=parseFloat(this.value)||1;autoSave();buildSavingsGoals()"
+            <input type="number" step="any" value="${goal||''}" min="0" placeholder="0"
+              oninput="_editData.metas[${i}].goal=parseFloat(this.value)||0;autoSave();_metasDebounce()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:100%;outline:none">
           </div>
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_monthly')}</div>
             <input type="number" step="any" value="${monthly}" min="0"
-              oninput="_editData.metas[${i}].monthly=parseFloat(this.value)||0;autoSave();buildSavingsGoals()"
+              oninput="_editData.metas[${i}].monthly=parseFloat(this.value)||0;autoSave();_metasDebounce()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);width:100%;outline:none">
           </div>
         </div>
       </div>`;
     }).join('');
+    // Fix #2: aggregate monthly vs surplus warning
+    const totalMonthly=metas.reduce((a,m)=>a+(m.monthly||0),0);
+    if(totalMonthly>0&&totalMonthly>surplus&&surplus>0){
+      listEl.innerHTML+=`<div style="padding:10px 14px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;font-size:12px;color:var(--red);line-height:1.6;margin-bottom:8px">${t('metas_overcommit').replace('{total}',fmt(totalMonthly)).replace('{surplus}',fmt(Math.round(surplus)))}</div>`;
+    }
+    // Fix #8: ETA disclaimer + Fix #10: prioritization tip + Fix #13: overlap note
+    listEl.innerHTML+=`<div style="font-size:10px;color:var(--muted);padding:6px 12px;line-height:1.8;margin-top:4px">${t('metas_eta_note')}<br>${t('metas_priority_tip')}<br>${t('metas_overlap_note')}</div>`;
   }
 
-  // Chart — horizontal bar per goal
+  // Chart — horizontal bar per goal (Fix #4: i18n labels)
   setTimeout(()=>{
     if(charts.metasChart)charts.metasChart.destroy();
     const cEl=document.getElementById('metasChart');
@@ -3639,8 +3677,8 @@ function buildSavingsGoals(){
       data:{
         labels:metas.map(m=>m.name||'—'),
         datasets:[
-          {label:_lang==='es'?'Ahorrado':'Saved',data:metas.map(m=>m.saved||0),backgroundColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]+'aa'),borderColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]),borderWidth:2,borderRadius:6},
-          {label:_lang==='es'?'Falta':'Remaining',data:metas.map(m=>Math.max(0,(m.goal||0)-(m.saved||0))),backgroundColor:'rgba(26,37,64,.4)',borderColor:'rgba(74,93,128,.3)',borderWidth:1,borderRadius:6},
+          {label:t('metas_chart_saved'),data:metas.map(m=>m.saved||0),backgroundColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]+'aa'),borderColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]),borderWidth:2,borderRadius:6},
+          {label:t('metas_chart_remaining'),data:metas.map(m=>Math.max(0,(m.goal||0)-(m.saved||0))),backgroundColor:'rgba(26,37,64,.4)',borderColor:'rgba(74,93,128,.3)',borderWidth:1,borderRadius:6},
         ]
       },
       options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
@@ -3648,13 +3686,16 @@ function buildSavingsGoals(){
     });
   },100);
 }
+// Fix #11: debounce rebuild to prevent full DOM rebuild on every keystroke
+let _metasTimer=0;
+function _metasDebounce(){clearTimeout(_metasTimer);_metasTimer=setTimeout(buildSavingsGoals,400);}
 
 function addSavingsGoal(){
   if(!_editData.metas)_editData.metas=[];
+  // Fix #1: initialize goal with sensible defaults
   _editData.metas.push({name:'',goal:0,saved:0,monthly:0});
   autoSave();
   buildSavingsGoals();
-  // Scroll to new goal
   const list=document.getElementById('metasList');
   if(list)list.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -4264,6 +4305,14 @@ function buildNewWorkbook(){
   historial.forEach(h => hisRows.push([h.mes,h.anio,h.ingresos,h.gasto,h.ahorro||0,h.tasaAhorro||0,h.deudas,h.emergencia,h.netWorth,h.tasa,h.notas||'']));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hisRows), 'Historial');
 
+  // ── Metas sheet (Fix #9: persist goals to Excel) ──
+  const metasData=_editData.metas||[];
+  if(metasData.length){
+    const metRows=[['Nombre','Meta','Ahorrado','Aporte Mensual']];
+    metasData.forEach(m=>metRows.push([m.name||'',m.goal||0,m.saved||0,m.monthly||0]));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(metRows), 'Metas');
+  }
+
   return wb;
 }
 
@@ -4326,6 +4375,19 @@ function generateExcel(){
       });
       const range=XLSX.utils.decode_range(hisSheet['!ref']||'A1:K10');range.e.r=Math.max(range.e.r,hi4+historial.length+1);hisSheet['!ref']=XLSX.utils.encode_range(range);
     }
+  }
+  // Fix #9: Write Metas sheet to workbook
+  const metasData=_editData.metas||[];
+  const metaSheetName=_rawWb.SheetNames.find(n=>n.toLowerCase()==='metas');
+  if(metasData.length){
+    const metRows=[['Nombre','Meta','Ahorrado','Aporte Mensual']];
+    metasData.forEach(m=>metRows.push([m.name||'',m.goal||0,m.saved||0,m.monthly||0]));
+    const metSheet=XLSX.utils.aoa_to_sheet(metRows);
+    if(metaSheetName){_rawWb.Sheets[metaSheetName]=metSheet;}
+    else{XLSX.utils.book_append_sheet(_rawWb,metSheet,'Metas');}
+  } else if(metaSheetName){
+    delete _rawWb.Sheets[metaSheetName];
+    _rawWb.SheetNames=_rawWb.SheetNames.filter(n=>n!==metaSheetName);
   }
   const now=new Date();
   const stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
