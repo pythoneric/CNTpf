@@ -468,6 +468,44 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .cf-val{font-size:15px;text-align:left}
 }
 
+/* ══ RESPONSIVE STAT PILLS — prevent overflow on phones ══ */
+/* Committed Funds, Proyector config, BVA summary, Debt Payoff, Checklist interest KPIs */
+@media(max-width:640px){
+  /* All inline flex stat pill containers: force 2-col grid on mobile */
+  #committedSimulation .grid,
+  #debtCostSnapshot .grid{gap:8px}
+  /* Override min-width on inline stat pills */
+  [style*="min-width:140px"],
+  [style*="min-width:160px"],
+  [style*="min-width:200px"]{min-width:0!important}
+  /* Shrink large inline mono values that overflow narrow pills */
+  #committedSimulation .mono[style*="font-size:22px"],
+  #proyectorConfig .mono[style*="font-size:22px"],
+  #debtCostSnapshot .mono[style*="font-size:18px"]{font-size:16px!important;word-break:break-all}
+  /* BVA summary pills */
+  #budgetVsActual .mono[style*="font-size:20px"]{font-size:16px!important}
+  /* Debt payoff stat boxes — shrink and allow wrapping */
+  #debtPayoffDates [style*="display:flex;gap:16px"]{gap:8px!important}
+  #debtPayoffDates .mono[style*="font-size:16px"]{font-size:14px!important}
+  /* Goals tab — pct display */
+  #metasList .mono[style*="font-size:22px"]{font-size:18px!important}
+  /* Proyector config — slider area */
+  #proyectorConfig [style*="display:flex;align-items:center;gap:16px"]{gap:10px!important}
+  /* Ensure all stat pill containers wrap to 2-col grid */
+  #committedSimulation [style*="display:flex;gap:12px;flex-wrap:wrap"],
+  #debtCostSnapshot [style*="display:flex;gap:10px;flex-wrap:wrap"]{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:8px!important}
+}
+@media(max-width:375px){
+  /* Extra-small phones: single column for stat pills */
+  #committedSimulation [style*="display:flex;gap:12px;flex-wrap:wrap"],
+  #debtCostSnapshot [style*="display:flex;gap:10px;flex-wrap:wrap"]{grid-template-columns:1fr!important}
+  #committedSimulation .mono[style*="font-size:22px"],
+  #proyectorConfig .mono[style*="font-size:22px"]{font-size:14px!important}
+  #budgetVsActual .mono[style*="font-size:20px"]{font-size:14px!important}
+  /* Debt cards — narrower padding */
+  #debtPayoffDates [style*="padding:16px 18px"]{padding:12px 14px!important}
+}
+
 /* ══ EMERGENCY TIP CARD — min height so it doesn't collapse ══ */
 @media(max-width:960px){
   #efTip{min-height:120px}
