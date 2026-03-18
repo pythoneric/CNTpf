@@ -727,6 +727,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <!-- CHECKLIST PAGOS DEL MES -->
   <div id="tab-checklist" class="panel">
     <div class="card" style="margin-bottom:16px" id="checklistProgress"></div>
+    <div class="card" style="margin-bottom:16px" id="paymentCalendar"></div>
     <div class="grid g2" style="margin-bottom:16px">
       <div class="card">
         <div class="card-title" data-i18n="chk_pending_tab">⏳ Pendientes</div>
@@ -807,6 +808,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="card"><div class="card-title" data-i18n="hist_incvsexp">Ingresos vs Gastos por Mes</div><div class="chart-wrap"><canvas id="histBar"></canvas></div></div>
       <div class="card"><div class="card-title" data-i18n="hist_debttrend">Balance de Deudas por Mes</div><div class="chart-wrap"><canvas id="histDeudaLine"></canvas></div></div>
     </div>
+    <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="hist_savingsrate">Tasa de Ahorro por Mes</div><div class="chart-wrap"><canvas id="histSavingsRate"></canvas></div></div>
     <!-- RECURRING EXPENSE TREND (Feature 4) -->
     <div class="card" style="margin-bottom:16px" id="expenseTrendCard">
       <div class="card-title" data-i18n="trend_title">📈 Tendencia de Gastos Recurrentes</div>
@@ -1019,6 +1021,8 @@ const LANG = {
     // KPI labels
     kpi_income:'Ingresos', kpi_expenses:'Gastos Totales', kpi_surplus:'Superávit del Mes', kpi_networth:'Net Worth',
     kpi_surplus_pct:'% del ingreso ✓', kpi_deficit:'⚠ Déficit', kpi_savings_ef:'Cuentas+Ahorros+EF − Deudas',
+    kpi_savingsrate:'Tasa de Ahorro', kpi_savingsrate_sub:'Meta: ≥20% (regla 50/30/20)',
+    kpi_savingsrate_tip:'50% necesidades · 30% deseos · 20% ahorro/deuda',
     kpi_exp_ofincome:'del ingreso', kpi_exp_interest:'interés', kpi_exp_month:'mes',
     deuda_debts:'deudas', deuda_paid_lbl:'Pagado',
     // Score card
@@ -1079,7 +1083,7 @@ const LANG = {
     hist_col_savings:'Ahorro Neto', hist_col_savingsrate:'Tasa Ahorro', hist_col_debts:'Deudas (RD$)',
     hist_col_emergency:'Emergencia (RD$)', hist_col_nw:'Net Worth (RD$)', hist_col_rate:'Tasa $',
     hist_note:'📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.',
-    hist_evolnw:'Evolución Net Worth & Deudas', hist_incvsexp:'Ingresos vs Gastos por Mes', hist_debttrend:'Balance de Deudas por Mes',
+    hist_evolnw:'Evolución Net Worth & Deudas', hist_incvsexp:'Ingresos vs Gastos por Mes', hist_debttrend:'Balance de Deudas por Mes', hist_savingsrate:'Tasa de Ahorro por Mes',
     hist_count:'{n} meses registrados', hist_count_one:'1 mes registrado',
     hist_chart_nw:'Net Worth (RD$)', hist_chart_debt:'Balance Deudas (RD$)',
     hist_chart_income:'Ingresos', hist_chart_expense:'Gastos',
@@ -1109,6 +1113,10 @@ const LANG = {
     alert_ef_low_title:'Fondo de emergencia bajo', alert_ef_low_sub:'% completado — sigue aportando mensualmente',
     alert_interest_title:'Carga de intereses elevada', alert_interest_sub:'RD$/mes en intereses — % de tu superávit',
     alert_interest_deficit:'RD$/mes en intereses y estás en déficit — situación crítica',
+    alert_dti_warn_title:'DTI elevado (>36%)', alert_dti_warn_sub:'Tu ratio deuda-ingreso es {pct}%. Prestamistas consideran >36% riesgoso — puede dificultar nuevos créditos.',
+    alert_dti_urgent_title:'DTI crítico (>43%)', alert_dti_urgent_sub:'Tu ratio deuda-ingreso es {pct}%. Supera el umbral máximo de la mayoría de prestamistas — prioriza reducir deuda.',
+    alert_negamort_title:'⚠️ Deuda creciendo: {name}', alert_negamort_sub:'Tu pago mensual (RD${pay}) no cubre los intereses (RD${int}). Tu deuda crece RD${growth}/mes.',
+    alert_expense_spike_title:'Gasto inusualmente alto', alert_expense_spike_sub:'Tus gastos este mes son {pct}% más que tu promedio reciente.',
     // Situacion
     sit_expenses:'Control de Gastos', sit_surplus:'Superávit Mensual', sit_debt:'Ratio Deuda',
     sit_payments:'Próximos pagos', sit_used:'% del ingreso usado', sit_available:'disponible',
@@ -1214,6 +1222,20 @@ const LANG = {
     cierre_prev:'← Anterior', cierre_next:'Siguiente →', cierre_confirm:'✓ Confirmar y cerrar mes',
     cierre_note:'Al confirmar se agrega este mes al Historial y se aplican todos los cambios al dashboard.',
     cierre_success:'🗓 Mes cerrado · Excel descargado con historial y pagos reseteados ✓',
+    cierre_summary_title:'📊 Resumen del Mes',
+    cierre_summary_saved:'Ahorraste', cierre_summary_saverate:'Tasa de ahorro',
+    cierre_summary_debtdelta:'Deuda cambió', cierre_summary_nwdelta:'Net Worth cambió',
+    cierre_summary_great:'¡Excelente mes!', cierre_summary_ok:'Buen progreso.', cierre_summary_watch:'Cuidado con los gastos.',
+    // Calendar
+    cal_title:'📅 Calendario de Pagos del Mes',
+    cal_day:'Día', cal_total:'Total del día', cal_empty:'Sin pagos pendientes este mes.',
+    // Milestones
+    milestone_positive_nw:'🎉 ¡Net Worth positivo por primera vez!',
+    milestone_debtfree:'🎉 ¡Libre de deudas!',
+    milestone_nw_100k:'🎉 ¡Net Worth superó RD$100,000!',
+    milestone_nw_500k:'🎉 ¡Net Worth superó RD$500,000!',
+    milestone_nw_1m:'🎉 ¡Net Worth superó RD$1,000,000!',
+    milestone_ef_complete:'🎉 ¡Fondo de emergencia completo!',
     // Edit modal
     edit_title:'Editar Datos', edit_sub:'Los cambios se aplican al dashboard y puedes descargar el Excel actualizado',
     edit_save:'💾 Guardar y exportar Excel', edit_apply:'✓ Guardar', edit_close:'✕ Cerrar',
@@ -1342,6 +1364,8 @@ const LANG = {
     // KPI labels
     kpi_income:'Income', kpi_expenses:'Total Expenses', kpi_surplus:'Monthly Surplus', kpi_networth:'Net Worth',
     kpi_surplus_pct:'% of income ✓', kpi_deficit:'⚠ Deficit', kpi_savings_ef:'Accounts+Savings+EF − Debts',
+    kpi_savingsrate:'Savings Rate', kpi_savingsrate_sub:'Target: ≥20% (50/30/20 rule)',
+    kpi_savingsrate_tip:'50% needs · 30% wants · 20% savings/debt',
     kpi_exp_ofincome:'of income', kpi_exp_interest:'interest', kpi_exp_month:'mo',
     deuda_debts:'debts', deuda_paid_lbl:'Paid',
     // Score card
@@ -1402,7 +1426,7 @@ const LANG = {
     hist_col_savings:'Net Savings', hist_col_savingsrate:'Savings Rate', hist_col_debts:'Debts (RD$)',
     hist_col_emergency:'Emergency (RD$)', hist_col_nw:'Net Worth (RD$)', hist_col_rate:'Rate $',
     hist_note:'📌 Use the <strong>"🗓 Close Month"</strong> button in the header to record the current month with a guided wizard.',
-    hist_evolnw:'Net Worth & Debt Evolution', hist_incvsexp:'Income vs Expenses by Month', hist_debttrend:'Debt Balance by Month',
+    hist_evolnw:'Net Worth & Debt Evolution', hist_incvsexp:'Income vs Expenses by Month', hist_debttrend:'Debt Balance by Month', hist_savingsrate:'Savings Rate by Month',
     hist_count:'{n} months recorded', hist_count_one:'1 month recorded',
     hist_chart_nw:'Net Worth (RD$)', hist_chart_debt:'Debt Balance (RD$)',
     hist_chart_income:'Income', hist_chart_expense:'Expenses',
@@ -1432,6 +1456,10 @@ const LANG = {
     alert_ef_low_title:'Emergency fund low', alert_ef_low_sub:'% completed — keep contributing monthly',
     alert_interest_title:'High interest burden', alert_interest_sub:'RD$/month in interest — % of your surplus',
     alert_interest_deficit:'RD$/month in interest while in deficit — critical situation',
+    alert_dti_warn_title:'High DTI (>36%)', alert_dti_warn_sub:'Your debt-to-income ratio is {pct}%. Lenders consider >36% risky — may hinder new credit.',
+    alert_dti_urgent_title:'Critical DTI (>43%)', alert_dti_urgent_sub:'Your debt-to-income ratio is {pct}%. Exceeds most lenders\' maximum threshold — prioritize debt reduction.',
+    alert_negamort_title:'⚠️ Debt growing: {name}', alert_negamort_sub:'Your monthly payment (RD${pay}) doesn\'t cover interest (RD${int}). Debt grows RD${growth}/mo.',
+    alert_expense_spike_title:'Unusually high expenses', alert_expense_spike_sub:'Your expenses this month are {pct}% above your recent average.',
     // Situacion
     sit_expenses:'Expense Control', sit_surplus:'Monthly Surplus', sit_debt:'Debt Ratio',
     sit_payments:'Upcoming payments', sit_used:'% of income used', sit_available:'available',
@@ -1537,6 +1565,20 @@ const LANG = {
     cierre_prev:'← Previous', cierre_next:'Next →', cierre_confirm:'✓ Confirm and close month',
     cierre_note:'Confirming adds this month to History and applies all changes to the dashboard.',
     cierre_success:'🗓 Month closed · Excel downloaded with history and payments reset ✓',
+    cierre_summary_title:'📊 Month Summary',
+    cierre_summary_saved:'You saved', cierre_summary_saverate:'Savings rate',
+    cierre_summary_debtdelta:'Debt changed', cierre_summary_nwdelta:'Net Worth changed',
+    cierre_summary_great:'Excellent month!', cierre_summary_ok:'Good progress.', cierre_summary_watch:'Watch your spending.',
+    // Calendar
+    cal_title:'📅 Payment Calendar for the Month',
+    cal_day:'Day', cal_total:'Day total', cal_empty:'No pending payments this month.',
+    // Milestones
+    milestone_positive_nw:'🎉 Positive net worth for the first time!',
+    milestone_debtfree:'🎉 Debt free!',
+    milestone_nw_100k:'🎉 Net worth exceeded RD$100,000!',
+    milestone_nw_500k:'🎉 Net worth exceeded RD$500,000!',
+    milestone_nw_1m:'🎉 Net worth exceeded RD$1,000,000!',
+    milestone_ef_complete:'🎉 Emergency fund fully funded!',
     // Edit modal
     edit_title:'Edit Data', edit_sub:'Changes apply to the dashboard and you can download the updated Excel',
     edit_save:'💾 Save & export Excel', edit_apply:'✓ Save', edit_close:'✕ Close',
@@ -2555,6 +2597,14 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
   }
   if(interesMensual>0&&resta<=0)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">${t('alert_interest_deficit').replace('RD$','RD$'+fmt(Math.round(interesMensual)))}</div></div></div>`);
   else if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)agHtml.push(`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">${t('alert_interest_sub').replace('RD$','RD$'+fmt(Math.round(interesMensual))).replace('%',Math.round(interesMensual/resta*100)+'%')}</div></div></div>`);
+  // Fix 1.2: DTI threshold alerts (36% warning, 43% urgent — standard lending benchmarks)
+  const dtiPct=ingreso>0?Math.round(totalBalance/(ingreso*12)*100):0;
+  if(dtiPct>43)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🏦</div><div class="alert-text"><div class="alert-title">${t('alert_dti_urgent_title')}</div><div class="alert-sub">${t('alert_dti_urgent_sub').replace('{pct}',dtiPct)}</div></div></div>`);
+  else if(dtiPct>36)agHtml.push(`<div class="alert-item warning"><div class="alert-icon">🏦</div><div class="alert-text"><div class="alert-title">${t('alert_dti_warn_title')}</div><div class="alert-sub">${t('alert_dti_warn_sub').replace('{pct}',dtiPct)}</div></div></div>`);
+  // Fix 1.3: Negative amortization — surface prominently when payment < interest
+  gastos.forEach(g=>{if(g.balance>0&&g.tasa>0&&g.adeudado>0){const intMes=g.balance*(g.tasa/100/12);if(g.adeudado<=intMes){const growth=Math.round(intMes-g.adeudado);agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_negamort_title').replace('{name}',escH(g.nombre))}</div><div class="alert-sub">${t('alert_negamort_sub').replace('{pay}',fmt(g.adeudado)).replace('{int}',fmt(Math.round(intMes))).replace('{growth}',fmt(growth))}</div></div></div>`);}}});
+  // Fix 3.2: Expense trend anomaly — flag if current gasto > 120% of 3-month average
+  if(_editData.historial&&_editData.historial.length>=2){const recent=_editData.historial.slice(0,3);const avg=recent.reduce((a,h)=>a+(h.gasto||0),0)/recent.length;if(avg>0&&gasto>avg*1.2){const spikePct=Math.round((gasto/avg-1)*100);agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📊</div><div class="alert-text"><div class="alert-title">${t('alert_expense_spike_title')}</div><div class="alert-sub">${t('alert_expense_spike_sub').replace('{pct}',spikePct)}</div></div></div>`);}}
   ag.innerHTML=agHtml.length?agHtml.join(''):`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_nofinancial')}</div>`;
   const as=document.getElementById('alertasSit');
   const items=[
@@ -2656,6 +2706,20 @@ function buildChecklist(gastos){
       <td data-label="${t('chk_tbl_intannual')}" class="num" style="color:var(--red)">RD$${fmt(Math.round(g.balance*(g.tasa/100)))}</td>
     </tr>`).join('')}
     </tbody></table></div>`;
+  // Fix 2.5: Payment calendar — timeline of upcoming payments grouped by day
+  const calEl=document.getElementById('paymentCalendar');
+  const calPayments=withPago.filter(g=>g.dia&&!isPaid(g)).sort((a,b)=>(a.dia||31)-(b.dia||31));
+  if(!calPayments.length){calEl.innerHTML=`<div class="card-title">${t('cal_title')}</div><div style="text-align:center;padding:16px;color:var(--muted);font-size:13px">${t('cal_empty')}</div>`;}
+  else{const byDay={};calPayments.forEach(g=>{const d=g.dia;if(!byDay[d])byDay[d]=[];byDay[d].push(g);});
+    const todayDate=new Date().getDate();
+    calEl.innerHTML=`<div class="card-title" style="margin-bottom:12px">${t('cal_title')}</div>
+    ${Object.keys(byDay).sort((a,b)=>a-b).map(d=>{const gs=byDay[d];const dayTotal=gs.reduce((a,g)=>a+g.adeudado,0);const isPast=parseInt(d)<todayDate;const isSoon=!isPast&&(parseInt(d)-todayDate)<=5;const borderC=isPast?'var(--red)':isSoon?'var(--yellow)':'var(--accent)';
+      return`<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;padding:10px 14px;background:var(--surface2);border-radius:10px;border-left:3px solid ${borderC}">
+        <div style="min-width:44px;text-align:center"><div style="font-size:22px;font-weight:800;color:${isPast?'var(--red)':'var(--text)'}">${d}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">${t('cal_day')}</div></div>
+        <div style="flex:1">${gs.map(g=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>${escH(g.nombre)} <span class="pill" style="font-size:9px;background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'')}</span></span><span class="mono" style="font-weight:700;color:var(--red)">RD$${fmt(g.adeudado)}</span></div>`).join('')}
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;border-top:1px dashed var(--border);padding-top:4px">${t('cal_total')}: <span class="mono" style="font-weight:700">RD$${fmt(dayTotal)}</span></div></div>
+      </div>`;}).join('')}`;
+  }
 }
 
 function toggleCheck(idx){
@@ -3180,6 +3244,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     {l:t('kpi_expenses'),v:`RD$${fmt(gasto)}`,s:`${gastoPct}% ${t('kpi_exp_ofincome')} · ${t('kpi_exp_interest')}: RD$${fmt(Math.round(interesMensual))}/${t('kpi_exp_month')}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
     {l:t('kpi_surplus'),v:`RD$${fmt(resta)}`,s:resta>=0?(ingreso>0?`${Math.round(resta/ingreso*100)}% ${t('kpi_surplus_pct')}`:t('kpi_surplus_pct')):t('kpi_deficit'),c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
     {l:t('kpi_networth'),v:`RD$${netWorth<0?'('+fmt(Math.abs(netWorth))+')':fmt(netWorth)}`,s:t('kpi_savings_ef'),c:netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
+    {l:t('kpi_savingsrate'),v:`${ingreso>0?Math.round(resta/ingreso*100):0}%`,s:`${t('kpi_savingsrate_sub')}<br><span style="font-size:10px;color:var(--muted)">${t('kpi_savingsrate_tip')}</span>`,c:ingreso>0&&resta/ingreso>=.2?'var(--green)':ingreso>0&&resta/ingreso>=.1?'var(--yellow)':'var(--red)',b:'rgba(167,139,250,.12)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   // ── Score ──
@@ -3495,6 +3560,15 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   buildBudgetVsActual(gastos,ingreso);
   buildDebtPayoffDates(gastos,ingreso,gasto);
   buildExpenseTrend(historial,gastos);
+  // Fix 3.3: Net worth milestone celebrations
+  if(historial.length>0){
+    const prevNW=historial[0].netWorth||0;
+    if(prevNW<0&&netWorth>=0)setTimeout(()=>showToast(t('milestone_positive_nw'),'var(--green)'),800);
+    else if(totalBalance>0&&prevNW!==netWorth){const prevDebt=historial[0].deudas||0;if(prevDebt>0&&totalBalance<=0)setTimeout(()=>showToast(t('milestone_debtfree'),'var(--green)'),800);}
+    const thresholds=[[1000000,'milestone_nw_1m'],[500000,'milestone_nw_500k'],[100000,'milestone_nw_100k']];
+    for(const[th,key]of thresholds){if(netWorth>=th&&prevNW<th){setTimeout(()=>showToast(t(key),'var(--green)'),800);break;}}
+    if(efTotal>=efMeta&&efMeta>0){const prevEF=historial[0].emergencia||0;if(prevEF<efMeta)setTimeout(()=>showToast(t('milestone_ef_complete'),'var(--green)'),1200);}
+  }
 }
 
 // ══════════════════════════════════
@@ -3573,6 +3647,21 @@ function buildHistorial(historial,config){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
   });
+  // Fix 3.4: Savings rate trend chart
+  const srEl=document.getElementById('histSavingsRate');
+  if(srEl&&reversed.length>0){
+    if(charts.histSavingsRate)charts.histSavingsRate.destroy();
+    const srData=reversed.map(h=>h.tasaAhorro!=null?Math.round((h.tasaAhorro||0)*100):h.ingresos>0?Math.round((h.ingresos-h.gasto)/h.ingresos*100):0);
+    charts.histSavingsRate=new Chart(srEl,{
+      type:'bar',
+      data:{labels,datasets:[
+        {label:t('kpi_savingsrate'),data:srData,backgroundColor:srData.map(v=>v>=20?'rgba(34,211,160,.6)':v>=10?'rgba(245,200,66,.6)':'rgba(244,96,106,.6)'),borderColor:srData.map(v=>v>=20?'#22d3a0':v>=10?'#f5c842':'#f4606a'),borderWidth:2,borderRadius:6},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${ctx.raw}%`}},
+        annotation:undefined},
+        scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v+'%'},suggestedMax:40}}}
+    });
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -4100,12 +4189,26 @@ function cierreNav(dir){
       // Reset payment status for new month
       _editData.gastos.forEach(g=>{g.pagadoMes=false;g.pagado=0;});
       _pendingSave=false;
+      // Fix 3.5: Post-close summary — show key deltas before redirecting
+      const prevHist=_editData.historial.length>1?_editData.historial[1]:null;
+      const saveRate=ingreso>0?Math.round(ahorro/ingreso*100):0;
+      const debtDelta=prevHist?totalDeudas-(prevHist.deudas||0):0;
+      const nwDelta=prevHist?netWorth-(prevHist.netWorth||0):0;
+      const summaryMsg=saveRate>=20?t('cierre_summary_great'):saveRate>=10?t('cierre_summary_ok'):t('cierre_summary_watch');
       closeCierre();
       buildDashboard({..._editData});
       showTab('historial',document.querySelector(".tab-btn[onclick*=\"'historial'\"]"));
       generateExcel();
       autoSave();
-      showToast(t('cierre_success'),'var(--green)');
+      // Show post-close summary toast with key metrics
+      const summaryHtml=`<div style="text-align:left;line-height:1.8">
+        <div style="font-weight:700;margin-bottom:4px">${t('cierre_summary_title')}</div>
+        <div>${t('cierre_summary_saverate')}: <strong style="color:${saveRate>=20?'var(--green)':saveRate>=10?'var(--yellow)':'var(--red)'}">${saveRate}%</strong></div>
+        ${prevHist?`<div>${t('cierre_summary_debtdelta')}: <strong style="color:${debtDelta<=0?'var(--green)':'var(--red)'}">${debtDelta<=0?'▼':'▲'} RD$${fmt(Math.abs(Math.round(debtDelta)))}</strong></div>
+        <div>${t('cierre_summary_nwdelta')}: <strong style="color:${nwDelta>=0?'var(--green)':'var(--red)'}">${nwDelta>=0?'▲':'▼'} RD$${fmt(Math.abs(Math.round(nwDelta)))}</strong></div>`:''}
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">${summaryMsg}</div>
+      </div>`;
+      showToast(summaryHtml,saveRate>=20?'var(--green)':'var(--yellow)');
       return;
     }
     if(_cierreStep<_cierreSteps.length-1){_cierreStep++;renderCierre();}
@@ -4355,7 +4458,7 @@ function deleteEmergFundRow(i){if(!confirm(t('edit_delete_confirm')))return;_edi
 function deleteHistorialRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
 function addEsencialRow(){_editData.gastos.push({nombre:'Nueva entrada',tipo:'Variable',pagado:0,adeudado:0,dia:1,tasa:0,balance:0,originalRD:0,originalUSD:0,fechaLimite:'',notas:'',pagadoMes:false});markChanged(document.body);buildEditForms();}
 function addForNowRow(){_editData.forNow.cuentas.push({nombre:'Nueva cuenta',moneda:'RD',saldo:0,comp:0,disp:0});markChanged(document.body);buildEditForms();}
-function addEmergFundRow(){_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:0,falta:0,moneda:'RD'});markChanged(document.body);buildEditForms();}
+function addEmergFundRow(){const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeudado||0),0);const defaultMeta=gasto>0?Math.round(gasto*3):0;_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:defaultMeta,falta:defaultMeta,moneda:'RD'});markChanged(document.body);buildEditForms();}
 function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:_editData.config.tasa||60,notas:''});markChanged(document.body);buildEditForms();}
 
 function readConfigFromForm(){
