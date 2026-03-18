@@ -979,6 +979,8 @@ const LANG = {
     // KPI labels
     kpi_income:'Ingresos', kpi_expenses:'Gastos Totales', kpi_surplus:'Superávit del Mes', kpi_networth:'Net Worth',
     kpi_surplus_pct:'% del ingreso ✓', kpi_deficit:'⚠ Déficit', kpi_savings_ef:'Ahorros+EF − Deudas',
+    kpi_exp_ofincome:'del ingreso', kpi_exp_interest:'interés', kpi_exp_month:'mes',
+    deuda_debts:'deudas', deuda_paid_lbl:'Pagado',
     // Score card
     score_title:'Salud Financiera',
     score_grades:{excellent:'Excelente',good:'Bueno',fair:'Regular',poor:'En Riesgo',critical:'Crítico'},
@@ -1223,6 +1225,8 @@ const LANG = {
     // KPI labels
     kpi_income:'Income', kpi_expenses:'Total Expenses', kpi_surplus:'Monthly Surplus', kpi_networth:'Net Worth',
     kpi_surplus_pct:'% of income ✓', kpi_deficit:'⚠ Deficit', kpi_savings_ef:'Savings+EF − Debts',
+    kpi_exp_ofincome:'of income', kpi_exp_interest:'interest', kpi_exp_month:'mo',
+    deuda_debts:'debts', deuda_paid_lbl:'Paid',
     // Score card
     score_title:'Financial Health',
     score_grades:{excellent:'Excellent',good:'Good',fair:'Fair',poor:'At Risk',critical:'Critical'},
@@ -2927,8 +2931,8 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   // ── KPIs ──
   document.getElementById('kpiRow').innerHTML=[
     {l:t('kpi_income'),v:`RD$${fmt(ingreso)}`,s:`≈ ${fmtUSD(config.ingresoUSD)} · Tasa RD$${config.tasa}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
-    {l:t('kpi_expenses'),v:`RD$${fmt(gasto)}`,s:`${gastoPct}% del ingreso · interés: RD$${fmt(Math.round(interesMensual))}/mes`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
-    {l:t('kpi_surplus'),v:`RD$${fmt(resta)}`,s:resta>=0?`${Math.round(resta/ingreso*100)}% ${t('kpi_surplus_pct')}`:t('kpi_deficit'),c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
+    {l:t('kpi_expenses'),v:`RD$${fmt(gasto)}`,s:`${gastoPct}% ${t('kpi_exp_ofincome')} · ${t('kpi_exp_interest')}: RD$${fmt(Math.round(interesMensual))}/${t('kpi_exp_month')}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
+    {l:t('kpi_surplus'),v:`RD$${fmt(resta)}`,s:resta>=0?(ingreso>0?`${Math.round(resta/ingreso*100)}% ${t('kpi_surplus_pct')}`:t('kpi_surplus_pct')):t('kpi_deficit'),c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
     {l:t('kpi_networth'),v:`RD$${netWorth<0?'('+fmt(Math.abs(netWorth))+')':fmt(netWorth)}`,s:t('kpi_savings_ef'),c:netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
@@ -2978,7 +2982,8 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     </div>`;
 
   // ── Gastos Table ──
-  const pendienteMes=gastos.filter(g=>g.adeudado>0&&!g.pagadoMes).reduce((a,g)=>a+g.adeudado,0);
+  const _isPaid=g=>g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0);
+  const pendienteMes=gastos.filter(g=>g.adeudado>0&&!_isPaid(g)).reduce((a,g)=>a+g.adeudado,0);
   document.getElementById('tPagado').textContent='RD$'+fmt(totalPagado);
   document.getElementById('tAdeudado').textContent='RD$'+fmt(pendienteMes);
   const tbody=document.getElementById('gastosBody');const tblRows=[];
@@ -2987,6 +2992,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const pctIng=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
     let estLabel,estBg,estFg;
     if(g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0)){estLabel=t('gastostbl_done');estBg='#052e16';estFg='#22d3a0';}
+    else if(g.pagado>0&&g.adeudado>0){estLabel=t('gastostbl_partial');estBg='#422006';estFg='#fbbf24';}
     else if(g.adeudado>0){estLabel=t('gastostbl_pending2');estBg='#450a0a';estFg='#f4606a';}
     else{estLabel='—';estBg='transparent';estFg='var(--muted)';}
     tblRows.push(`<tr>
@@ -3007,10 +3013,10 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
 
   // ── Deuda KPIs ──
   document.getElementById('deudaKpis').innerHTML=[
-    {l:t('deuda_total'),v:`RD$${fmt(totalBalance)}`,s:`≈ ${fmtUSD(totalBalance/config.tasa)}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
+    {l:t('deuda_total'),v:`RD$${fmt(totalBalance)}`,s:`≈ ${config.tasa>0?fmtUSD(totalBalance/config.tasa):'—'}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
     {l:t('deuda_mostexpensive'),v:masCaraDeuda?escH(masCaraDeuda.nombre):'—',s:masCaraDeuda?`${masCaraDeuda.tasa}% ${t('deuda_annualrate')}`:'—',c:'var(--yellow)',b:'rgba(245,200,66,.1)'},
-    {l:t('deuda_monthly'),v:`RD$${fmt(cuotaDeudas)}`,s:`${t('deuda_onlybalance')} · ${allDeudas.length} ${_lang==='es'?'deudas':'debts'}`,c:'var(--red)',b:'rgba(244,96,106,.1)'},
-    {l:t('deuda_progress'),v:`${deudaPct}%`,s:`${_lang==='es'?'Pagado':'Paid'} RD$${fmt(Math.round(pagadoReal))}`,c:'var(--accent)',b:'rgba(59,130,246,.1)'},
+    {l:t('deuda_monthly'),v:`RD$${fmt(cuotaDeudas)}`,s:`${t('deuda_onlybalance')} · ${allDeudas.length} ${t('deuda_debts')}`,c:'var(--red)',b:'rgba(244,96,106,.1)'},
+    {l:t('deuda_progress'),v:`${deudaPct}%`,s:`${t('deuda_paid_lbl')} RD$${fmt(Math.round(pagadoReal))}`,c:'var(--accent)',b:'rgba(59,130,246,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:20px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   // ── Deuda Cards ──
