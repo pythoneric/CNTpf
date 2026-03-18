@@ -1051,6 +1051,7 @@ const LANG = {
     chk_unsaved:'⚠️ Tienes cambios sin guardar. Presiona <strong>💾 Guardar en Excel</strong> para que persistan al recargar el archivo.',
     chk_allpaid:'🎉 ¡Todo pagado este mes!', chk_nonemarked:'Ningún pago marcado aún',
     chk_day:'Día', chk_income:'% ing', chk_paidmonth:'✓ Pagado este mes',
+    chk_interest_lbl:'interés', chk_markall_tip:'Marcar todos', chk_reset_tip:'Desmarcar todos',
     chk_pending_tab:'⏳ Pendientes', chk_done_tab:'✅ Pagados', chk_interest_title:'💸 Costo de Intereses en Deudas',
     chk_interest_annual:'Interés Anual en Deudas', chk_interest_monthly:'Interés Mensual', chk_interest_count:'Deudas con Tasa',
     chk_tbl_debt:'Deuda', chk_tbl_balance:'Balance', chk_tbl_rate:'Tasa %', chk_tbl_intmonth:'Interés Mensual', chk_tbl_intannual:'Interés Anual',
@@ -1297,6 +1298,7 @@ const LANG = {
     chk_unsaved:'⚠️ You have unsaved changes. Press <strong>💾 Save to Excel</strong> to keep them when reloading the file.',
     chk_allpaid:'🎉 All paid this month!', chk_nonemarked:'No payments marked yet',
     chk_day:'Day', chk_income:'% inc', chk_paidmonth:'✓ Paid this month',
+    chk_interest_lbl:'interest', chk_markall_tip:'Mark all', chk_reset_tip:'Unmark all',
     chk_pending_tab:'⏳ Pending', chk_done_tab:'✅ Paid', chk_interest_title:'💸 Interest Cost on Debts',
     chk_interest_annual:'Annual Interest on Debts', chk_interest_monthly:'Monthly Interest', chk_interest_count:'Debts with Rate',
     chk_tbl_debt:'Debt', chk_tbl_balance:'Balance', chk_tbl_rate:'Rate %', chk_tbl_intmonth:'Monthly Interest', chk_tbl_intannual:'Annual Interest',
@@ -2363,7 +2365,7 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,resta,emerg,inter
 function buildChecklist(gastos){
   const withPago=gastos.filter(g=>g.adeudado>0);
   // Sort pending by day of month (ascending urgency), done keeps order
-  const isPaid=g=>g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado);
+  const isPaid=g=>g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0);
   const pending=withPago.filter(g=>!isPaid(g)).sort((a,b)=>(a.dia||31)-(b.dia||31));
   const done=withPago.filter(g=>isPaid(g));
   const total=withPago.length;
@@ -2390,14 +2392,15 @@ function buildChecklist(gastos){
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button onclick="markAllChecklist()" class="btn btn-ghost btn-sm" title="${_lang==='es'?'Marcar todos':'Mark all'}">${t('chk_markall')}</button>
+        <button onclick="markAllChecklist()" class="btn btn-ghost btn-sm" title="${t('chk_markall_tip')}">${t('chk_markall')}</button>
         ${saveBtn}
-        <button onclick="resetChecklist()" class="btn btn-ghost btn-sm" title="${_lang==='es'?'Desmarcar todos':'Unmark all'}">${t('chk_reset')}</button>
+        <button onclick="resetChecklist()" class="btn btn-ghost btn-sm" title="${t('chk_reset_tip')}">${t('chk_reset')}</button>
       </div>
     </div>
     ${_pendingSave?`<div style="font-size:11px;color:var(--yellow);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.08);border-radius:8px;border:1px solid rgba(245,200,66,.2)">${t('chk_unsaved')}</div>`:''}`;
 
-  const ingreso=_editData.emerg?.cashflow?.ingreso||1;
+  const cfg=_editData.config||{};
+  const ingreso=cfg.ingresoUSD>0&&cfg.tasa>0?(cfg.ingresoUSD*cfg.tasa):(cfg.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
   const mkRow=(g,isDone)=>{
     const pct=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
     const intMes=g.balance>0&&g.tasa>0?Math.round(g.balance*(g.tasa/100/12)):0;
@@ -2411,7 +2414,7 @@ function buildChecklist(gastos){
         <span class="pill" style="background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'—')}</span>
         &nbsp;· ${t('chk_day')} <strong>${g.dia||'—'}</strong>
         &nbsp;· <span style="color:var(--muted)">${pct}% ${t('chk_income')}</span>
-        ${intMes>0?`&nbsp;· <span style="color:var(--red);font-size:10px">~RD$${fmt(intMes)}/mes ${_lang==='es'?'interés':'interest'}</span>`:''}
+        ${intMes>0?`&nbsp;· <span style="color:var(--red);font-size:10px">~RD$${fmt(intMes)}/${t('kpi_exp_month')} ${t('chk_interest_lbl')}</span>`:''}
         ${isDone?`<span style="color:var(--green);margin-left:8px;font-size:11px;font-weight:700">✓ ${t('chk_paidmonth')}</span>`:''}
       </div>
     </div>
@@ -2517,7 +2520,8 @@ function resetChecklist(){
     }
   });
   _pendingSave=true;
-  buildChecklist(_editData.gastos);
+  autoSave();
+  buildDashboard({..._editData});
 }
 
 function markAllChecklist(){
@@ -2529,7 +2533,7 @@ function markAllChecklist(){
   });
   _pendingSave=true;
   autoSave();
-  buildChecklist(_editData.gastos);
+  buildDashboard({..._editData});
 }
 
 // ══════════════════════════════════
