@@ -1,157 +1,277 @@
 # CNT Core · Dashboard Financiero Personal
 
-> Dashboard financiero personal construido como PWA (Progressive Web App). Funciona en móvil, tablet y PC. Tus datos nunca salen de tu dispositivo.
+> Dashboard financiero personal construido como PWA (Progressive Web App). Funciona en movil, tablet y PC. Tus datos nunca salen de tu dispositivo.
 
 ---
 
-## ¿Qué es esto?
+## Que es esto?
 
 Un dashboard financiero completo que vive en 5 archivos. No requiere servidor, no tiene base de datos en la nube, no necesita cuenta. Los datos se guardan en tu propio navegador usando IndexedDB.
 
-Puedes empezar **sin ningún archivo Excel** — un asistente de configuración te guía para ingresar tus datos directamente y genera el Excel inicial automáticamente. O puedes importar un `cnt.xlsx` existente si ya tienes tus datos ahí.
+Puedes empezar **sin ningun archivo Excel** -- un asistente de configuracion te guia para ingresar tus datos directamente y genera el Excel inicial automaticamente. O puedes importar un `cnt.xlsx` existente si ya tienes tus datos ahi.
+
+Soporta **espanol e ingles** con cambio de idioma en tiempo real, y temas **oscuro y claro**.
 
 ---
 
 ## Archivos incluidos
 
 ```
-cnt.html            — El dashboard completo (toda la app en un archivo)
-manifest.json       — Configuración PWA (nombre, ícono, instalación)
-sw.js               — Service worker (caché offline)
-icon-192.png        — Ícono de la app (requerido por Chrome para instalar)
-icon-512.png        — Ícono de la app en alta resolución
+cnt.html            -- El dashboard completo (toda la app en un archivo)
+manifest.json       -- Configuracion PWA (nombre, icono, instalacion)
+sw.js               -- Service worker (cache offline)
+icon-192.png        -- Icono de la app (requerido por Chrome para instalar)
+icon-512.png        -- Icono de la app en alta resolucion
 ```
 
 Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione correctamente.
+
+Archivos adicionales para desarrollo:
+```
+playwright.config.js  -- Configuracion de tests E2E
+tests/                -- Suite de tests Playwright (145+ tests)
+package.json          -- Dependencias de desarrollo (Playwright)
+```
 
 ---
 
 ## Primeros pasos
 
-Al abrir el dashboard por primera vez verás tres opciones:
+Al abrir el dashboard por primera vez veras tres opciones:
 
-### Opción A — Empezar desde cero ✨ (sin Excel)
-Si es tu primera vez o no tienes un archivo Excel previo, elige **"Empezar desde cero"**. Un asistente de 5 pasos te guiará para configurar:
+### Opcion A -- Empezar desde cero (sin Excel)
+Si es tu primera vez o no tienes un archivo Excel previo, elige **"Empezar desde cero"**. Un asistente de 5 pasos te guiara para configurar:
 
-| Paso | Qué configuras |
+| Paso | Que configuras |
 |------|----------------|
-| 1 | Mes, año, tasa dólar, ingreso mensual, días de alerta |
-| 2 | Cuentas disponibles (corriente, ahorro, cash…) con sus saldos |
-| 3 | Gastos fijos, deudas y cuotas mensuales |
-| 4 | Fondos de emergencia y balance de ahorros acumulado |
-| 5 | Resumen y confirmación |
+| 1 | Mes, ano, tasa dolar, ingreso mensual, dias de alerta |
+| 2 | Cuentas disponibles (corriente, ahorro, cash...) con sus saldos y moneda (RD$/USD) |
+| 3 | Gastos fijos, deudas y cuotas mensuales con tipo, tasa y balance |
+| 4 | Fondos de emergencia con balance actual, meta minima y moneda |
+| 5 | Resumen y confirmacion |
 
-Al confirmar, el dashboard se lanza con tus datos y se descarga automáticamente un `cnt.xlsx` como respaldo inicial. Los datos también quedan guardados localmente en el navegador.
+Al confirmar, el dashboard se lanza con tus datos y se descarga automaticamente un `cnt.xlsx` como respaldo inicial. Los datos tambien quedan guardados localmente en el navegador.
 
-### Opción B — Importar archivo Excel 📂
-Si ya tienes un `cnt.xlsx` con datos, arrástralo o selecciónalo. El dashboard lo procesa localmente y guarda los datos en el navegador para futuras visitas.
+### Opcion B -- Importar archivo Excel
+Si ya tienes un `cnt.xlsx` con datos, arrastralo o seleccionalo. El dashboard lo procesa localmente y guarda los datos en el navegador para futuras visitas.
 
-### Opción C — Continuar donde lo dejé ▶
-Si ya usaste el dashboard antes en este navegador, aparece esta opción automáticamente. Abre los datos guardados sin necesidad de subir nada.
+### Opcion C -- Continuar donde lo deje
+Si ya usaste el dashboard antes en este navegador, aparece esta opcion automaticamente. Abre los datos guardados sin necesidad de subir nada.
+
+---
+
+## Pestanas del Dashboard
+
+El dashboard tiene **11 pestanas**, cada una con un proposito especifico:
+
+| Pestana | Descripcion |
+|---------|-------------|
+| **Resumen** | KPIs de ingresos, gastos, superavit, net worth, tasa de ahorro y salud financiera |
+| **Alertas** | Pagos proximos, atrasados, alertas DTI, amortizacion negativa, fondo de emergencia y anomalias |
+| **Gastos** | Tabla completa de gastos y deudas con estado de pago por item |
+| **Pagos del Mes** | Checklist de pagos con calendario visual, progreso por monto, y analisis de intereses |
+| **Deudas** | Cards individuales con balance, tasa, proyeccion de interes y boton "Liquidar deuda" |
+| **Proyector** | Simulador de pago de deudas: Avalancha vs Bola de Nieve con escenarios what-if |
+| **Emergencia** | Fondos de emergencia con progreso vs meta, plan de asignacion y cashflow |
+| **Fondos** | Saldos de cuentas (RD$/USD) vs compromisos mensuales y disponibilidad real |
+| **Historial** | Registro historico con graficos de tendencia, tasa de ahorro y evolucion de deudas |
+| **Metas** | Metas de ahorro con progreso, ETA estimado y advertencia de sobrecompromiso |
+| **Analisis** | Presupuesto vs real (BVA), proyecciones de pago y tendencia de gastos recurrentes |
 
 ---
 
 ## Funcionalidades
 
-### Dashboard
-- **Resumen mensual** — KPIs de ingresos, gastos, superávit y net worth
-- **Alertas** — Pagos próximos a vencer y pagos atrasados con días de retraso
-- **Gastos & Deudas** — Tabla completa con estado de pago por ítem
-- **Checklist de pagos** — Marca cada compromiso como pagado con persistencia automática
-- **Deudas** — Cards individuales con balance, tasa, proyección de interés y botón "Liquidar deuda" para saldar en un clic
-- **Proyector de deudas** — Estrategias Avalanche vs Snowball con timeline, alertas de vencimiento, y simulador de fondos comprometidos
-- **Fondos de emergencia** — Progreso vs meta por fondo
-- **Disponibilidad (ForNow)** — Saldos de cuentas vs compromisos mensuales (calculados automáticamente desde gastos)
-- **Historial mensual** — Registro histórico con gráficos de tendencia
+### Dashboard y KPIs
+- **5 KPIs principales** -- Ingresos, gastos totales, superavit del mes, net worth, y tasa de ahorro con guia 50/30/20
+- **Salud financiera** -- Puntaje de 0-100 con calificacion (Excelente/Bueno/Regular/Critico) basado en ratio de gastos, DTI, fondo de emergencia y tendencia de net worth
+- **Distribucion de flujo de caja** -- Barra visual de gastos vs sobrante con metricas de retiro USD, tasa, ahorros y compromisos
+- **Hitos de net worth** -- Celebraciones automaticas al alcanzar net worth positivo, libre de deudas, RD$100K, RD$500K y RD$1M
 
-### Edición
-- Modal de edición completo para todos los datos sin tocar el Excel
+### Sistema de Alertas
+- **Vencimientos proximos** -- Pagos que vencen dentro de los proximos dias (configurable)
+- **Pagos atrasados** -- Compromisos no pagados despues de su dia de pago
+- **Fechas limite** -- Deudas con fecha limite dentro de 60 dias
+- **DTI elevado** -- Alerta a >36% (riesgo crediticio) y urgente a >43% (umbral de prestamistas)
+- **Amortizacion negativa** -- Alerta urgente cuando el pago mensual no cubre los intereses y la deuda crece
+- **Tasa alta** -- Advertencia para deudas con tasa >15% anual
+- **Fondo de emergencia** -- Critico si <25% de la meta, bajo si <50%
+- **Carga de intereses** -- Alerta si los intereses consumen >50% del superavit
+- **Anomalia de gastos** -- Alerta si los gastos del mes superan 120% del promedio de los ultimos 3 meses
+- **Indicador visual** -- Punto rojo pulsante en la pestana de alertas cuando hay urgencias
+
+### Checklist de Pagos
+- Marca cada compromiso como pagado con persistencia automatica
+- **Calendario de pagos** -- Timeline visual de pagos pendientes agrupados por dia con totales
+- Progreso por cantidad y por monto (RD$)
+- Analisis de intereses con tabla de costo por deuda
+- Botones de "Marcar todos" y "Resetear"
+
+### Proyector de Deudas
+- **Fondos comprometidos** -- Calcula runway (meses de gastos cubiertos), disponible seguro, y capacidad de redireccion
+- **Simulador de pago extra** -- Slider configurable con escenarios what-if (25%, 40%, 50%, 100% del superavit)
+- **Costo real de la deuda** -- Tabla con interes mensual, pago a capital y eficiencia por deuda
+- **Deteccion de amortizacion negativa** -- Alerta prominente cuando pagos no cubren intereses
+- **Estrategias comparadas** -- Avalancha (mayor tasa primero) vs Bola de Nieve (menor balance primero) con timeline, interes total y meses ahorrados
+
+### Fondos de Emergencia
+- Progreso individual por fondo con barra de color
+- Moneda dual (RD$/USD) con conversion automatica
+- **Meta vinculada a gastos** -- Nuevos fondos se pre-llenan con meta = 3x gastos mensuales
+- Recomendacion de 3-6 meses de gastos
+- Asignacion dinamica del superavit (20% si hay deuda de alta tasa, 50% si no)
+- Plan de aporte sugerido con estimado de tiempo para alcanzar meta
+- Prioridad: emergencia > deuda alta tasa > metas de ahorro
+
+### Metas de Ahorro
+- Nombre, monto meta, monto ahorrado y aporte mensual por meta
+- Barra de progreso con fecha estimada de completacion (ETA)
+- Advertencia si aportes mensuales totales superan el superavit
+- Grafico horizontal de progreso por meta
+
+### Historial
+- Tabla de registros mensuales con tasa de ahorro color-coded (verde >=20%, amarillo 10-20%, rojo <10%)
+- **Grafico de net worth y deudas** -- Linea de evolucion historica
+- **Grafico de ingresos vs gastos** -- Comparacion por mes
+- **Grafico de balance de deudas** -- Tendencia de deuda y fondo de emergencia
+- **Grafico de tasa de ahorro** -- Barras color-coded con meta del 20%
+- **Tendencia de gastos recurrentes** -- Comparacion mes actual vs anterior por tipo
+
+### Analisis
+- **Presupuesto vs Real (BVA)** -- Comparacion de pagado vs adeudado por gasto con indicadores de desviacion
+- **Proyecciones de pago** -- Fechas estimadas de liquidacion por deuda
+- **Tendencia de gastos** -- Evolucion por categoria con flechas de direccion
+
+### Edicion
+- Modal de edicion completo con 5 pestanas: Configuracion, Gastos & Deudas, Fondos, Emergencia, Historial
+- **Sincronizacion en tiempo real** -- Cambios en configuracion se reflejan inmediatamente en los datos
+- **Tipo de gasto como dropdown** -- 10 categorias predefinidas para evitar duplicados
+- **Campos vinculados** -- Original RD$ y USD se sincronizan automaticamente usando la tasa
+- **Conversion de moneda** -- Al cambiar moneda de una cuenta, ofrece convertir el saldo
+- **Validacion de campos** -- Dia de pago (1-31), tasa (0-100%), balances no negativos
+- **Deteccion de pagos** -- Reduccion de balance ofrece registrar como pago (con confirmacion)
+- **Soporte de comas** -- Numeros pegados con comas (ej: "1,500") se parsean correctamente
+- Advertencia de cambios sin guardar al cerrar
+- Confirmacion de eliminacion en todas las secciones
 - Descarga Excel actualizado con todos los cambios en cualquier momento
 
 ### Cierre de Mes
-- Wizard de 8 pasos que guía el proceso mensual completo
-- Registra automáticamente el mes en el historial
+- Wizard de 8 pasos que guia el proceso mensual completo
+- Registra automaticamente el mes en el historial
 - Resetea checklist de pagos para el mes nuevo
 - Descarga Excel actualizado con historial
+- **Resumen post-cierre** -- Muestra tasa de ahorro, cambio en deuda y cambio en net worth
 
-| Paso | Qué haces |
+| Paso | Que haces |
 |------|-----------|
-| 1 | Actualiza la tasa del dólar |
-| 2 | Confirma el mes y año que estás cerrando |
+| 1 | Actualiza la tasa del dolar |
+| 2 | Confirma el mes y ano que estas cerrando |
 | 3 | Registra tu ingreso mensual en USD |
 | 4 | Ingresa el gasto real total del mes |
 | 5 | Actualiza los saldos de tus cuentas |
 | 6 | Registra ahorros del mes y balance acumulado |
 | 7 | Revisa el resumen y confirma el cierre |
-| 8 | Define el nombre del próximo mes en el dashboard |
+| 8 | Define el nombre del proximo mes en el dashboard |
+
+### Idiomas
+- **Espanol** (por defecto) e **Ingles** -- 300+ claves de traduccion
+- Cambio en tiempo real sin recargar la pagina
+- Boton de idioma en el header y en la pantalla de inicio
+
+### Tema Oscuro / Claro
+- Tema oscuro por defecto, con toggle a tema claro
+- Variables CSS para personalizacion completa
+- Boton de tema en el header
+
+### Exportacion
+- **Excel (.xlsx)** -- Exporta todos los datos en formato Excel con 6 hojas
+- **Snapshot (PDF)** -- Exporta vista actual optimizada para impresion
 
 ### PWA / Offline
 - Se instala como app nativa en Android, iOS y PC
-- Funciona completamente sin conexión después de la primera visita
-- Datos guardados automáticamente en el navegador (IndexedDB)
-- Próximas visitas cargan los datos sin necesidad de subir el Excel
+- Funciona completamente sin conexion despues de la primera visita
+- Datos guardados automaticamente en el navegador (IndexedDB)
+- Proximas visitas cargan los datos sin necesidad de subir el Excel
 
 ---
 
 ## Estructura del Excel (`cnt.xlsx`)
 
-El archivo Excel tiene 5 hojas. Si empezaste desde cero, el dashboard lo genera automáticamente con esta estructura.
+El archivo Excel tiene **6 hojas**. Si empezaste desde cero, el dashboard lo genera automaticamente con esta estructura.
 
 | Hoja | Contenido |
 |------|-----------|
-| `Config` | Tasa dólar, mes actual, año, ingreso mensual USD, días de alerta |
+| `Config` | Tasa dolar, mes actual, ano, ingreso mensual USD, dias de alerta |
 | `Esenciales` | Gastos y deudas mensuales (12 columnas) |
-| `ForNow` | Saldos de cuentas de disponibilidad inmediata |
+| `ForNow` | Saldos de cuentas de disponibilidad inmediata con moneda |
 | `Emergency` | Fondos de emergencia y cashflow |
-| `Historial` | Registro mensual histórico |
+| `Historial` | Registro mensual historico |
+| `Metas` | Metas de ahorro (nombre, meta, ahorrado, aporte mensual) |
 
 ### Hoja Config
 
 | Clave | Ejemplo |
 |-------|---------|
-| Tasa Dólar | `60.5` |
+| Tasa Dolar | `58` |
 | Mes Actual | `Marzo` |
-| Año | `2026` |
-| Ingreso Mensual | `4208` (en USD) |
-| Días alerta | `5` |
+| Ano | `2026` |
+| Ingreso Mensual | `3000` (en USD) |
+| Dias alerta | `5` |
 
-### Hoja Esenciales — columnas (índice 0–11)
+### Hoja Esenciales -- columnas (indice 0-11)
 
 | Col | Campo |
 |-----|-------|
-| 0 | Descripción |
-| 1 | Tipo (Familiar, Cuota, Préstamo, Servicio…) |
+| 0 | Descripcion |
+| 1 | Tipo (Fijo, Variable, Cuota, Prestamo, Tarjeta, Servicio, Seguro, Familiar, Educacion, Vivienda) |
 | 2 | Pagado (RD$) |
 | 3 | Adeudado/Cuota (RD$) |
-| 4 | Día de pago |
-| 5 | Tasa de interés % |
+| 4 | Dia de pago |
+| 5 | Tasa de interes % |
 | 6 | Balance pendiente (RD$) |
 | 7 | Monto original (RD$) |
 | 8 | Monto original (USD) |
-| 9 | Fecha límite (YYYY-MM-DD) |
+| 9 | Fecha limite (YYYY-MM-DD) |
 | 10 | Notas |
 | 11 | Pagado_Mes (SI / NO) |
 
-> **Nota:** La tasa de interés puede estar como porcentaje (`19.45`) o decimal (`0.1945`) — el dashboard normaliza automáticamente.
+> **Nota:** La tasa de interes puede estar como porcentaje (`19.45`) o decimal (`0.1945`) -- el dashboard normaliza automaticamente.
+
+### Hoja ForNow -- columnas
+
+| Col | Campo |
+|-----|-------|
+| 0 | Nombre cuenta |
+| 1 | Moneda (RD / USD) |
+| 2 | Saldo |
+
+### Hoja Metas -- columnas
+
+| Col | Campo |
+|-----|-------|
+| 0 | Nombre de la meta |
+| 1 | Monto meta (RD$) |
+| 2 | Monto ahorrado (RD$) |
+| 3 | Aporte mensual (RD$) |
 
 ---
 
-## Instalación y despliegue
+## Instalacion y despliegue
 
-### Opción 1 — GitHub Pages (recomendado)
+### Opcion 1 -- GitHub Pages (recomendado)
 
 1. Crea un repositorio en [github.com](https://github.com)
 2. Sube los 5 archivos (`cnt.html`, `manifest.json`, `sw.js`, `icon-192.png`, `icon-512.png`)
-3. Ve a **Settings → Pages → Branch: main → Save**
+3. Ve a **Settings > Pages > Branch: main > Save**
 4. Tu URL: `https://tuusuario.github.io/nombre-repo/cnt.html`
 
-### Opción 2 — Netlify Drop
+### Opcion 2 -- Netlify Drop
 
 1. Ve a [app.netlify.com/drop](https://app.netlify.com/drop)
 2. Arrastra la carpeta con los 5 archivos
-3. URL pública en segundos, sin cuenta
+3. URL publica en segundos, sin cuenta
 
-### Opción 3 — Servidor local (red WiFi)
+### Opcion 3 -- Servidor local (red WiFi)
 
 ```bash
 # En la carpeta con los 5 archivos:
@@ -161,7 +281,7 @@ python3 -m http.server 8080
 # http://[IP-de-tu-PC]:8080/cnt.html
 ```
 
-> ⚠️ El service worker no funciona con `file://`. Usa siempre un servidor HTTP.
+> El service worker no funciona con `file://`. Usa siempre un servidor HTTP.
 
 ---
 
@@ -169,31 +289,31 @@ python3 -m http.server 8080
 
 ### Android (Chrome)
 1. Abre la URL en **Chrome**
-2. Espera el banner: *"Agregar CNT Core a la pantalla de inicio"* → **Instalar**
-3. Si no aparece: menú `⋮` → **"Agregar a pantalla de inicio"**
+2. Espera el banner: *"Agregar CNT Core a la pantalla de inicio"* > **Instalar**
+3. Si no aparece: menu > **"Agregar a pantalla de inicio"**
 
 ### iOS (Safari)
-1. Abre la URL en **Safari** (requerido en iOS — Chrome no soporta PWA en iOS)
-2. Botón compartir `⬆` → **"Agregar a pantalla de inicio"** → **Agregar**
+1. Abre la URL en **Safari** (requerido en iOS -- Chrome no soporta PWA en iOS)
+2. Boton compartir > **"Agregar a pantalla de inicio"** > **Agregar**
 
 ### PC (Chrome / Edge)
 1. Abre la URL en Chrome o Edge
-2. Ícono `⊕` en la barra de direcciones → **Instalar**
+2. Icono en la barra de direcciones > **Instalar**
 
 ---
 
 ## Persistencia local (IndexedDB)
 
-| Acción | Resultado |
+| Accion | Resultado |
 |--------|-----------|
-| Primera carga / asistente completado | Datos guardados automáticamente |
-| Editar datos y aplicar | Guardado automático |
-| Marcar pago en checklist | Guardado automático |
-| Cerrar el mes (wizard) | Guardado automático + Excel descargado |
-| Próxima visita | Banner "Continuar donde lo dejé" |
-| Borrar datos | Botón 🗑 en el banner de inicio |
+| Primera carga / asistente completado | Datos guardados automaticamente |
+| Editar datos y aplicar | Guardado automatico |
+| Marcar pago en checklist | Guardado automatico |
+| Cerrar el mes (wizard) | Guardado automatico + Excel descargado |
+| Proxima visita | Banner "Continuar donde lo deje" |
+| Borrar datos | Boton en el banner de inicio |
 
-> Los datos son específicos del navegador y dispositivo. Si cambias de navegador o dispositivo, necesitas importar el Excel una vez.
+> Los datos son especificos del navegador y dispositivo. Si cambias de navegador o dispositivo, necesitas importar el Excel una vez.
 
 ---
 
@@ -201,64 +321,98 @@ python3 -m http.server 8080
 
 ```
 Durante el mes:
-  └── Abrir la app → Checklist → Marcar pagos conforme se realizan
-  └── Cambios guardados automáticamente
+  -- Abrir la app > Checklist > Marcar pagos conforme se realizan
+  -- Revisar Alertas para vencimientos proximos y advertencias financieras
+  -- Ajustar Metas de ahorro segun progreso
+  -- Cambios guardados automaticamente
 
 Al cierre del mes:
-  └── Header → "🗓 Cerrar Mes"
-  └── Wizard 8 pasos: tasa · mes · ingreso · gasto real · saldos · ahorros · confirmar · próximo mes
-  └── Historial actualizado + Excel descargado + checklist reseteado
+  -- Header > "Cerrar Mes"
+  -- Wizard 8 pasos: tasa > mes > ingreso > gasto real > saldos > ahorros > confirmar > proximo mes
+  -- Ver resumen post-cierre con tasa de ahorro, cambio en deuda y net worth
+  -- Historial actualizado + Excel descargado + checklist reseteado
 
 Al pagar una deuda en su totalidad:
-  └── Tab Deudas → Card de la deuda → "✓ Liquidar deuda"
-  └── Confirmar → balance = 0, marcada como pagada, guardado automático
+  -- Tab Deudas > Card de la deuda > "Liquidar deuda"
+  -- Confirmar > balance = 0, marcada como pagada, guardado automatico
 
 Al inicio del mes nuevo:
-  └── Si los gastos/deudas cambiaron → Editar → ajustar → aplicar
-  └── Si no cambiaron → empieza a marcar el checklist directamente
+  -- Si los gastos/deudas cambiaron > Editar > ajustar > aplicar
+  -- Si no cambiaron > empieza a marcar el checklist directamente
+  -- Revisar Proyector para optimizar pagos de deuda
 ```
 
 ---
 
-## Tecnologías utilizadas
+## Tests
 
-| Tecnología | Uso |
+El proyecto incluye una suite de tests end-to-end con **Playwright**:
+
+```bash
+# Instalar dependencias
+npm install
+
+# Ejecutar todos los tests
+npx playwright test
+
+# Ejecutar un archivo especifico
+npx playwright test tests/finance-advisor-features.spec.js
+```
+
+| Suite | Tests | Cobertura |
+|-------|-------|-----------|
+| `alerts-tab.spec.js` | 39 | Alertas: vencimientos, DTI, EF, intereses, i18n |
+| `edit-modal-fixes.spec.js` | 32 | Modal de edicion: validacion, sync, conversion, tipos |
+| `edit-modal-i18n.spec.js` | 12 | Traduccion del modal de edicion |
+| `finance-advisor-features.spec.js` | 17 | DTI, neg-amort, savings rate, calendario, anomalias |
+| `responsive-mobile.spec.js` | 21 | Layout responsive en phones, tablets |
+| `account-currency.spec.js` | 13 | Moneda dual en cuentas (RD$/USD) |
+| `goals-numeric-inputs.spec.js` | 8 | Inputs de metas sin spinners |
+| `cache-clear.spec.js` | 3 | Limpieza de cache sin perder datos |
+| **Total** | **145+** | |
+
+---
+
+## Tecnologias utilizadas
+
+| Tecnologia | Uso |
 |------------|-----|
-| HTML / CSS / JavaScript vanilla | La app completa — sin frameworks |
+| HTML / CSS / JavaScript vanilla | La app completa -- sin frameworks |
 | [SheetJS (xlsx)](https://sheetjs.com) | Leer y escribir archivos Excel |
-| [Chart.js](https://chartjs.org) | Gráficos de donut, barras y líneas |
+| [Chart.js](https://chartjs.org) | Graficos de donut, barras y lineas |
 | IndexedDB | Persistencia local de datos |
-| Service Worker | Caché offline |
-| Web App Manifest | Instalación como app nativa |
-| Google Fonts (Syne + JetBrains Mono) | Tipografía |
+| Service Worker | Cache offline |
+| Web App Manifest | Instalacion como app nativa |
+| [Playwright](https://playwright.dev) | Tests end-to-end |
+| Google Fonts (Syne + JetBrains Mono) | Tipografia |
 
 ---
 
 ## Privacidad
 
-- ✅ Ningún dato se envía a ningún servidor
-- ✅ Todo el procesamiento ocurre en tu navegador
-- ✅ IndexedDB almacena datos solo en tu dispositivo
-- ✅ El service worker solo cachea los archivos de la app — nunca tus datos financieros
-- ✅ Sin analytics, cookies de terceros ni telemetría
+- Ningun dato se envia a ningun servidor
+- Todo el procesamiento ocurre en tu navegador
+- IndexedDB almacena datos solo en tu dispositivo
+- El service worker solo cachea los archivos de la app -- nunca tus datos financieros
+- Sin analytics, cookies de terceros ni telemetria
 
 ---
 
-## Notas técnicas
+## Notas tecnicas
 
-**¿Por qué 5 archivos y no uno solo?**
-El service worker (`sw.js`) debe ser un archivo separado por especificación del navegador. El `manifest.json` y los íconos PNG también deben ser archivos externos — Chrome rechaza íconos en formato `data:` URI para mostrar el banner de instalación.
+**Por que 5 archivos y no uno solo?**
+El service worker (`sw.js`) debe ser un archivo separado por especificacion del navegador. El `manifest.json` y los iconos PNG tambien deben ser archivos externos -- Chrome rechaza iconos en formato `data:` URI para mostrar el banner de instalacion.
 
-**¿Funciona con `file://`?**
-El dashboard y el asistente de configuración funcionan, pero el service worker y la instalación como PWA requieren HTTPS o `localhost`. IndexedDB sí funciona con `file://`.
+**Funciona con `file://`?**
+El dashboard y el asistente de configuracion funcionan, pero el service worker y la instalacion como PWA requieren HTTPS o `localhost`. IndexedDB si funciona con `file://`.
 
-**¿Qué pasa si actualizo el HTML?**
-El service worker usa Network-first para el HTML — siempre intenta descargar la versión más nueva. Si estás offline, usa la versión cacheada.
+**Que pasa si actualizo el HTML?**
+El service worker usa Network-first para el HTML -- siempre intenta descargar la version mas nueva. Si estas offline, usa la version cacheada.
 
 **Compatibilidad de navegadores**
 
 | Navegador | PWA | IndexedDB | Offline |
 |-----------|-----|-----------|---------|
-| Chrome / Edge | ✅ Completo | ✅ | ✅ |
-| Safari iOS 16.4+ | ✅ Completo | ✅ | ✅ |
-| Firefox | ⚠️ Sin instalación | ✅ | ✅ |
+| Chrome / Edge | Completo | Si | Si |
+| Safari iOS 16.4+ | Completo | Si | Si |
+| Firefox | Sin instalacion | Si | Si |
