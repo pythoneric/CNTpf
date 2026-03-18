@@ -4,6 +4,7 @@ const { test, expect } = require('@playwright/test');
  * Load the app with representative data so all sections render content.
  */
 async function loadApp(page) {
+  page.on('dialog', dialog => dialog.accept());
   await page.goto('/cnt.html');
   await page.waitForFunction(() => typeof window._testLoadData === 'function');
 
@@ -230,7 +231,7 @@ test.describe('Responsive - Small Phone (375px)', () => {
     await loadApp(page);
     const kpiRow = page.locator('#kpiRow');
     const cards = kpiRow.locator('.card');
-    await expect(cards).toHaveCount(4);
+    await expect(cards).toHaveCount(5);
     // All cards should be visible without horizontal overflow
     const overflows = await findHorizontalOverflows(page);
     expect(overflows).toHaveLength(0);
