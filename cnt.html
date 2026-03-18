@@ -468,6 +468,12 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .cf-val{font-size:15px;text-align:left}
 }
 
+/* ══ RESPONSIVE STAT PILLS — foldable inner screens (650-768px) ══ */
+@media(max-width:768px){
+  #committedSimulation [style*="display:flex;gap:12px;flex-wrap:wrap"]{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:10px!important}
+  #committedSimulation .mono[style*="font-size:22px"]{font-size:18px!important}
+  #committedSimulation [style*="min-width:140px"]{min-width:0!important}
+}
 /* ══ RESPONSIVE STAT PILLS — prevent overflow on phones ══ */
 /* Committed Funds, Proyector config, BVA summary, Debt Payoff, Checklist interest KPIs */
 @media(max-width:640px){
