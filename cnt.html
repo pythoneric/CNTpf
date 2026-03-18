@@ -1256,9 +1256,15 @@ const LANG = {
     bva_chart_title:'Varianza por Categoría',
     bva_budget:'Presupuestado', bva_actual:'Real Pagado', bva_variance:'Varianza',
     bva_over:'Sobre presup.', bva_under:'Bajo presup.', bva_exact:'Exacto',
-    bva_total_budget:'Total Presupuestado', bva_total_actual:'Total Real',
-    bva_total_var:'Varianza Total', bva_note:'Presupuestado = cuota mensual · Real = pagado este mes.',
+    bva_total_budget:'Total Comprometido', bva_total_actual:'Total Pagado',
+    bva_total_var:'Varianza Total',
+    bva_note:'Comprometido = cuota mensual fija · Real = pagado marcado este mes. Pagos no marcados aparecen como RD$0.',
     bva_empty:'No hay datos de gastos. Sube tu archivo Excel para ver la comparación.',
+    bva_zero_warn:'Todos los compromisos están en RD$0. Actualiza tus cuotas mensuales en Editar.',
+    bva_col_desc:'Descripción', bva_col_type:'Tipo',
+    bva_neg_amort_alert:'⚠️ <strong>{name}</strong>: tu cuota no cubre el interés — esta deuda crece cada mes.',
+    dpd_neg_capital:'⚠ Negativo',
+    dpd_total_interest_all:'Interés total proyectado (todas las deudas)',
     // Feature 3 – Debt Payoff Dates
     dpd_title:'📅 Fechas Estimadas de Pago por Deuda',
     dpd_debt:'Deuda', dpd_balance:'Balance', dpd_rate:'Tasa', dpd_monthly:'Cuota/mes',
@@ -1566,9 +1572,15 @@ const LANG = {
     bva_chart_title:'Variance by Category',
     bva_budget:'Budgeted', bva_actual:'Actual Paid', bva_variance:'Variance',
     bva_over:'Over budget', bva_under:'Under budget', bva_exact:'On budget',
-    bva_total_budget:'Total Budgeted', bva_total_actual:'Total Actual',
-    bva_total_var:'Total Variance', bva_note:'Budgeted = monthly payment · Actual = paid this month.',
+    bva_total_budget:'Total Committed', bva_total_actual:'Total Paid',
+    bva_total_var:'Total Variance',
+    bva_note:'Committed = fixed monthly payment · Actual = marked as paid this month. Untracked payments show as RD$0.',
     bva_empty:'No expense data. Upload your Excel file to see the comparison.',
+    bva_zero_warn:'All commitments are set to RD$0. Update your monthly payments in Edit.',
+    bva_col_desc:'Description', bva_col_type:'Type',
+    bva_neg_amort_alert:'⚠️ <strong>{name}</strong>: your payment doesn\'t cover interest — this debt grows every month.',
+    dpd_neg_capital:'⚠ Negative',
+    dpd_total_interest_all:'Total projected interest (all debts)',
     // Feature 3 – Debt Payoff Dates
     dpd_title:'📅 Estimated Payoff Date per Debt',
     dpd_debt:'Debt', dpd_balance:'Balance', dpd_rate:'Rate', dpd_monthly:'Payment/mo',
@@ -3718,15 +3730,18 @@ function buildBudgetVsActual(gastos,ingreso){
     const delta=actual-budget;
     const pct=budget>0?Math.round(actual/budget*100):0;
     totalBudget+=budget;totalActual+=actual;
-    if(delta>100)overCount++;else if(delta<-100)underCount++;
-    const varColor=delta>0?'var(--red)':delta<0?'var(--green)':'var(--muted)';
+    // Fix #2: percentage-based threshold (2%) instead of hardcoded RD$100
+    const threshold=budget>0?budget*0.02:100;
+    if(delta>threshold)overCount++;else if(delta<-threshold)underCount++;
+    // Fix #1: for fixed commitments, under-payment (delta<0) is RED (shortfall), over-payment is GREEN (extra paydown)
+    const varColor=delta>0?'var(--green)':delta<0?'var(--red)':'var(--muted)';
     const varText=delta>0?`▲ RD$${fmt(delta)}`:delta<0?`▼ RD$${fmt(Math.abs(delta))}`:'—';
     const barW=Math.min(120,pct);
-    const barColor=pct>110?'var(--red)':pct>100?'var(--yellow)':pct<50?'rgba(34,211,160,.4)':'var(--green)';
+    const barColor=pct>=100?'var(--green)':pct>80?'var(--yellow)':'var(--red)';
     const tc=tipoColors[g.tipo]||'#94a3b8';
     return `<tr>
       <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
-      <td data-label="Tipo"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
+      <td data-label="${t('bva_col_type')}"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
       <td data-label="${t('bva_budget')}" class="num" style="color:var(--muted)">RD$${fmt(budget)}</td>
       <td data-label="${t('bva_actual')}" class="num" style="color:${actual>0?'var(--text)':'var(--muted)'}">RD$${fmt(actual)}</td>
       <td data-label="${t('bva_variance')}" class="num" style="color:${varColor};font-weight:700">${varText}</td>
@@ -3735,17 +3750,21 @@ function buildBudgetVsActual(gastos,ingreso){
           <div style="flex:1;background:var(--surface2);border-radius:99px;height:5px;overflow:hidden;min-width:50px">
             <div style="height:5px;border-radius:99px;width:${Math.min(100,barW)}%;background:${barColor}"></div>
           </div>
-          <span class="mono" style="font-size:11px;color:${pct>100?'var(--red)':'var(--muted)'}">${pct}%</span>
+          <span class="mono" style="font-size:11px;color:${pct<80?'var(--red)':'var(--muted)'}">${pct}%</span>
         </div>
       </td>
     </tr>`;
   }).join('');
 
   const totalDelta=totalActual-totalBudget;
-  const summaryColor=totalDelta>0?'var(--red)':totalDelta<0?'var(--green)':'var(--muted)';
+  // Fix #1: total variance — over-payment is green (good), under-payment is red (shortfall)
+  const summaryColor=totalDelta>=0?'var(--green)':totalDelta<0?'var(--red)':'var(--muted)';
   const summaryArrow=totalDelta>0?'▲':totalDelta<0?'▼':'';
 
-  el.innerHTML=`
+  // Fix #8: all-zero adeudado check
+  const zeroWarn=totalBudget===0&&gastos.length>0?`<div style="padding:8px 12px;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:8px;font-size:11px;color:var(--yellow);margin-bottom:12px">⚠️ ${t('bva_zero_warn')}</div>`:'';
+
+  el.innerHTML=`${zeroWarn}
     <div class="grid g3" style="gap:10px;margin-bottom:18px">
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_budget')}</div>
@@ -3758,12 +3777,12 @@ function buildBudgetVsActual(gastos,ingreso){
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_var')}</div>
         <div class="mono" style="font-size:20px;font-weight:800;color:${summaryColor}">${summaryArrow} RD$${fmt(Math.abs(totalDelta))}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:3px">${overCount} ${_lang==='es'?'sobre':'over'} · ${underCount} ${_lang==='es'?'bajo':'under'}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${overCount} ${t('bva_over')} · ${underCount} ${t('bva_under')}</div>
       </div>
     </div>
     <div class="tbl-wrap"><table class="mobile-card-table">
       <thead><tr>
-        <th>${_lang==='es'?'Descripción':'Description'}</th><th>Tipo</th>
+        <th>${t('bva_col_desc')}</th><th>${t('bva_col_type')}</th>
         <th style="text-align:right">${t('bva_budget')}</th>
         <th style="text-align:right">${t('bva_actual')}</th>
         <th style="text-align:right">${t('bva_variance')}</th>
@@ -3808,10 +3827,10 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
   const today=new Date();
   const COLORS_DPD=['#22d3a0','#3b82f6','#a78bfa','#f5c842','#fb923c','#f87171','#c4b5fd','#93c5fd'];
 
+  // Fix #3: unified simulation — single pass returns both months and totalInterest
   const calcPayoff=(balance,monthlyRate,payment)=>{
-    // Iterative simulation — matches the projector's method exactly
-    if(monthlyRate<=0)return payment>0?Math.ceil(balance/payment):Infinity;
-    if(payment<=balance*monthlyRate)return Infinity;
+    if(monthlyRate<=0)return{months:payment>0?Math.ceil(balance/payment):Infinity,totalInterest:0};
+    if(payment<=balance*monthlyRate)return{months:Infinity,totalInterest:Infinity};
     let bal=balance,months=0,intTotal=0;
     while(bal>0&&months<360){
       months++;
@@ -3819,35 +3838,31 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
       intTotal+=mi;
       bal=Math.max(0,bal+mi-payment);
     }
-    return months;
+    return{months,totalInterest:Math.round(intTotal)};
   };
 
-  const calcTotalInterest=(balance,monthlyRate,payment,months)=>{
-    if(months===Infinity)return Infinity;
-    let bal=balance,intTotal=0;
-    for(let m=0;m<months&&bal>0;m++){
-      const mi=bal*monthlyRate;
-      intTotal+=mi;
-      bal=Math.max(0,bal+mi-payment);
-    }
-    return Math.round(intTotal);
-  };
-
+  let grandTotalInterest=0;
+  const negAmortDebts=[];
   const rows=debts.map((d,i)=>{
     const monthlyRate=d.tasa/100/12;
-    const months=calcPayoff(d.balance,monthlyRate,d.adeudado);
-    const totalInt=months===Infinity?Infinity:calcTotalInterest(d.balance,monthlyRate,d.adeudado,months);
+    const {months,totalInterest:totalInt}=calcPayoff(d.balance,monthlyRate,d.adeudado);
+    if(totalInt!==Infinity)grandTotalInterest+=totalInt;
+    const isNegAmort=d.adeudado<=d.balance*monthlyRate;
+    if(isNegAmort)negAmortDebts.push(d);
     const payoffDate=months===Infinity?null:new Date(today.getFullYear(),today.getMonth()+months,1);
     const color=COLORS_DPD[i%COLORS_DPD.length];
     const years=months===Infinity?null:Math.floor(months/12);
     const mos=months===Infinity?null:months%12;
     const durStr=months===Infinity?t('dpd_never'):`${years>0?years+'a ':''} ${mos}m`;
     const dateStr=payoffDate?payoffDate.toLocaleDateString(_lang==='es'?'es-DO':'en-US',{month:'long',year:'numeric'}):t('dpd_never');
-    const paidPct=d.originalRD>0?Math.round((1-d.balance/d.originalRD)*100):0;
-    // Urgency color: >3 years = red, 1-3 years = yellow, <1 year = green
-    const urgColor=months===Infinity?'var(--red)':months>36?'var(--red)':months>12?'var(--yellow)':'var(--green)';
+    // Fix #9: fallback to balance when originalRD is 0; always show progress bar
+    const baseline=d.originalRD||d.balance;
+    const paidPct=baseline>0?Math.max(0,Math.round((1-d.balance/baseline)*100)):0;
+    // Fix #14: urgency factors in interest rate — high rate + >12mo = red
+    const urgColor=months===Infinity?'var(--red)':(months>36||(months>12&&d.tasa>20))?'var(--red)':months>12?'var(--yellow)':'var(--green)';
 
     return `<div style="background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${color};border-radius:12px;padding:16px 18px;margin-bottom:12px">
+      ${isNegAmort?`<div style="padding:8px 12px;background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.3);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">${t('bva_neg_amort_alert').replace('{name}',escH(d.nombre))}</div>`:''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">
         <div>
           <div style="font-size:14px;font-weight:800;color:var(--text)">${escH(d.nombre)}</div>
@@ -3868,7 +3883,7 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
       <div style="display:flex;gap:16px;flex-wrap:wrap">
         <div style="background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_int_total')}</div>
-          <div class="mono" style="font-size:16px;font-weight:800;color:${months===Infinity?'var(--red)':'var(--red)'}">
+          <div class="mono" style="font-size:16px;font-weight:800;color:var(--red)">
             ${totalInt===Infinity?'∞':('RD$'+fmt(totalInt))}
           </div>
         </div>
@@ -3878,19 +3893,25 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
         </div>
         <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_capitalmonth')}</div>
-          <div class="mono" style="font-size:16px;font-weight:800;color:${d.adeudado>d.balance*monthlyRate?'var(--accent)':'var(--red)'}">
-            ${d.adeudado>d.balance*monthlyRate?'RD$'+fmt(Math.round(d.adeudado-d.balance*monthlyRate)):'⚠ Negativo'}
+          <div class="mono" style="font-size:16px;font-weight:800;color:${!isNegAmort?'var(--accent)':'var(--red)'}">
+            ${!isNegAmort?'RD$'+fmt(Math.round(d.adeudado-d.balance*monthlyRate)):t('dpd_neg_capital')}
           </div>
         </div>
       </div>
-      ${paidPct>0?`<div style="margin-top:12px">
+      <div style="margin-top:12px">
         <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>${t('dpd_progress_lbl')}</span><span>${paidPct}%</span></div>
         <div class="progress-wrap"><div class="progress-bar" style="width:${paidPct}%;background:${color}"></div></div>
-      </div>`:''}
+      </div>
     </div>`;
   }).join('');
 
-  el.innerHTML=rows+`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.15);border-radius:8px">
+  // Fix #4: aggregate total interest across all debts
+  const grandIntHtml=`<div style="background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:10px;padding:14px 18px;text-align:center;margin-bottom:16px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${t('dpd_total_interest_all')}</div>
+    <div class="mono" style="font-size:24px;font-weight:800;color:var(--red)">RD$${fmt(grandTotalInterest)}${negAmortDebts.length?' + ∞':''}</div>
+  </div>`;
+
+  el.innerHTML=grandIntHtml+rows+`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.15);border-radius:8px">
     💡 ${t('dpd_extra_note')}
   </div>`;
 }
