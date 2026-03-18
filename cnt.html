@@ -664,15 +664,15 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('resumen',this)" data-i18n="tab_resumen">📊 Resumen</button>
     <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas" data-i18n="tab_alertas">🔔 Alertas</button>
-    <button class="tab-btn" onclick="showTab('gastos',this)" data-i18n="tab_gastos">💸 Gastos</button>
     <button class="tab-btn" onclick="showTab('checklist',this)" data-i18n="tab_checklist">✅ Pagos del Mes</button>
-    <button class="tab-btn" onclick="showTab('deudas',this)" data-i18n="tab_deudas">🏦 Deudas</button>
-    <button class="tab-btn" onclick="showTab('emergency',this)" data-i18n="tab_emergency">🛡 Emergencias</button>
-    <button class="tab-btn" onclick="showTab('proyector',this)" data-i18n="tab_proyector">🎯 Proyector</button>
+    <button class="tab-btn" onclick="showTab('gastos',this)" data-i18n="tab_gastos">💸 Gastos</button>
     <button class="tab-btn" onclick="showTab('fornow',this)" data-i18n="tab_fornow">💳 Fondos</button>
-    <button class="tab-btn" onclick="showTab('historial',this)" data-i18n="tab_historial">📅 Historial</button>
+    <button class="tab-btn" onclick="showTab('emergency',this)" data-i18n="tab_emergency">🛡 Emergencias</button>
+    <button class="tab-btn" onclick="showTab('deudas',this)" data-i18n="tab_deudas">🏦 Deudas</button>
+    <button class="tab-btn" onclick="showTab('proyector',this)" data-i18n="tab_proyector">🎯 Proyector</button>
     <button class="tab-btn" onclick="showTab('metas',this)" data-i18n="tab_metas">🏆 Metas</button>
     <button class="tab-btn" onclick="showTab('analisis',this)" data-i18n="tab_analisis">📈 Análisis</button>
+    <button class="tab-btn" onclick="showTab('historial',this)" data-i18n="tab_historial">📅 Historial</button>
   </div>
 
   <!-- Mobile bottom navigation -->
@@ -680,12 +680,12 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <button class="mnav-btn" onclick="mobileTab('resumen',this)" id="mnavResumen"><span class="mnav-icon">📊</span><span data-i18n="mnav_resumen">Resumen</span></button>
     <button class="mnav-btn" onclick="mobileTab('alertas',this)" id="mobileTabAlertas"><span class="mnav-icon">🔔</span><span data-i18n="mnav_alertas">Alertas</span></button>
     <button class="mnav-btn" onclick="mobileTab('checklist',this)" id="mnavChecklist"><span class="mnav-icon">✅</span><span data-i18n="mnav_checklist">Pagos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('deudas',this)" id="mnavDeudas"><span class="mnav-icon">🏦</span><span data-i18n="mnav_deudas">Deudas</span></button>
     <button class="mnav-btn" onclick="mobileTab('gastos',this)" id="mnavGastos"><span class="mnav-icon">💸</span><span data-i18n="mnav_gastos">Gastos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('proyector',this)" id="mnavProyector"><span class="mnav-icon">🎯</span><span data-i18n="mnav_proyector">Proyector</span></button>
     <button class="mnav-btn" onclick="mobileTab('fornow',this)" id="mnavFondos"><span class="mnav-icon">💳</span><span data-i18n="mnav_fornow">Fondos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('historial',this)" id="mnavHistorial"><span class="mnav-icon">📅</span><span data-i18n="mnav_historial">Historial</span></button>
     <button class="mnav-btn" onclick="mobileTab('emergency',this)" id="mnavEmergencia"><span class="mnav-icon">🛡</span><span data-i18n="mnav_emergency">Emergencias</span></button>
+    <button class="mnav-btn" onclick="mobileTab('deudas',this)" id="mnavDeudas"><span class="mnav-icon">🏦</span><span data-i18n="mnav_deudas">Deudas</span></button>
+    <button class="mnav-btn" onclick="mobileTab('proyector',this)" id="mnavProyector"><span class="mnav-icon">🎯</span><span data-i18n="mnav_proyector">Proyector</span></button>
+    <button class="mnav-btn" onclick="mobileTab('historial',this)" id="mnavHistorial"><span class="mnav-icon">📅</span><span data-i18n="mnav_historial">Historial</span></button>
   </nav>
 
   <!-- RESUMEN -->
@@ -1932,7 +1932,7 @@ window.addEventListener('load',()=>{
 // SWIPE GESTURES — mobile tab nav
 // ══════════════════════════════════
 (()=>{
-  const TAB_ORDER=['resumen','alertas','checklist','gastos','deudas','emergency','proyector','fornow','historial','metas','analisis'];
+  const TAB_ORDER=['resumen','alertas','checklist','gastos','fornow','emergency','deudas','proyector','metas','analisis','historial'];
   let _tx=0,_ty=0;
   document.addEventListener('touchstart',e=>{
     _tx=e.touches[0].clientX;
