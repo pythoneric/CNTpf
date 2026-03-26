@@ -6,17 +6,17 @@ const { test, expect } = require('@playwright/test');
  */
 
 const EXPECTED_ORDER = [
-  'resumen', 'alertas', 'checklist', 'registro', 'gastos', 'fornow',
+  'resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'fornow',
   'emergency', 'deudas', 'proyector', 'metas', 'analisis', 'historial',
 ];
 
 const EXPECTED_MOBILE_ORDER = [
-  'resumen', 'alertas', 'checklist', 'registro', 'gastos', 'fornow',
+  'resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'fornow',
   'emergency', 'deudas', 'proyector', 'metas', 'analisis', 'historial',
 ];
 
 const ALL_TAB_IDS = new Set([
-  'resumen', 'alertas', 'checklist', 'registro', 'gastos', 'deudas',
+  'resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'deudas',
   'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis',
 ]);
 
@@ -70,9 +70,6 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
     await loadApp(page);
 
     const tabOrder = await page.evaluate(() => {
-      // TAB_ORDER is defined inside a closure (touch handler), expose it via a known pattern
-      // We can check it by extracting from the source or testing swipe behavior
-      // Since it's in a const, let's check the HTML script content
       const scripts = Array.from(document.querySelectorAll('script'));
       for (const s of scripts) {
         const m = s.textContent.match(/const TAB_ORDER=\[([^\]]+)\]/);
@@ -133,7 +130,7 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
   });
 
   // TEST 5 — No tabs were removed or added
-  test('exactly 12 desktop tabs with all original IDs present', async ({ page }) => {
+  test('exactly 13 desktop tabs with all original IDs present', async ({ page }) => {
     await loadApp(page);
 
     const desktopIds = await page.evaluate(() => {
@@ -143,18 +140,16 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
       });
     });
 
-    // 11 tab buttons
-    expect(desktopIds).toHaveLength(12);
+    expect(desktopIds).toHaveLength(13);
 
-    // All original IDs present
-    const allOriginals = ['resumen', 'alertas', 'checklist', 'registro', 'gastos', 'deudas',
+    const allOriginals = ['resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'deudas',
       'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
     for (const id of allOriginals) {
       expect(desktopIds).toContain(id);
     }
   });
 
-  test('TAB_ORDER has exactly 12 entries with all original IDs', async ({ page }) => {
+  test('TAB_ORDER has exactly 13 entries with all original IDs', async ({ page }) => {
     await loadApp(page);
 
     const tabOrder = await page.evaluate(() => {
@@ -166,9 +161,9 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
       return [];
     });
 
-    expect(tabOrder).toHaveLength(12);
+    expect(tabOrder).toHaveLength(13);
 
-    const allOriginals = ['resumen', 'alertas', 'checklist', 'registro', 'gastos', 'deudas',
+    const allOriginals = ['resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'deudas',
       'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
     for (const id of allOriginals) {
       expect(tabOrder).toContain(id);

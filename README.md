@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (184 tests)
+tests/                -- Suite de tests Playwright (198 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -62,22 +62,32 @@ Si ya usaste el dashboard antes en este navegador, aparece esta opcion automatic
 
 ## Pestanas del Dashboard
 
-El dashboard tiene **12 pestanas**, cada una con un proposito especifico:
+El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un control segmentado (pill toggle). El grupo activo se recuerda entre sesiones.
+
+### Operaciones — dia a dia financiero
 
 | Pestana | Descripcion |
 |---------|-------------|
 | **Resumen** | KPIs de ingresos, gastos, superavit, net worth, tasa de ahorro y salud financiera |
 | **Alertas** | Pagos proximos, atrasados, alertas DTI, amortizacion negativa, fondo de emergencia y anomalias |
 | **Pagos del Mes** | Checklist de pagos con calendario visual, progreso por monto, y analisis de intereses |
-| **Registro** | Registro de gastos reales con categorias, graficos por tipo y totales del mes |
+| **Registro** | Registro de gastos reales con categorias, transacciones recurrentes, graficos por tipo y totales del mes |
+| **Presupuesto** | Presupuesto base cero por categoria con comparacion vs gastos reales del Registro |
 | **Gastos** | Tabla completa de gastos y deudas con estado de pago por item |
 | **Fondos** | Saldos de cuentas (RD$/USD) vs compromisos mensuales y disponibilidad real |
+
+### Estrategia — planificacion y analisis
+
+| Pestana | Descripcion |
+|---------|-------------|
 | **Emergencia** | Fondos de emergencia con progreso vs meta, plan de asignacion y cashflow |
 | **Deudas** | Cards individuales con balance, tasa, proyeccion de interes y boton "Liquidar deuda" |
 | **Proyector** | Simulador de pago de deudas: Avalancha vs Bola de Nieve con escenarios what-if |
 | **Metas** | Metas de ahorro con progreso, ETA estimado y advertencia de sobrecompromiso |
 | **Analisis** | Presupuesto vs real (BVA), proyecciones de pago y tendencia de gastos recurrentes |
 | **Historial** | Registro historico con graficos de tendencia, tasa de ahorro y evolucion de deudas |
+
+> En movil, el pill toggle aparece fijo encima de la barra de navegacion inferior. En desktop, aparece centrado encima de las pestanas. Navegar a una pestana de otro grupo cambia el grupo automaticamente (incluyendo deep links con `#tab-xxx`).
 
 ---
 
@@ -113,12 +123,28 @@ El dashboard tiene **12 pestanas**, cada una con un proposito especifico:
 - **Formulario rapido** -- Fecha, monto, categoria, metodo de pago (efectivo/tarjeta/transferencia) y nota opcional
 - **9 categorias** -- Comida, Transporte, Entretenimiento, Salud, Compras, Hogar, Educacion, Personal, Otro
 - **Vinculacion opcional** -- Conecta una transaccion a un gasto/deuda existente
+- **Transacciones recurrentes** -- Al agregar un gasto, selecciona frecuencia (diario/semanal/quincenal/mensual) para que se repita automaticamente
+- **Gestion de reglas recurrentes** -- Lista de reglas activas al final del tab con opcion de eliminar (las transacciones ya generadas no se borran)
+- **Generacion automatica** -- Las transacciones recurrentes se generan al abrir la app, con deduplicacion por fecha e ID
+- **Badge visual** -- Las transacciones generadas automaticamente muestran un indicador 🔄 en la lista
 - **KPIs del mes** -- Total gastado, cantidad de transacciones y promedio diario
 - **Grafico de dona** -- Distribucion de gastos por categoria
 - **Lista cronologica** -- Todas las transacciones del mes con opcion de eliminar
 - Al cerrar el mes, el total registrado se archiva en el historial como `gastoReal`
 - Editable en el modal de edicion (pestana Transacciones)
 - Exportable/importable via Excel (hoja "Transacciones")
+
+### Presupuesto (Forward Budget)
+- Presupuesto mensual base cero: asigna cada peso de tu ingreso a una de las 9 categorias
+- **Formulario de asignacion** -- 9 campos (uno por categoria) con contador en tiempo real de ingreso sin asignar
+- **Estimacion de recurrentes** -- Cada categoria muestra cuanto se espera de transacciones recurrentes
+- **Tabla presupuesto vs real** -- Compara montos asignados vs gastos reales del Registro con barras de progreso y varianza
+- **Grafico de barras agrupadas** -- Presupuestado vs gastado por categoria (Chart.js)
+- **3 KPIs** -- Ingreso del mes, asignado y sin asignar (o sobre-asignado en rojo)
+- **Alerta de sobre-gasto** -- Muestra cuantas categorias excedieron el presupuesto
+- **Cierre de mes** -- El total presupuestado se archiva en historial; el presupuesto se copia automaticamente al mes siguiente
+- Editable en el modal de edicion (pestana Presupuesto)
+- Exportable/importable via Excel (hoja "Presupuesto")
 
 ### Proyector de Deudas
 - **Fondos comprometidos** -- Calcula runway (meses de gastos cubiertos), disponible seguro, y capacidad de redireccion
@@ -156,7 +182,7 @@ El dashboard tiene **12 pestanas**, cada una con un proposito especifico:
 - **Tendencia de gastos** -- Evolucion por categoria con flechas de direccion
 
 ### Edicion
-- Modal de edicion completo con 6 pestanas: Configuracion, Gastos & Deudas, Fondos, Emergencia, Historial, Transacciones
+- Modal de edicion completo con 8 pestanas: Configuracion, Gastos & Deudas, Fondos, Emergencia, Historial, Transacciones, Presupuesto, Recurrentes
 - **Sincronizacion en tiempo real** -- Cambios en configuracion se reflejan inmediatamente en los datos
 - **Tipo de gasto como dropdown** -- 10 categorias predefinidas para evitar duplicados
 - **Campos vinculados** -- Original RD$ y USD se sincronizan automaticamente usando la tasa
@@ -187,7 +213,7 @@ El dashboard tiene **12 pestanas**, cada una con un proposito especifico:
 | 8 | Define el nombre del proximo mes en el dashboard |
 
 ### Idiomas
-- **Espanol** (por defecto) e **Ingles** -- 300+ claves de traduccion
+- **Espanol** (por defecto) e **Ingles** -- 350+ claves de traduccion
 - Cambio en tiempo real sin recargar la pagina
 - Boton de idioma en el header y en la pantalla de inicio
 
@@ -197,7 +223,7 @@ El dashboard tiene **12 pestanas**, cada una con un proposito especifico:
 - Boton de tema en el header
 
 ### Exportacion
-- **Excel (.xlsx)** -- Exporta todos los datos en formato Excel con 7 hojas
+- **Excel (.xlsx)** -- Exporta todos los datos en formato Excel con hasta 9 hojas
 - **Snapshot (PDF)** -- Exporta vista actual optimizada para impresion
 
 ### PWA / Offline
@@ -210,7 +236,7 @@ El dashboard tiene **12 pestanas**, cada una con un proposito especifico:
 
 ## Estructura del Excel (`cnt.xlsx`)
 
-El archivo Excel tiene **7 hojas**. Si empezaste desde cero, el dashboard lo genera automaticamente con esta estructura.
+El archivo Excel tiene hasta **9 hojas**. Si empezaste desde cero, el dashboard lo genera automaticamente con esta estructura. Las hojas opcionales (Metas, Transacciones, Presupuesto, Recurrentes) solo se crean si hay datos.
 
 | Hoja | Contenido |
 |------|-----------|
@@ -221,6 +247,8 @@ El archivo Excel tiene **7 hojas**. Si empezaste desde cero, el dashboard lo gen
 | `Historial` | Registro mensual historico |
 | `Metas` | Metas de ahorro (nombre, meta, ahorrado, aporte mensual) |
 | `Transacciones` | Registro de gastos reales (fecha, monto, categoria, nota, metodo, mes, ano) |
+| `Presupuesto` | Asignaciones de presupuesto por categoria y mes |
+| `Recurrentes` | Reglas de transacciones recurrentes (frecuencia, monto, categoria) |
 
 ### Hoja Config
 
@@ -280,6 +308,28 @@ El archivo Excel tiene **7 hojas**. Si empezaste desde cero, el dashboard lo gen
 | 5 | Gasto vinculado (nombre del gasto, o vacio) |
 | 6 | Mes |
 | 7 | Ano |
+
+### Hoja Presupuesto -- columnas
+
+| Col | Campo |
+|-----|-------|
+| 0 | Categoria (mismas 9 categorias que Transacciones) |
+| 1 | Presupuestado (RD$) |
+| 2 | Mes |
+| 3 | Ano |
+
+### Hoja Recurrentes -- columnas
+
+| Col | Campo |
+|-----|-------|
+| 0 | ID (identificador unico de la regla) |
+| 1 | Fecha de inicio (YYYY-MM-DD) |
+| 2 | Monto (RD$) |
+| 3 | Categoria |
+| 4 | Nota |
+| 5 | Metodo (Efectivo, Tarjeta, Transferencia) |
+| 6 | Frecuencia (diario, semanal, quincenal, mensual) |
+| 7 | LastGenerated (fecha de ultima generacion) |
 
 ---
 
@@ -347,9 +397,14 @@ python3 -m http.server 8080
 ## Flujo mensual recomendado
 
 ```
+Al inicio del mes (o al empezar a usar la app):
+  -- Presupuesto > Asignar montos a cada categoria de gasto
+  -- Registro > Configurar transacciones recurrentes (cafe diario, transporte semanal, etc.)
+
 Durante el mes:
   -- Abrir la app > Checklist > Marcar pagos conforme se realizan
-  -- Registrar gastos reales en Registro (comida, transporte, compras, etc.)
+  -- Registrar gastos reales en Registro (los recurrentes se generan solos)
+  -- Revisar Presupuesto para comparar gastado vs asignado por categoria
   -- Revisar Alertas para vencimientos proximos y advertencias financieras
   -- Ajustar Metas de ahorro segun progreso
   -- Cambios guardados automaticamente
@@ -401,8 +456,9 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `tasa-creacion.spec.js` | 8 | Tasa de creacion en deudas |
 | `edit-table-scroll.spec.js` | 5 | Scroll de tabla de edicion |
 | `foldable-projector.spec.js` | 6 | Proyector en pantallas plegables |
-| `tab-order.spec.js` | 7 | Orden de pestanas (12 tabs) |
-| **Total** | **184** | |
+| `tab-order.spec.js` | 7 | Orden de pestanas (13 tabs, 2 grupos) |
+| `presupuesto-recurring.spec.js` | 14 | Presupuesto CRUD, BvA, recurrentes, generacion, dedup, Excel |
+| **Total** | **198** | |
 
 ---
 

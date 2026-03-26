@@ -697,6 +697,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas" data-group="ops" data-i18n="tab_alertas">🔔 Alertas</button>
     <button class="tab-btn" onclick="showTab('checklist',this)" data-group="ops" data-i18n="tab_checklist">✅ Pagos del Mes</button>
     <button class="tab-btn" onclick="showTab('registro',this)" data-group="ops" data-i18n="tab_registro">🧾 Registro</button>
+    <button class="tab-btn" onclick="showTab('presupuesto',this)" data-group="ops" data-i18n="tab_presupuesto">📋 Presupuesto</button>
     <button class="tab-btn" onclick="showTab('gastos',this)" data-group="ops" data-i18n="tab_gastos">💸 Gastos</button>
     <button class="tab-btn" onclick="showTab('fornow',this)" data-group="ops" data-i18n="tab_fornow">💳 Fondos</button>
     <button class="tab-btn" onclick="showTab('emergency',this)" data-group="strat" data-i18n="tab_emergency" style="display:none">🛡 Emergencias</button>
@@ -713,6 +714,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <button class="mnav-btn" onclick="mobileTab('alertas',this)" id="mobileTabAlertas" data-group="ops"><span class="mnav-icon">🔔</span><span data-i18n="mnav_alertas">Alertas</span></button>
     <button class="mnav-btn" onclick="mobileTab('checklist',this)" id="mnavChecklist" data-group="ops"><span class="mnav-icon">✅</span><span data-i18n="mnav_checklist">Pagos</span></button>
     <button class="mnav-btn" onclick="mobileTab('registro',this)" id="mnavRegistro" data-group="ops"><span class="mnav-icon">🧾</span><span data-i18n="mnav_registro">Registro</span></button>
+    <button class="mnav-btn" onclick="mobileTab('presupuesto',this)" id="mnavPresupuesto" data-group="ops"><span class="mnav-icon">📋</span><span data-i18n="mnav_presupuesto">Presupuesto</span></button>
     <button class="mnav-btn" onclick="mobileTab('gastos',this)" id="mnavGastos" data-group="ops"><span class="mnav-icon">💸</span><span data-i18n="mnav_gastos">Gastos</span></button>
     <button class="mnav-btn" onclick="mobileTab('fornow',this)" id="mnavFondos" data-group="ops"><span class="mnav-icon">💳</span><span data-i18n="mnav_fornow">Fondos</span></button>
     <button class="mnav-btn" onclick="mobileTab('emergency',this)" id="mnavEmergencia" data-group="strat" style="display:none"><span class="mnav-icon">🛡</span><span data-i18n="mnav_emergency">Emergencias</span></button>
@@ -781,12 +783,35 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
           <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblMetodo"></label><select id="regMetodo" class="cierre-input" style="font-size:14px;padding:8px 10px;cursor:pointer"></select></div>
           <div style="grid-column:1/-1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblVincular"></label><select id="regVincular" class="cierre-input" style="font-size:14px;padding:8px 10px;cursor:pointer;width:100%"></select></div>
           <div style="grid-column:1/-1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblNota"></label><input type="text" id="regNota" class="cierre-input" style="font-size:14px;padding:8px 10px;width:100%" maxlength="100"></div>
+          <div style="grid-column:1/-1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblRecurrencia"></label><select id="regRecurrencia" class="cierre-input" style="font-size:14px;padding:8px 10px;cursor:pointer"></select></div>
           <div style="grid-column:1/-1;text-align:right"><button class="hdr-btn" onclick="addTransaccion()" style="background:var(--accent);color:#fff;border-color:var(--accent);padding:10px 20px;font-size:13px" id="regSubmitBtn"></button></div>
         </div>
       </div>
     </div>
     <div class="card" style="margin-bottom:16px"><div class="card-title" id="regChartTitle"></div><div class="chart-wrap"><canvas id="regCatChart"></canvas></div></div>
-    <div class="card" id="registroList"></div>
+    <div class="card" style="margin-bottom:16px" id="registroList"></div>
+    <div class="card" id="registroRecurrentes"></div>
+  </div>
+
+  <!-- PRESUPUESTO (Forward Budget) -->
+  <div id="tab-presupuesto" class="panel">
+    <div id="presKpis" class="grid g3" style="margin-bottom:16px"></div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        <div class="card-title" style="margin:0" id="presFormTitle"></div>
+        <button class="hdr-btn" onclick="togglePresForm()" id="presToggleBtn" style="font-size:12px"></button>
+      </div>
+      <div id="presFormWrap" style="display:none">
+        <div id="presFormGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+          <div id="presUnallocLabel" style="font-size:13px;font-weight:700"></div>
+          <button class="hdr-btn" onclick="savePresupuesto()" style="background:var(--accent);color:#fff;border-color:var(--accent);padding:10px 20px;font-size:13px" id="presSaveBtn"></button>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px" id="presTable"></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-title" id="presChartTitle"></div><div class="chart-wrap"><canvas id="presChart"></canvas></div></div>
+    <div id="presTip" style="font-size:11px;color:var(--muted);padding:8px 12px;background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.15);border-radius:8px"></div>
   </div>
 
   <!-- CHECKLIST PAGOS DEL MES -->
@@ -999,6 +1024,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <button class="edit-tab" onclick="showEditTab('emergency',this)" data-i18n="edit_tab_emergency">🛡 Emergencia</button>
       <button class="edit-tab" onclick="showEditTab('historial',this)" data-i18n="edit_tab_historial">📅 Historial</button>
       <button class="edit-tab" onclick="showEditTab('transacciones',this)" data-i18n="edit_tab_transacciones">🧾 Transacciones</button>
+      <button class="edit-tab" onclick="showEditTab('presupuesto',this)" data-i18n="edit_tab_presupuesto">📋 Presupuesto</button>
+      <button class="edit-tab" onclick="showEditTab('recurrentes',this)" data-i18n="edit_tab_recurrentes">🔄 Recurrentes</button>
     </div>
     <div id="esection-config" class="edit-section active">
       <div class="edit-card"><div class="edit-card-title" data-i18n="edit_card_config">⚙️ Parámetros Globales</div><div class="field-grid" id="configFields"></div></div>
@@ -1055,6 +1082,24 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <button class="row-add-btn" onclick="addTxEditRow()" data-i18n="reg_add">+ Agregar</button>
       </div>
     </div>
+    <div id="esection-presupuesto" class="edit-section">
+      <div class="edit-card">
+        <div class="edit-card-title" data-i18n="edit_tab_presupuesto">📋 Presupuesto</div>
+        <div class="edit-table-wrap">
+          <table class="edit-table"><thead><tr><th>Categoría</th><th>Presupuestado</th><th>Mes</th><th>Año</th><th></th></tr></thead><tbody id="presEditBody"></tbody></table>
+        </div>
+        <button class="row-add-btn" onclick="addPresEditRow()">+ Agregar</button>
+      </div>
+    </div>
+    <div id="esection-recurrentes" class="edit-section">
+      <div class="edit-card">
+        <div class="edit-card-title" data-i18n="edit_tab_recurrentes">🔄 Recurrentes</div>
+        <div class="edit-table-wrap">
+          <table class="edit-table"><thead><tr><th>Fecha</th><th>Monto</th><th>Categoría</th><th>Nota</th><th>Método</th><th>Frecuencia</th><th></th></tr></thead><tbody id="recEditBody"></tbody></table>
+        </div>
+        <button class="row-add-btn" onclick="addRecEditRow()">+ Agregar</button>
+      </div>
+    </div>
     <div class="save-bar">
       <div style="display:flex;gap:10px;justify-content:flex-end">
         <button class="btn btn-success" onclick="applyAndDownload()" data-i18n="edit_save">💾 Guardar y exportar Excel</button>
@@ -1089,13 +1134,14 @@ const LANG = {
     tab_resumen:'📊 Resumen', tab_alertas:'🔔 Alertas', tab_gastos:'💸 Gastos',
     tab_checklist:'✅ Pagos del Mes', tab_deudas:'🏦 Deudas', tab_proyector:'🎯 Proyector',
     tab_emergency:'🛡 Emergencias', tab_fornow:'💳 Fondos', tab_historial:'📅 Historial', tab_registro:'🧾 Registro',
+    tab_presupuesto:'📋 Presupuesto',
     // Group toggle
     group_ops:'Operaciones', group_strat:'Estrategia',
     // Mobile nav
     mnav_resumen:'Resumen', mnav_alertas:'Alertas', mnav_checklist:'Pagos',
     mnav_deudas:'Deudas', mnav_gastos:'Gastos', mnav_emergency:'Emergencias',
     mnav_fornow:'Fondos', mnav_historial:'Historial', mnav_proyector:'Proyector', mnav_registro:'Registro',
-    mnav_metas:'Metas', mnav_analisis:'Análisis',
+    mnav_metas:'Metas', mnav_analisis:'Análisis', mnav_presupuesto:'Presupuesto',
     // KPI labels
     kpi_income:'Ingresos', kpi_expenses:'Gastos Totales', kpi_surplus:'Superávit del Mes', kpi_networth:'Net Worth',
     kpi_surplus_pct:'% del ingreso ✓', kpi_deficit:'⚠ Déficit', kpi_savings_ef:'Cuentas+Ahorros+EF − Deudas',
@@ -1438,6 +1484,27 @@ const LANG = {
     reg_cat_educacion:'Educación', reg_cat_personal:'Personal', reg_cat_otro:'Otro',
     reg_chart_title:'Gasto por Categoría', reg_tracked:'Gasto registrado',
     edit_tab_transacciones:'🧾 Transacciones',
+    // Feature 6 – Presupuesto (Forward Budget)
+    pres_title:'📋 Presupuesto Mensual', pres_income:'Ingreso del Mes', pres_allocated:'Asignado',
+    pres_unallocated:'Sin Asignar', pres_over_allocated:'Sobre-asignado',
+    pres_add:'+ Asignar Categorías', pres_save:'Guardar Presupuesto',
+    pres_cat:'Categoría', pres_budgeted:'Presupuestado', pres_actual:'Gastado',
+    pres_remaining:'Restante', pres_pct:'% Usado',
+    pres_empty:'Sin presupuesto para este mes. Asigna montos a las categorías para planificar tu gasto.',
+    pres_chart_title:'Presupuesto vs Gastado',
+    pres_zero_note:'💡 Presupuesto base cero: asigna cada peso de tu ingreso a una categoría.',
+    pres_over_warn:'⚠ Gastaste más de lo presupuestado en {n} categorías.',
+    pres_under_note:'✓ Dentro del presupuesto en todas las categorías.',
+    pres_delete_confirm:'¿Eliminar esta asignación?',
+    pres_from_recurring:'~RD${n} de recurrentes',
+    edit_tab_presupuesto:'📋 Presupuesto', edit_tab_recurrentes:'🔄 Recurrentes',
+    // Feature 7 – Recurring Transactions
+    rec_title:'🔄 Transacciones Recurrentes', rec_frecuencia:'Frecuencia',
+    rec_diario:'Diario', rec_semanal:'Semanal', rec_quincenal:'Quincenal', rec_mensual:'Mensual',
+    rec_none:'Sin repetir', rec_toggle:'Repetir',
+    rec_empty:'Sin reglas recurrentes. Al agregar un gasto con frecuencia, se repetirá automáticamente.',
+    rec_delete_confirm:'¿Eliminar esta regla recurrente? Las transacciones ya generadas no se borran.',
+    rec_generated:'{n} transacciones generadas',
   },
   en: {
     // Header buttons / overflow
@@ -1451,13 +1518,14 @@ const LANG = {
     tab_resumen:'📊 Summary', tab_alertas:'🔔 Alerts', tab_gastos:'💸 Expenses',
     tab_checklist:'✅ Monthly Payments', tab_deudas:'🏦 Debts', tab_proyector:'🎯 Projector',
     tab_emergency:'🛡 Emergencies', tab_fornow:'💳 Funds', tab_historial:'📅 History', tab_registro:'🧾 Log',
+    tab_presupuesto:'📋 Budget',
     // Group toggle
     group_ops:'Operations', group_strat:'Strategy',
     // Mobile nav
     mnav_resumen:'Summary', mnav_alertas:'Alerts', mnav_checklist:'Payments',
     mnav_deudas:'Debts', mnav_gastos:'Expenses', mnav_emergency:'Emergencies',
     mnav_fornow:'Funds', mnav_historial:'History', mnav_proyector:'Projector', mnav_registro:'Log',
-    mnav_metas:'Goals', mnav_analisis:'Analysis',
+    mnav_metas:'Goals', mnav_analisis:'Analysis', mnav_presupuesto:'Budget',
     // KPI labels
     kpi_income:'Income', kpi_expenses:'Total Expenses', kpi_surplus:'Monthly Surplus', kpi_networth:'Net Worth',
     kpi_surplus_pct:'% of income ✓', kpi_deficit:'⚠ Deficit', kpi_savings_ef:'Accounts+Savings+EF − Debts',
@@ -1800,6 +1868,27 @@ const LANG = {
     reg_cat_educacion:'Education', reg_cat_personal:'Personal', reg_cat_otro:'Other',
     reg_chart_title:'Spending by Category', reg_tracked:'Tracked spending',
     edit_tab_transacciones:'🧾 Transactions',
+    // Feature 6 – Budget (Forward Budget)
+    pres_title:'📋 Monthly Budget', pres_income:'Month Income', pres_allocated:'Allocated',
+    pres_unallocated:'Unallocated', pres_over_allocated:'Over-allocated',
+    pres_add:'+ Assign Categories', pres_save:'Save Budget',
+    pres_cat:'Category', pres_budgeted:'Budgeted', pres_actual:'Spent',
+    pres_remaining:'Remaining', pres_pct:'% Used',
+    pres_empty:'No budget for this month. Assign amounts to categories to plan your spending.',
+    pres_chart_title:'Budget vs Spent',
+    pres_zero_note:'💡 Zero-based budgeting: assign every peso of your income to a category.',
+    pres_over_warn:'⚠ You overspent in {n} categories.',
+    pres_under_note:'✓ Within budget in all categories.',
+    pres_delete_confirm:'Delete this allocation?',
+    pres_from_recurring:'~RD${n} from recurring',
+    edit_tab_presupuesto:'📋 Budget', edit_tab_recurrentes:'🔄 Recurring',
+    // Feature 7 – Recurring Transactions
+    rec_title:'🔄 Recurring Transactions', rec_frecuencia:'Frequency',
+    rec_diario:'Daily', rec_semanal:'Weekly', rec_quincenal:'Biweekly', rec_mensual:'Monthly',
+    rec_none:'No repeat', rec_toggle:'Repeat',
+    rec_empty:'No recurring rules. When you add an expense with a frequency, it will repeat automatically.',
+    rec_delete_confirm:'Delete this recurring rule? Already generated transactions will not be removed.',
+    rec_generated:'{n} transactions generated',
   }
 };
 
@@ -2040,7 +2129,7 @@ window.addEventListener('load',()=>{
 // SWIPE GESTURES — mobile tab nav
 // ══════════════════════════════════
 (()=>{
-  const TAB_ORDER=['resumen','alertas','checklist','registro','gastos','fornow','emergency','deudas','proyector','metas','analisis','historial'];
+  const TAB_ORDER=['resumen','alertas','checklist','registro','presupuesto','gastos','fornow','emergency','deudas','proyector','metas','analisis','historial'];
   let _tx=0,_ty=0;
   document.addEventListener('touchstart',e=>{
     _tx=e.touches[0].clientX;
@@ -2086,6 +2175,8 @@ function defaultEditData(){
     historial:[],
     metas:[],
     transacciones:[],
+    presupuesto:[],
+    recurrentes:[],
     filename:'cnt.xlsx'
   };
 }
@@ -2516,7 +2607,25 @@ function processWorkbook(wb,filename){
         transacciones.push({fecha:String(r[0]||''),monto:clean(r[1]),categoria:String(r[2]||'otro'),nota:String(r[3]||''),metodo:String(r[4]||'efectivo'),gastoIdx,mes:String(r[6]||''),anio:clean(r[7])});
       }
     }
-    _editData={config,gastos,forNow,emerg,historial,metas,transacciones,filename};
+    // Parse Presupuesto sheet
+    const presRows=sheetArr(wb,'presupuesto');
+    const presupuesto=[];
+    if(presRows.length>1){
+      for(let i=1;i<presRows.length;i++){
+        const r=presRows[i];if(!r[0]&&!r[1])continue;
+        presupuesto.push({categoria:String(r[0]||'otro'),presupuestado:clean(r[1]),mes:String(r[2]||''),anio:clean(r[3])});
+      }
+    }
+    // Parse Recurrentes sheet
+    const recRows=sheetArr(wb,'recurrente');
+    const recurrentes=[];
+    if(recRows.length>1){
+      for(let i=1;i<recRows.length;i++){
+        const r=recRows[i];if(!r[0]&&!r[2])continue;
+        recurrentes.push({id:String(r[0]||'rec_'+Date.now()+i),fecha:String(r[1]||''),monto:clean(r[2]),categoria:String(r[3]||'otro'),nota:String(r[4]||''),metodo:String(r[5]||'efectivo'),frecuencia:String(r[6]||'mensual'),lastGenerated:String(r[7]||r[1]||'')});
+      }
+    }
+    _editData={config,gastos,forNow,emerg,historial,metas,transacciones,presupuesto,recurrentes,filename};
     // Bug 1 fix: enforce single source of truth after Excel load
     _editData.config.ingresoRD = config.ingresoUSD * config.tasa;
     _editData.emerg.cashflow.ingreso = config.ingresoUSD * config.tasa;
@@ -2968,6 +3077,8 @@ function toggleRegForm(){
 }
 
 function buildRegistro(transacciones,gastos,config){
+  generateRecurring(config);
+  transacciones=_editData.transacciones||transacciones;// refresh after generation
   const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
   const total=tx.reduce((a,t)=>a+t.monto,0);
   const today=new Date();const dom=today.getDate();
@@ -3009,6 +3120,13 @@ function buildRegistro(transacciones,gastos,config){
   vinSel.innerHTML=`<option value="-1">${t('reg_ninguno')}</option>`;
   gastos.forEach((g,i)=>{const o=document.createElement('option');o.value=i;o.textContent=g.nombre;vinSel.appendChild(o);});
 
+  // Recurrence dropdown
+  document.getElementById('regLblRecurrencia').textContent=t('rec_toggle');
+  const recSel=document.getElementById('regRecurrencia');
+  if(recSel.options.length===0){
+    [{v:'none',l:'rec_none'},{v:'diario',l:'rec_diario'},{v:'semanal',l:'rec_semanal'},{v:'quincenal',l:'rec_quincenal'},{v:'mensual',l:'rec_mensual'}].forEach(m=>{const o=document.createElement('option');o.value=m.v;o.textContent=t(m.l);recSel.appendChild(o);});
+  }
+
   // Category chart
   const catTotals={};tx.forEach(t=>{catTotals[t.categoria]=(catTotals[t.categoria]||0)+t.monto;});
   const cats=Object.keys(catTotals);
@@ -3030,7 +3148,20 @@ function buildRegistro(transacciones,gastos,config){
       const dateParts=tr.fecha.split('-');
       const dateStr=dateParts.length===3?`${dateParts[2]}/${dateParts[1]}`:`${tr.fecha}`;
       const metIcon=tr.metodo==='tarjeta'?'💳':tr.metodo==='transferencia'?'🏦':'💵';
-      return`<div class="reg-item"><span class="reg-date">${dateStr}</span><div class="reg-desc">${escH(tr.nota||t('reg_cat_'+tr.categoria))} <span style="font-size:11px;color:var(--muted)">${metIcon}</span></div><span class="reg-cat">${t('reg_cat_'+tr.categoria)}</span><span class="reg-amt">-RD$${fmt(tr.monto)}</span><button class="reg-del" onclick="deleteTransaccion(${idx})" title="Delete">✕</button></div>`;
+      const recBadge=tr.recurrenteId?'<span style="font-size:9px;background:rgba(59,130,246,.15);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px">🔄</span>':'';
+      return`<div class="reg-item"><span class="reg-date">${dateStr}</span><div class="reg-desc">${escH(tr.nota||t('reg_cat_'+tr.categoria))} <span style="font-size:11px;color:var(--muted)">${metIcon}</span>${recBadge}</div><span class="reg-cat">${t('reg_cat_'+tr.categoria)}</span><span class="reg-amt">-RD$${fmt(tr.monto)}</span><button class="reg-del" onclick="deleteTransaccion(${idx})" title="Delete">✕</button></div>`;
+    }).join('');
+  }
+
+  // Recurring rules summary
+  const recEl=document.getElementById('registroRecurrentes');
+  const recs=_editData.recurrentes||[];
+  if(recs.length===0){
+    recEl.innerHTML=`<div class="card-title">${t('rec_title')}</div><div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('rec_empty')}</div>`;
+  } else {
+    recEl.innerHTML=`<div class="card-title" style="margin-bottom:12px">${t('rec_title')}</div>`+recs.map((r,i)=>{
+      const freqLabel=t('rec_'+r.frecuencia);
+      return`<div class="reg-item"><span class="reg-date" style="background:rgba(59,130,246,.15);color:var(--accent)">${freqLabel}</span><div class="reg-desc">${escH(r.nota||t('reg_cat_'+r.categoria))}</div><span class="reg-cat">${t('reg_cat_'+r.categoria)}</span><span class="reg-amt">RD$${fmt(r.monto)}</span><button class="reg-del" onclick="deleteRecurrente(${i})" title="Delete">✕</button></div>`;
     }).join('');
   }
 }
@@ -3042,9 +3173,20 @@ function addTransaccion(){
   const nota=document.getElementById('regNota').value.trim();
   const metodo=document.getElementById('regMetodo').value;
   const gastoIdx=parseInt(document.getElementById('regVincular').value);
+  const recurrencia=document.getElementById('regRecurrencia').value;
   if(monto<=0)return;
   if(!_editData.transacciones)_editData.transacciones=[];
   _editData.transacciones.push({fecha,monto,categoria,nota,metodo,gastoIdx:gastoIdx>=0?gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio});
+  // Create recurring rule if frequency selected
+  if(recurrencia&&recurrencia!=='none'){
+    if(!_editData.recurrentes)_editData.recurrentes=[];
+    _editData.recurrentes.push({
+      id:'rec_'+Date.now(),fecha,monto,categoria,nota,metodo,
+      gastoIdx:gastoIdx>=0?gastoIdx:-1,
+      frecuencia:recurrencia,lastGenerated:fecha
+    });
+    document.getElementById('regRecurrencia').value='none';
+  }
   document.getElementById('regMonto').value='';
   document.getElementById('regNota').value='';
   saveToDB();
@@ -3055,6 +3197,204 @@ function deleteTransaccion(idx){
   if(!confirm(t('reg_delete_confirm')))return;
   if(_editData.transacciones&&_editData.transacciones[idx]!==undefined){
     _editData.transacciones.splice(idx,1);
+    saveToDB();
+    buildRegistro(_editData.transacciones,_editData.gastos,_editData.config);
+  }
+}
+
+// ══════════════════════════════════
+// FORWARD BUDGET (PRESUPUESTO)
+// ══════════════════════════════════
+
+function togglePresForm(){
+  const w=document.getElementById('presFormWrap');
+  w.style.display=w.style.display==='none'?'block':'none';
+}
+
+function buildPresupuesto(presupuesto,transacciones,config){
+  const pres=(presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio);
+  const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
+  const ingreso=config.ingresoRD||(config.ingresoUSD*config.tasa)||0;
+  const recs=_editData.recurrentes||[];
+
+  // Per-category data
+  const catData=REG_CATS.map(cat=>{
+    const budgeted=pres.find(p=>p.categoria===cat)?.presupuestado||0;
+    const actual=tx.filter(t=>t.categoria===cat).reduce((a,t)=>a+t.monto,0);
+    // Estimate recurring for this category in current month
+    const recEst=recs.filter(r=>r.categoria===cat).reduce((a,r)=>{
+      const mult=r.frecuencia==='diario'?30:r.frecuencia==='semanal'?4:r.frecuencia==='quincenal'?2:1;
+      return a+r.monto*mult;
+    },0);
+    return{cat,budgeted,actual,remaining:budgeted-actual,pct:budgeted>0?Math.round(actual/budgeted*100):(actual>0?999:0),recEst};
+  });
+
+  const hasBudget=catData.some(d=>d.budgeted>0);
+  const active=catData.filter(d=>d.budgeted>0||d.actual>0);
+  const totalBudgeted=catData.reduce((a,d)=>a+d.budgeted,0);
+  const totalActual=active.reduce((a,d)=>a+d.actual,0);
+  const unallocated=ingreso-totalBudgeted;
+  const overCount=active.filter(d=>d.budgeted>0&&d.actual>d.budgeted).length;
+
+  // KPIs
+  document.getElementById('presKpis').innerHTML=[
+    {l:t('pres_income'),v:`RD$${fmt(ingreso)}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
+    {l:t('pres_allocated'),v:`RD$${fmt(totalBudgeted)}`,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
+    {l:unallocated>=0?t('pres_unallocated'):t('pres_over_allocated'),v:`RD$${fmt(Math.abs(unallocated))}`,c:unallocated>=0?'var(--accent2)':'var(--red)',b:unallocated>=0?'rgba(6,182,212,.12)':'rgba(244,96,106,.12)'},
+  ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div></div>`).join('');
+
+  // Form labels
+  document.getElementById('presFormTitle').textContent=t('pres_title');
+  document.getElementById('presToggleBtn').textContent=t('pres_add');
+  document.getElementById('presSaveBtn').textContent=t('pres_save');
+  document.getElementById('presChartTitle').textContent=t('pres_chart_title');
+  document.getElementById('presTip').innerHTML='💡 '+t('pres_zero_note');
+
+  // Build form grid (9 categories)
+  const fg=document.getElementById('presFormGrid');
+  fg.innerHTML=REG_CATS.map(cat=>{
+    const cur=pres.find(p=>p.categoria===cat)?.presupuestado||0;
+    const recE=catData.find(d=>d.cat===cat)?.recEst||0;
+    const hint=recE>0?`<span style="font-size:10px;color:var(--muted)">${t('pres_from_recurring').replace('{n}',fmt(Math.round(recE)))}</span>`:'';
+    return`<div>
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">${t('reg_cat_'+cat)} ${hint}</label>
+      <input type="number" min="0" step="100" value="${cur||''}" data-pres-cat="${cat}" class="cierre-input pres-input" style="font-size:14px;padding:8px 10px;width:100%" placeholder="0" oninput="updatePresUnalloc()">
+    </div>`;
+  }).join('');
+
+  // Live unallocated counter
+  updatePresUnalloc();
+
+  // Table
+  const tEl=document.getElementById('presTable');
+  if(!hasBudget&&active.length===0){
+    tEl.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">${t('pres_empty')}</div>`;
+  } else {
+    const rows=active.map(d=>{
+      const barW=Math.min(100,d.pct);
+      const barColor=d.pct>100?'var(--red)':d.pct>80?'var(--yellow)':'var(--green)';
+      const remColor=d.remaining>=0?'var(--green)':'var(--red)';
+      return`<tr>
+        <td data-label="${t('pres_cat')}"><span class="pill" style="background:${REG_CAT_COLORS[d.cat]}22;color:${REG_CAT_COLORS[d.cat]}">${t('reg_cat_'+d.cat)}</span></td>
+        <td data-label="${t('pres_budgeted')}" class="num" style="color:var(--muted)">RD$${fmt(d.budgeted)}</td>
+        <td data-label="${t('pres_actual')}" class="num" style="color:${d.actual>0?'var(--text)':'var(--muted)'}">RD$${fmt(d.actual)}</td>
+        <td data-label="${t('pres_remaining')}" class="num" style="color:${remColor};font-weight:700">${d.remaining>=0?'':'−'}RD$${fmt(Math.abs(d.remaining))}</td>
+        <td data-label="${t('pres_pct')}" style="min-width:90px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="flex:1;background:var(--surface2);border-radius:99px;height:5px;overflow:hidden;min-width:50px">
+              <div style="height:5px;border-radius:99px;width:${barW}%;background:${barColor}"></div>
+            </div>
+            <span class="mono" style="font-size:11px;color:${d.pct>100?'var(--red)':'var(--muted)'}">${d.pct>900?'∞':d.pct+'%'}</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    const summaryNote=overCount>0?`<div style="color:var(--red);font-size:12px;margin-top:8px">${t('pres_over_warn').replace('{n}',overCount)}</div>`:(hasBudget?`<div style="color:var(--green);font-size:12px;margin-top:8px">${t('pres_under_note')}</div>`:'');
+
+    tEl.innerHTML=`<div class="tbl-wrap"><table class="mobile-card-table">
+      <thead><tr><th>${t('pres_cat')}</th><th style="text-align:right">${t('pres_budgeted')}</th><th style="text-align:right">${t('pres_actual')}</th><th style="text-align:right">${t('pres_remaining')}</th><th>${t('pres_pct')}</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>${summaryNote}`;
+  }
+
+  // Chart
+  const chartCats=active.filter(d=>d.budgeted>0);
+  if(charts.presChart)try{charts.presChart.destroy()}catch(e){}
+  const cEl=document.getElementById('presChart');
+  if(chartCats.length>0){
+    cEl.parentElement.style.display='';
+    charts.presChart=new Chart(cEl,{
+      type:'bar',
+      data:{labels:chartCats.map(d=>t('reg_cat_'+d.cat)),datasets:[
+        {label:t('pres_budgeted'),data:chartCats.map(d=>d.budgeted),backgroundColor:'rgba(59,130,246,.4)',borderColor:'#3b82f6',borderWidth:2,borderRadius:4},
+        {label:t('pres_actual'),data:chartCats.map(d=>d.actual),backgroundColor:'rgba(244,96,106,.45)',borderColor:'#f4606a',borderWidth:2,borderRadius:4},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+        scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxRotation:40}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
+    });
+  } else { cEl.parentElement.style.display='none'; }
+}
+
+function updatePresUnalloc(){
+  const ingreso=(_editData.config.ingresoRD||(_editData.config.ingresoUSD*_editData.config.tasa))||0;
+  let total=0;
+  document.querySelectorAll('.pres-input').forEach(inp=>{total+=parseFloat(inp.value)||0;});
+  const un=ingreso-total;
+  const el=document.getElementById('presUnallocLabel');
+  if(el){
+    el.style.color=un>=0?'var(--accent2)':'var(--red)';
+    el.textContent=(un>=0?t('pres_unallocated'):t('pres_over_allocated'))+`: RD$${fmt(Math.abs(un))}`;
+  }
+}
+
+function savePresupuesto(){
+  if(!_editData.presupuesto)_editData.presupuesto=[];
+  const mes=_editData.config.mes,anio=_editData.config.anio;
+  document.querySelectorAll('.pres-input').forEach(inp=>{
+    const cat=inp.dataset.presCat;
+    const val=parseFloat(inp.value)||0;
+    const idx=_editData.presupuesto.findIndex(p=>p.categoria===cat&&p.mes===mes&&p.anio===anio);
+    if(val>0){
+      if(idx>=0)_editData.presupuesto[idx].presupuestado=val;
+      else _editData.presupuesto.push({categoria:cat,presupuestado:val,mes,anio});
+    } else if(idx>=0){
+      _editData.presupuesto.splice(idx,1);
+    }
+  });
+  saveToDB();
+  buildPresupuesto(_editData.presupuesto,_editData.transacciones,_editData.config);
+  showToast('💾 '+t('pres_save'),'var(--green)');
+}
+
+// ══════════════════════════════════
+// RECURRING TRANSACTIONS
+// ══════════════════════════════════
+const MESES_INTERNOS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function generateRecurring(config){
+  const recs=_editData.recurrentes||[];
+  if(!recs.length)return 0;
+  if(!_editData.transacciones)_editData.transacciones=[];
+  let generated=0;
+  const today=new Date();
+  recs.forEach(rec=>{
+    const dates=getRecurringDates(rec,today);
+    dates.forEach(d=>{
+      const iso=d.toISOString().slice(0,10);
+      if(_editData.transacciones.some(tx=>tx.recurrenteId===rec.id&&tx.fecha===iso))return;
+      _editData.transacciones.push({
+        fecha:iso,monto:rec.monto,categoria:rec.categoria,nota:rec.nota,
+        metodo:rec.metodo,gastoIdx:rec.gastoIdx,
+        mes:MESES_INTERNOS[d.getMonth()],anio:d.getFullYear(),recurrenteId:rec.id
+      });
+      generated++;
+    });
+    rec.lastGenerated=today.toISOString().slice(0,10);
+  });
+  if(generated>0)saveToDB();
+  return generated;
+}
+
+function getRecurringDates(rec,upTo){
+  const dates=[],MAX=365;
+  let cursor=new Date(rec.lastGenerated);
+  for(let i=0;i<MAX;i++){
+    if(rec.frecuencia==='diario')cursor.setDate(cursor.getDate()+1);
+    else if(rec.frecuencia==='semanal')cursor.setDate(cursor.getDate()+7);
+    else if(rec.frecuencia==='quincenal')cursor.setDate(cursor.getDate()+14);
+    else if(rec.frecuencia==='mensual')cursor.setMonth(cursor.getMonth()+1);
+    else break;
+    if(cursor>upTo)break;
+    dates.push(new Date(cursor));
+  }
+  return dates;
+}
+
+function deleteRecurrente(idx){
+  if(!confirm(t('rec_delete_confirm')))return;
+  if(_editData.recurrentes&&_editData.recurrentes[idx]!==undefined){
+    _editData.recurrentes.splice(idx,1);
     saveToDB();
     buildRegistro(_editData.transacciones,_editData.gastos,_editData.config);
   }
@@ -3809,6 +4149,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta,emerg,interesMensual});
   buildChecklist(gastos);
   buildRegistro(_editData.transacciones||[],gastos,config);
+  buildPresupuesto(_editData.presupuesto,_editData.transacciones,config);
   buildProyector({gastos,ingreso,gasto,config});
   buildSavingsGoals();
   buildBudgetVsActual(gastos,ingreso);
@@ -4435,7 +4776,9 @@ function cierreNav(dir){
       const ahorro=ingreso-gasto;
       const tasaAhorro=ingreso>0?ahorro/ingreso:0;
       const gastoReal=(_editData.transacciones||[]).filter(tx=>tx.mes===_editData.config.mes&&tx.anio===_editData.config.anio).reduce((a,tx)=>a+tx.monto,0);
-      _editData.historial.unshift({mes:_editData.config.mes,anio:_editData.config.anio,ingresos:ingreso,gasto,ahorro,tasaAhorro,deudas:totalDeudas,emergencia:efTotal,netWorth,tasa:_editData.config.tasa,notas:'',gastoReal});
+      const presMes=(_editData.presupuesto||[]).filter(p=>p.mes===_editData.config.mes&&p.anio===_editData.config.anio);
+      const totalPresupuestado=presMes.reduce((a,p)=>a+p.presupuestado,0);
+      _editData.historial.unshift({mes:_editData.config.mes,anio:_editData.config.anio,ingresos:ingreso,gasto,ahorro,tasaAhorro,deudas:totalDeudas,emergencia:efTotal,netWorth,tasa:_editData.config.tasa,notas:'',gastoReal,presupuestado:totalPresupuestado});
       // Update config to next month
       const nextMes=document.getElementById('cw-nextmes')?.value.trim();
       const nextAnio=parseInt(document.getElementById('cw-nextanio')?.value);
@@ -4443,6 +4786,10 @@ function cierreNav(dir){
       if(!isNaN(nextAnio))_editData.config.anio=nextAnio;
       // Reset payment status for new month
       _editData.gastos.forEach(g=>{g.pagadoMes=false;g.pagado=0;});
+      // Budget carry-forward: copy current budget to next month if no budget exists yet
+      if(presMes.length>0&&!(_editData.presupuesto||[]).some(p=>p.mes===_editData.config.mes&&p.anio===_editData.config.anio)){
+        presMes.forEach(p=>{_editData.presupuesto.push({categoria:p.categoria,presupuestado:p.presupuestado,mes:_editData.config.mes,anio:_editData.config.anio});});
+      }
       _pendingSave=false;
       // Fix 3.5: Post-close summary — show key deltas before redirecting
       const prevHist=_editData.historial.length>1?_editData.historial[1]:null;
@@ -4483,7 +4830,7 @@ function exportSnapshot(){
 // ══════════════════════════════════
 // TAB GROUPS
 // ══════════════════════════════════
-const GROUP_OPS=['resumen','alertas','checklist','registro','gastos','fornow'];
+const GROUP_OPS=['resumen','alertas','checklist','registro','presupuesto','gastos','fornow'];
 const GROUP_STRAT=['emergency','deudas','proyector','metas','analisis','historial'];
 let _activeGroup='ops';
 
@@ -4539,6 +4886,7 @@ function navigateToHash(){
     '#fornow':'fornow',
     '#historial':'historial',
     '#registro':'registro',
+    '#presupuesto':'presupuesto',
     '#metas':'metas',
     '#analisis':'analisis',
   };
@@ -4758,6 +5106,35 @@ function buildEditForms(){
       <td><button class="row-del-btn" onclick="deleteTxEditRow(${i})">✕</button></td>
     </tr>`;
   });
+
+  // Presupuesto edit table
+  const presb=document.getElementById('presEditBody');presb.innerHTML='';
+  const presArr=_editData.presupuesto||[];
+  presArr.forEach((p,i)=>{
+    presb.innerHTML+=`<tr>
+      <td><select class="tbl-input" oninput="markChanged(this);_editData.presupuesto[${i}].categoria=this.value">${REG_CATS.map(c=>`<option value="${c}" ${p.categoria===c?'selected':''}>${c}</option>`).join('')}</select></td>
+      <td><input class="tbl-input" type="number" step="100" min="0" value="${p.presupuestado}" oninput="markChanged(this);_editData.presupuesto[${i}].presupuestado=pf(this.value)"></td>
+      <td><input class="tbl-input" value="${escH(p.mes||'')}" oninput="markChanged(this);_editData.presupuesto[${i}].mes=this.value" style="min-width:70px"></td>
+      <td><input class="tbl-input" type="number" step="1" value="${p.anio||0}" oninput="markChanged(this);_editData.presupuesto[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
+      <td><button class="row-del-btn" onclick="deletePresEditRow(${i})">✕</button></td>
+    </tr>`;
+  });
+
+  // Recurrentes edit table
+  const recb=document.getElementById('recEditBody');recb.innerHTML='';
+  const recArr=_editData.recurrentes||[];
+  const FREQS=['diario','semanal','quincenal','mensual'];
+  recArr.forEach((r,i)=>{
+    recb.innerHTML+=`<tr>
+      <td><input class="tbl-input" type="date" value="${escH(r.fecha)}" oninput="markChanged(this);_editData.recurrentes[${i}].fecha=this.value" style="min-width:110px"></td>
+      <td><input class="tbl-input" type="number" step="any" min="0" value="${r.monto}" oninput="markChanged(this);_editData.recurrentes[${i}].monto=pf(this.value)"></td>
+      <td><select class="tbl-input" oninput="markChanged(this);_editData.recurrentes[${i}].categoria=this.value">${REG_CATS.map(c=>`<option value="${c}" ${r.categoria===c?'selected':''}>${c}</option>`).join('')}</select></td>
+      <td><input class="tbl-input" value="${escH(r.nota||'')}" oninput="markChanged(this);_editData.recurrentes[${i}].nota=this.value" style="min-width:80px"></td>
+      <td><select class="tbl-input" oninput="markChanged(this);_editData.recurrentes[${i}].metodo=this.value"><option value="efectivo" ${r.metodo==='efectivo'?'selected':''}>Efectivo</option><option value="tarjeta" ${r.metodo==='tarjeta'?'selected':''}>Tarjeta</option><option value="transferencia" ${r.metodo==='transferencia'?'selected':''}>Transfer</option></select></td>
+      <td><select class="tbl-input" oninput="markChanged(this);_editData.recurrentes[${i}].frecuencia=this.value">${FREQS.map(f=>`<option value="${f}" ${r.frecuencia===f?'selected':''}>${f}</option>`).join('')}</select></td>
+      <td><button class="row-del-btn" onclick="deleteRecEditRow(${i})">✕</button></td>
+    </tr>`;
+  });
 }
 
 function deleteGastoRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
@@ -4771,6 +5148,10 @@ function addEmergFundRow(){const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeud
 function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:_editData.config.tasa||60,notas:''});markChanged(document.body);buildEditForms();}
 function addTxEditRow(){if(!_editData.transacciones)_editData.transacciones=[];_editData.transacciones.push({fecha:new Date().toISOString().slice(0,10),monto:0,categoria:'otro',nota:'',metodo:'efectivo',gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio});markChanged(document.body);buildEditForms();}
 function deleteTxEditRow(i){if(!confirm(t('reg_delete_confirm')))return;_editData.transacciones.splice(i,1);markChanged(document.body);buildEditForms();}
+function addPresEditRow(){if(!_editData.presupuesto)_editData.presupuesto=[];_editData.presupuesto.push({categoria:'otro',presupuestado:0,mes:_editData.config.mes,anio:_editData.config.anio});markChanged(document.body);buildEditForms();}
+function deletePresEditRow(i){if(!confirm(t('pres_delete_confirm')))return;_editData.presupuesto.splice(i,1);markChanged(document.body);buildEditForms();}
+function addRecEditRow(){if(!_editData.recurrentes)_editData.recurrentes=[];_editData.recurrentes.push({id:'rec_'+Date.now(),fecha:new Date().toISOString().slice(0,10),monto:0,categoria:'otro',nota:'',metodo:'efectivo',gastoIdx:-1,frecuencia:'mensual',lastGenerated:new Date().toISOString().slice(0,10)});markChanged(document.body);buildEditForms();}
+function deleteRecEditRow(i){if(!confirm(t('rec_delete_confirm')))return;_editData.recurrentes.splice(i,1);markChanged(document.body);buildEditForms();}
 
 function readConfigFromForm(){
   // Final flush — re-reads DOM values using same validation as syncConfigField
@@ -4853,6 +5234,22 @@ function buildNewWorkbook(){
     const txRows=[['Fecha','Monto','Categoría','Nota','Método','Gasto Vinculado','Mes','Año']];
     txData.forEach(tx=>txRows.push([tx.fecha,tx.monto,tx.categoria,tx.nota||'',tx.metodo||'',tx.gastoIdx>=0&&_editData.gastos[tx.gastoIdx]?_editData.gastos[tx.gastoIdx].nombre:'',tx.mes,tx.anio]));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(txRows), 'Transacciones');
+  }
+
+  // ── Presupuesto sheet ──
+  const presData=_editData.presupuesto||[];
+  if(presData.length){
+    const presRows=[['Categoría','Presupuestado','Mes','Año']];
+    presData.forEach(p=>presRows.push([p.categoria,p.presupuestado,p.mes,p.anio]));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(presRows), 'Presupuesto');
+  }
+
+  // ── Recurrentes sheet ──
+  const recData=_editData.recurrentes||[];
+  if(recData.length){
+    const recRows=[['ID','Fecha','Monto','Categoría','Nota','Método','Frecuencia','LastGenerated']];
+    recData.forEach(r=>recRows.push([r.id,r.fecha,r.monto,r.categoria,r.nota||'',r.metodo||'',r.frecuencia,r.lastGenerated||'']));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(recRows), 'Recurrentes');
   }
 
   return wb;
@@ -4943,6 +5340,32 @@ function generateExcel(){
   } else if(txSheetName){
     delete _rawWb.Sheets[txSheetName];
     _rawWb.SheetNames=_rawWb.SheetNames.filter(n=>n!==txSheetName);
+  }
+  // Write Presupuesto sheet
+  const presData=_editData.presupuesto||[];
+  const presSheetName=_rawWb.SheetNames.find(n=>n.toLowerCase()==='presupuesto');
+  if(presData.length){
+    const presRows=[['Categoría','Presupuestado','Mes','Año']];
+    presData.forEach(p=>presRows.push([p.categoria,p.presupuestado,p.mes,p.anio]));
+    const presSheet=XLSX.utils.aoa_to_sheet(presRows);
+    if(presSheetName){_rawWb.Sheets[presSheetName]=presSheet;}
+    else{XLSX.utils.book_append_sheet(_rawWb,presSheet,'Presupuesto');}
+  } else if(presSheetName){
+    delete _rawWb.Sheets[presSheetName];
+    _rawWb.SheetNames=_rawWb.SheetNames.filter(n=>n!==presSheetName);
+  }
+  // Write Recurrentes sheet
+  const recData=_editData.recurrentes||[];
+  const recSheetName=_rawWb.SheetNames.find(n=>n.toLowerCase().startsWith('recurrente'));
+  if(recData.length){
+    const recRows=[['ID','Fecha','Monto','Categoría','Nota','Método','Frecuencia','LastGenerated']];
+    recData.forEach(r=>recRows.push([r.id,r.fecha,r.monto,r.categoria,r.nota||'',r.metodo||'',r.frecuencia,r.lastGenerated||'']));
+    const recSheet=XLSX.utils.aoa_to_sheet(recRows);
+    if(recSheetName){_rawWb.Sheets[recSheetName]=recSheet;}
+    else{XLSX.utils.book_append_sheet(_rawWb,recSheet,'Recurrentes');}
+  } else if(recSheetName){
+    delete _rawWb.Sheets[recSheetName];
+    _rawWb.SheetNames=_rawWb.SheetNames.filter(n=>n!==recSheetName);
   }
   const now=new Date();
   const stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
