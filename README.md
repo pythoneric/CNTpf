@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (145+ tests)
+tests/                -- Suite de tests Playwright (184 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -62,21 +62,22 @@ Si ya usaste el dashboard antes en este navegador, aparece esta opcion automatic
 
 ## Pestanas del Dashboard
 
-El dashboard tiene **11 pestanas**, cada una con un proposito especifico:
+El dashboard tiene **12 pestanas**, cada una con un proposito especifico:
 
 | Pestana | Descripcion |
 |---------|-------------|
 | **Resumen** | KPIs de ingresos, gastos, superavit, net worth, tasa de ahorro y salud financiera |
 | **Alertas** | Pagos proximos, atrasados, alertas DTI, amortizacion negativa, fondo de emergencia y anomalias |
-| **Gastos** | Tabla completa de gastos y deudas con estado de pago por item |
 | **Pagos del Mes** | Checklist de pagos con calendario visual, progreso por monto, y analisis de intereses |
+| **Registro** | Registro de gastos reales con categorias, graficos por tipo y totales del mes |
+| **Gastos** | Tabla completa de gastos y deudas con estado de pago por item |
+| **Fondos** | Saldos de cuentas (RD$/USD) vs compromisos mensuales y disponibilidad real |
+| **Emergencia** | Fondos de emergencia con progreso vs meta, plan de asignacion y cashflow |
 | **Deudas** | Cards individuales con balance, tasa, proyeccion de interes y boton "Liquidar deuda" |
 | **Proyector** | Simulador de pago de deudas: Avalancha vs Bola de Nieve con escenarios what-if |
-| **Emergencia** | Fondos de emergencia con progreso vs meta, plan de asignacion y cashflow |
-| **Fondos** | Saldos de cuentas (RD$/USD) vs compromisos mensuales y disponibilidad real |
-| **Historial** | Registro historico con graficos de tendencia, tasa de ahorro y evolucion de deudas |
 | **Metas** | Metas de ahorro con progreso, ETA estimado y advertencia de sobrecompromiso |
 | **Analisis** | Presupuesto vs real (BVA), proyecciones de pago y tendencia de gastos recurrentes |
+| **Historial** | Registro historico con graficos de tendencia, tasa de ahorro y evolucion de deudas |
 
 ---
 
@@ -92,7 +93,7 @@ El dashboard tiene **11 pestanas**, cada una con un proposito especifico:
 - **Vencimientos proximos** -- Pagos que vencen dentro de los proximos dias (configurable)
 - **Pagos atrasados** -- Compromisos no pagados despues de su dia de pago
 - **Fechas limite** -- Deudas con fecha limite dentro de 60 dias
-- **DTI elevado** -- Alerta a >36% (riesgo crediticio) y urgente a >43% (umbral de prestamistas)
+- **DTI elevado** -- Alerta a >36% (riesgo crediticio) y urgente a >43% (umbral de prestamistas). DTI se calcula como pagos mensuales de deuda / ingreso mensual (formula estandar de prestamistas)
 - **Amortizacion negativa** -- Alerta urgente cuando el pago mensual no cubre los intereses y la deuda crece
 - **Tasa alta** -- Advertencia para deudas con tasa >15% anual
 - **Fondo de emergencia** -- Critico si <25% de la meta, bajo si <50%
@@ -106,6 +107,18 @@ El dashboard tiene **11 pestanas**, cada una con un proposito especifico:
 - Progreso por cantidad y por monto (RD$)
 - Analisis de intereses con tabla de costo por deuda
 - Botones de "Marcar todos" y "Resetear"
+
+### Registro de Gastos
+- Registra gastos reales del dia a dia para responder "a donde se fue mi dinero?"
+- **Formulario rapido** -- Fecha, monto, categoria, metodo de pago (efectivo/tarjeta/transferencia) y nota opcional
+- **9 categorias** -- Comida, Transporte, Entretenimiento, Salud, Compras, Hogar, Educacion, Personal, Otro
+- **Vinculacion opcional** -- Conecta una transaccion a un gasto/deuda existente
+- **KPIs del mes** -- Total gastado, cantidad de transacciones y promedio diario
+- **Grafico de dona** -- Distribucion de gastos por categoria
+- **Lista cronologica** -- Todas las transacciones del mes con opcion de eliminar
+- Al cerrar el mes, el total registrado se archiva en el historial como `gastoReal`
+- Editable en el modal de edicion (pestana Transacciones)
+- Exportable/importable via Excel (hoja "Transacciones")
 
 ### Proyector de Deudas
 - **Fondos comprometidos** -- Calcula runway (meses de gastos cubiertos), disponible seguro, y capacidad de redireccion
@@ -143,7 +156,7 @@ El dashboard tiene **11 pestanas**, cada una con un proposito especifico:
 - **Tendencia de gastos** -- Evolucion por categoria con flechas de direccion
 
 ### Edicion
-- Modal de edicion completo con 5 pestanas: Configuracion, Gastos & Deudas, Fondos, Emergencia, Historial
+- Modal de edicion completo con 6 pestanas: Configuracion, Gastos & Deudas, Fondos, Emergencia, Historial, Transacciones
 - **Sincronizacion en tiempo real** -- Cambios en configuracion se reflejan inmediatamente en los datos
 - **Tipo de gasto como dropdown** -- 10 categorias predefinidas para evitar duplicados
 - **Campos vinculados** -- Original RD$ y USD se sincronizan automaticamente usando la tasa
@@ -184,7 +197,7 @@ El dashboard tiene **11 pestanas**, cada una con un proposito especifico:
 - Boton de tema en el header
 
 ### Exportacion
-- **Excel (.xlsx)** -- Exporta todos los datos en formato Excel con 6 hojas
+- **Excel (.xlsx)** -- Exporta todos los datos en formato Excel con 7 hojas
 - **Snapshot (PDF)** -- Exporta vista actual optimizada para impresion
 
 ### PWA / Offline
@@ -197,7 +210,7 @@ El dashboard tiene **11 pestanas**, cada una con un proposito especifico:
 
 ## Estructura del Excel (`cnt.xlsx`)
 
-El archivo Excel tiene **6 hojas**. Si empezaste desde cero, el dashboard lo genera automaticamente con esta estructura.
+El archivo Excel tiene **7 hojas**. Si empezaste desde cero, el dashboard lo genera automaticamente con esta estructura.
 
 | Hoja | Contenido |
 |------|-----------|
@@ -207,6 +220,7 @@ El archivo Excel tiene **6 hojas**. Si empezaste desde cero, el dashboard lo gen
 | `Emergency` | Fondos de emergencia y cashflow |
 | `Historial` | Registro mensual historico |
 | `Metas` | Metas de ahorro (nombre, meta, ahorrado, aporte mensual) |
+| `Transacciones` | Registro de gastos reales (fecha, monto, categoria, nota, metodo, mes, ano) |
 
 ### Hoja Config
 
@@ -253,6 +267,19 @@ El archivo Excel tiene **6 hojas**. Si empezaste desde cero, el dashboard lo gen
 | 1 | Monto meta (RD$) |
 | 2 | Monto ahorrado (RD$) |
 | 3 | Aporte mensual (RD$) |
+
+### Hoja Transacciones -- columnas
+
+| Col | Campo |
+|-----|-------|
+| 0 | Fecha (YYYY-MM-DD) |
+| 1 | Monto (RD$) |
+| 2 | Categoria (Comida, Transporte, Entretenimiento, Salud, Compras, Hogar, Educacion, Personal, Otro) |
+| 3 | Nota |
+| 4 | Metodo (Efectivo, Tarjeta, Transferencia) |
+| 5 | Gasto vinculado (nombre del gasto, o vacio) |
+| 6 | Mes |
+| 7 | Ano |
 
 ---
 
@@ -322,6 +349,7 @@ python3 -m http.server 8080
 ```
 Durante el mes:
   -- Abrir la app > Checklist > Marcar pagos conforme se realizan
+  -- Registrar gastos reales en Registro (comida, transporte, compras, etc.)
   -- Revisar Alertas para vencimientos proximos y advertencias financieras
   -- Ajustar Metas de ahorro segun progreso
   -- Cambios guardados automaticamente
@@ -364,12 +392,17 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `alerts-tab.spec.js` | 39 | Alertas: vencimientos, DTI, EF, intereses, i18n |
 | `edit-modal-fixes.spec.js` | 32 | Modal de edicion: validacion, sync, conversion, tipos |
 | `edit-modal-i18n.spec.js` | 12 | Traduccion del modal de edicion |
-| `finance-advisor-features.spec.js` | 17 | DTI, neg-amort, savings rate, calendario, anomalias |
+| `finance-advisor-features.spec.js` | 17 | DTI (payment-based), neg-amort, savings rate, calendario, anomalias |
 | `responsive-mobile.spec.js` | 21 | Layout responsive en phones, tablets |
 | `account-currency.spec.js` | 13 | Moneda dual en cuentas (RD$/USD) |
 | `goals-numeric-inputs.spec.js` | 8 | Inputs de metas sin spinners |
 | `cache-clear.spec.js` | 3 | Limpieza de cache sin perder datos |
-| **Total** | **145+** | |
+| `demo-loader.spec.js` | 4 | Carga de datos demo |
+| `tasa-creacion.spec.js` | 8 | Tasa de creacion en deudas |
+| `edit-table-scroll.spec.js` | 5 | Scroll de tabla de edicion |
+| `foldable-projector.spec.js` | 6 | Proyector en pantallas plegables |
+| `tab-order.spec.js` | 7 | Orden de pestanas (12 tabs) |
+| **Total** | **184** | |
 
 ---
 

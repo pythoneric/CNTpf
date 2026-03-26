@@ -44,14 +44,13 @@ async function loadApp(page, overrides = {}) {
 // ────────────────────────────────────────────────────
 // 1.2 — DTI Threshold Alerts
 // ────────────────────────────────────────────────────
-test.describe('1.2 — DTI threshold alerts', () => {
+test.describe('1.2 — DTI threshold alerts (payment-based)', () => {
   test('DTI > 43% shows urgent alert', async ({ page }) => {
-    // Income = 3000 * 58 = 174000/year = 2,088,000
-    // DTI = 100000 / 2,088,000 ≈ 4.8% — not enough
-    // Need totalBalance > 43% of annual income = 898,000
+    // Income = 3000 * 58 = 174,000 RD$/month
+    // DTI = cuotaDeudas / ingreso = 80000 / 174000 ≈ 46% > 43%
     await loadApp(page, {
       gastos: [
-        { nombre: 'Mega Deuda', tipo: 'Préstamo', pagado: 0, adeudado: 15000, dia: 10, tasa: 18, balance: 950000, originalRD: 1000000, originalUSD: 0, fechaLimite: '', notas: '', pagadoMes: false },
+        { nombre: 'Mega Deuda', tipo: 'Préstamo', pagado: 0, adeudado: 80000, dia: 10, tasa: 18, balance: 950000, originalRD: 1000000, originalUSD: 0, fechaLimite: '', notas: '', pagadoMes: false },
       ],
     });
 
@@ -61,10 +60,10 @@ test.describe('1.2 — DTI threshold alerts', () => {
   });
 
   test('DTI > 36% but < 43% shows warning alert', async ({ page }) => {
-    // 36% of 2,088,000 = 751,680 — need balance between 751,680 and 898,000
+    // DTI = cuotaDeudas / ingreso = 68000 / 174000 ≈ 39% — between 36% and 43%
     await loadApp(page, {
       gastos: [
-        { nombre: 'Deuda Media', tipo: 'Préstamo', pagado: 0, adeudado: 12000, dia: 10, tasa: 12, balance: 800000, originalRD: 900000, originalUSD: 0, fechaLimite: '', notas: '', pagadoMes: false },
+        { nombre: 'Deuda Media', tipo: 'Préstamo', pagado: 0, adeudado: 68000, dia: 10, tasa: 12, balance: 800000, originalRD: 900000, originalUSD: 0, fechaLimite: '', notas: '', pagadoMes: false },
       ],
     });
 
@@ -74,6 +73,7 @@ test.describe('1.2 — DTI threshold alerts', () => {
   });
 
   test('DTI < 36% shows no DTI alert', async ({ page }) => {
+    // DTI = 5000 / 174000 ≈ 2.9% — well below 36%
     await loadApp(page, {
       gastos: [
         { nombre: 'Deuda Baja', tipo: 'Cuota', pagado: 0, adeudado: 5000, dia: 10, tasa: 8, balance: 100000, originalRD: 150000, originalUSD: 0, fechaLimite: '', notas: '', pagadoMes: false },
