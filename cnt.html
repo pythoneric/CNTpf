@@ -274,6 +274,13 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 .panel{padding-left:max(22px,env(safe-area-inset-left));padding-right:max(22px,env(safe-area-inset-right))}
 #cierreModal,#editModal{padding-bottom:max(24px,env(safe-area-inset-bottom))}
 
+/* ══ GROUP TOGGLE (segmented control) ══ */
+#groupToggle{display:flex;justify-content:center;gap:4px;padding:8px 24px 0;background:var(--bg)}
+#groupToggle{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
+.group-pill{padding:7px 20px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.03em}
+.group-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.group-pill:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+
 /* ══ MOBILE NAV BAR ══ */
 #mobileNav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
   background:var(--surface);border-top:1px solid var(--border);
@@ -325,9 +332,11 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 @media(max-width:640px){
   /* Layout */
   header{padding:10px 16px;gap:8px}
-  .panel{padding:14px 16px;padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+  .panel{padding:14px 16px;padding-bottom:calc(120px + env(safe-area-inset-bottom))}
   .tabs{display:none}/* replaced by bottom nav */
   #mobileNav{display:flex}
+  #groupToggle{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom));left:0;right:0;z-index:201;padding:6px 16px;background:var(--surface);border-top:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+  .group-pill{font-size:11px;padding:6px 16px}
 
   /* Grids → single column */
   .g2,.g3,.g4,.g12,.g21,.g13{grid-template-columns:1fr}
@@ -405,6 +414,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .panel{padding:24px 32px}
   header{padding:16px 32px}
   .tabs{padding:12px 32px 0}
+  #groupToggle{padding:8px 32px 0}
   .g4{grid-template-columns:repeat(4,1fr)}
   .card-title{font-size:13px}
   .tab-btn{font-size:15px;padding:10px 20px}
@@ -421,6 +431,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .panel{padding:28px 48px}
   header{padding:18px 48px}
   .tabs{padding:12px 48px 0}
+  #groupToggle{padding:8px 48px 0}
 }
 
 /* ══ SWIPE INDICATOR (mobile) ══ */
@@ -677,33 +688,39 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     </div>
   </header>
 
+  <div id="groupToggle">
+    <button class="group-pill active" id="pillOps" onclick="switchGroup('ops')" data-i18n="group_ops">Operaciones</button>
+    <button class="group-pill" id="pillStrat" onclick="switchGroup('strat')" data-i18n="group_strat">Estrategia</button>
+  </div>
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('resumen',this)" data-i18n="tab_resumen">📊 Resumen</button>
-    <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas" data-i18n="tab_alertas">🔔 Alertas</button>
-    <button class="tab-btn" onclick="showTab('checklist',this)" data-i18n="tab_checklist">✅ Pagos del Mes</button>
-    <button class="tab-btn" onclick="showTab('registro',this)" data-i18n="tab_registro">🧾 Registro</button>
-    <button class="tab-btn" onclick="showTab('gastos',this)" data-i18n="tab_gastos">💸 Gastos</button>
-    <button class="tab-btn" onclick="showTab('fornow',this)" data-i18n="tab_fornow">💳 Fondos</button>
-    <button class="tab-btn" onclick="showTab('emergency',this)" data-i18n="tab_emergency">🛡 Emergencias</button>
-    <button class="tab-btn" onclick="showTab('deudas',this)" data-i18n="tab_deudas">🏦 Deudas</button>
-    <button class="tab-btn" onclick="showTab('proyector',this)" data-i18n="tab_proyector">🎯 Proyector</button>
-    <button class="tab-btn" onclick="showTab('metas',this)" data-i18n="tab_metas">🏆 Metas</button>
-    <button class="tab-btn" onclick="showTab('analisis',this)" data-i18n="tab_analisis">📈 Análisis</button>
-    <button class="tab-btn" onclick="showTab('historial',this)" data-i18n="tab_historial">📅 Historial</button>
+    <button class="tab-btn active" onclick="showTab('resumen',this)" data-group="ops" data-i18n="tab_resumen">📊 Resumen</button>
+    <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas" data-group="ops" data-i18n="tab_alertas">🔔 Alertas</button>
+    <button class="tab-btn" onclick="showTab('checklist',this)" data-group="ops" data-i18n="tab_checklist">✅ Pagos del Mes</button>
+    <button class="tab-btn" onclick="showTab('registro',this)" data-group="ops" data-i18n="tab_registro">🧾 Registro</button>
+    <button class="tab-btn" onclick="showTab('gastos',this)" data-group="ops" data-i18n="tab_gastos">💸 Gastos</button>
+    <button class="tab-btn" onclick="showTab('fornow',this)" data-group="ops" data-i18n="tab_fornow">💳 Fondos</button>
+    <button class="tab-btn" onclick="showTab('emergency',this)" data-group="strat" data-i18n="tab_emergency" style="display:none">🛡 Emergencias</button>
+    <button class="tab-btn" onclick="showTab('deudas',this)" data-group="strat" data-i18n="tab_deudas" style="display:none">🏦 Deudas</button>
+    <button class="tab-btn" onclick="showTab('proyector',this)" data-group="strat" data-i18n="tab_proyector" style="display:none">🎯 Proyector</button>
+    <button class="tab-btn" onclick="showTab('metas',this)" data-group="strat" data-i18n="tab_metas" style="display:none">🏆 Metas</button>
+    <button class="tab-btn" onclick="showTab('analisis',this)" data-group="strat" data-i18n="tab_analisis" style="display:none">📈 Análisis</button>
+    <button class="tab-btn" onclick="showTab('historial',this)" data-group="strat" data-i18n="tab_historial" style="display:none">📅 Historial</button>
   </div>
 
   <!-- Mobile bottom navigation -->
   <nav id="mobileNav" aria-label="Navegación móvil">
-    <button class="mnav-btn" onclick="mobileTab('resumen',this)" id="mnavResumen"><span class="mnav-icon">📊</span><span data-i18n="mnav_resumen">Resumen</span></button>
-    <button class="mnav-btn" onclick="mobileTab('alertas',this)" id="mobileTabAlertas"><span class="mnav-icon">🔔</span><span data-i18n="mnav_alertas">Alertas</span></button>
-    <button class="mnav-btn" onclick="mobileTab('checklist',this)" id="mnavChecklist"><span class="mnav-icon">✅</span><span data-i18n="mnav_checklist">Pagos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('registro',this)" id="mnavRegistro"><span class="mnav-icon">🧾</span><span data-i18n="mnav_registro">Registro</span></button>
-    <button class="mnav-btn" onclick="mobileTab('gastos',this)" id="mnavGastos"><span class="mnav-icon">💸</span><span data-i18n="mnav_gastos">Gastos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('fornow',this)" id="mnavFondos"><span class="mnav-icon">💳</span><span data-i18n="mnav_fornow">Fondos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('emergency',this)" id="mnavEmergencia"><span class="mnav-icon">🛡</span><span data-i18n="mnav_emergency">Emergencias</span></button>
-    <button class="mnav-btn" onclick="mobileTab('deudas',this)" id="mnavDeudas"><span class="mnav-icon">🏦</span><span data-i18n="mnav_deudas">Deudas</span></button>
-    <button class="mnav-btn" onclick="mobileTab('proyector',this)" id="mnavProyector"><span class="mnav-icon">🎯</span><span data-i18n="mnav_proyector">Proyector</span></button>
-    <button class="mnav-btn" onclick="mobileTab('historial',this)" id="mnavHistorial"><span class="mnav-icon">📅</span><span data-i18n="mnav_historial">Historial</span></button>
+    <button class="mnav-btn" onclick="mobileTab('resumen',this)" id="mnavResumen" data-group="ops"><span class="mnav-icon">📊</span><span data-i18n="mnav_resumen">Resumen</span></button>
+    <button class="mnav-btn" onclick="mobileTab('alertas',this)" id="mobileTabAlertas" data-group="ops"><span class="mnav-icon">🔔</span><span data-i18n="mnav_alertas">Alertas</span></button>
+    <button class="mnav-btn" onclick="mobileTab('checklist',this)" id="mnavChecklist" data-group="ops"><span class="mnav-icon">✅</span><span data-i18n="mnav_checklist">Pagos</span></button>
+    <button class="mnav-btn" onclick="mobileTab('registro',this)" id="mnavRegistro" data-group="ops"><span class="mnav-icon">🧾</span><span data-i18n="mnav_registro">Registro</span></button>
+    <button class="mnav-btn" onclick="mobileTab('gastos',this)" id="mnavGastos" data-group="ops"><span class="mnav-icon">💸</span><span data-i18n="mnav_gastos">Gastos</span></button>
+    <button class="mnav-btn" onclick="mobileTab('fornow',this)" id="mnavFondos" data-group="ops"><span class="mnav-icon">💳</span><span data-i18n="mnav_fornow">Fondos</span></button>
+    <button class="mnav-btn" onclick="mobileTab('emergency',this)" id="mnavEmergencia" data-group="strat" style="display:none"><span class="mnav-icon">🛡</span><span data-i18n="mnav_emergency">Emergencias</span></button>
+    <button class="mnav-btn" onclick="mobileTab('deudas',this)" id="mnavDeudas" data-group="strat" style="display:none"><span class="mnav-icon">🏦</span><span data-i18n="mnav_deudas">Deudas</span></button>
+    <button class="mnav-btn" onclick="mobileTab('proyector',this)" id="mnavProyector" data-group="strat" style="display:none"><span class="mnav-icon">🎯</span><span data-i18n="mnav_proyector">Proyector</span></button>
+    <button class="mnav-btn" onclick="mobileTab('metas',this)" id="mnavMetas" data-group="strat" style="display:none"><span class="mnav-icon">🏆</span><span data-i18n="mnav_metas">Metas</span></button>
+    <button class="mnav-btn" onclick="mobileTab('analisis',this)" id="mnavAnalisis" data-group="strat" style="display:none"><span class="mnav-icon">📈</span><span data-i18n="mnav_analisis">Análisis</span></button>
+    <button class="mnav-btn" onclick="mobileTab('historial',this)" id="mnavHistorial" data-group="strat" style="display:none"><span class="mnav-icon">📅</span><span data-i18n="mnav_historial">Historial</span></button>
   </nav>
 
   <!-- RESUMEN -->
@@ -1072,10 +1089,13 @@ const LANG = {
     tab_resumen:'📊 Resumen', tab_alertas:'🔔 Alertas', tab_gastos:'💸 Gastos',
     tab_checklist:'✅ Pagos del Mes', tab_deudas:'🏦 Deudas', tab_proyector:'🎯 Proyector',
     tab_emergency:'🛡 Emergencias', tab_fornow:'💳 Fondos', tab_historial:'📅 Historial', tab_registro:'🧾 Registro',
+    // Group toggle
+    group_ops:'Operaciones', group_strat:'Estrategia',
     // Mobile nav
     mnav_resumen:'Resumen', mnav_alertas:'Alertas', mnav_checklist:'Pagos',
     mnav_deudas:'Deudas', mnav_gastos:'Gastos', mnav_emergency:'Emergencias',
     mnav_fornow:'Fondos', mnav_historial:'Historial', mnav_proyector:'Proyector', mnav_registro:'Registro',
+    mnav_metas:'Metas', mnav_analisis:'Análisis',
     // KPI labels
     kpi_income:'Ingresos', kpi_expenses:'Gastos Totales', kpi_surplus:'Superávit del Mes', kpi_networth:'Net Worth',
     kpi_surplus_pct:'% del ingreso ✓', kpi_deficit:'⚠ Déficit', kpi_savings_ef:'Cuentas+Ahorros+EF − Deudas',
@@ -1431,10 +1451,13 @@ const LANG = {
     tab_resumen:'📊 Summary', tab_alertas:'🔔 Alerts', tab_gastos:'💸 Expenses',
     tab_checklist:'✅ Monthly Payments', tab_deudas:'🏦 Debts', tab_proyector:'🎯 Projector',
     tab_emergency:'🛡 Emergencies', tab_fornow:'💳 Funds', tab_historial:'📅 History', tab_registro:'🧾 Log',
+    // Group toggle
+    group_ops:'Operations', group_strat:'Strategy',
     // Mobile nav
     mnav_resumen:'Summary', mnav_alertas:'Alerts', mnav_checklist:'Payments',
     mnav_deudas:'Debts', mnav_gastos:'Expenses', mnav_emergency:'Emergencies',
     mnav_fornow:'Funds', mnav_historial:'History', mnav_proyector:'Projector', mnav_registro:'Log',
+    mnav_metas:'Goals', mnav_analisis:'Analysis',
     // KPI labels
     kpi_income:'Income', kpi_expenses:'Total Expenses', kpi_surplus:'Monthly Surplus', kpi_networth:'Net Worth',
     kpi_surplus_pct:'% of income ✓', kpi_deficit:'⚠ Deficit', kpi_savings_ef:'Accounts+Savings+EF − Debts',
@@ -1957,6 +1980,7 @@ async function loadFromDB(){
     buildDashboard(_editData);
     document.getElementById('loaderScreen').style.display='none';
     document.getElementById('dashApp').style.display='block';
+    switchGroup(localStorage.getItem('cntActiveGroup')||'ops');
     navigateToHash();
     showToast('📂 Datos cargados desde memoria local','var(--green)');
   }catch(e){
@@ -2377,6 +2401,7 @@ function setupNav(dir){
       buildDashboard(_editData);
       document.getElementById('loaderScreen').style.display='none';
       document.getElementById('dashApp').style.display='block';
+      switchGroup('ops');
       showTab('resumen',document.querySelector('.tab-btn'));
       autoSave();
       generateExcel();
@@ -2499,6 +2524,7 @@ function processWorkbook(wb,filename){
     applyI18n();
     document.getElementById('loaderScreen').style.display='none';
     document.getElementById('dashApp').style.display='block';
+    switchGroup(localStorage.getItem('cntActiveGroup')||'ops');
     navigateToHash();
     // Auto-save to IndexedDB so next visit skips Excel upload
     autoSave();
@@ -4455,9 +4481,44 @@ function exportSnapshot(){
 }
 
 // ══════════════════════════════════
+// TAB GROUPS
+// ══════════════════════════════════
+const GROUP_OPS=['resumen','alertas','checklist','registro','gastos','fornow'];
+const GROUP_STRAT=['emergency','deudas','proyector','metas','analisis','historial'];
+let _activeGroup='ops';
+
+function switchGroup(group){
+  _activeGroup=group;
+  document.getElementById('pillOps').classList.toggle('active',group==='ops');
+  document.getElementById('pillStrat').classList.toggle('active',group==='strat');
+  document.querySelectorAll('.tab-btn[data-group]').forEach(btn=>{btn.style.display=btn.dataset.group===group?'':'none';});
+  document.querySelectorAll('.mnav-btn[data-group]').forEach(btn=>{btn.style.display=btn.dataset.group===group?'':'none';});
+  const activePanel=document.querySelector('.panel.active');
+  if(activePanel){
+    const curId=activePanel.id.replace('tab-','');
+    const activeIds=group==='ops'?GROUP_OPS:GROUP_STRAT;
+    if(!activeIds.includes(curId)){
+      const firstId=activeIds[0];
+      const btn=document.querySelector(`.tab-btn[data-group="${group}"]`);
+      showTab(firstId,btn);
+      syncMobileNav(firstId);
+    }
+  }
+  try{localStorage.setItem('cntActiveGroup',group);}catch(e){}
+}
+
+// ══════════════════════════════════
 // TABS
 // ══════════════════════════════════
 function showTab(id,btn){
+  // Auto-switch group if target tab is in a different group
+  const targetGroup=GROUP_OPS.includes(id)?'ops':'strat';
+  if(targetGroup!==_activeGroup){
+    switchGroup(targetGroup);
+    if(!btn||btn.style.display==='none'){
+      btn=document.querySelector(`.tab-btn[data-group="${targetGroup}"][onclick*="'${id}'"]`);
+    }
+  }
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   const p=document.getElementById('tab-'+id);if(p)p.classList.add('active');
@@ -4478,6 +4539,8 @@ function navigateToHash(){
     '#fornow':'fornow',
     '#historial':'historial',
     '#registro':'registro',
+    '#metas':'metas',
+    '#analisis':'analisis',
   };
   if(hash==='#cierre'){
     showTab('resumen',document.querySelector('.tab-btn'));
@@ -4548,7 +4611,7 @@ let _rawWb=null;
 let _changesCount=0;
 let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
-window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';};
+window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
 window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
