@@ -190,3 +190,97 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
     expect(activeTab).toBe('resumen');
   });
 });
+
+test.describe('Tab Grouping — Operaciones / Estrategia', () => {
+
+  test('ops pill has active class on load', async ({ page }) => {
+    await loadApp(page);
+    const opsActive = await page.evaluate(() => document.getElementById('pillOps').classList.contains('active'));
+    const stratActive = await page.evaluate(() => document.getElementById('pillStrat').classList.contains('active'));
+    expect(opsActive).toBe(true);
+    expect(stratActive).toBe(false);
+  });
+
+  test('clicking Estrategia pill shows strategy tabs, hides ops tabs', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => window.switchGroup('strat'));
+
+    const opsVisible = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('.tab-btn[data-group="ops"]')).filter(b => b.style.display !== 'none').length
+    );
+    const stratVisible = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('.tab-btn[data-group="strat"]')).filter(b => b.style.display !== 'none').length
+    );
+    expect(opsVisible).toBe(0);
+    expect(stratVisible).toBeGreaterThan(0);
+  });
+
+  test('clicking Operaciones pill shows ops tabs, hides strategy tabs', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => window.switchGroup('strat'));
+    await page.evaluate(() => window.switchGroup('ops'));
+
+    const opsVisible = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('.tab-btn[data-group="ops"]')).filter(b => b.style.display !== 'none').length
+    );
+    const stratVisible = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('.tab-btn[data-group="strat"]')).filter(b => b.style.display !== 'none').length
+    );
+    expect(opsVisible).toBeGreaterThan(0);
+    expect(stratVisible).toBe(0);
+  });
+
+  test('switching to strat makes strat pill active, ops inactive', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => window.switchGroup('strat'));
+    const opsActive = await page.evaluate(() => document.getElementById('pillOps').classList.contains('active'));
+    const stratActive = await page.evaluate(() => document.getElementById('pillStrat').classList.contains('active'));
+    expect(opsActive).toBe(false);
+    expect(stratActive).toBe(true);
+  });
+
+  test('auto-switch: showing a strat tab from ops switches group', async ({ page }) => {
+    await loadApp(page);
+    // Start in ops, then navigate to a strategy tab
+    await page.evaluate(() => window.showTab('deudas', null));
+    const stratActive = await page.evaluate(() => document.getElementById('pillStrat').classList.contains('active'));
+    const panel = await page.evaluate(() => document.querySelector('.panel.active')?.id);
+    expect(stratActive).toBe(true);
+    expect(panel).toBe('tab-deudas');
+  });
+
+  test('mobile nav only shows active group buttons', async ({ page }) => {
+    await loadApp(page);
+    // In ops group, strat mobile buttons should be hidden
+    const stratMobileHidden = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('.mnav-btn[data-group="strat"]')).every(b => b.style.display === 'none')
+    );
+    expect(stratMobileHidden).toBe(true);
+
+    // Switch to strat, ops mobile buttons should be hidden
+    await page.evaluate(() => window.switchGroup('strat'));
+    const opsMobileHidden = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('.mnav-btn[data-group="ops"]')).every(b => b.style.display === 'none')
+    );
+    expect(opsMobileHidden).toBe(true);
+  });
+
+  test('group persists in localStorage', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => window.switchGroup('strat'));
+    const stored = await page.evaluate(() => localStorage.getItem('cntActiveGroup'));
+    expect(stored).toBe('strat');
+  });
+
+  test('hash navigation auto-switches group', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      window.location.hash = '#analisis';
+      window.navigateToHash();
+    });
+    const stratActive = await page.evaluate(() => document.getElementById('pillStrat').classList.contains('active'));
+    const panel = await page.evaluate(() => document.querySelector('.panel.active')?.id);
+    expect(stratActive).toBe(true);
+    expect(panel).toBe('tab-analisis');
+  });
+});
