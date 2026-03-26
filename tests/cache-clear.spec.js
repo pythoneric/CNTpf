@@ -22,10 +22,8 @@ async function loadAndSaveApp(page) {
     window._testLoadData(data);
   });
 
-  // Trigger autoSave so data persists in IndexedDB
-  await page.evaluate(() => window.autoSave());
-  // Wait for IndexedDB write to complete
-  await page.waitForTimeout(500);
+  // Call saveToDB directly (autoSave is debounced and creates race conditions)
+  await page.evaluate(() => window.saveToDB());
 }
 
 test.describe('Cache Clear - Preserves User Data', () => {
