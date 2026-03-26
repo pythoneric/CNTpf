@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/pythoneric/CNTpf#readme",
   "dependencies": {
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
