@@ -795,7 +795,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
   <!-- PRESUPUESTO (Forward Budget) -->
   <div id="tab-presupuesto" class="panel">
-    <div id="presKpis" class="grid g3" style="margin-bottom:16px"></div>
+    <div id="presKpis" class="grid g4" style="margin-bottom:16px"></div>
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
         <div class="card-title" style="margin:0" id="presFormTitle"></div>
@@ -1485,14 +1485,14 @@ const LANG = {
     reg_chart_title:'Gasto por Categoría', reg_tracked:'Gasto registrado',
     edit_tab_transacciones:'🧾 Transacciones',
     // Feature 6 – Presupuesto (Forward Budget)
-    pres_title:'📋 Presupuesto Mensual', pres_income:'Ingreso del Mes', pres_allocated:'Asignado',
+    pres_title:'📋 Presupuesto Mensual', pres_income:'Ingreso del Mes', pres_obligations:'Compromisos Fijos', pres_available:'Disponible', pres_allocated:'Asignado',
     pres_unallocated:'Sin Asignar', pres_over_allocated:'Sobre-asignado',
     pres_add:'+ Asignar Categorías', pres_save:'Guardar Presupuesto',
     pres_cat:'Categoría', pres_budgeted:'Presupuestado', pres_actual:'Gastado',
     pres_remaining:'Restante', pres_pct:'% Usado',
     pres_empty:'Sin presupuesto para este mes. Asigna montos a las categorías para planificar tu gasto.',
     pres_chart_title:'Presupuesto vs Gastado',
-    pres_zero_note:'💡 Presupuesto base cero: asigna cada peso de tu ingreso a una categoría.',
+    pres_zero_note:'💡 Presupuesto base cero: asigna el monto disponible (después de compromisos fijos) a las categorías.',
     pres_over_warn:'⚠ Gastaste más de lo presupuestado en {n} categorías.',
     pres_under_note:'✓ Dentro del presupuesto en todas las categorías.',
     pres_delete_confirm:'¿Eliminar esta asignación?',
@@ -1869,14 +1869,14 @@ const LANG = {
     reg_chart_title:'Spending by Category', reg_tracked:'Tracked spending',
     edit_tab_transacciones:'🧾 Transactions',
     // Feature 6 – Budget (Forward Budget)
-    pres_title:'📋 Monthly Budget', pres_income:'Month Income', pres_allocated:'Allocated',
+    pres_title:'📋 Monthly Budget', pres_income:'Month Income', pres_obligations:'Fixed Obligations', pres_available:'Available', pres_allocated:'Allocated',
     pres_unallocated:'Unallocated', pres_over_allocated:'Over-allocated',
     pres_add:'+ Assign Categories', pres_save:'Save Budget',
     pres_cat:'Category', pres_budgeted:'Budgeted', pres_actual:'Spent',
     pres_remaining:'Remaining', pres_pct:'% Used',
     pres_empty:'No budget for this month. Assign amounts to categories to plan your spending.',
     pres_chart_title:'Budget vs Spent',
-    pres_zero_note:'💡 Zero-based budgeting: assign every peso of your income to a category.',
+    pres_zero_note:'💡 Zero-based budgeting: assign your available amount (after fixed obligations) to categories.',
     pres_over_warn:'⚠ You overspent in {n} categories.',
     pres_under_note:'✓ Within budget in all categories.',
     pres_delete_confirm:'Delete this allocation?',
@@ -3080,13 +3080,24 @@ function buildRegistro(transacciones,gastos,config){
   generateRecurring(config);
   transacciones=_editData.transacciones||transacciones;// refresh after generation
   const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
-  const total=tx.reduce((a,t)=>a+t.monto,0);
-  const today=new Date();const dom=today.getDate();
+  const total=tx.reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
+
+  // Fix #5: use correct day count — for past months use total days, for current month use today's date
+  const today=new Date();
+  const mesIdx=MESES_INTERNOS.indexOf(config.mes);
+  const isCurrentMonth=mesIdx===today.getMonth()&&config.anio===today.getFullYear();
+  const dom=isCurrentMonth?today.getDate():((mesIdx>=0&&config.anio>0)?new Date(config.anio,mesIdx+1,0).getDate():30);
   const avg=dom>0?total/dom:0;
+
+  // Fix #2/#3: contextual color — compare total against discretionary budget if available
+  const presBudget=(_editData.presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio).reduce((a,p)=>a+(p.presupuestado||0),0);
+  const totalColor=presBudget>0?(total>presBudget?'var(--red)':total>presBudget*0.8?'var(--yellow)':'var(--green)'):'var(--text)';
+  const totalBg=presBudget>0?(total>presBudget?'rgba(244,96,106,.12)':total>presBudget*0.8?'rgba(245,200,66,.12)':'rgba(34,211,160,.12)'):'rgba(59,130,246,.12)';
+  const totalLabel=presBudget>0?`${t('reg_total_mes')} (${Math.round(total/presBudget*100)}%)`:t('reg_total_mes');
 
   // KPIs
   document.getElementById('registroKpis').innerHTML=[
-    {l:t('reg_total_mes'),v:`RD$${fmt(total)}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
+    {l:totalLabel,v:`RD$${fmt(total)}`,c:totalColor,b:totalBg},
     {l:t('reg_count'),v:tx.length,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
     {l:t('reg_avg'),v:`RD$${fmt(Math.round(avg))}`,c:'var(--accent2)',b:'rgba(6,182,212,.12)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div></div>`).join('');
@@ -3215,6 +3226,8 @@ function buildPresupuesto(presupuesto,transacciones,config){
   const pres=(presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio);
   const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
   const ingreso=config.ingresoRD||(config.ingresoUSD*config.tasa)||0;
+  const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
+  const disponible=ingreso-totalAdeudado;
   const recs=_editData.recurrentes||[];
 
   // Per-category data
@@ -3233,13 +3246,14 @@ function buildPresupuesto(presupuesto,transacciones,config){
   const active=catData.filter(d=>d.budgeted>0||d.actual>0);
   const totalBudgeted=catData.reduce((a,d)=>a+d.budgeted,0);
   const totalActual=active.reduce((a,d)=>a+d.actual,0);
-  const unallocated=ingreso-totalBudgeted;
+  const unallocated=disponible-totalBudgeted;
   const overCount=active.filter(d=>d.budgeted>0&&d.actual>d.budgeted).length;
 
   // KPIs
   document.getElementById('presKpis').innerHTML=[
     {l:t('pres_income'),v:`RD$${fmt(ingreso)}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
-    {l:t('pres_allocated'),v:`RD$${fmt(totalBudgeted)}`,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
+    {l:t('pres_obligations'),v:`RD$${fmt(totalAdeudado)}`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
+    {l:t('pres_available'),v:`RD$${fmt(disponible)}`,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
     {l:unallocated>=0?t('pres_unallocated'):t('pres_over_allocated'),v:`RD$${fmt(Math.abs(unallocated))}`,c:unallocated>=0?'var(--accent2)':'var(--red)',b:unallocated>=0?'rgba(6,182,212,.12)':'rgba(244,96,106,.12)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div></div>`).join('');
 
@@ -3318,9 +3332,11 @@ function buildPresupuesto(presupuesto,transacciones,config){
 
 function updatePresUnalloc(){
   const ingreso=(_editData.config.ingresoRD||(_editData.config.ingresoUSD*_editData.config.tasa))||0;
+  const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
+  const disponible=ingreso-totalAdeudado;
   let total=0;
   document.querySelectorAll('.pres-input').forEach(inp=>{total+=parseFloat(inp.value)||0;});
-  const un=ingreso-total;
+  const un=disponible-total;
   const el=document.getElementById('presUnallocLabel');
   if(el){
     el.style.color=un>=0?'var(--accent2)':'var(--red)';
@@ -3800,7 +3816,9 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const totalOriginal=gastos.reduce((a,g)=>a+Math.max(g.originalRD||0, g.balance||0),0)+(config.liquidadoAcum||0);
   // Bug 1 fix: single source of truth — always ingresoUSD × tasa; stale cf.ingreso only as absolute last resort
   const ingreso=config.ingresoUSD>0&&config.tasa>0?(config.ingresoUSD*config.tasa):(config.ingresoRD||cf.ingreso||0);
-  const gasto=totalAdeudado||cf.gasto;
+  // Include tracked spending from Registro (transacciones) in total expenses
+  const txGasto=(_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio).reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
+  const gasto=(totalAdeudado||cf.gasto)+txGasto;
   const resta=ingreso-gasto;
   const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
   const efMeta=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).meta,0);
