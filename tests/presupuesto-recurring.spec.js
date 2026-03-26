@@ -61,14 +61,19 @@ test.describe('Presupuesto (Forward Budget)', () => {
     await expect(presTable).toContainText('presupuesto');
   });
 
-  test('presupuesto shows KPIs with income, allocated, unallocated', async ({ page }) => {
+  test('presupuesto shows KPIs with income, obligations, available, unallocated', async ({ page }) => {
     await loadApp(page, 'with-budget');
     await page.evaluate(() => window.showTab('presupuesto', document.querySelector('.tab-btn[onclick*="presupuesto"]')));
     const kpis = page.locator('#presKpis');
-    // Income KPI should show RD$174,000
+    // Income KPI: RD$174,000
     await expect(kpis).toContainText('174,000');
-    // Allocated KPI should show RD$23,000 (15000 + 8000)
-    await expect(kpis).toContainText('23,000');
+    // Obligations KPI: RD$25,000 (from gastos adeudado)
+    await expect(kpis).toContainText('25,000');
+    // Available KPI: RD$149,000 (174000 - 25000)
+    await expect(kpis).toContainText('149,000');
+    // Should have 4 KPI cards
+    const cardCount = await kpis.locator('.card').count();
+    expect(cardCount).toBe(4);
   });
 
   test('presupuesto table shows budget vs actual comparison', async ({ page }) => {
@@ -374,6 +379,53 @@ test.describe('Registro Tab Rendering', () => {
     await expect(list).toContainText('1,500');
   });
 
+  test('month total KPI updates after adding a transaction', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => window.showTab('registro', document.querySelector('.tab-btn[onclick*="registro"]')));
+
+    // KPI should start at 0
+    const kpis = page.locator('#registroKpis');
+    const kpiBefore = await kpis.locator('.kpi-val').first().textContent();
+    expect(kpiBefore).toContain('0');
+
+    // Add a transaction via the form
+    await page.click('#regToggleBtn');
+    await page.fill('#regMonto', '2500');
+    await page.click('#regSubmitBtn');
+
+    // KPI should now show 2,500
+    const kpiAfter = await kpis.locator('.kpi-val').first().textContent();
+    expect(kpiAfter).toContain('2,500');
+
+    // Add another transaction
+    await page.fill('#regMonto', '3500');
+    await page.click('#regSubmitBtn');
+
+    // KPI should now show 6,000 (2500 + 3500)
+    const kpiFinal = await kpis.locator('.kpi-val').first().textContent();
+    expect(kpiFinal).toContain('6,000');
+  });
+
+  test('resumen Gastos Totales KPI includes tracked spending', async ({ page }) => {
+    await loadApp(page);
+    // Resumen tab is active by default. Gastos adeudado = 25000
+    const kpiRow = page.locator('#kpiRow');
+    const expensesBefore = await kpiRow.locator('.kpi-val').nth(1).textContent();
+
+    // Add a transaction programmatically
+    await page.evaluate(() => {
+      _editData.transacciones.push({
+        fecha: '2026-03-15', monto: 10000, categoria: 'comida', nota: 'Big dinner',
+        metodo: 'tarjeta', gastoIdx: -1, mes: _editData.config.mes, anio: _editData.config.anio
+      });
+      window.buildDashboard({ ..._editData });
+    });
+
+    const expensesAfter = await kpiRow.locator('.kpi-val').nth(1).textContent();
+    // Before: RD$25,000 (just obligations). After: RD$35,000 (25000 + 10000 from transaction)
+    expect(expensesAfter).toContain('35,000');
+  });
+
   test('empty state shows when no transactions', async ({ page }) => {
     await loadApp(page);
     await page.evaluate(() => window.showTab('registro', document.querySelector('.tab-btn[onclick*="registro"]')));
@@ -419,15 +471,15 @@ test.describe('Presupuesto Form & Calculations', () => {
     await expect(wrap).toHaveCSS('display', 'block');
   });
 
-  test('live unallocated counter updates on input', async ({ page }) => {
+  test('live unallocated counter updates on input (deducts obligations)', async ({ page }) => {
     await loadApp(page);
     await page.evaluate(() => window.showTab('presupuesto', document.querySelector('.tab-btn[onclick*="presupuesto"]')));
     await page.click('#presToggleBtn');
-    // Income is 174000. Type 50000 in comida field.
+    // Income=174000, obligations=25000 (gastos adeudado), disponible=149000
+    // Type 50000 in comida → unallocated = 149000 - 50000 = 99,000
     await page.fill('input[data-pres-cat="comida"]', '50000');
     const label = await page.locator('#presUnallocLabel').textContent();
-    // Should show 174000 - 50000 = 124,000
-    expect(label).toContain('124,000');
+    expect(label).toContain('99,000');
   });
 
   test('over-allocated shown in red when budget exceeds income', async ({ page }) => {

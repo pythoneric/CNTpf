@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (198 tests)
+tests/                -- Suite de tests Playwright (232 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -94,7 +94,7 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 ## Funcionalidades
 
 ### Dashboard y KPIs
-- **5 KPIs principales** -- Ingresos, gastos totales, superavit del mes, net worth, y tasa de ahorro con guia 50/30/20
+- **5 KPIs principales** -- Ingresos, gastos totales (obligaciones + gastos registrados), superavit del mes, net worth, y tasa de ahorro con guia 50/30/20
 - **Salud financiera** -- Puntaje de 0-100 con calificacion (Excelente/Bueno/Regular/Critico) basado en ratio de gastos, DTI, fondo de emergencia y tendencia de net worth
 - **Distribucion de flujo de caja** -- Barra visual de gastos vs sobrante con metricas de retiro USD, tasa, ahorros y compromisos
 - **Hitos de net worth** -- Celebraciones automaticas al alcanzar net worth positivo, libre de deudas, RD$100K, RD$500K y RD$1M
@@ -127,7 +127,7 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 - **Gestion de reglas recurrentes** -- Lista de reglas activas al final del tab con opcion de eliminar (las transacciones ya generadas no se borran)
 - **Generacion automatica** -- Las transacciones recurrentes se generan al abrir la app, con deduplicacion por fecha e ID
 - **Badge visual** -- Las transacciones generadas automaticamente muestran un indicador 🔄 en la lista
-- **KPIs del mes** -- Total gastado, cantidad de transacciones y promedio diario
+- **KPIs del mes** -- Total gastado (con color contextual: verde/amarillo/rojo vs presupuesto), cantidad de transacciones y promedio diario (correcto para meses pasados y actuales)
 - **Grafico de dona** -- Distribucion de gastos por categoria
 - **Lista cronologica** -- Todas las transacciones del mes con opcion de eliminar
 - Al cerrar el mes, el total registrado se archiva en el historial como `gastoReal`
@@ -135,12 +135,12 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 - Exportable/importable via Excel (hoja "Transacciones")
 
 ### Presupuesto (Forward Budget)
-- Presupuesto mensual base cero: asigna cada peso de tu ingreso a una de las 9 categorias
-- **Formulario de asignacion** -- 9 campos (uno por categoria) con contador en tiempo real de ingreso sin asignar
+- Presupuesto mensual base cero: asigna el monto disponible (despues de compromisos fijos) a las 9 categorias
+- **Formulario de asignacion** -- 9 campos (uno por categoria) con contador en tiempo real de monto sin asignar
 - **Estimacion de recurrentes** -- Cada categoria muestra cuanto se espera de transacciones recurrentes
 - **Tabla presupuesto vs real** -- Compara montos asignados vs gastos reales del Registro con barras de progreso y varianza
 - **Grafico de barras agrupadas** -- Presupuestado vs gastado por categoria (Chart.js)
-- **3 KPIs** -- Ingreso del mes, asignado y sin asignar (o sobre-asignado en rojo)
+- **4 KPIs** -- Ingreso del mes, compromisos fijos (gastos/deudas), disponible para categorias, y sin asignar (o sobre-asignado en rojo)
 - **Alerta de sobre-gasto** -- Muestra cuantas categorias excedieron el presupuesto
 - **Cierre de mes** -- El total presupuestado se archiva en historial; el presupuesto se copia automaticamente al mes siguiente
 - Editable en el modal de edicion (pestana Presupuesto)
@@ -457,8 +457,8 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `edit-table-scroll.spec.js` | 5 | Scroll de tabla de edicion |
 | `foldable-projector.spec.js` | 6 | Proyector en pantallas plegables |
 | `tab-order.spec.js` | 7 | Orden de pestanas (13 tabs, 2 grupos) |
-| `presupuesto-recurring.spec.js` | 14 | Presupuesto CRUD, BvA, recurrentes, generacion, dedup, Excel |
-| **Total** | **198** | |
+| `presupuesto-recurring.spec.js` | 40 | Presupuesto CRUD, BvA, obligaciones, recurrentes, generacion, dedup, Registro KPIs, Resumen integracion |
+| **Total** | **232** | |
 
 ---
 
