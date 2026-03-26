@@ -12,7 +12,7 @@ const EXPECTED_ORDER = [
 
 const EXPECTED_MOBILE_ORDER = [
   'resumen', 'alertas', 'checklist', 'registro', 'gastos', 'fornow',
-  'emergency', 'deudas', 'proyector', 'historial',
+  'emergency', 'deudas', 'proyector', 'metas', 'analisis', 'historial',
 ];
 
 const ALL_TAB_IDS = new Set([
