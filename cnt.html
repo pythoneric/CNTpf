@@ -958,7 +958,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr>
             <th data-i18n="eth_desc">Descripción</th><th data-i18n="eth_tipo">Tipo</th><th data-i18n="eth_pagado">Pagado (RD$)</th><th data-i18n="eth_adeudado">Adeudado (RD$)</th>
-            <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_notas">Notas</th><th></th>
+            <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_tasaCreacion">Tasa Creación</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_notas">Notas</th><th></th>
           </tr></thead><tbody id="esencialesEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addEsencialRow()" data-i18n="edit_add_row">+ Agregar fila</button>
@@ -1282,7 +1282,7 @@ const LANG = {
     // Edit table headers
     eth_desc:'Descripción', eth_tipo:'Tipo', eth_pagado:'Pagado (RD$)', eth_adeudado:'Adeudado (RD$)',
     eth_dia:'Día Pago', eth_tasa:'Tasa %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
-    eth_originalUSD:'Original (USD)', eth_fechaLimite:'Fecha Límite', eth_notas:'Notas',
+    eth_originalUSD:'Original (USD)', eth_tasaCreacion:'Tasa Creación', eth_fechaLimite:'Fecha Límite', eth_notas:'Notas',
     eth_cuenta:'Cuenta', eth_saldo:'Saldo',
     eth_fondo:'Fondo', eth_moneda:'Moneda', eth_balanceActual:'Balance Actual', eth_metaMinima:'Meta Mínima',
     eth_mes:'Mes', eth_anio:'Año', eth_ingresosRD:'Ingresos (RD$)', eth_gastoRD:'Gasto (RD$)',
@@ -1628,7 +1628,7 @@ const LANG = {
     // Edit table headers
     eth_desc:'Description', eth_tipo:'Type', eth_pagado:'Paid (RD$)', eth_adeudado:'Owed (RD$)',
     eth_dia:'Pay Day', eth_tasa:'Rate %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
-    eth_originalUSD:'Original (USD)', eth_fechaLimite:'Deadline', eth_notas:'Notes',
+    eth_originalUSD:'Original (USD)', eth_tasaCreacion:'Rate at Creation', eth_fechaLimite:'Deadline', eth_notas:'Notes',
     eth_cuenta:'Account', eth_saldo:'Balance',
     eth_fondo:'Fund', eth_moneda:'Currency', eth_balanceActual:'Current Balance', eth_metaMinima:'Minimum Goal',
     eth_mes:'Month', eth_anio:'Year', eth_ingresosRD:'Income (RD$)', eth_gastoRD:'Expenses (RD$)',
@@ -2154,7 +2154,7 @@ const _setupSteps=[
         const tasa=parseFloat(row.querySelector('.sw-g-tasa').value)||0;
         const balance=parseFloat(row.querySelector('.sw-g-balance').value)||0;
         const tipo=row.querySelector('.sw-g-tipo').value;
-        _editData.gastos.push({nombre,tipo,pagado:0,adeudado,dia,tasa,balance,originalRD:balance||adeudado,originalUSD:0,fechaLimite:null,notas:'',pagadoMes:false});
+        _editData.gastos.push({nombre,tipo,pagado:0,adeudado,dia,tasa,balance,originalRD:balance||adeudado,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:null,notas:'',pagadoMes:false});
       });
       const totalGasto=_editData.gastos.reduce((a,g)=>a+g.adeudado,0);
       _editData.emerg.cashflow.gasto=totalGasto;
@@ -2441,15 +2441,23 @@ function parseGastos(rows){
   let hi=-1;
   rows.forEach((r,i)=>{if(String(r[0]||'').toLowerCase().includes('descripci'))hi=i;});
   if(hi<0)return gastos;
+  // Detect if TasaCreacion column exists (new format has 13 cols, old has 12)
+  const hdr=rows[hi]||[];
+  const hasTasaCol=hdr.some(c=>String(c||'').toLowerCase().includes('tasacreacion'));
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i];
     const nombre=String(r[0]||'').trim();
     if(!nombre||nombre.toLowerCase().includes('total')||nombre.toLowerCase().includes('tasa'))continue;
-    const pagadoMes=String(r[11]||'').trim().toUpperCase()==='SI';
     // Fix #13: normalizar tasa — si viene como decimal (0.1945) convertir a porcentaje (19.45)
     const tasaRaw=clean(r[5]);
     const tasa=tasaRaw>0&&tasaRaw<1?Math.round(tasaRaw*10000)/100:tasaRaw;
-    gastos.push({nombre,tipo:String(r[1]||'').trim(),pagado:clean(r[2]),adeudado:clean(r[3]),dia:clean(r[4]),tasa,balance:clean(r[6]),originalRD:clean(r[7]),originalUSD:clean(r[8]),fechaLimite:r[9],notas:String(r[10]||''),pagadoMes});
+    if(hasTasaCol){
+      const pagadoMes=String(r[12]||'').trim().toUpperCase()==='SI';
+      gastos.push({nombre,tipo:String(r[1]||'').trim(),pagado:clean(r[2]),adeudado:clean(r[3]),dia:clean(r[4]),tasa,balance:clean(r[6]),originalRD:clean(r[7]),originalUSD:clean(r[8]),tasaCreacion:clean(r[9])||0,fechaLimite:r[10],notas:String(r[11]||''),pagadoMes});
+    }else{
+      const pagadoMes=String(r[11]||'').trim().toUpperCase()==='SI';
+      gastos.push({nombre,tipo:String(r[1]||'').trim(),pagado:clean(r[2]),adeudado:clean(r[3]),dia:clean(r[4]),tasa,balance:clean(r[6]),originalRD:clean(r[7]),originalUSD:clean(r[8]),tasaCreacion:0,fechaLimite:r[9],notas:String(r[10]||''),pagadoMes});
+    }
   }
   return gastos;
 }
@@ -2774,21 +2782,23 @@ function writeEsencialesSheet(esSheet,gastos){
   rows.forEach((r,i)=>{if(String(r[0]||'').toLowerCase().includes('descripci'))hi=i;});
   if(hi<0)return false;
   // Clear existing data rows
-  let ri=hi+1;while(ri<hi+1+gastos.length+5){for(let ci=0;ci<=11;ci++){delete esSheet[XLSX.utils.encode_cell({r:ri,c:ci})];}ri++;}
-  // Write Pagado_Mes header if missing
-  const hdrRef=XLSX.utils.encode_cell({r:hi,c:11});
+  let ri=hi+1;while(ri<hi+1+gastos.length+5){for(let ci=0;ci<=12;ci++){delete esSheet[XLSX.utils.encode_cell({r:ri,c:ci})];}ri++;}
+  // Write TasaCreacion and Pagado_Mes headers if missing
+  const tcHdrRef=XLSX.utils.encode_cell({r:hi,c:9});
+  if(!esSheet[tcHdrRef]||!String(esSheet[tcHdrRef].v||'').toLowerCase().includes('tasacreacion')) esSheet[tcHdrRef]={t:'s',v:'TasaCreacion'};
+  const hdrRef=XLSX.utils.encode_cell({r:hi,c:12});
   if(!esSheet[hdrRef]||!esSheet[hdrRef].v) esSheet[hdrRef]={t:'s',v:'Pagado_Mes'};
   // Write each gasto row
   gastos.forEach((g,i)=>{
     const rowIdx=hi+1+i;
     // Fix #13: store tasa back as-is (already normalized on parse)
-    [g.nombre,g.tipo,g.pagado,g.adeudado,g.dia,g.tasa,g.balance,g.originalRD,g.originalUSD,g.fechaLimite||null,g.notas,g.pagadoMes?'SI':'NO'].forEach((v,ci)=>{
+    [g.nombre,g.tipo,g.pagado,g.adeudado,g.dia,g.tasa,g.balance,g.originalRD,g.originalUSD,g.tasaCreacion||'',g.fechaLimite||null,g.notas,g.pagadoMes?'SI':'NO'].forEach((v,ci)=>{
       const ref=XLSX.utils.encode_cell({r:rowIdx,c:ci});
       if(v===null||v===''||v===undefined){delete esSheet[ref];return;}
       if(typeof v==='number')esSheet[ref]={t:'n',v};else esSheet[ref]={t:'s',v:String(v)};
     });
   });
-  const range=XLSX.utils.decode_range(esSheet['!ref']||'A1:L30');
+  const range=XLSX.utils.decode_range(esSheet['!ref']||'A1:M30');
   range.e.c=Math.max(range.e.c,11);
   range.e.r=Math.max(range.e.r,hi+gastos.length+1);
   esSheet['!ref']=XLSX.utils.encode_range(range);
@@ -4374,7 +4384,7 @@ function syncConfigField(key,el){
   }
 }
 function syncOriginal(idx,field,el){
-  const tasa=_editData.config.tasa||60;const v=pf(el.value);
+  const tasa=_editData.gastos[idx].tasaCreacion||_editData.config.tasa||60;const v=pf(el.value);
   if(field==='originalRD'){_editData.gastos[idx].originalRD=v;_editData.gastos[idx].originalUSD=Math.round(v/tasa*100)/100;const u=document.getElementById('origUSD-'+idx);if(u)u.value=_editData.gastos[idx].originalUSD;}
   else{_editData.gastos[idx].originalUSD=v;_editData.gastos[idx].originalRD=Math.round(v*tasa);const r=document.getElementById('origRD-'+idx);if(r)r.value=_editData.gastos[idx].originalRD;}
 }
@@ -4426,6 +4436,7 @@ function buildEditForms(){
       <td><input class="tbl-input" type="number" step="any" min="0" value="${g.balance||0}" oninput="markChanged(this);_editData.gastos[${i}].balance=Math.max(0,pf(this.value))"></td>
       <td><input class="tbl-input" id="origRD-${i}" type="number" step="any" min="0" value="${g.originalRD||0}" oninput="markChanged(this);syncOriginal(${i},'originalRD',this)"></td>
       <td><input class="tbl-input" id="origUSD-${i}" type="number" step="any" min="0" value="${g.originalUSD||0}" oninput="markChanged(this);syncOriginal(${i},'originalUSD',this)" style="min-width:80px"></td>
+      <td><input class="tbl-input" type="number" step="any" value="${g.tasaCreacion||''}" readonly style="min-width:70px;opacity:.6;cursor:not-allowed"></td>
       <td><input class="tbl-input" type="date" value="${g.fechaLimite?String(g.fechaLimite).slice(0,10):''}" oninput="markChanged(this);_editData.gastos[${i}].fechaLimite=this.value" style="min-width:120px"></td>
       <td><input class="tbl-input" value="${escH(g.notas||'')}" oninput="markChanged(this);_editData.gastos[${i}].notas=this.value" style="min-width:120px"></td>
       <td><button class="row-del-btn" onclick="deleteGastoRow(${i})">✕</button></td>
@@ -4487,7 +4498,7 @@ function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confi
 function deleteFornowRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
-function addEsencialRow(){_editData.gastos.push({nombre:'Nueva entrada',tipo:'Variable',pagado:0,adeudado:0,dia:1,tasa:0,balance:0,originalRD:0,originalUSD:0,fechaLimite:'',notas:'',pagadoMes:false});markChanged(document.body);buildEditForms();}
+function addEsencialRow(){_editData.gastos.push({nombre:'Nueva entrada',tipo:'Variable',pagado:0,adeudado:0,dia:1,tasa:0,balance:0,originalRD:0,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:'',notas:'',pagadoMes:false});markChanged(document.body);buildEditForms();}
 function addForNowRow(){_editData.forNow.cuentas.push({nombre:'Nueva cuenta',moneda:'RD',saldo:0,comp:0,disp:0});markChanged(document.body);buildEditForms();}
 function addEmergFundRow(){const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeudado||0),0);const defaultMeta=gasto>0?Math.round(gasto*3):0;_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:defaultMeta,falta:defaultMeta,moneda:'RD'});markChanged(document.body);buildEditForms();}
 function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:_editData.config.tasa||60,notas:''});markChanged(document.body);buildEditForms();}
@@ -4530,8 +4541,8 @@ function buildNewWorkbook(){
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(configRows), 'Config');
 
   // ── Esenciales sheet ──
-  const esRows = [['Descripción','Tipo','Pagado','Adeudado','Día','Tasa%','Balance','OriginalRD','OriginalUSD','FechaLimite','Notas','Pagado_Mes']];
-  gastos.forEach(g => esRows.push([g.nombre,g.tipo,g.pagado||0,g.adeudado||0,g.dia||1,g.tasa||0,g.balance||0,g.originalRD||0,g.originalUSD||0,g.fechaLimite||'',g.notas||'',g.pagadoMes?'SI':'NO']));
+  const esRows = [['Descripción','Tipo','Pagado','Adeudado','Día','Tasa%','Balance','OriginalRD','OriginalUSD','TasaCreacion','FechaLimite','Notas','Pagado_Mes']];
+  gastos.forEach(g => esRows.push([g.nombre,g.tipo,g.pagado||0,g.adeudado||0,g.dia||1,g.tasa||0,g.balance||0,g.originalRD||0,g.originalUSD||0,g.tasaCreacion||'',g.fechaLimite||'',g.notas||'',g.pagadoMes?'SI':'NO']));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(esRows), 'Esenciales');
 
   // ── ForNow sheet ──
