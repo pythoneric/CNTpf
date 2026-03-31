@@ -8,7 +8,7 @@
 
 Un dashboard financiero completo que vive en 5 archivos. No requiere servidor, no tiene base de datos en la nube, no necesita cuenta. Los datos se guardan en tu propio navegador usando IndexedDB.
 
-Puedes empezar **sin ningun archivo Excel** -- un asistente de configuracion te guia para ingresar tus datos directamente y genera el Excel inicial automaticamente. O puedes importar un `cnt.xlsx` existente si ya tienes tus datos ahi.
+Puedes empezar **sin ningun archivo** -- un asistente de configuracion te guia para ingresar tus datos directamente y genera el respaldo JSON inicial automaticamente. Tambien puedes importar un `.json` exportado previamente, o un `.xlsx` legacy si ya tienes datos en Excel.
 
 Soporta **espanol e ingles** con cambio de idioma en tiempo real, y temas **oscuro y claro**.
 
@@ -50,13 +50,16 @@ Si es tu primera vez o no tienes un archivo Excel previo, elige **"Empezar desde
 | 4 | Fondos de emergencia con balance actual, meta minima y moneda |
 | 5 | Resumen y confirmacion |
 
-Al confirmar, el dashboard se lanza con tus datos y se descarga automaticamente un `cnt.xlsx` como respaldo inicial. Los datos tambien quedan guardados localmente en el navegador.
+Al confirmar, el dashboard se lanza con tus datos y se descarga automaticamente un `cnt.json` como respaldo. Los datos tambien quedan guardados localmente en el navegador.
 
-### Opcion B -- Importar archivo Excel
-Si ya tienes un `cnt.xlsx` con datos, arrastralo o seleccionalo. El dashboard lo procesa localmente y guarda los datos en el navegador para futuras visitas.
+### Opcion B -- Importar archivo
+Arrastra o selecciona un archivo `.json` (exportado previamente) o `.xlsx` (legacy). El dashboard lo procesa localmente y guarda los datos en el navegador para futuras visitas.
 
 ### Opcion C -- Continuar donde lo deje
 Si ya usaste el dashboard antes en este navegador, aparece esta opcion automaticamente. Abre los datos guardados sin necesidad de subir nada.
+
+### Opcion D -- Ver demo con datos de ejemplo
+Carga datos ficticios realistas de 18 meses (persona: Maria Fernandez, marketing manager, Santo Domingo). Util para explorar el dashboard sin ingresar datos propios.
 
 ---
 
@@ -192,13 +195,13 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 - **Soporte de comas** -- Numeros pegados con comas (ej: "1,500") se parsean correctamente
 - Advertencia de cambios sin guardar al cerrar
 - Confirmacion de eliminacion en todas las secciones
-- Descarga Excel actualizado con todos los cambios en cualquier momento
+- Exporta respaldo JSON con todos los cambios en cualquier momento
 
 ### Cierre de Mes
 - Wizard de 8 pasos que guia el proceso mensual completo
 - Registra automaticamente el mes en el historial
 - Resetea checklist de pagos para el mes nuevo
-- Descarga Excel actualizado con historial
+- Descarga respaldo JSON con historial
 - **Resumen post-cierre** -- Muestra tasa de ahorro, cambio en deuda y cambio en net worth
 
 | Paso | Que haces |
@@ -223,20 +226,42 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 - Boton de tema en el header
 
 ### Exportacion
-- **Excel (.xlsx)** -- Exporta todos los datos en formato Excel con hasta 9 hojas
+- **JSON (.json)** -- Exporta todos los datos como archivo JSON lossless (formato nativo de respaldo)
+- **Excel (.xlsx)** -- Importacion legacy compatible (solo lectura, no se exporta)
 - **Snapshot (PDF)** -- Exporta vista actual optimizada para impresion
 
 ### PWA / Offline
 - Se instala como app nativa en Android, iOS y PC
 - Funciona completamente sin conexion despues de la primera visita
 - Datos guardados automaticamente en el navegador (IndexedDB)
-- Proximas visitas cargan los datos sin necesidad de subir el Excel
+- Proximas visitas cargan los datos sin necesidad de subir nada
 
 ---
 
-## Estructura del Excel (`cnt.xlsx`)
+## Formato de datos
 
-El archivo Excel tiene hasta **9 hojas**. Si empezaste desde cero, el dashboard lo genera automaticamente con esta estructura. Las hojas opcionales (Metas, Transacciones, Presupuesto, Recurrentes) solo se crean si hay datos.
+### JSON (formato nativo)
+
+El respaldo se exporta como un archivo `.json` con esta estructura:
+
+```json
+{
+  "_meta": { "version": 1, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
+  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5 },
+  "gastos": [...],
+  "forNow": { "cuentas": [...], "fecha": "...", "total": 0 },
+  "emerg": { "fondos": [...], "cashflow": {...} },
+  "historial": [...],
+  "metas": [...],
+  "transacciones": [...],
+  "presupuesto": [...],
+  "recurrentes": [...]
+}
+```
+
+### Excel (formato legacy, solo importacion)
+
+El archivo Excel tiene hasta **9 hojas**. La importacion desde Excel sigue siendo compatible para usuarios existentes. Las hojas opcionales (Metas, Transacciones, Presupuesto, Recurrentes) solo se crean si hay datos.
 
 | Hoja | Contenido |
 |------|-----------|
@@ -386,11 +411,11 @@ python3 -m http.server 8080
 | Primera carga / asistente completado | Datos guardados automaticamente |
 | Editar datos y aplicar | Guardado automatico |
 | Marcar pago en checklist | Guardado automatico |
-| Cerrar el mes (wizard) | Guardado automatico + Excel descargado |
+| Cerrar el mes (wizard) | Guardado automatico + JSON descargado |
 | Proxima visita | Banner "Continuar donde lo deje" |
 | Borrar datos | Boton en el banner de inicio |
 
-> Los datos son especificos del navegador y dispositivo. Si cambias de navegador o dispositivo, necesitas importar el Excel una vez.
+> Los datos son especificos del navegador y dispositivo. Si cambias de navegador o dispositivo, necesitas importar tu respaldo JSON una vez.
 
 ---
 
@@ -413,7 +438,7 @@ Al cierre del mes:
   -- Header > "Cerrar Mes"
   -- Wizard 8 pasos: tasa > mes > ingreso > gasto real > saldos > ahorros > confirmar > proximo mes
   -- Ver resumen post-cierre con tasa de ahorro, cambio en deuda y net worth
-  -- Historial actualizado + Excel descargado + checklist reseteado
+  -- Historial actualizado + JSON descargado + checklist reseteado
 
 Al pagar una deuda en su totalidad:
   -- Tab Deudas > Card de la deuda > "Liquidar deuda"
@@ -452,13 +477,14 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `account-currency.spec.js` | 13 | Moneda dual en cuentas (RD$/USD) |
 | `goals-numeric-inputs.spec.js` | 8 | Inputs de metas sin spinners |
 | `cache-clear.spec.js` | 3 | Limpieza de cache sin perder datos |
-| `demo-loader.spec.js` | 4 | Carga de datos demo |
+| `demo-loader.spec.js` | 9 | Carga de datos demo |
 | `tasa-creacion.spec.js` | 8 | Tasa de creacion en deudas |
-| `edit-table-scroll.spec.js` | 5 | Scroll de tabla de edicion |
-| `foldable-projector.spec.js` | 6 | Proyector en pantallas plegables |
+| `edit-table-scroll.spec.js` | 8 | Scroll de tabla de edicion |
+| `foldable-projector.spec.js` | 7 | Proyector en pantallas plegables |
 | `tab-order.spec.js` | 7 | Orden de pestanas (13 tabs, 2 grupos) |
+| `json-backup.spec.js` | 13 | Exportar/importar JSON, round-trip, demo embebido |
 | `presupuesto-recurring.spec.js` | 40 | Presupuesto CRUD, BvA, obligaciones, recurrentes, generacion, dedup, Registro KPIs, Resumen integracion |
-| **Total** | **232** | |
+| **Total** | **245+** | |
 
 ---
 
@@ -467,7 +493,7 @@ npx playwright test tests/finance-advisor-features.spec.js
 | Tecnologia | Uso |
 |------------|-----|
 | HTML / CSS / JavaScript vanilla | La app completa -- sin frameworks |
-| [SheetJS (xlsx)](https://sheetjs.com) | Leer y escribir archivos Excel |
+| [SheetJS (xlsx)](https://sheetjs.com) | Importar archivos Excel legacy |
 | [Chart.js](https://chartjs.org) | Graficos de donut, barras y lineas |
 | IndexedDB | Persistencia local de datos |
 | Service Worker | Cache offline |
