@@ -605,11 +605,11 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="drop-zone" id="dropZone"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
         <div style="font-size:26px;margin-bottom:6px">📂</div>
-        <div class="drop-zone-text" data-i18n="loader_import">Importar archivo .json o .xlsx</div>
-        <div class="drop-zone-sub" data-i18n="loader_import_sub">Arrastra o toca para seleccionar · <span>JSON (recomendado) o Excel</span></div>
+        <div class="drop-zone-text" data-i18n="loader_import">Importar archivo .json</div>
+        <div class="drop-zone-sub" data-i18n="loader_import_sub">Arrastra o toca para seleccionar · <span>respaldo exportado</span></div>
       </div>
     </label>
-    <input type="file" id="fileInput" accept=".json,.xlsx,.xls" style="display:none" onchange="loadFile(event)">
+    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadFile(event)">
 
     <!-- Divider -->
     <div style="display:flex;align-items:center;gap:10px;margin:14px 0">
@@ -1403,8 +1403,8 @@ const LANG = {
     loader_privacy:'🔒 Tus datos nunca salen de tu dispositivo.',
     loader_saved:'✅ Datos guardados', loader_continue:'▶ Continuar donde lo dejé',
     loader_or_other:'o empieza de otra forma', loader_or:'o',
-    loader_import:'Importar archivo .json o .xlsx',
-    loader_import_sub:'Arrastra o toca para seleccionar · <span>JSON (recomendado) o Excel</span>',
+    loader_import:'Importar archivo .json',
+    loader_import_sub:'Arrastra o toca para seleccionar · <span>respaldo exportado</span>',
     loader_scratch:'Empezar desde cero',
     loader_scratch_sub:'Configuro el dashboard con un asistente y genero mi archivo inicial',
     loader_demo:'Ver demo con datos de ejemplo',
@@ -1787,8 +1787,8 @@ const LANG = {
     loader_privacy:'🔒 Your data never leaves your device.',
     loader_saved:'✅ Saved data', loader_continue:'▶ Continue where I left off',
     loader_or_other:'or start another way', loader_or:'or',
-    loader_import:'Import .json or .xlsx file',
-    loader_import_sub:'Drag or tap to select · <span>JSON (recommended) or Excel</span>',
+    loader_import:'Import .json file',
+    loader_import_sub:'Drag or tap to select · <span>exported backup</span>',
     loader_scratch:'Start from scratch',
     loader_scratch_sub:'Set up the dashboard with a wizard and generate my initial file',
     loader_demo:'View demo with sample data',
@@ -2169,7 +2169,7 @@ function defaultEditData(){
     transacciones:[],
     presupuesto:[],
     recurrentes:[],
-    filename:'cnt.xlsx'
+    filename:'cnt.json'
   };
 }
 
@@ -2608,14 +2608,7 @@ async function loadDemo(){
 }
 function processFile(file){
   if(file.name.match(/\.json$/i)){importJSON(file);return;}
-  if(!file.name.match(/\.(xlsx|xls)$/i)){showError('⚠ Solo se aceptan archivos .json, .xlsx o .xls');return;}
-  showSpinner();
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});processWorkbook(wb,file.name);}
-    catch(err){showError('⚠ Error al leer el archivo: '+err.message);}
-  };
-  reader.readAsArrayBuffer(file);
+  if(!file.name.match(/\.json$/i)){showError('⚠ Solo se aceptan archivos .json');return;}
 }
 
 // ══════════════════════════════════
