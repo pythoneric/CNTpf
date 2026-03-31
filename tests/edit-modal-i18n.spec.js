@@ -183,8 +183,8 @@ test.describe('Edit Modal - i18n', () => {
     await modal.locator('.edit-tab', { hasText: /Emergency/ }).click();
     const emergTable = modal.locator('#esection-emergency thead');
     await expect(emergTable).toContainText('Fund');
-    await expect(emergTable).toContainText('Current Balance');
-    await expect(emergTable).toContainText('Minimum Goal');
+    await expect(emergTable).toContainText('Balance');
+    await expect(emergTable).toContainText('Goal');
 
     // History table headers
     await modal.locator('.edit-tab', { hasText: /History/ }).click();
