@@ -1035,7 +1035,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <div class="edit-card-title" data-i18n="edit_card_gastos">💸 Gastos & Deudas Mensuales</div>
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr>
-            <th data-i18n="eth_desc">Descripción</th><th data-i18n="eth_tipo">Tipo</th><th data-i18n="eth_pagado">Pagado (RD$)</th><th data-i18n="eth_adeudado">Adeudado (RD$)</th>
+            <th data-i18n="eth_desc">Descripción</th><th data-i18n="eth_tipo">Tipo</th><th data-i18n="eth_pagado">Pagado (RD$)</th><th data-i18n="eth_adeudado">Cuota (RD$)</th>
             <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_tasaCreacion">Tasa Creación</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_notas">Notas</th><th></th>
           </tr></thead><tbody id="esencialesEditBody"></tbody></table>
         </div>
@@ -1058,7 +1058,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-card" style="margin-bottom:16px">
         <div class="edit-card-title" data-i18n="edit_card_emergency">🛡 Fondos de Emergencia</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th data-i18n="eth_fondo">Fondo</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_balanceActual">Balance Actual</th><th data-i18n="eth_metaMinima">Meta Mínima</th><th></th></tr></thead><tbody id="emergFundsEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_fondo">Fondo</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_balanceActual">Balance</th><th data-i18n="eth_metaMinima">Meta</th><th></th></tr></thead><tbody id="emergFundsEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addEmergFundRow()" data-i18n="edit_add_fondo">+ Agregar fondo</button>
       </div>
@@ -1113,7 +1113,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 // ══════════════════════════════════
 // HELPERS
 // ══════════════════════════════════
-const fmt=n=>{if(n===undefined||n===null||isNaN(n))return'—';return Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0})};
+const fmt=n=>{if(n===undefined||n===null||isNaN(n))return'—';return Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0})};
 const fmtUSD=n=>n===undefined||isNaN(n)?'—':'$'+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});
 
 // ══════════════════════════════════
@@ -1389,13 +1389,13 @@ const LANG = {
     ecf_tasa:'Tasa Dólar', ecf_retirarUSD:'Retirar en USD',
     ecf_ahorros:'Ahorros este mes', ecf_balanceAhorros:'Balance Ahorros',
     // Edit table headers
-    eth_desc:'Descripción', eth_tipo:'Tipo', eth_pagado:'Pagado (RD$)', eth_adeudado:'Adeudado (RD$)',
+    eth_desc:'Descripción', eth_tipo:'Tipo', eth_pagado:'Pagado (RD$)', eth_adeudado:'Cuota (RD$)',
     eth_dia:'Día Pago', eth_tasa:'Tasa %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
     eth_originalUSD:'Original (USD)', eth_tasaCreacion:'Tasa Creación', eth_fechaLimite:'Fecha Límite', eth_notas:'Notas',
     eth_cuenta:'Cuenta', eth_saldo:'Saldo',
-    eth_fondo:'Fondo', eth_moneda:'Moneda', eth_balanceActual:'Balance Actual', eth_metaMinima:'Meta Mínima',
+    eth_fondo:'Fondo', eth_moneda:'Moneda', eth_balanceActual:'Balance', eth_metaMinima:'Meta',
     eth_mes:'Mes', eth_anio:'Año', eth_ingresosRD:'Ingresos (RD$)', eth_gastoRD:'Gasto (RD$)',
-    eth_tasaDolar:'Tasa Dólar', eth_deudasRD:'Deudas (RD$)', eth_emergenciaRD:'Emergencia (RD$)',
+    eth_tasaDolar:'Tasa $', eth_deudasRD:'Deudas (RD$)', eth_emergenciaRD:'Emergencia (RD$)',
     eth_netWorthRD:'Net Worth (RD$)',
     eth_fechaActualizado:'Fecha Actualizado',
     // Loader
@@ -1773,13 +1773,13 @@ const LANG = {
     ecf_tasa:'Exchange Rate', ecf_retirarUSD:'Withdraw in USD',
     ecf_ahorros:'Savings this month', ecf_balanceAhorros:'Savings Balance',
     // Edit table headers
-    eth_desc:'Description', eth_tipo:'Type', eth_pagado:'Paid (RD$)', eth_adeudado:'Owed (RD$)',
+    eth_desc:'Description', eth_tipo:'Type', eth_pagado:'Paid (RD$)', eth_adeudado:'Payment (RD$)',
     eth_dia:'Pay Day', eth_tasa:'Rate %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
     eth_originalUSD:'Original (USD)', eth_tasaCreacion:'Rate at Creation', eth_fechaLimite:'Deadline', eth_notas:'Notes',
     eth_cuenta:'Account', eth_saldo:'Balance',
-    eth_fondo:'Fund', eth_moneda:'Currency', eth_balanceActual:'Current Balance', eth_metaMinima:'Minimum Goal',
+    eth_fondo:'Fund', eth_moneda:'Currency', eth_balanceActual:'Balance', eth_metaMinima:'Goal',
     eth_mes:'Month', eth_anio:'Year', eth_ingresosRD:'Income (RD$)', eth_gastoRD:'Expenses (RD$)',
-    eth_tasaDolar:'Exchange Rate', eth_deudasRD:'Debts (RD$)', eth_emergenciaRD:'Emergency (RD$)',
+    eth_tasaDolar:'Rate $', eth_deudasRD:'Debts (RD$)', eth_emergenciaRD:'Emergency (RD$)',
     eth_netWorthRD:'Net Worth (RD$)',
     eth_fechaActualizado:'Date Updated',
     // Loader
