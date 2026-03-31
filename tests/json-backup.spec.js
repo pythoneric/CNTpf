@@ -172,11 +172,11 @@ test.describe('JSON Backup — Loader screen', () => {
     expect(accept).toContain('.json');
   });
 
-  test('file input still accepts .xlsx for backward compat', async ({ page }) => {
+  test('file input only accepts .json', async ({ page }) => {
     await page.goto(APP);
     const input = page.locator('#fileInput');
     const accept = await input.getAttribute('accept');
-    expect(accept).toContain('.xlsx');
+    expect(accept).toBe('.json');
   });
 
   test('import label mentions JSON', async ({ page }) => {
@@ -224,11 +224,11 @@ test.describe('JSON Backup — Checklist save', () => {
 });
 
 test.describe('JSON Backup — i18n labels', () => {
-  test('Spanish loader labels do not reference Excel', async ({ page }) => {
+  test('Spanish loader labels only reference JSON', async ({ page }) => {
     await page.goto(APP);
     const importLabel = await page.locator('[data-i18n="loader_import"]').textContent();
-    expect(importLabel.toLowerCase()).not.toContain('.xlsx only');
-    expect(importLabel.toLowerCase()).toContain('json');
+    expect(importLabel.toLowerCase()).toContain('.json');
+    expect(importLabel.toLowerCase()).not.toContain('.xlsx');
 
     const scratchSub = await page.locator('[data-i18n="loader_scratch_sub"]').textContent();
     expect(scratchSub.toLowerCase()).not.toContain('excel');
@@ -285,12 +285,12 @@ test.describe('JSON Backup — saveToDB no longer saves _rawWb', () => {
   });
 });
 
-test.describe('JSON Backup — Excel import backward compat', () => {
-  test('processFile rejects unsupported file types', async ({ page }) => {
+test.describe('JSON Backup — processFile', () => {
+  test('processFile rejects non-JSON file types', async ({ page }) => {
     await page.goto(APP);
     await page.waitForSelector('#loaderScreen', { state: 'visible' });
     await page.evaluate(() => {
-      const file = new File(['data'], 'test.csv', { type: 'text/csv' });
+      const file = new File(['data'], 'test.xlsx', { type: 'application/octet-stream' });
       processFile(file);
     });
     await page.waitForTimeout(300);
