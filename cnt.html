@@ -3786,7 +3786,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       const mr=d.tasa>0?d.tasa/100/12:0;
       let payoffMonths;
       if(mr<=0)payoffMonths=Math.ceil(d.balance/d.adeudado);
-      else if(d.adeudado<=d.balance*mr)payoffMonths=Infinity;
+      else if(d.adeudado<d.balance*mr)payoffMonths=Infinity;
       else{let b=d.balance,m=0;while(b>0&&m<360){m++;b=Math.max(0,b+b*mr-d.adeudado);}payoffMonths=m;}
       if(payoffMonths===Infinity){
         payoffStr=`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payoff_eta')}</div><div class="dmi-val" style="color:var(--red)">⚠ ${t('dcard_payoff_never')}</div></div>`;
@@ -4037,7 +4037,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   buildBudgetVsActual(gastos,ingreso);
   buildDebtPayoffDates(gastos,ingreso,gasto);
   buildAnalisisSummary(gastos,ingreso,gasto,interesMensual);
-  buildCashflowWaterfall(ingreso,gastos,config,efTotal,_editData.metas);
+  buildCashflowWaterfall(ingreso,gastos,config,_editData.metas);
   buildExpenseTrend(historial,gastos);
   // Fix 3.3: Net worth milestone celebrations
   if(historial.length>0){
@@ -4109,7 +4109,7 @@ function buildHistorial(historial,config){
     const avgDelta=recent.length>=2?(recent[recent.length-1]-recent[0])/(recent.length-1):0;
     const lastNW=nwData[nwData.length-1];
     projData[projData.length-1]=lastNW;// connect to last actual point
-    const MESES_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const MESES_SHORT=MESES_INTERNOS.map(m=>m.slice(0,3));
     const lastH=reversed[reversed.length-1];
     const lastMIdx=MESES_INTERNOS.indexOf(lastH.mes);
     for(let i=1;i<=PROJ_MONTHS;i++){
@@ -4180,7 +4180,7 @@ function buildAnalisisSummary(gastos,ingreso,gasto,interesMensual){
   let totalMonths=0,totalInterest=0,hasInfinite=false;
   debts.forEach(d=>{
     const mr=d.tasa>0?d.tasa/100/12:0;
-    if(mr>0&&d.adeudado<=d.balance*mr){hasInfinite=true;return;}
+    if(mr>0&&d.adeudado<d.balance*mr){hasInfinite=true;return;}
     if(mr<=0){totalMonths=Math.max(totalMonths,Math.ceil(d.balance/d.adeudado));return;}
     let b=d.balance,m=0,intT=0;
     while(b>0&&m<360){m++;const mi=b*mr;intT+=mi;b=Math.max(0,b+mi-d.adeudado);}
@@ -4202,7 +4202,7 @@ function buildAnalisisSummary(gastos,ingreso,gasto,interesMensual){
     ${intPctOfSurplus>50?`<div style="margin-top:10px;padding:8px 12px;background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.15);border-radius:8px;font-size:11px;color:var(--red)">⚠ ${t('ana_interest_warning').replace('{pct}',intPctOfSurplus)}</div>`:''}`;
 }
 
-function buildCashflowWaterfall(ingreso,gastos,config,efTotal,metas){
+function buildCashflowWaterfall(ingreso,gastos,config,metas){
   const el=document.getElementById('cashflowWaterfall');
   if(!el||ingreso<=0){if(el)el.innerHTML='';return;}
   const obligations=gastos.reduce((a,g)=>a+(g.adeudado||0),0);

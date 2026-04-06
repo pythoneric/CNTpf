@@ -364,5 +364,160 @@ test.describe('Análisis Tab — Cash Flow Waterfall', () => {
     // Income=174000, obligations=28000 (15000+8000+5000), no tx, no goals → surplus=146000
     await expect(wf).toContainText('146,000');
   });
+
+  test('waterfall shows deficit in red when expenses exceed income', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      _editData.config.ingresoUSD = 500;
+      _editData.config.ingresoRD = 29000; // 500*58
+      _editData.gastos = [
+        { nombre: 'Alquiler', tipo: 'Fijo', pagado: 0, adeudado: 35000, dia: 1, tasa: 0, balance: 0, originalRD: 0, originalUSD: 0, fechaLimite: '', notas: '', pagadoMes: false },
+      ];
+      window.buildDashboard({ ..._editData });
+    });
+    await page.evaluate(() => window.showTab('analisis', null));
+    const wf = page.locator('#cashflowWaterfall');
+    // 29000 - 35000 = -6000 → deficit
+    await expect(wf).toContainText('6,000');
+  });
+});
+
+// ═══════════════════════════════════════
+// EDGE CASE TESTS
+// ═══════════════════════════════════════
+
+test.describe('Edge Cases — Calculations & Boundaries', () => {
+
+  test('debt ETA: exact payoff calculation for known values', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      // balance=60000, adeudado=10000, tasa=0 → 6 months exactly
+      _editData.gastos = [
+        { nombre: 'Test Debt', tipo: 'Préstamo', pagado: 0, adeudado: 10000, dia: 10,
+          tasa: 0, balance: 60000, originalRD: 60000, originalUSD: 0,
+          tasaCreacion: 58, fechaLimite: '', notas: '', pagadoMes: false },
+      ];
+      window.buildDashboard({ ..._editData });
+    });
+    await page.evaluate(() => window.showTab('deudas', null));
+    const cards = page.locator('#deudaCards');
+    await expect(cards).toContainText('6m');
+  });
+
+  test('debt ETA: payment exactly equals interest does NOT show never-payable', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      // balance=120000, tasa=12% → monthly interest = 120000*0.01 = 1200
+      // adeudado=1200 → payment equals interest exactly → should NOT be Infinity (fixes <= bug)
+      _editData.gastos = [
+        { nombre: 'Exact Interest', tipo: 'Préstamo', pagado: 0, adeudado: 1200, dia: 10,
+          tasa: 12, balance: 120000, originalRD: 120000, originalUSD: 0,
+          tasaCreacion: 58, fechaLimite: '', notas: '', pagadoMes: false },
+      ];
+      window.buildDashboard({ ..._editData });
+    });
+    await page.evaluate(() => window.showTab('deudas', null));
+    const cards = page.locator('#deudaCards');
+    // Should show very long payoff (360m = 30a 0m), NOT "no cubre"
+    const text = await cards.textContent();
+    expect(text).not.toContain('no cubre');
+  });
+
+  test('debt ETA color: ≤12m green, 13-36m yellow, >36m red', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      _editData.gastos = [
+        // ~11 months (green): 80000 / 8000 ≈ 10-11m with 24% rate
+        { nombre: 'Short', tipo: 'Tarjeta', pagado: 0, adeudado: 8000, dia: 20,
+          tasa: 24, balance: 80000, originalRD: 100000, originalUSD: 0,
+          tasaCreacion: 58, fechaLimite: '', notas: '', pagadoMes: false },
+      ];
+      window.buildDashboard({ ..._editData });
+    });
+    await page.evaluate(() => window.showTab('deudas', null));
+    const etaColor = await page.evaluate(() => {
+      const items = document.querySelectorAll('#deudaCards .dmi-val');
+      for (const item of items) {
+        const label = item.parentElement.querySelector('.dmi-label');
+        if (label && label.textContent.includes('Liquidación')) return item.style.color;
+      }
+      return '';
+    });
+    // 80000 at 24% with 8000/mo → ~11 months → green
+    expect(etaColor).toContain('green');
+  });
+
+  test('EF coverage: exact 6.0 months shows green', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      // gasto (adeudado) = 25000, EF balance should be 150000 → 6.0 months exactly
+      _editData.emerg.fondos = [{ fondo: 'EF', moneda: 'RD', balance: 150000, meta: 300000 }];
+      window.buildDashboard({ ..._editData });
+    });
+    await page.evaluate(() => window.showTab('emergency', null));
+    const color = await page.evaluate(() => {
+      const kpis = document.getElementById('efKpis');
+      const cards = kpis.querySelectorAll('.card');
+      const val = cards[2]?.querySelector('.kpi-val');
+      return val?.style.color || '';
+    });
+    expect(color).toContain('green');
+  });
+
+  test('EF coverage: 2.9 months shows red', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      // gasto = 25000, EF = 72500 → 2.9 months < 3 → red
+      _editData.emerg.fondos = [{ fondo: 'EF', moneda: 'RD', balance: 72500, meta: 300000 }];
+      window.buildDashboard({ ..._editData });
+    });
+    await page.evaluate(() => window.showTab('emergency', null));
+    const color = await page.evaluate(() => {
+      const kpis = document.getElementById('efKpis');
+      const cards = kpis.querySelectorAll('.card');
+      const val = cards[2]?.querySelector('.kpi-val');
+      return val?.style.color || '';
+    });
+    expect(color).toContain('red');
+  });
+
+  test('analysis summary: interest warning when >50% of surplus', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      // ingreso=174000, gasto=160000 → surplus=14000
+      // high-interest debt: balance=2000000, tasa=48% → monthly interest = 80000 >> 14000
+      _editData.gastos = [
+        { nombre: 'Big Expense', tipo: 'Fijo', pagado: 0, adeudado: 160000, dia: 1, tasa: 0, balance: 0, originalRD: 0, originalUSD: 0, fechaLimite: '', notas: '', pagadoMes: false },
+        { nombre: 'Huge Debt', tipo: 'Préstamo', pagado: 0, adeudado: 5000, dia: 15, tasa: 48, balance: 2000000, originalRD: 2000000, originalUSD: 0, tasaCreacion: 58, fechaLimite: '', notas: '', pagadoMes: false },
+      ];
+      window.buildDashboard({ ..._editData });
+    });
+    await page.evaluate(() => window.showTab('analisis', null));
+    const summary = page.locator('#analisisSummary');
+    // Interest ~80000/month >> surplus 14000 → warning should appear
+    await expect(summary).toContainText('intereses consumen');
+  });
+
+  test('historial projection: year boundary (Dec → Jan next year)', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      // historial is newest-first: Dec is most recent
+      _editData.historial = [
+        { mes: 'Diciembre', anio: 2026, ingresos: 174000, gasto: 120000, ahorro: 54000, tasaAhorro: 31, deudas: 40000, emergencia: 20000, netWorth: 130000, tasa: 58, notas: '' },
+        { mes: 'Noviembre', anio: 2026, ingresos: 174000, gasto: 120000, ahorro: 54000, tasaAhorro: 31, deudas: 50000, emergencia: 10000, netWorth: 100000, tasa: 58, notas: '' },
+      ];
+      window.buildDashboard({ ..._editData });
+    });
+    await page.evaluate(() => window.showTab('historial', null));
+    const labels = await page.evaluate(() => {
+      const chart = Object.values(Chart.instances || {}).find(c => c.canvas.id === 'histLine');
+      return chart ? chart.data.labels : [];
+    });
+    // 2 historical + 3 projected = 5 labels
+    expect(labels.length).toBe(5);
+    // Projected labels should cross year boundary: Ene 2027, Feb 2027, Mar 2027
+    expect(labels[2]).toContain('Ene');
+    expect(labels[2]).toContain('2027');
+  });
 });
 
