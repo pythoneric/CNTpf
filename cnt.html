@@ -556,7 +556,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 /* ══ KPIS 2×2 on mobile instead of 1 column ══ */
 @media(max-width:640px){
   #kpiRow.g4{grid-template-columns:repeat(2,1fr)!important}
-  #efKpis.g3{grid-template-columns:repeat(2,1fr)!important}
+  #efKpis.g4{grid-template-columns:repeat(2,1fr)!important}
 }
 </style>
 </head>
@@ -870,13 +870,14 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
   <!-- EMERGENCY -->
   <div id="tab-emergency" class="panel">
-    <div class="grid g3" style="margin-bottom:16px" id="efKpis"></div>
+    <div class="grid g4" style="margin-bottom:16px" id="efKpis"></div>
     <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_progress">Fondos de Emergencia · Progreso</div><div id="efFunds"></div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_cashflow">Cashflow Mensual Detallado</div><div id="cfRows"></div></div>
-    <div class="grid g12">
+    <div class="grid g2" style="margin-bottom:16px">
       <div class="card"><div class="card-title" data-i18n="panel_ef_chart">Progreso Total vs Meta</div><div class="chart-wrap"><canvas id="efChart"></canvas></div></div>
-      <div class="card" id="efTip"></div>
+      <div class="card"><div class="card-title" id="efCoverageTitle"></div><div class="chart-wrap"><canvas id="efCoverageChart"></canvas></div></div>
     </div>
+    <div class="card" id="efTip"></div>
   </div>
 
   <!-- FOR NOW -->
@@ -934,6 +935,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
   <!-- ANÁLISIS: Budget vs Actual + Debt Payoff Dates (Features 2 & 3) -->
   <div id="tab-analisis" class="panel">
+    <!-- Analysis Summary -->
+    <div class="card" style="margin-bottom:16px" id="analisisSummary"></div>
+    <!-- Cash Flow Waterfall -->
+    <div class="card" style="margin-bottom:16px" id="cashflowWaterfall"></div>
     <!-- Feature 2: Budget vs Actual -->
     <div class="card" style="margin-bottom:16px">
       <div class="card-title" data-i18n="bva_title">📊 Presupuesto vs Real del Mes</div>
@@ -1179,7 +1184,8 @@ const LANG = {
     ef_balance:'Balance Emergencia', ef_missing:'Falta Cubrir', ef_surplus:'Superávit Mensual',
     ef_available:'Disponible', ef_deficit:'Déficit', ef_completed:'% completado',
     ef_goal:'de', ef_goal_word:'meta', ef_balance_lbl:'Balance:', ef_goal_lbl:'Meta:', ef_missing_lbl:'Falta:',
-    ef_overfunded:'🎉 Meta superada', ef_suggested:'Aporte sugerido', ef_goalin:'Meta en', ef_months:'meses',
+    ef_overfunded:'🎉 Meta superada', ef_suggested:'Aporte sugerido', ef_goalin:'Meta en', ef_months:'meses', ef_days:'días',
+    ef_coverage:'Cobertura', ef_target:'Meta', ef_coverage_chart:'Meses de Gastos Cubiertos', ef_covered:'Cubierto', ef_remaining:'Faltante',
     ef_plan_title:'⚡ Plan sugerido', ef_plan_surplus:'Superávit', ef_plan_to_ef:'a emergencia',
     ef_plan_timetarget:'Tiempo para meta:', ef_plan_interest_title:'⚠️ Carga de intereses',
     ef_plan_interest_tip:'Reducir deuda aumenta capacidad de ahorro.',
@@ -1286,7 +1292,7 @@ const LANG = {
     proy_interest_note:'Interés calculado como aproximación mensual simple.',
     dpd_balance_lbl:'Balance:', dpd_rate_lbl:'Tasa:', dpd_payment_lbl:'Cuota:',
     dpd_intmonth:'Interés/mes', dpd_capitalmonth:'Capital/mes', dpd_progress_lbl:'Progreso total pagado',
-    dcard_payoff_progress:'Avance individual',
+    dcard_payoff_progress:'Avance individual', dcard_payoff_eta:'Liquidación', dcard_payoff_never:'Pago no cubre interés',
     proy_whatif_title:'🎯 Escenarios ¿Qué Pasaría Si…?',
     proy_whatif_col_scenario:'Escenario', proy_whatif_col_free:'Libre de deudas', proy_whatif_col_interest:'Interés total pagado',
     proy_whatif_col_vs:'vs. Escenario base', proy_whatif_col_saved:'Interés ahorrado',
@@ -1470,6 +1476,15 @@ const LANG = {
     trend_cat:'Gasto', trend_prev:'Mes anterior', trend_curr:'Este mes', trend_change:'Variación',
     trend_empty:'Se necesitan al menos 2 meses en historial para mostrar tendencias.',
     trend_up:'▲ subió', trend_down:'▼ bajó', trend_flat:'→ igual',
+    // Analysis summary + waterfall + projection
+    ana_summary_title:'📋 Resumen Financiero del Mes', ana_monthly_obligations:'Obligaciones Mensuales', ana_monthly_interest:'Interés Mensual',
+    ana_debt_free_in:'Libre de Deuda en', ana_total_interest:'Interés Total Proyectado', ana_debt_free:'✅ Sin deudas',
+    ana_has_negamort:'Amortización negativa', ana_interest_warning:'⚠ Los intereses consumen {pct}% de tu superávit mensual.',
+    hist_chart_proj:'Proyección NW',
+    wf_title:'💧 Flujo de Caja — ¿A dónde va tu dinero?', wf_income:'Ingreso', wf_obligations:'Compromisos fijos',
+    wf_discretionary:'Gasto registrado', wf_goals:'Aportes a metas', wf_surplus:'Sobrante',
+    wf_interest_note:'De tus compromisos, ~RD${v} van a intereses.',
+    metas_sparkline_title:'Proyección de ahorro',
     // Feature 5 – Transaction Tracking (Registro)
     reg_title:'🧾 Registro de Gastos', reg_add:'+ Agregar Gasto',
     reg_fecha:'Fecha', reg_monto:'Monto (RD$)', reg_categoria:'Categoría', reg_nota:'Nota',
@@ -1563,7 +1578,8 @@ const LANG = {
     ef_balance:'Emergency Balance', ef_missing:'Still Needed', ef_surplus:'Monthly Surplus',
     ef_available:'Available', ef_deficit:'Deficit', ef_completed:'% completed',
     ef_goal:'of', ef_goal_word:'goal', ef_balance_lbl:'Balance:', ef_goal_lbl:'Goal:', ef_missing_lbl:'Missing:',
-    ef_overfunded:'🎉 Goal exceeded', ef_suggested:'Suggested', ef_goalin:'Goal in', ef_months:'mo',
+    ef_overfunded:'🎉 Goal exceeded', ef_suggested:'Suggested', ef_goalin:'Goal in', ef_months:'mo', ef_days:'days',
+    ef_coverage:'Coverage', ef_target:'Target', ef_coverage_chart:'Months of Expenses Covered', ef_covered:'Covered', ef_remaining:'Remaining',
     ef_plan_title:'⚡ Suggested plan', ef_plan_surplus:'Surplus', ef_plan_to_ef:'to emergency',
     ef_plan_timetarget:'Time to goal:', ef_plan_interest_title:'⚠️ Interest burden',
     ef_plan_interest_tip:'Reducing debt increases savings capacity.',
@@ -1670,7 +1686,7 @@ const LANG = {
     proy_interest_note:'Interest calculated as simple monthly approximation.',
     dpd_balance_lbl:'Balance:', dpd_rate_lbl:'Rate:', dpd_payment_lbl:'Payment:',
     dpd_intmonth:'Interest/mo', dpd_capitalmonth:'Principal/mo', dpd_progress_lbl:'Total payoff progress',
-    dcard_payoff_progress:'Individual progress',
+    dcard_payoff_progress:'Individual progress', dcard_payoff_eta:'Payoff ETA', dcard_payoff_never:'Payment doesn\'t cover interest',
     proy_whatif_title:'🎯 What If…? Scenarios',
     proy_whatif_col_scenario:'Scenario', proy_whatif_col_free:'Debt-free in', proy_whatif_col_interest:'Total interest paid',
     proy_whatif_col_vs:'vs. Base scenario', proy_whatif_col_saved:'Interest saved',
@@ -1854,6 +1870,15 @@ const LANG = {
     trend_cat:'Expense', trend_prev:'Prior month', trend_curr:'This month', trend_change:'Change',
     trend_empty:'At least 2 months of history needed to show trends.',
     trend_up:'▲ up', trend_down:'▼ down', trend_flat:'→ flat',
+    // Analysis summary + waterfall + projection
+    ana_summary_title:'📋 Monthly Financial Summary', ana_monthly_obligations:'Monthly Obligations', ana_monthly_interest:'Monthly Interest',
+    ana_debt_free_in:'Debt-Free In', ana_total_interest:'Total Projected Interest', ana_debt_free:'✅ Debt-free',
+    ana_has_negamort:'Negative amortization', ana_interest_warning:'⚠ Interest consumes {pct}% of your monthly surplus.',
+    hist_chart_proj:'NW Projection',
+    wf_title:'💧 Cash Flow — Where Does Your Money Go?', wf_income:'Income', wf_obligations:'Fixed obligations',
+    wf_discretionary:'Tracked spending', wf_goals:'Goal contributions', wf_surplus:'Surplus',
+    wf_interest_note:'Of your obligations, ~RD${v} goes to interest.',
+    metas_sparkline_title:'Savings projection',
     // Feature 5 – Transaction Tracking (Registro)
     reg_title:'🧾 Expense Log', reg_add:'+ Add Expense',
     reg_fecha:'Date', reg_monto:'Amount (RD$)', reg_categoria:'Category', reg_nota:'Note',
@@ -3755,6 +3780,23 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const indivPct=origAmt>0?Math.round((1-d.balance/origAmt)*100):0;
     const bc=d.tasa>15?'linear-gradient(90deg,#f4606a,#fb923c)':d.tasa>0?'linear-gradient(90deg,#f5c842,#fb923c)':'linear-gradient(90deg,#93c5fd,#818cf8)';
     const fStr=fmtFecha(d.fechaLimite,{month:'short',year:'numeric'});
+    // Payoff calculation
+    let payoffStr='';
+    if(d.adeudado>0&&d.balance>0){
+      const mr=d.tasa>0?d.tasa/100/12:0;
+      let payoffMonths;
+      if(mr<=0)payoffMonths=Math.ceil(d.balance/d.adeudado);
+      else if(d.adeudado<=d.balance*mr)payoffMonths=Infinity;
+      else{let b=d.balance,m=0;while(b>0&&m<360){m++;b=Math.max(0,b+b*mr-d.adeudado);}payoffMonths=m;}
+      if(payoffMonths===Infinity){
+        payoffStr=`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payoff_eta')}</div><div class="dmi-val" style="color:var(--red)">⚠ ${t('dcard_payoff_never')}</div></div>`;
+      } else {
+        const y=Math.floor(payoffMonths/12),mo=payoffMonths%12;
+        const dur=y>0?`${y}a ${mo}m`:`${mo}m`;
+        const clr=payoffMonths<=12?'var(--green)':payoffMonths<=36?'var(--yellow)':'var(--red)';
+        payoffStr=`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payoff_eta')}</div><div class="dmi-val" style="color:${clr}">${dur}</div></div>`;
+      }
+    }
     return `<div class="debt-card">
       <div class="debt-header">
         <div><div class="debt-name">${escH(d.nombre)}</div><span class="pill" style="background:${(tipoColors[d.tipo]||'#64748b')}22;color:${tipoColors[d.tipo]||'#94a3b8'};margin-top:4px;display:inline-block">${escH(d.tipo)}</span></div>
@@ -3765,7 +3807,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       ${indivPct>0?`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;margin-bottom:2px"><span>${t('dcard_payoff_progress')}</span><span>${indivPct}%</span></div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${indivPct}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>`:''}
       <div class="debt-meta">
-        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${t('chk_day')} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
+        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${payoffStr}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${t('chk_day')} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
       <div style="margin-top:10px;text-align:right"><button class="btn btn-sm btn-success" onclick="liquidarDeuda(${gastos.indexOf(d)})">${t('dcard_liquidar')}</button></div>
     </div>`;
   }).join('');
@@ -3791,9 +3833,13 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     </div></div>`;
 
   // ── Emergency KPIs ──
+  const efMonthsCovered=gasto>0?efTotal/gasto:0;
+  const efMonthsColor=efMonthsCovered>=6?'var(--green)':efMonthsCovered>=3?'var(--yellow)':'var(--red)';
+  const efMonthsLabel=efMonthsCovered>=1?`${efMonthsCovered.toFixed(1)} ${t('ef_months')}`:`${Math.round(efMonthsCovered*30)} ${t('ef_days')}`;
   document.getElementById('efKpis').innerHTML=[
     {l:t('ef_balance'),v:`RD$${fmt(efTotal)}`,s:`${t('ef_goal')} RD$${fmt(efMeta)} ${t('ef_goal_word')}`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
     {l:t('ef_missing'),v:efTotal>=efMeta&&efMeta>0?t('ef_overfunded'):`RD$${fmt(Math.max(0,efMeta-efTotal))}`,s:`${efMeta>0?Math.min(100,Math.round((efTotal/efMeta)*100)):0}% ${t('ef_completed')}`,c:efTotal>=efMeta&&efMeta>0?'var(--green)':'var(--red)',b:efTotal>=efMeta&&efMeta>0?'rgba(34,211,160,.12)':'rgba(244,96,106,.12)'},
+    {l:t('ef_coverage'),v:efMonthsLabel,s:`${t('ef_target')}: 3-6 ${t('ef_months')}`,c:efMonthsColor,b:efMonthsCovered>=3?'rgba(34,211,160,.12)':'rgba(244,96,106,.12)'},
     {l:t('ef_surplus'),v:`RD$${fmt(resta)}`,s:resta>=0?t('ef_available'):t('ef_deficit'),c:resta>=0?'var(--green)':'var(--red)',b:'rgba(34,211,160,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
@@ -3944,6 +3990,18 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
         scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
     });
+    // EF Coverage doughnut — months of expenses covered
+    if(charts.efCoverage)try{charts.efCoverage.destroy()}catch(e){}
+    document.getElementById('efCoverageTitle').textContent=t('ef_coverage_chart');
+    const coveredMonths=gasto>0?efTotal/gasto:0;
+    const targetMonths=6;
+    const covPct=Math.min(coveredMonths,targetMonths);
+    const covRemain=Math.max(0,targetMonths-covPct);
+    charts.efCoverage=new Chart(document.getElementById('efCoverageChart'),{
+      type:'doughnut',
+      data:{labels:[t('ef_covered'),t('ef_remaining')],datasets:[{data:[Math.round(covPct*100)/100,Math.round(covRemain*100)/100],backgroundColor:[coveredMonths>=6?'#22d3a0cc':coveredMonths>=3?'#f5c842cc':'#f4606acc','rgba(26,37,64,.3)'],borderWidth:0,hoverOffset:6}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{...ttStyle,callbacks:{label:ctx=>{const v=ctx.raw;return ` ${v.toFixed(1)} ${t('ef_months')}`;}}}},elements:{arc:{borderWidth:0}}}
+    });
     // ForNow savings chart: current balance vs historical
     // Fix #2: Total Assets = netWorth + deudas (= gross assets, no double-counting EF)
     const fnChartWrap=document.getElementById('forNowChartWrap');
@@ -3978,6 +4036,8 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   buildSavingsGoals();
   buildBudgetVsActual(gastos,ingreso);
   buildDebtPayoffDates(gastos,ingreso,gasto);
+  buildAnalisisSummary(gastos,ingreso,gasto,interesMensual);
+  buildCashflowWaterfall(ingreso,gastos,config,efTotal,_editData.metas);
   buildExpenseTrend(historial,gastos);
   // Fix 3.3: Net worth milestone celebrations
   if(historial.length>0){
@@ -4039,13 +4099,38 @@ function buildHistorial(historial,config){
     `<span>📊 ${t('hist_savings_benchmark')}</span>`+
     `<span>💱 ${t('hist_rate_note')}</span></div>`);
   // Fix #9: chart labels i18n
+  // Net worth projection (3-month linear extrapolation)
+  const nwData=reversed.map(h=>h.netWorth);
+  const projLabels=[...labels];
+  const projData=nwData.map(()=>null);// nulls for historical points
+  const PROJ_MONTHS=3;
+  if(nwData.length>=2){
+    const recent=nwData.slice(-3);// last 3 (or 2) data points
+    const avgDelta=recent.length>=2?(recent[recent.length-1]-recent[0])/(recent.length-1):0;
+    const lastNW=nwData[nwData.length-1];
+    projData[projData.length-1]=lastNW;// connect to last actual point
+    const MESES_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const lastH=reversed[reversed.length-1];
+    const lastMIdx=MESES_INTERNOS.indexOf(lastH.mes);
+    for(let i=1;i<=PROJ_MONTHS;i++){
+      const mIdx=(lastMIdx+i)%12;
+      const yr=lastH.anio+Math.floor((lastMIdx+i)/12);
+      projLabels.push(`${MESES_SHORT[mIdx]} ${yr}`);
+      projData.push(Math.round(lastNW+avgDelta*i));
+    }
+  }
+  // Pad existing datasets with nulls for projection months
+  const nwPadded=[...nwData,...Array(projLabels.length-nwData.length).fill(null)];
+  const debtPadded=[...reversed.map(h=>-h.deudas),...Array(projLabels.length-reversed.length).fill(null)];
+
   charts.histLine=new Chart(document.getElementById('histLine'),{
     type:'line',
-    data:{labels,datasets:[
-      {label:t('hist_chart_nw'),data:reversed.map(h=>h.netWorth),borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#22d3a0'},
-      {label:t('hist_chart_debt'),data:reversed.map(h=>-h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
+    data:{labels:projLabels,datasets:[
+      {label:t('hist_chart_nw'),data:nwPadded,borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#22d3a0',spanGaps:false},
+      {label:t('hist_chart_debt'),data:debtPadded,borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a',spanGaps:false},
+      {label:t('hist_chart_proj'),data:projData,borderColor:'#22d3a0',borderDash:[6,4],backgroundColor:'transparent',tension:.3,fill:false,pointRadius:3,pointBackgroundColor:'#22d3a066',pointBorderColor:'#22d3a0',pointStyle:'circle',spanGaps:false},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(Math.abs(ctx.raw))}`}}},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>{const v=ctx.raw;return v!==null?` RD$${fmt(Math.abs(v))}`:''}}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:11}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:v<=-1e6?`(${(-v/1e6).toFixed(1)}M)`:`${(v/1000).toFixed(0)}k`}}}}
   });
   charts.histBar=new Chart(document.getElementById('histBar'),{
@@ -4086,6 +4171,68 @@ function buildHistorial(historial,config){
 // ══════════════════════════════════════════════════════
 // FEATURE 4: RECURRING EXPENSE TREND (inside Historial)
 // ══════════════════════════════════════════════════════
+function buildAnalisisSummary(gastos,ingreso,gasto,interesMensual){
+  const el=document.getElementById('analisisSummary');
+  if(!el)return;
+  const debts=gastos.filter(g=>g.balance>0&&g.adeudado>0);
+  if(!debts.length&&gasto<=0){el.innerHTML='';return;}
+  // Fastest payoff (avalanche: highest rate first)
+  let totalMonths=0,totalInterest=0,hasInfinite=false;
+  debts.forEach(d=>{
+    const mr=d.tasa>0?d.tasa/100/12:0;
+    if(mr>0&&d.adeudado<=d.balance*mr){hasInfinite=true;return;}
+    if(mr<=0){totalMonths=Math.max(totalMonths,Math.ceil(d.balance/d.adeudado));return;}
+    let b=d.balance,m=0,intT=0;
+    while(b>0&&m<360){m++;const mi=b*mr;intT+=mi;b=Math.max(0,b+mi-d.adeudado);}
+    totalMonths=Math.max(totalMonths,m);totalInterest+=Math.round(intT);
+  });
+  const intPctOfSurplus=ingreso>gasto&&interesMensual>0?Math.round(interesMensual/(ingreso-gasto)*100):0;
+  const y=Math.floor(totalMonths/12),mo=totalMonths%12;
+  const durStr=hasInfinite?`⚠ ${t('ana_has_negamort')}`:totalMonths>0?(y>0?`${y}a ${mo}m`:`${mo}m`):t('ana_debt_free');
+  const durColor=hasInfinite?'var(--red)':totalMonths<=12?'var(--green)':totalMonths<=36?'var(--yellow)':'var(--red)';
+  el.innerHTML=`<div class="card-title">${t('ana_summary_title')}</div>
+    <div class="grid g4" style="gap:10px;margin-top:10px">
+      ${[
+        {l:t('ana_monthly_obligations'),v:`RD$${fmt(gasto)}`,c:'var(--red)'},
+        {l:t('ana_monthly_interest'),v:`RD$${fmt(Math.round(interesMensual))}`,c:'var(--yellow)'},
+        {l:t('ana_debt_free_in'),v:durStr,c:durColor},
+        {l:t('ana_total_interest'),v:hasInfinite?'∞':`RD$${fmt(totalInterest)}`,c:'var(--red)'},
+      ].map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:12px 16px"><div style="font-size:10px;color:var(--muted)">${i.l}</div><div class="mono" style="font-size:18px;font-weight:700;color:${i.c};margin-top:4px">${i.v}</div></div>`).join('')}
+    </div>
+    ${intPctOfSurplus>50?`<div style="margin-top:10px;padding:8px 12px;background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.15);border-radius:8px;font-size:11px;color:var(--red)">⚠ ${t('ana_interest_warning').replace('{pct}',intPctOfSurplus)}</div>`:''}`;
+}
+
+function buildCashflowWaterfall(ingreso,gastos,config,efTotal,metas){
+  const el=document.getElementById('cashflowWaterfall');
+  if(!el||ingreso<=0){if(el)el.innerHTML='';return;}
+  const obligations=gastos.reduce((a,g)=>a+(g.adeudado||0),0);
+  const txGasto=(_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio).reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
+  const goalContrib=(metas||[]).reduce((a,m)=>a+(m.monthly||0),0);
+  const interest=gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
+  const surplus=ingreso-obligations-txGasto-goalContrib;
+  const steps=[
+    {l:t('wf_income'),v:ingreso,type:'total'},
+    {l:t('wf_obligations'),v:-obligations,type:'expense'},
+    {l:t('wf_discretionary'),v:-txGasto,type:'expense'},
+    {l:t('wf_goals'),v:-goalContrib,type:'saving'},
+    {l:t('wf_surplus'),v:surplus,type:surplus>=0?'surplus':'deficit'},
+  ];
+  // Build horizontal waterfall bars
+  const maxVal=ingreso;
+  const bar=(val,maxW,color)=>{const w=Math.max(1,Math.abs(val)/maxW*100);return`<div style="height:18px;width:${Math.min(w,100)}%;background:${color};border-radius:4px"></div>`;};
+  const rows=steps.map(s=>{
+    const color=s.type==='total'?'var(--green)':s.type==='expense'?'var(--red)':s.type==='saving'?'var(--accent)':s.v>=0?'var(--green)':'var(--red)';
+    const sign=s.type==='total'?'':s.v>0?'+':'';
+    return`<div style="display:grid;grid-template-columns:120px 1fr 90px;gap:8px;align-items:center;padding:6px 0">
+      <div style="font-size:12px;color:var(--muted)">${s.l}</div>
+      ${bar(s.v,maxVal,color)}
+      <div class="mono" style="font-size:13px;font-weight:700;color:${color};text-align:right">${sign}RD$${fmt(Math.abs(Math.round(s.v)))}</div>
+    </div>`;
+  }).join('');
+  const intNote=interest>0?`<div style="font-size:10px;color:var(--muted);margin-top:6px">💡 ${t('wf_interest_note').replace('{v}',fmt(Math.round(interest)))}</div>`:'';
+  el.innerHTML=`<div class="card-title">${t('wf_title')}</div>${rows}${intNote}`;
+}
+
 function buildExpenseTrend(historial,gastos){
   const el=document.getElementById('expenseTrend');
   if(!el)return;
@@ -4211,6 +4358,14 @@ function buildSavingsGoals(){
         <div class="progress-wrap" style="margin-bottom:14px">
           <div class="progress-bar" style="width:${pct}%;background:linear-gradient(90deg,${barColor}99,${barColor})"></div>
         </div>
+        ${monthly>0&&!isDone&&goal>0?(()=>{
+          const pts=[];const maxM=Math.min(monthsLeft||12,24);const maxV=goal;
+          for(let mi=0;mi<=maxM;mi++){pts.push(Math.min(saved+monthly*mi,goal));}
+          const w=200,h=32,px=pts.map((_,j)=>Math.round(j/maxM*w)),py=pts.map(v=>Math.round(h-v/maxV*h));
+          const line=px.map((x,j)=>`${x},${py[j]}`).join(' ');
+          const goalY=Math.round(h-goal/maxV*h);
+          return`<div style="margin-bottom:10px;overflow:hidden" title="${t('metas_sparkline_title')}"><svg width="100%" height="${h+4}" viewBox="0 0 ${w} ${h+4}" preserveAspectRatio="none"><line x1="0" y1="${goalY}" x2="${w}" y2="${goalY}" stroke="var(--green)" stroke-width="0.5" stroke-dasharray="3,3" opacity=".5"/><polyline points="${line}" fill="none" stroke="${barColor}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="${px[0]}" cy="${py[0]}" r="2" fill="${barColor}"/></svg></div>`;
+        })():''}
         <div class="grid g3" style="gap:12px">
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_saved')}</div>
