@@ -211,13 +211,13 @@ test.describe('JSON Backup — Edit modal export', () => {
 });
 
 test.describe('JSON Backup — Checklist save', () => {
-  test('saveChecklistToExcel downloads JSON', async ({ page }) => {
+  test('saveChecklist downloads JSON', async ({ page }) => {
     await loadDemo(page);
     // Mark a payment first to enable save
     await page.evaluate(() => { _editData.gastos[0].pagadoMes = true; _pendingSave = true; });
     const [download] = await Promise.all([
       page.waitForEvent('download'),
-      page.evaluate(() => saveChecklistToExcel()),
+      page.evaluate(() => saveChecklist()),
     ]);
     expect(download.suggestedFilename()).toMatch(/\.json$/);
   });
@@ -259,29 +259,16 @@ test.describe('JSON Backup — i18n labels', () => {
   });
 });
 
-test.describe('JSON Backup — saveToDB no longer saves _rawWb', () => {
-  test('saveToDB does not write to STORE_WB', async ({ page }) => {
+test.describe('JSON Backup — saveToDB stores editData only', () => {
+  test('saveToDB persists _editData to IndexedDB', async ({ page }) => {
     await loadDemo(page);
-    // After demo loads, saveToDB was called. Check that rawWb is NOT in IndexedDB
-    const hasWb = await page.evaluate(async () => {
-      const val = await dbGet(STORE_WB, 'rawWb');
-      return val !== null && val !== undefined;
-    });
-    expect(hasWb).toBe(false);
-  });
-
-  test('loadFromDB sets _rawWb to null', async ({ page }) => {
-    await loadDemo(page);
-    // Force a saveToDB then reload
     await page.evaluate(() => saveToDB());
     await page.waitForTimeout(300);
-    await page.goto(APP);
-    await page.waitForSelector('#loaderScreen', { state: 'visible' });
-    // Click continue
-    await page.evaluate(() => loadFromDB());
-    await page.waitForSelector('#dashApp', { state: 'visible', timeout: 10000 });
-    const rawWb = await page.evaluate(() => _rawWb);
-    expect(rawWb).toBeNull();
+    const hasMeta = await page.evaluate(async () => {
+      const val = await dbGet(STORE_DATA, 'meta');
+      return val !== null && val !== undefined;
+    });
+    expect(hasMeta).toBe(true);
   });
 });
 
