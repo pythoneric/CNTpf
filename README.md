@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (232 tests)
+tests/                -- Suite de tests Playwright (336 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -76,19 +76,19 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 | **Pagos del Mes** | Checklist de pagos con calendario visual, progreso por monto, y analisis de intereses |
 | **Registro** | Registro de gastos reales con categorias, transacciones recurrentes, graficos por tipo y totales del mes |
 | **Presupuesto** | Presupuesto base cero por categoria con comparacion vs gastos reales del Registro |
-| **Gastos** | Tabla completa de gastos y deudas con estado de pago por item |
-| **Fondos** | Saldos de cuentas (RD$/USD) vs compromisos mensuales y disponibilidad real |
+| **Gastos** | Tabla completa de gastos y deudas con estado de pago, ETA de liquidacion por item |
+| **Fondos** | Saldos de cuentas (RD$/USD) vs compromisos mensuales, disponibilidad real y autonomia en meses |
 
 ### Estrategia — planificacion y analisis
 
 | Pestana | Descripcion |
 |---------|-------------|
-| **Emergencia** | Fondos de emergencia con progreso vs meta, plan de asignacion y cashflow |
-| **Deudas** | Cards individuales con balance, tasa, proyeccion de interes y boton "Liquidar deuda" |
+| **Emergencia** | Fondos de emergencia con cobertura en meses, doughnut de progreso, plan de asignacion y cashflow |
+| **Deudas** | Cards individuales con balance, tasa, ETA de liquidacion, proyeccion de interes y boton "Liquidar deuda" |
 | **Proyector** | Simulador de pago de deudas: Avalancha vs Bola de Nieve con escenarios what-if |
-| **Metas** | Metas de ahorro con progreso, ETA estimado y advertencia de sobrecompromiso |
-| **Analisis** | Presupuesto vs real (BVA), proyecciones de pago y tendencia de gastos recurrentes |
-| **Historial** | Registro historico con graficos de tendencia, tasa de ahorro y evolucion de deudas |
+| **Metas** | Metas de ahorro con sparkline de proyeccion, progreso, ETA estimado y advertencia de sobrecompromiso |
+| **Analisis** | Resumen financiero, flujo de caja waterfall, BVA, proyecciones de pago y tendencia de gastos |
+| **Historial** | Registro historico con graficos de tendencia, proyeccion de net worth, tasa de ahorro y evolucion de deudas |
 
 > En movil, el pill toggle aparece fijo encima de la barra de navegacion inferior. En desktop, aparece centrado encima de las pestanas. Navegar a una pestana de otro grupo cambia el grupo automaticamente (incluyendo deep links con `#tab-xxx`).
 
@@ -98,6 +98,7 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 
 ### Dashboard y KPIs
 - **5 KPIs principales** -- Ingresos, gastos totales (obligaciones + gastos registrados), superavit del mes, net worth, y tasa de ahorro con guia 50/30/20
+- **Flechas delta mes-a-mes** -- Cada KPI muestra ▲/▼ comparando con el mes anterior del historial (verde = mejora, rojo = empeora, contextual por metrica)
 - **Salud financiera** -- Puntaje de 0-100 con calificacion (Excelente/Bueno/Regular/Critico) basado en ratio de gastos, DTI, fondo de emergencia y tendencia de net worth
 - **Distribucion de flujo de caja** -- Barra visual de gastos vs sobrante con metricas de retiro USD, tasa, ahorros y compromisos
 - **Hitos de net worth** -- Celebraciones automaticas al alcanzar net worth positivo, libre de deudas, RD$100K, RD$500K y RD$1M
@@ -116,6 +117,7 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 
 ### Checklist de Pagos
 - Marca cada compromiso como pagado con persistencia automatica
+- **Cuenta regresiva** -- Muestra el proximo pago pendiente con dias restantes, nombre y monto (coloreado por urgencia)
 - **Calendario de pagos** -- Timeline visual de pagos pendientes agrupados por dia con totales
 - Progreso por cantidad y por monto (RD$)
 - Analisis de intereses con tabla de costo por deuda
@@ -131,6 +133,7 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 - **Generacion automatica** -- Las transacciones recurrentes se generan al abrir la app, con deduplicacion por fecha e ID
 - **Badge visual** -- Las transacciones generadas automaticamente muestran un indicador 🔄 en la lista
 - **KPIs del mes** -- Total gastado (con color contextual: verde/amarillo/rojo vs presupuesto), cantidad de transacciones y promedio diario (correcto para meses pasados y actuales)
+- **Tendencia de gasto** -- Mini-grafico de barras comparando gasto actual vs ultimos 2 meses del historial con delta porcentual (verde si baja, rojo si sube)
 - **Grafico de dona** -- Distribucion de gastos por categoria
 - **Lista cronologica** -- Todas las transacciones del mes con opcion de eliminar
 - Al cerrar el mes, el total registrado se archiva en el historial como `gastoReal`
@@ -157,6 +160,8 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 - **Estrategias comparadas** -- Avalancha (mayor tasa primero) vs Bola de Nieve (menor balance primero) con timeline, interes total y meses ahorrados
 
 ### Fondos de Emergencia
+- **Cobertura en meses** -- KPI mostrando cuantos meses de gastos cubre el fondo (verde >=6, amarillo 3-6, rojo <3)
+- **Doughnut de cobertura** -- Grafico mostrando meses cubiertos vs meta de 6 meses
 - Progreso individual por fondo con barra de color
 - Moneda dual (RD$/USD) con conversion automatica
 - **Meta vinculada a gastos** -- Nuevos fondos se pre-llenan con meta = 3x gastos mensuales
@@ -167,19 +172,22 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 
 ### Metas de Ahorro
 - Nombre, monto meta, monto ahorrado y aporte mensual por meta
+- **Sparkline de proyeccion** -- Mini-grafico SVG mostrando la trayectoria de ahorro proyectada hasta la meta (con linea punteada de meta)
 - Barra de progreso con fecha estimada de completacion (ETA)
 - Advertencia si aportes mensuales totales superan el superavit
 - Grafico horizontal de progreso por meta
 
 ### Historial
 - Tabla de registros mensuales con tasa de ahorro color-coded (verde >=20%, amarillo 10-20%, rojo <10%)
-- **Grafico de net worth y deudas** -- Linea de evolucion historica
+- **Grafico de net worth y deudas** -- Linea de evolucion historica con proyeccion punteada de 3 meses (extrapolacion lineal)
 - **Grafico de ingresos vs gastos** -- Comparacion por mes
 - **Grafico de balance de deudas** -- Tendencia de deuda y fondo de emergencia
 - **Grafico de tasa de ahorro** -- Barras color-coded con meta del 20%
 - **Tendencia de gastos recurrentes** -- Comparacion mes actual vs anterior por tipo
 
 ### Analisis
+- **Resumen financiero** -- Card superior con 4 metricas: obligaciones mensuales, interes mensual, tiempo libre de deuda, interes total proyectado. Alerta si intereses >50% del superavit
+- **Flujo de caja waterfall** -- Desglose visual: Ingreso → Compromisos fijos → Gasto registrado → Aportes a metas → Sobrante, con nota de intereses
 - **Presupuesto vs Real (BVA)** -- Comparacion de pagado vs adeudado por gasto con indicadores de desviacion
 - **Proyecciones de pago** -- Fechas estimadas de liquidacion por deuda
 - **Tendencia de gastos** -- Evolucion por categoria con flechas de direccion
@@ -216,7 +224,7 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 | 8 | Define el nombre del proximo mes en el dashboard |
 
 ### Idiomas
-- **Espanol** (por defecto) e **Ingles** -- 350+ claves de traduccion
+- **Espanol** (por defecto) e **Ingles** -- 400+ claves de traduccion
 - Cambio en tiempo real sin recargar la pagina
 - Boton de idioma en el header y en la pantalla de inicio
 
@@ -484,7 +492,9 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `tab-order.spec.js` | 7 | Orden de pestanas (13 tabs, 2 grupos) |
 | `json-backup.spec.js` | 13 | Exportar/importar JSON, round-trip, demo embebido |
 | `presupuesto-recurring.spec.js` | 40 | Presupuesto CRUD, BvA, obligaciones, recurrentes, generacion, dedup, Registro KPIs, Resumen integracion |
-| **Total** | **245+** | |
+| `strategy-tabs.spec.js` | 31 | Deudas ETA, EF cobertura/doughnut, analisis summary, NW proyeccion, sparklines, waterfall, edge cases |
+| `operations-tabs.spec.js` | 18 | Gastos payoff column, Registro trend, Fondos runway, Checklist countdown, KPI deltas |
+| **Total** | **336** | |
 
 ---
 
