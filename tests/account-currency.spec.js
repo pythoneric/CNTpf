@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 /**
- * Helper: load the app and inject data by simulating what processWorkbook does.
+ * Helper: load the app and inject data by setting _editData and building the dashboard.
  * Sets _editData globally, calls buildDashboard, hides loader, shows dashboard.
  */
 async function loadApp(page, overrides = {}) {

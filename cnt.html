@@ -16,7 +16,6 @@
 <!-- Icons inline SVG as data URI for apple touch -->
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 /* ══ THEME ══ */
@@ -1934,18 +1933,6 @@ function toggleLang(){
 
 // Apply language on page load (loader screen)
 document.addEventListener('DOMContentLoaded',()=>applyI18n());
-const clean=v=>{
-  if(v===null||v===undefined)return 0;
-  if(typeof v==='number')return v;
-  if(typeof v==='string'){
-    const neg=v.includes('(') || v.trim().startsWith('-');
-    const s=v.replace(/[RD$,%\s()]/g,'').replace(/—/g,'').replace(/,/g,'').trim();
-    if(!s||s==='-')return 0;
-    const n=parseFloat(s);
-    return isNaN(n)?0:(neg?-Math.abs(n):Math.abs(n));
-  }
-  return 0;
-};
 const tipoColors={Familiar:'#22d3a0',Variable:'#fcd34d',Seguro:'#93c5fd','Educación':'#c4b5fd',Servicio:'#fca5a5',Vivienda:'#fda4af',Cuota:'#f9a8d4',Tarjeta:'#fb923c','Préstamo':'#f87171',Fijo:'#818cf8'};
 const COLORS=['#22d3a0','#fcd34d','#93c5fd','#c4b5fd','#fca5a5','#fda4af','#f9a8d4','#fb923c','#f87171','#818cf8'];
 const ttStyle={backgroundColor:'#1a2540',titleColor:'#e2eaf8',bodyColor:'#94a3b8',borderColor:'#1e293b',borderWidth:1};
@@ -1984,7 +1971,6 @@ if('serviceWorker' in navigator){
 const DB_NAME='cnt_core_db';
 const DB_VERSION=1;
 const STORE_DATA='dashboard_data';
-const STORE_WB='workbook_raw';
 let _db=null;
 
 function openDB(){
@@ -1994,7 +1980,6 @@ function openDB(){
     req.onupgradeneeded=e=>{
       const db=e.target.result;
       if(!db.objectStoreNames.contains(STORE_DATA)) db.createObjectStore(STORE_DATA);
-      if(!db.objectStoreNames.contains(STORE_WB)) db.createObjectStore(STORE_WB);
     };
     req.onsuccess=e=>{_db=e.target.result;resolve(_db);};
     req.onerror=e=>reject(e.target.error);
@@ -2057,7 +2042,6 @@ async function loadFromDB(){
     const editData=await dbGet(STORE_DATA,'editData');
     if(!editData){showError('No se encontraron datos guardados.');return;}
     _editData=editData;
-    _rawWb=null;
     buildDashboard(_editData);
     document.getElementById('loaderScreen').style.display='none';
     document.getElementById('dashApp').style.display='block';
@@ -2076,7 +2060,6 @@ async function clearDB(){
   try{
     await dbDelete(STORE_DATA,'editData');
     await dbDelete(STORE_DATA,'meta');
-    await dbDelete(STORE_WB,'rawWb');
     document.getElementById('savedDataBanner').style.display='none';
     showToast('🗑 Datos borrados','var(--red)');
   }catch(e){console.warn(e);}
@@ -2399,7 +2382,6 @@ const _setupSteps=[
 
 function startFromScratch(){
   _editData=defaultEditData();
-  _rawWb=null;
   _setupStep=0;
   document.getElementById('setupModal').style.display='flex';
   document.body.style.overflow='hidden';
@@ -2577,7 +2559,6 @@ function importJSON(file){
       if(!_editData.presupuesto)_editData.presupuesto=[];
       if(!_editData.recurrentes)_editData.recurrentes=[];
       _editData.filename=file.name;
-      _rawWb=null;
       buildDashboard(_editData);
       applyI18n();
       document.getElementById('loaderScreen').style.display='none';
@@ -2596,7 +2577,6 @@ async function loadDemo(){
     _editData=JSON.parse(JSON.stringify(_DEMO_DATA));
     _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
     _editData.emerg.cashflow.ingreso=_editData.config.ingresoUSD*_editData.config.tasa;
-    _rawWb=null;
     buildDashboard(_editData);
     applyI18n();
     document.getElementById('loaderScreen').style.display='none';
@@ -2611,183 +2591,6 @@ function processFile(file){
   if(!file.name.match(/\.json$/i)){showError('⚠ Solo se aceptan archivos .json');return;}
 }
 
-// ══════════════════════════════════
-// PARSE
-// ══════════════════════════════════
-function sheetArr(wb,keyword){
-  const name=wb.SheetNames.find(n=>n.toLowerCase().includes(keyword.toLowerCase()));
-  if(!name)return[];
-  return XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:null});
-}
-function processWorkbook(wb,filename){
-  try{
-    _rawWb=wb;
-    const config=parseConfig(sheetArr(wb,'config'));
-    const gastos=parseGastos(sheetArr(wb,'esencial'),config);
-    const forNow=parseForNow(sheetArr(wb,'for'),config.tasa);
-    const emerg=parseEmergency(sheetArr(wb,'emerg'));
-    const historial=parseHistorial(sheetArr(wb,'historial'));
-    // Fix #9: import Metas sheet if present
-    const metasRows=sheetArr(wb,'metas');
-    const metas=[];
-    if(metasRows.length>1){
-      for(let i=1;i<metasRows.length;i++){
-        const r=metasRows[i];if(!r[0]&&!r[1])continue;
-        metas.push({name:String(r[0]||''),goal:clean(r[1]),saved:clean(r[2]),monthly:clean(r[3])});
-      }
-    }
-    // Parse Transacciones sheet
-    const txRows=sheetArr(wb,'transacciones');
-    const transacciones=[];
-    if(txRows.length>1){
-      for(let i=1;i<txRows.length;i++){
-        const r=txRows[i];if(!r[0]&&!r[1])continue;
-        const gastoNombre=String(r[5]||'');
-        const gastoIdx=gastoNombre?gastos.findIndex(g=>g.nombre===gastoNombre):-1;
-        transacciones.push({fecha:String(r[0]||''),monto:clean(r[1]),categoria:String(r[2]||'otro'),nota:String(r[3]||''),metodo:String(r[4]||'efectivo'),gastoIdx,mes:String(r[6]||''),anio:clean(r[7])});
-      }
-    }
-    // Parse Presupuesto sheet
-    const presRows=sheetArr(wb,'presupuesto');
-    const presupuesto=[];
-    if(presRows.length>1){
-      for(let i=1;i<presRows.length;i++){
-        const r=presRows[i];if(!r[0]&&!r[1])continue;
-        presupuesto.push({categoria:String(r[0]||'otro'),presupuestado:clean(r[1]),mes:String(r[2]||''),anio:clean(r[3])});
-      }
-    }
-    // Parse Recurrentes sheet
-    const recRows=sheetArr(wb,'recurrente');
-    const recurrentes=[];
-    if(recRows.length>1){
-      for(let i=1;i<recRows.length;i++){
-        const r=recRows[i];if(!r[0]&&!r[2])continue;
-        recurrentes.push({id:String(r[0]||'rec_'+Date.now()+i),fecha:String(r[1]||''),monto:clean(r[2]),categoria:String(r[3]||'otro'),nota:String(r[4]||''),metodo:String(r[5]||'efectivo'),frecuencia:String(r[6]||'mensual'),lastGenerated:String(r[7]||r[1]||'')});
-      }
-    }
-    _editData={config,gastos,forNow,emerg,historial,metas,transacciones,presupuesto,recurrentes,filename};
-    // Bug 1 fix: enforce single source of truth after Excel load
-    _editData.config.ingresoRD = config.ingresoUSD * config.tasa;
-    _editData.emerg.cashflow.ingreso = config.ingresoUSD * config.tasa;
-    buildDashboard({config,gastos,forNow,emerg,historial,filename});
-    applyI18n();
-    document.getElementById('loaderScreen').style.display='none';
-    document.getElementById('dashApp').style.display='block';
-    switchGroup(localStorage.getItem('cntActiveGroup')||'ops');
-    navigateToHash();
-    // Auto-save to IndexedDB so next visit skips Excel upload
-    autoSave();
-  }catch(err){showError('⚠ Error procesando: '+err.message);console.error(err);}
-}
-function parseConfig(rows){
-  const c={tasa:60,mes:'—',anio:2026,ingresoUSD:0,diasAlerta:5};
-  rows.forEach(r=>{
-    const k=String(r[0]||'').toLowerCase();const v=r[1];
-    if(k.includes('tasa dólar')||k.includes('tasa dolar'))c.tasa=clean(v)||60;
-    else if(k.includes('mes actual'))c.mes=v||'—';
-    else if(k.includes('año')||k.includes('anio'))c.anio=clean(v)||2026;
-    else if(k.includes('ingreso'))c.ingresoUSD=clean(v);
-    else if(k.includes('días alerta')||k.includes('dias alerta'))c.diasAlerta=clean(v)||5;
-  });
-  c.ingresoRD=c.ingresoUSD*c.tasa;
-  return c;
-}
-function parseGastos(rows){
-  const gastos=[];
-  let hi=-1;
-  rows.forEach((r,i)=>{if(String(r[0]||'').toLowerCase().includes('descripci'))hi=i;});
-  if(hi<0)return gastos;
-  // Detect if TasaCreacion column exists (new format has 13 cols, old has 12)
-  const hdr=rows[hi]||[];
-  const hasTasaCol=hdr.some(c=>String(c||'').toLowerCase().includes('tasacreacion'));
-  for(let i=hi+1;i<rows.length;i++){
-    const r=rows[i];
-    const nombre=String(r[0]||'').trim();
-    if(!nombre||nombre.toLowerCase().includes('total')||nombre.toLowerCase().includes('tasa'))continue;
-    // Fix #13: normalizar tasa — si viene como decimal (0.1945) convertir a porcentaje (19.45)
-    const tasaRaw=clean(r[5]);
-    const tasa=tasaRaw>0&&tasaRaw<1?Math.round(tasaRaw*10000)/100:tasaRaw;
-    if(hasTasaCol){
-      const pagadoMes=String(r[12]||'').trim().toUpperCase()==='SI';
-      gastos.push({nombre,tipo:String(r[1]||'').trim(),pagado:clean(r[2]),adeudado:clean(r[3]),dia:clean(r[4]),tasa,balance:clean(r[6]),originalRD:clean(r[7]),originalUSD:clean(r[8]),tasaCreacion:clean(r[9])||0,fechaLimite:r[10],notas:String(r[11]||''),pagadoMes});
-    }else{
-      const pagadoMes=String(r[11]||'').trim().toUpperCase()==='SI';
-      gastos.push({nombre,tipo:String(r[1]||'').trim(),pagado:clean(r[2]),adeudado:clean(r[3]),dia:clean(r[4]),tasa,balance:clean(r[6]),originalRD:clean(r[7]),originalUSD:clean(r[8]),tasaCreacion:0,fechaLimite:r[9],notas:String(r[10]||''),pagadoMes});
-    }
-  }
-  return gastos;
-}
-function parseForNow(rows,tasa){
-  const res={cuentas:[],fecha:null,total:0,comprometido:0,disponible:0};
-  if(!rows.length)return res;
-  rows.forEach(r=>{
-    const k=String(r[0]||'').trim();
-    if(k.toLowerCase().includes('fecha'))res.fecha=r[1];
-    else if(k==='TOTAL')res.comprometido=clean(r[2]);
-    else if(k.toLowerCase().includes('disponible despu'))res.disponible=clean(r[3]);
-    else if(k&&!k.toLowerCase().includes('actualiz')&&!k.toLowerCase().includes('for now')&&!String(r[1]||'').toLowerCase().includes('moneda')&&r[1]!==null){
-      const col1=String(r[1]||'').trim().toUpperCase();
-      const hasMoneda=col1==='RD'||col1==='USD';
-      if(hasMoneda) res.cuentas.push({nombre:k,moneda:col1,saldo:clean(r[2]),comp:clean(r[3]),disp:clean(r[4])});
-      else res.cuentas.push({nombre:k,moneda:'RD',saldo:clean(r[1]),comp:clean(r[2]),disp:clean(r[3])});
-    }
-  });
-  const _tasa=tasa||60;
-  res.total=res.cuentas.reduce((a,c)=>a+(c.saldo||0)*(c.moneda==='USD'?_tasa:1),0);
-  return res;
-}
-
-function parseEmergency(rows){
-  const res={fondos:[],cashflow:{}};
-  if(!rows.length)return res;
-  let inA=false,inB=false;
-  rows.forEach(r=>{
-    const k=String(r[0]||'').trim();
-    if(k.includes('SECCIÓN A')){inA=true;inB=false;return;}
-    if(k.includes('SECCIÓN B')){inB=true;inA=false;return;}
-    if(inA&&k&&!String(r[1]||'').toLowerCase().includes('moneda')&&!k.includes('TOTAL')){
-      const mon=String(r[1]||'').trim().toUpperCase();
-      const isUSD=mon==='USD';
-      res.fondos.push({fondo:k,moneda:isUSD?'USD':'RD',balance:clean(r[isUSD?2:1]),meta:clean(r[isUSD?3:2])});
-    }
-    if(inB&&k&&!k.includes('Concepto')){
-      const kl=k.toLowerCase();
-      if(kl.includes('ingreso mensual'))res.cashflow.ingreso=clean(r[1]);
-      else if(kl.includes('gasto mensual'))res.cashflow.gasto=clean(r[1]);
-      else if(kl.includes('tasa'))res.cashflow.tasa=clean(r[1]);
-      else if(kl.includes('retirar'))res.cashflow.retirarUSD=clean(r[1]);
-      // resta is no longer imported — always calculated as ingreso - gasto
-      else if(kl.includes('ahorros este'))res.cashflow.ahorros=clean(r[1]);
-      else if(kl.includes('balance ahorros'))res.cashflow.balanceAhorros=clean(r[1]);
-    }
-  });
-  return res;
-}
-function parseHistorial(rows){
-  const hist=[];
-  let hi=-1;
-  rows.forEach((r,i)=>{const k=String(r[0]||'').toLowerCase().trim();if(k==='mes')hi=i;});
-  if(hi<0)return hist;
-  for(let i=hi+1;i<rows.length;i++){
-    const r=rows[i];
-    if(!r[0]||String(r[0]).includes('↑'))continue;
-    const mes=String(r[0]||'').trim();
-    const anio=clean(r[1])||2026;
-    const tasa=clean(r[9])||60;
-    const ingresosRaw=clean(r[2]);
-    // Fix #1: Always read income as RD$. The cierre wizard saves income in RD$ (ingresoUSD × tasa).
-    // Legacy data stored in USD is converted on import — the export also stores in RD$ now.
-    const ingresos=ingresosRaw;
-    const gasto=clean(r[3]);
-    // Fix #2: Always read ahorro from stored value — don't recalculate
-    const ahorro=clean(r[4]);
-    const tasaAhorro=ingresos>0?ahorro/ingresos:0;
-    const deudas=clean(r[6]);const emergencia=clean(r[7]);const netWorth=clean(r[8]);
-    const notas=String(r[10]||'');
-    if(mes) hist.push({mes,anio,ingresos,gasto,ahorro,tasaAhorro,deudas,emergencia,netWorth,tasa,notas});
-  }
-  return hist;
-}
 
 // ══════════════════════════════════
 // FINANCIAL SCORE
@@ -2929,7 +2732,7 @@ function buildChecklist(gastos){
   const doneMonPct=totalMonto>0?Math.round(doneMonto/totalMonto*100):0;
 
   const saveBtn=_pendingSave
-    ?`<button onclick="saveChecklistToExcel()" class="btn btn-success btn-sm" style="animation:pulse 2s ease-in-out infinite">${t('chk_saveexcel')}</button>`
+    ?`<button onclick="saveChecklist()" class="btn btn-success btn-sm" style="animation:pulse 2s ease-in-out infinite">${t('chk_saveexcel')}</button>`
     :`<button class="btn btn-ghost btn-sm" style="opacity:.4;cursor:default">${t('chk_saved')}</button>`;
 
   document.getElementById('checklistProgress').innerHTML=`
@@ -3031,37 +2834,8 @@ function toggleCheck(idx){
   buildDashboard({..._editData});
 }
 
-// ── Fix #7: shared helper to write Esenciales sheet ──
-function writeEsencialesSheet(esSheet,gastos){
-  const rows=XLSX.utils.sheet_to_json(esSheet,{header:1,defval:null});
-  let hi=-1;
-  rows.forEach((r,i)=>{if(String(r[0]||'').toLowerCase().includes('descripci'))hi=i;});
-  if(hi<0)return false;
-  // Clear existing data rows
-  let ri=hi+1;while(ri<hi+1+gastos.length+5){for(let ci=0;ci<=12;ci++){delete esSheet[XLSX.utils.encode_cell({r:ri,c:ci})];}ri++;}
-  // Ensure all 13-column headers are correct (migrates old 12-col files)
-  esSheet[XLSX.utils.encode_cell({r:hi,c:9})]={t:'s',v:'TasaCreacion'};
-  esSheet[XLSX.utils.encode_cell({r:hi,c:10})]={t:'s',v:'FechaLimite'};
-  esSheet[XLSX.utils.encode_cell({r:hi,c:11})]={t:'s',v:'Notas'};
-  esSheet[XLSX.utils.encode_cell({r:hi,c:12})]={t:'s',v:'Pagado_Mes'};
-  // Write each gasto row
-  gastos.forEach((g,i)=>{
-    const rowIdx=hi+1+i;
-    // Fix #13: store tasa back as-is (already normalized on parse)
-    [g.nombre,g.tipo,g.pagado,g.adeudado,g.dia,g.tasa,g.balance,g.originalRD,g.originalUSD,g.tasaCreacion||'',g.fechaLimite||null,g.notas,g.pagadoMes?'SI':'NO'].forEach((v,ci)=>{
-      const ref=XLSX.utils.encode_cell({r:rowIdx,c:ci});
-      if(v===null||v===''||v===undefined){delete esSheet[ref];return;}
-      if(typeof v==='number')esSheet[ref]={t:'n',v};else esSheet[ref]={t:'s',v:String(v)};
-    });
-  });
-  const range=XLSX.utils.decode_range(esSheet['!ref']||'A1:M30');
-  range.e.c=Math.max(range.e.c,12);
-  range.e.r=Math.max(range.e.r,hi+gastos.length+1);
-  esSheet['!ref']=XLSX.utils.encode_range(range);
-  return true;
-}
 
-function saveChecklistToExcel(){
+function saveChecklist(){
   _pendingSave=false;
   downloadJSON();
   buildChecklist(_editData.gastos);
@@ -5005,7 +4779,6 @@ document.addEventListener('keydown',e=>{
 // EDIT MODE
 // ══════════════════════════════════
 let _editData={};
-let _rawWb=null;
 let _changesCount=0;
 let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
@@ -5222,205 +4995,6 @@ function _detectPaymentsFromBalanceChanges(){_editData.gastos.forEach((g,i)=>{if
 function applyChanges(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();_changesCount=0;closeEditModal(true);showToast(t('toast_changes'));}
 function applyAndDownload(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();downloadJSON();_changesCount=0;closeEditModal(true);}
 
-// ══════════════════════════════════
-// EXCEL EXPORT
-// ══════════════════════════════════
-function buildNewWorkbook(){
-  // Build a brand-new cnt.xlsx from _editData when no existing workbook is loaded
-  const wb = XLSX.utils.book_new();
-  const {config,gastos,forNow,emerg,historial} = _editData;
-
-  // ── Config sheet ──
-  const configRows = [
-    ['Tasa Dólar', config.tasa],
-    ['Mes Actual', config.mes],
-    ['Año', config.anio],
-    ['Ingreso Mensual', config.ingresoUSD],
-    ['Días alerta', config.diasAlerta],
-  ];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(configRows), 'Config');
-
-  // ── Esenciales sheet ──
-  const esRows = [['Descripción','Tipo','Pagado','Adeudado','Día','Tasa%','Balance','OriginalRD','OriginalUSD','TasaCreacion','FechaLimite','Notas','Pagado_Mes']];
-  gastos.forEach(g => esRows.push([g.nombre,g.tipo,g.pagado||0,g.adeudado||0,g.dia||1,g.tasa||0,g.balance||0,g.originalRD||0,g.originalUSD||0,g.tasaCreacion||'',g.fechaLimite||'',g.notas||'',g.pagadoMes?'SI':'NO']));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(esRows), 'Esenciales');
-
-  // ── ForNow sheet ──
-  const fnRows = [['Fecha', forNow.fecha ? new Date(forNow.fecha).toLocaleDateString('es-DO') : ''],[''],['Cuenta','Moneda','Saldo']];
-  forNow.cuentas.forEach(c => fnRows.push([c.nombre, c.moneda||'RD', c.saldo||0]));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fnRows), 'ForNow');
-
-  // ── Emergency sheet ──
-  const cf = emerg.cashflow;
-  const emRows = [
-    ['SECCIÓN A — Fondos de Emergencia'],
-    ['Fondo','Moneda','Balance','Meta'],
-    ...emerg.fondos.map(f=>[f.fondo,f.moneda||'RD',f.balance||0,f.meta||0]),
-    [''],
-    ['SECCIÓN B — Cashflow'],
-    ['Ingreso Mensual RD$', cf.ingreso||0],
-    ['Gasto Mensual RD$',   cf.gasto||0],
-    ['Ahorros este Mes',    cf.ahorros||0],
-    ['Balance Ahorros',     cf.balanceAhorros||0],
-  ];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(emRows), 'Emergency');
-
-  // ── Historial sheet ──
-  const hisRows = [['Mes','Año','Ingresos','Gasto','Ahorro','%Ahorro','Deudas','Emergencia','NetWorth','Tasa','Notas']];
-  historial.forEach(h => hisRows.push([h.mes,h.anio,h.ingresos,h.gasto,h.ahorro||0,h.tasaAhorro||0,h.deudas,h.emergencia,h.netWorth,h.tasa,h.notas||'']));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hisRows), 'Historial');
-
-  // ── Metas sheet (Fix #9: persist goals to Excel) ──
-  const metasData=_editData.metas||[];
-  if(metasData.length){
-    const metRows=[['Nombre','Meta','Ahorrado','Aporte Mensual']];
-    metasData.forEach(m=>metRows.push([m.name||'',m.goal||0,m.saved||0,m.monthly||0]));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(metRows), 'Metas');
-  }
-
-  // ── Transacciones sheet ──
-  const txData=_editData.transacciones||[];
-  if(txData.length){
-    const txRows=[['Fecha','Monto','Categoría','Nota','Método','Gasto Vinculado','Mes','Año']];
-    txData.forEach(tx=>txRows.push([tx.fecha,tx.monto,tx.categoria,tx.nota||'',tx.metodo||'',tx.gastoIdx>=0&&_editData.gastos[tx.gastoIdx]?_editData.gastos[tx.gastoIdx].nombre:'',tx.mes,tx.anio]));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(txRows), 'Transacciones');
-  }
-
-  // ── Presupuesto sheet ──
-  const presData=_editData.presupuesto||[];
-  if(presData.length){
-    const presRows=[['Categoría','Presupuestado','Mes','Año']];
-    presData.forEach(p=>presRows.push([p.categoria,p.presupuestado,p.mes,p.anio]));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(presRows), 'Presupuesto');
-  }
-
-  // ── Recurrentes sheet ──
-  const recData=_editData.recurrentes||[];
-  if(recData.length){
-    const recRows=[['ID','Fecha','Monto','Categoría','Nota','Método','Frecuencia','LastGenerated']];
-    recData.forEach(r=>recRows.push([r.id,r.fecha,r.monto,r.categoria,r.nota||'',r.metodo||'',r.frecuencia,r.lastGenerated||'']));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(recRows), 'Recurrentes');
-  }
-
-  return wb;
-}
-
-function generateExcel(){
-  // If no workbook loaded (started from scratch), build one fresh
-  if(!_rawWb) _rawWb = buildNewWorkbook();
-  const {config,gastos,forNow,emerg,historial}=_editData;
-  const configSheet=_rawWb.Sheets[_rawWb.SheetNames.find(n=>n.toLowerCase().includes('config'))];
-  if(configSheet){
-    const rows=XLSX.utils.sheet_to_json(configSheet,{header:1,defval:null});
-    rows.forEach((r,ri)=>{
-      const k=String(r[0]||'').toLowerCase();const ref=XLSX.utils.encode_cell({r:ri,c:1});
-      if(k.includes('tasa dólar')||k.includes('tasa dolar'))configSheet[ref]={t:'n',v:config.tasa};
-      else if(k.includes('mes actual'))configSheet[ref]={t:'s',v:config.mes};
-      else if(k.includes('año')||k.includes('anio'))configSheet[ref]={t:'n',v:config.anio};
-      else if(k.includes('ingreso'))configSheet[ref]={t:'n',v:config.ingresoUSD};
-    });
-  }
-  const esName=_rawWb.SheetNames.find(n=>n.toLowerCase().includes('esencial'));
-  if(esName) writeEsencialesSheet(_rawWb.Sheets[esName],gastos);
-  const fnName=_rawWb.SheetNames.find(n=>n.toLowerCase().includes('for'));
-  if(fnName){
-    const fnSheet=_rawWb.Sheets[fnName];
-    const rows=XLSX.utils.sheet_to_json(fnSheet,{header:1,defval:null});
-    rows.forEach((r,ri)=>{if(String(r[0]||'').toLowerCase().includes('fecha')){const fv=forNow.fecha instanceof Date?forNow.fecha.toISOString().slice(0,10):String(forNow.fecha||'').slice(0,10);fnSheet[XLSX.utils.encode_cell({r:ri,c:1})]={t:'s',v:fv};}});
-    let hi2=-1;rows.forEach((r,i)=>{if(String(r[0]||'').toLowerCase().includes('cuenta'))hi2=i;});
-    if(hi2>=0){forNow.cuentas.forEach((c,i)=>{const ri=hi2+1+i;fnSheet[XLSX.utils.encode_cell({r:ri,c:0})]={t:'s',v:c.nombre};fnSheet[XLSX.utils.encode_cell({r:ri,c:1})]={t:'s',v:c.moneda||'RD'};fnSheet[XLSX.utils.encode_cell({r:ri,c:2})]={t:'n',v:c.saldo||0};});}
-  }
-  const emName=_rawWb.SheetNames.find(n=>n.toLowerCase().includes('emerg'));
-  if(emName){
-    const emSheet=_rawWb.Sheets[emName];
-    const rows=XLSX.utils.sheet_to_json(emSheet,{header:1,defval:null});
-    let inA=false,hi3=-1;
-    rows.forEach((r,i)=>{const k=String(r[0]||'').trim();if(k.includes('SECCIÓN A'))inA=true;if(inA&&k.includes('Fondo'))hi3=i;});
-    if(hi3>=0){emerg.fondos.forEach((f,i)=>{const ri=hi3+1+i;[f.fondo,f.moneda||'RD',f.balance,f.meta].forEach((v,ci)=>{const ref=XLSX.utils.encode_cell({r:ri,c:ci});if(typeof v==='number')emSheet[ref]={t:'n',v};else emSheet[ref]={t:'s',v:String(v||'')};});});}
-    const cf=emerg.cashflow;
-    rows.forEach((r,ri)=>{
-      const k=String(r[0]||'').toLowerCase().trim();const ref=XLSX.utils.encode_cell({r:ri,c:1});
-      if(k.includes('ingreso mensual'))emSheet[ref]={t:'n',v:cf.ingreso||0};
-      else if(k.includes('gasto mensual'))emSheet[ref]={t:'n',v:cf.gasto||0};
-      else if(k.includes('ahorros este'))emSheet[ref]={t:'n',v:cf.ahorros||0};
-      else if(k.includes('balance ahorros'))emSheet[ref]={t:'n',v:cf.balanceAhorros||0};
-    });
-  }
-  const hisName=_rawWb.SheetNames.find(n=>n.toLowerCase().includes('historial'));
-  if(hisName){
-    const hisSheet=_rawWb.Sheets[hisName];
-    const rows=XLSX.utils.sheet_to_json(hisSheet,{header:1,defval:null});
-    let hi4=-1;rows.forEach((r,i)=>{if(String(r[0]||'').toLowerCase().trim()==='mes')hi4=i;});
-    if(hi4>=0){
-      for(let ri=hi4+1;ri<hi4+30;ri++){for(let ci=0;ci<=10;ci++){delete hisSheet[XLSX.utils.encode_cell({r:ri,c:ci})];}}
-      historial.forEach((h,i)=>{
-        const ri=hi4+1+i;
-        // Fix #1: income stored in RD$ — no reverse conversion
-        [h.mes,h.anio,h.ingresos,h.gasto,h.ahorro||0,h.tasaAhorro||0,h.deudas,h.emergencia,h.netWorth,h.tasa,h.notas||''].forEach((v,ci)=>{
-          const ref=XLSX.utils.encode_cell({r:ri,c:ci});
-          if(v===null||v===''||v===undefined){delete hisSheet[ref];return;}
-          if(typeof v==='number')hisSheet[ref]={t:'n',v};else hisSheet[ref]={t:'s',v:String(v)};
-        });
-      });
-      const range=XLSX.utils.decode_range(hisSheet['!ref']||'A1:K10');range.e.r=Math.max(range.e.r,hi4+historial.length+1);hisSheet['!ref']=XLSX.utils.encode_range(range);
-    }
-  }
-  // Fix #9: Write Metas sheet to workbook
-  const metasData=_editData.metas||[];
-  const metaSheetName=_rawWb.SheetNames.find(n=>n.toLowerCase()==='metas');
-  if(metasData.length){
-    const metRows=[['Nombre','Meta','Ahorrado','Aporte Mensual']];
-    metasData.forEach(m=>metRows.push([m.name||'',m.goal||0,m.saved||0,m.monthly||0]));
-    const metSheet=XLSX.utils.aoa_to_sheet(metRows);
-    if(metaSheetName){_rawWb.Sheets[metaSheetName]=metSheet;}
-    else{XLSX.utils.book_append_sheet(_rawWb,metSheet,'Metas');}
-  } else if(metaSheetName){
-    delete _rawWb.Sheets[metaSheetName];
-    _rawWb.SheetNames=_rawWb.SheetNames.filter(n=>n!==metaSheetName);
-  }
-  // Write Transacciones sheet
-  const txData=_editData.transacciones||[];
-  const txSheetName=_rawWb.SheetNames.find(n=>n.toLowerCase()==='transacciones');
-  if(txData.length){
-    const txRows=[['Fecha','Monto','Categoría','Nota','Método','Gasto Vinculado','Mes','Año']];
-    txData.forEach(tx=>txRows.push([tx.fecha,tx.monto,tx.categoria,tx.nota||'',tx.metodo||'',tx.gastoIdx>=0&&_editData.gastos[tx.gastoIdx]?_editData.gastos[tx.gastoIdx].nombre:'',tx.mes,tx.anio]));
-    const txSheet=XLSX.utils.aoa_to_sheet(txRows);
-    if(txSheetName){_rawWb.Sheets[txSheetName]=txSheet;}
-    else{XLSX.utils.book_append_sheet(_rawWb,txSheet,'Transacciones');}
-  } else if(txSheetName){
-    delete _rawWb.Sheets[txSheetName];
-    _rawWb.SheetNames=_rawWb.SheetNames.filter(n=>n!==txSheetName);
-  }
-  // Write Presupuesto sheet
-  const presData=_editData.presupuesto||[];
-  const presSheetName=_rawWb.SheetNames.find(n=>n.toLowerCase()==='presupuesto');
-  if(presData.length){
-    const presRows=[['Categoría','Presupuestado','Mes','Año']];
-    presData.forEach(p=>presRows.push([p.categoria,p.presupuestado,p.mes,p.anio]));
-    const presSheet=XLSX.utils.aoa_to_sheet(presRows);
-    if(presSheetName){_rawWb.Sheets[presSheetName]=presSheet;}
-    else{XLSX.utils.book_append_sheet(_rawWb,presSheet,'Presupuesto');}
-  } else if(presSheetName){
-    delete _rawWb.Sheets[presSheetName];
-    _rawWb.SheetNames=_rawWb.SheetNames.filter(n=>n!==presSheetName);
-  }
-  // Write Recurrentes sheet
-  const recData=_editData.recurrentes||[];
-  const recSheetName=_rawWb.SheetNames.find(n=>n.toLowerCase().startsWith('recurrente'));
-  if(recData.length){
-    const recRows=[['ID','Fecha','Monto','Categoría','Nota','Método','Frecuencia','LastGenerated']];
-    recData.forEach(r=>recRows.push([r.id,r.fecha,r.monto,r.categoria,r.nota||'',r.metodo||'',r.frecuencia,r.lastGenerated||'']));
-    const recSheet=XLSX.utils.aoa_to_sheet(recRows);
-    if(recSheetName){_rawWb.Sheets[recSheetName]=recSheet;}
-    else{XLSX.utils.book_append_sheet(_rawWb,recSheet,'Recurrentes');}
-  } else if(recSheetName){
-    delete _rawWb.Sheets[recSheetName];
-    _rawWb.SheetNames=_rawWb.SheetNames.filter(n=>n!==recSheetName);
-  }
-  const now=new Date();
-  const stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-  XLSX.writeFile(_rawWb,`cnt_${stamp}.xlsx`);
-}
 </script>
 </body>
 </html>
