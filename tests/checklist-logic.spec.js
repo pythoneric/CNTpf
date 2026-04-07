@@ -32,7 +32,7 @@ async function loadWithGastos(page, gastos) {
 }
 
 async function goToChecklist(page) {
-  await page.evaluate(() => showTab('checklist', document.querySelector(".tab-btn[onclick*=\"'checklist'\"]")));
+  await page.evaluate(() => showTab('alertas', document.querySelector(".tab-btn[onclick*=\"'alertas'\"]")));
 }
 
 // ══════════════════════════════════

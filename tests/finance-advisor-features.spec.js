@@ -168,7 +168,7 @@ test.describe('1.5 — EF target tied to expenses', () => {
 test.describe('2.5 — Payment calendar', () => {
   test('calendar shows in checklist tab', async ({ page }) => {
     await loadApp(page);
-    await page.evaluate(() => showTab('checklist'));
+    await page.evaluate(() => showTab('alertas'));
 
     const cal = page.locator('#paymentCalendar');
     await expect(cal).toBeVisible();
@@ -177,7 +177,7 @@ test.describe('2.5 — Payment calendar', () => {
 
   test('calendar groups payments by day', async ({ page }) => {
     await loadApp(page);
-    await page.evaluate(() => showTab('checklist'));
+    await page.evaluate(() => showTab('alertas'));
 
     const cal = page.locator('#paymentCalendar');
     // Day 1 (Alquiler) and Day 15 (Tarjeta Visa)
@@ -193,7 +193,7 @@ test.describe('2.5 — Payment calendar', () => {
         { nombre: 'Pagado', tipo: 'Fijo', pagado: 5000, adeudado: 5000, dia: 1, tasa: 0, balance: 0, originalRD: 0, originalUSD: 0, fechaLimite: '', notas: '', pagadoMes: true },
       ],
     });
-    await page.evaluate(() => showTab('checklist'));
+    await page.evaluate(() => showTab('alertas'));
 
     const cal = page.locator('#paymentCalendar');
     await expect(cal).toContainText(/Sin pagos|No pending/);

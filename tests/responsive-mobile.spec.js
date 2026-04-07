@@ -277,7 +277,7 @@ test.describe('Responsive - Android Small Phone (360px)', () => {
 
   test('All tabs: no horizontal overflow at 360px', async ({ page }) => {
     await loadApp(page);
-    const tabs = ['resumen', 'alertas', 'checklist', 'gastos', 'deudas', 'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
+    const tabs = ['resumen', 'alertas', 'gastos', 'deudas', 'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
     for (const tabId of tabs) {
       await goToTab(page, tabId);
       const overflows = await findHorizontalOverflows(page);

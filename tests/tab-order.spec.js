@@ -6,17 +6,17 @@ const { test, expect } = require('@playwright/test');
  */
 
 const EXPECTED_ORDER = [
-  'resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'fornow',
+  'resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'fornow',
   'emergency', 'deudas', 'proyector', 'metas', 'analisis', 'historial',
 ];
 
 const EXPECTED_MOBILE_ORDER = [
-  'resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'fornow',
+  'resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'fornow',
   'emergency', 'deudas', 'proyector', 'metas', 'analisis', 'historial',
 ];
 
 const ALL_TAB_IDS = new Set([
-  'resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'deudas',
+  'resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'deudas',
   'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis',
 ]);
 
@@ -130,7 +130,7 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
   });
 
   // TEST 5 — No tabs were removed or added
-  test('exactly 13 desktop tabs with all original IDs present', async ({ page }) => {
+  test('exactly 12 desktop tabs with all original IDs present', async ({ page }) => {
     await loadApp(page);
 
     const desktopIds = await page.evaluate(() => {
@@ -140,16 +140,16 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
       });
     });
 
-    expect(desktopIds).toHaveLength(13);
+    expect(desktopIds).toHaveLength(12);
 
-    const allOriginals = ['resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'deudas',
+    const allOriginals = ['resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'deudas',
       'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
     for (const id of allOriginals) {
       expect(desktopIds).toContain(id);
     }
   });
 
-  test('TAB_ORDER has exactly 13 entries with all original IDs', async ({ page }) => {
+  test('TAB_ORDER has exactly 12 entries with all original IDs', async ({ page }) => {
     await loadApp(page);
 
     const tabOrder = await page.evaluate(() => {
@@ -161,9 +161,9 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
       return [];
     });
 
-    expect(tabOrder).toHaveLength(13);
+    expect(tabOrder).toHaveLength(12);
 
-    const allOriginals = ['resumen', 'alertas', 'checklist', 'registro', 'presupuesto', 'gastos', 'deudas',
+    const allOriginals = ['resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'deudas',
       'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
     for (const id of allOriginals) {
       expect(tabOrder).toContain(id);
