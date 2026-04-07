@@ -10,7 +10,7 @@ Un dashboard financiero completo que vive en 5 archivos. No requiere servidor, n
 
 Puedes empezar **sin ningun archivo** -- un asistente de configuracion te guia para ingresar tus datos directamente y genera el respaldo JSON inicial automaticamente. Tambien puedes importar un `.json` exportado previamente, o un `.xlsx` legacy si ya tienes datos en Excel.
 
-Soporta **espanol e ingles** con cambio de idioma en tiempo real, y temas **oscuro y claro**.
+Soporta **espanol e ingles** con cambio de idioma en tiempo real, temas **oscuro y claro**, y **moneda dual USD / RD$** con conversion automatica.
 
 ---
 
@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (336 tests)
+tests/                -- Suite de tests Playwright (377 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -44,7 +44,7 @@ Si es tu primera vez o no tienes un archivo Excel previo, elige **"Empezar desde
 
 | Paso | Que configuras |
 |------|----------------|
-| 1 | Mes, ano, tasa dolar, ingreso mensual, dias de alerta |
+| 1 | Moneda principal (USD o RD$), mes, ano, tasa dolar, ingreso mensual, dias de alerta |
 | 2 | Cuentas disponibles (corriente, ahorro, cash...) con sus saldos y moneda (RD$/USD) |
 | 3 | Gastos fijos, deudas y cuotas mensuales con tipo, tasa y balance |
 | 4 | Fondos de emergencia con balance actual, meta minima y moneda |
@@ -59,7 +59,11 @@ Arrastra o selecciona un archivo `.json` (exportado previamente) o `.xlsx` (lega
 Si ya usaste el dashboard antes en este navegador, aparece esta opcion automaticamente. Abre los datos guardados sin necesidad de subir nada.
 
 ### Opcion D -- Ver demo con datos de ejemplo
-Carga datos ficticios realistas de 18 meses (persona: Maria Fernandez, marketing manager, Santo Domingo). Util para explorar el dashboard sin ingresar datos propios.
+Dos demos disponibles:
+- **Demo RD$** 🇩🇴 -- Persona dominicana con finanzas en pesos (Maria Fernandez, marketing manager, Santo Domingo). Ingreso RD$233,700/mes, hipoteca, auto, tarjetas, 18 meses de historial.
+- **Demo USD** 🇺🇸 -- Persona estadounidense con finanzas en dolares (profesional USA). Ingreso $6,500/mes, mortgage, car loan, student loan, credit cards, 18 meses de historial.
+
+Ambas demos son ficticias y utiles para explorar el dashboard sin ingresar datos propios.
 
 ---
 
@@ -100,6 +104,7 @@ El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un contr
 - **Flechas delta mes-a-mes** -- Cada KPI muestra ▲/▼ comparando con el mes anterior del historial (verde = mejora, rojo = empeora, contextual por metrica)
 - **Salud financiera** -- Puntaje de 0-100 con calificacion (Excelente/Bueno/Regular/Critico) basado en ratio de gastos, DTI, fondo de emergencia y tendencia de net worth
 - **Distribucion de flujo de caja** -- Barra visual de gastos vs sobrante con metricas de retiro USD, tasa, ahorros y compromisos
+- **Moneda dual** -- Soporte completo para USD y RD$ como moneda principal. Selector en el asistente de configuracion y en Editar > Configuracion. Todos los montos, graficos y KPIs se adaptan automaticamente. Internamente los datos se almacenan en RD$ y se convierten al vuelo para usuarios USD
 - **Hitos de net worth** -- Celebraciones automaticas al alcanzar net worth positivo, libre de deudas, RD$100K, RD$500K y RD$1M
 
 ### Alertas & Pagos (tab unificado)
@@ -219,7 +224,7 @@ El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un contr
 | 8 | Define el nombre del proximo mes en el dashboard |
 
 ### Idiomas
-- **Espanol** (por defecto) e **Ingles** -- 400+ claves de traduccion
+- **Espanol** (por defecto) e **Ingles** -- 420+ claves de traduccion (incluyendo moneda dual)
 - Cambio en tiempo real sin recargar la pagina
 - Boton de idioma en el header y en la pantalla de inicio
 
@@ -249,8 +254,8 @@ El respaldo se exporta como un archivo `.json` con esta estructura:
 
 ```json
 {
-  "_meta": { "version": 1, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
-  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5 },
+  "_meta": { "version": 2, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
+  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5, "monedaPrincipal": "RD" },
   "gastos": [...],
   "forNow": { "cuentas": [...], "fecha": "...", "total": 0 },
   "emerg": { "fondos": [...], "cashflow": {...} },
@@ -480,16 +485,17 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `account-currency.spec.js` | 13 | Moneda dual en cuentas (RD$/USD) |
 | `goals-numeric-inputs.spec.js` | 8 | Inputs de metas sin spinners |
 | `cache-clear.spec.js` | 3 | Limpieza de cache sin perder datos |
-| `demo-loader.spec.js` | 9 | Carga de datos demo |
+| `demo-loader.spec.js` | 13 | Carga de datos demo (RD$ y USD) |
+| `dual-currency.spec.js` | 37 | Moneda dual: formato, conversion, demos, import/export, edge cases, wizard |
 | `tasa-creacion.spec.js` | 8 | Tasa de creacion en deudas |
 | `edit-table-scroll.spec.js` | 8 | Scroll de tabla de edicion |
 | `foldable-projector.spec.js` | 7 | Proyector en pantallas plegables |
 | `tab-order.spec.js` | 7 | Orden de pestanas (13 tabs, 2 grupos) |
-| `json-backup.spec.js` | 13 | Exportar/importar JSON, round-trip, demo embebido |
+| `json-backup.spec.js` | 13 | Exportar/importar JSON, round-trip, meta v2, demo embebido |
 | `presupuesto-recurring.spec.js` | 40 | Presupuesto CRUD, BvA, obligaciones, recurrentes, generacion, dedup, Registro KPIs, Resumen integracion |
 | `strategy-tabs.spec.js` | 31 | Deudas ETA, EF cobertura/doughnut, analisis summary, NW proyeccion, sparklines, waterfall, edge cases |
 | `operations-tabs.spec.js` | 18 | Gastos payoff column, Registro trend, Fondos runway, Checklist countdown, KPI deltas |
-| **Total** | **336** | |
+| **Total** | **377** | |
 
 ---
 
