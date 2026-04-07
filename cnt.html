@@ -693,8 +693,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('resumen',this)" data-group="ops" data-i18n="tab_resumen">📊 Resumen</button>
-    <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas" data-group="ops" data-i18n="tab_alertas">🔔 Alertas</button>
-    <button class="tab-btn" onclick="showTab('checklist',this)" data-group="ops" data-i18n="tab_checklist">✅ Pagos del Mes</button>
+    <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas" data-group="ops" data-i18n="tab_alertas">🔔 Alertas & Pagos</button>
     <button class="tab-btn" onclick="showTab('registro',this)" data-group="ops" data-i18n="tab_registro">🧾 Registro</button>
     <button class="tab-btn" onclick="showTab('presupuesto',this)" data-group="ops" data-i18n="tab_presupuesto">📋 Presupuesto</button>
     <button class="tab-btn" onclick="showTab('gastos',this)" data-group="ops" data-i18n="tab_gastos">💸 Gastos</button>
@@ -711,7 +710,6 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <nav id="mobileNav" aria-label="Navegación móvil">
     <button class="mnav-btn" onclick="mobileTab('resumen',this)" id="mnavResumen" data-group="ops"><span class="mnav-icon">📊</span><span data-i18n="mnav_resumen">Resumen</span></button>
     <button class="mnav-btn" onclick="mobileTab('alertas',this)" id="mobileTabAlertas" data-group="ops"><span class="mnav-icon">🔔</span><span data-i18n="mnav_alertas">Alertas</span></button>
-    <button class="mnav-btn" onclick="mobileTab('checklist',this)" id="mnavChecklist" data-group="ops"><span class="mnav-icon">✅</span><span data-i18n="mnav_checklist">Pagos</span></button>
     <button class="mnav-btn" onclick="mobileTab('registro',this)" id="mnavRegistro" data-group="ops"><span class="mnav-icon">🧾</span><span data-i18n="mnav_registro">Registro</span></button>
     <button class="mnav-btn" onclick="mobileTab('presupuesto',this)" id="mnavPresupuesto" data-group="ops"><span class="mnav-icon">📋</span><span data-i18n="mnav_presupuesto">Presupuesto</span></button>
     <button class="mnav-btn" onclick="mobileTab('gastos',this)" id="mnavGastos" data-group="ops"><span class="mnav-icon">💸</span><span data-i18n="mnav_gastos">Gastos</span></button>
@@ -739,8 +737,15 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div id="netWorthAlert"></div>
   </div>
 
-  <!-- ALERTAS -->
+  <!-- ALERTAS & PAGOS (merged) -->
   <div id="tab-alertas" class="panel">
+    <div class="card" style="margin-bottom:16px" id="checklistProgress"></div>
+    <div class="card" style="margin-bottom:16px" id="paymentCalendar"></div>
+    <div class="grid g2" style="margin-bottom:16px">
+      <div class="card"><div class="card-title" data-i18n="chk_pending_tab">⏳ Pendientes</div><div id="checklistPending"></div></div>
+      <div class="card"><div class="card-title" data-i18n="chk_done_tab">✅ Pagados</div><div id="checklistDone"></div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="chk_interest_title">💸 Costo de Intereses en Deudas</div><div id="interestAnalysis"></div></div>
     <div class="grid g2" style="margin-bottom:16px">
       <div class="card"><div class="card-title" data-i18n="panel_alertas_venc">🔴 Vencimientos Próximos</div><div id="alertasVenc"></div></div>
       <div class="card"><div class="card-title" data-i18n="panel_alertas_gen">⚠️ Alertas Financieras</div><div id="alertasGen"></div></div>
@@ -814,25 +819,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div id="presTip" style="font-size:11px;color:var(--muted);padding:8px 12px;background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.15);border-radius:8px"></div>
   </div>
 
-  <!-- CHECKLIST PAGOS DEL MES -->
-  <div id="tab-checklist" class="panel">
-    <div class="card" style="margin-bottom:16px" id="checklistProgress"></div>
-    <div class="card" style="margin-bottom:16px" id="paymentCalendar"></div>
-    <div class="grid g2" style="margin-bottom:16px">
-      <div class="card">
-        <div class="card-title" data-i18n="chk_pending_tab">⏳ Pendientes</div>
-        <div id="checklistPending"></div>
-      </div>
-      <div class="card">
-        <div class="card-title" data-i18n="chk_done_tab">✅ Pagados</div>
-        <div id="checklistDone"></div>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-title" data-i18n="chk_interest_title">💸 Costo de Intereses en Deudas</div>
-      <div id="interestAnalysis"></div>
-    </div>
-  </div>
+  <!-- (checklist merged into tab-alertas above) -->
 
   <!-- DEUDAS -->
   <div id="tab-deudas" class="panel">
@@ -873,7 +860,6 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div id="tab-emergency" class="panel">
     <div class="grid g4" style="margin-bottom:16px" id="efKpis"></div>
     <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_progress">Fondos de Emergencia · Progreso</div><div id="efFunds"></div></div>
-    <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_cashflow">Cashflow Mensual Detallado</div><div id="cfRows"></div></div>
     <div class="grid g2" style="margin-bottom:16px">
       <div class="card"><div class="card-title" data-i18n="panel_ef_chart">Progreso Total vs Meta</div><div class="chart-wrap"><canvas id="efChart"></canvas></div></div>
       <div class="card"><div class="card-title" id="efCoverageTitle"></div><div class="chart-wrap"><canvas id="efCoverageChart"></canvas></div></div>
@@ -885,7 +871,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <div id="tab-fornow" class="panel">
     <div class="grid g4" style="margin-bottom:16px" id="forNowKpis"></div>
     <div class="card" id="forNowDetail"></div>
-    <div class="card" style="margin-top:16px;position:relative;height:280px" id="forNowChartWrap"><canvas id="forNowSavingsChart"></canvas></div>
+    <div class="card" style="margin-top:16px;margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_cashflow">Cashflow Mensual Detallado</div><div id="cfRows"></div></div>
+    <div class="card" style="position:relative;height:280px" id="forNowChartWrap"><canvas id="forNowSavingsChart"></canvas></div>
   </div>
 
   <!-- HISTORIAL -->
@@ -1136,7 +1123,7 @@ const LANG = {
     // Header meta labels
     hdr_tasa:'Tasa USD', hdr_ingusd:'Ingreso USD', hdr_ingrd:'Ingreso RD$',
     // Desktop tabs
-    tab_resumen:'📊 Resumen', tab_alertas:'🔔 Alertas', tab_gastos:'💸 Gastos',
+    tab_resumen:'📊 Resumen', tab_alertas:'🔔 Alertas & Pagos', tab_gastos:'💸 Gastos',
     tab_checklist:'✅ Pagos del Mes', tab_deudas:'🏦 Deudas', tab_proyector:'🎯 Proyector',
     tab_emergency:'🛡 Emergencias', tab_fornow:'💳 Fondos', tab_historial:'📅 Historial', tab_registro:'🧾 Registro',
     tab_presupuesto:'📋 Presupuesto',
@@ -1532,7 +1519,7 @@ const LANG = {
     // Header meta labels
     hdr_tasa:'USD Rate', hdr_ingusd:'Income USD', hdr_ingrd:'Income RD$',
     // Desktop tabs
-    tab_resumen:'📊 Summary', tab_alertas:'🔔 Alerts', tab_gastos:'💸 Expenses',
+    tab_resumen:'📊 Summary', tab_alertas:'🔔 Alerts & Payments', tab_gastos:'💸 Expenses',
     tab_checklist:'✅ Monthly Payments', tab_deudas:'🏦 Debts', tab_proyector:'🎯 Projector',
     tab_emergency:'🛡 Emergencies', tab_fornow:'💳 Funds', tab_historial:'📅 History', tab_registro:'🧾 Log',
     tab_presupuesto:'📋 Budget',
@@ -2134,7 +2121,7 @@ window.addEventListener('load',()=>{
 // SWIPE GESTURES — mobile tab nav
 // ══════════════════════════════════
 (()=>{
-  const TAB_ORDER=['resumen','alertas','checklist','registro','presupuesto','gastos','fornow','emergency','deudas','proyector','metas','analisis','historial'];
+  const TAB_ORDER=['resumen','alertas','registro','presupuesto','gastos','fornow','emergency','deudas','proyector','metas','analisis','historial'];
   let _tx=0,_ty=0;
   document.addEventListener('touchstart',e=>{
     _tx=e.touches[0].clientX;
@@ -4863,7 +4850,7 @@ function exportSnapshot(){
 // ══════════════════════════════════
 // TAB GROUPS
 // ══════════════════════════════════
-const GROUP_OPS=['resumen','alertas','checklist','registro','presupuesto','gastos','fornow'];
+const GROUP_OPS=['resumen','alertas','registro','presupuesto','gastos','fornow'];
 const GROUP_STRAT=['emergency','deudas','proyector','metas','analisis','historial'];
 let _activeGroup='ops';
 
@@ -4910,7 +4897,7 @@ function showTab(id,btn){
 function navigateToHash(){
   const hash=window.location.hash;
   const tabMap={
-    '#checklist':'checklist',
+    '#checklist':'alertas',
     '#gastos':'gastos',
     '#deudas':'deudas',
     '#alertas':'alertas',

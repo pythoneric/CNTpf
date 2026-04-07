@@ -65,25 +65,24 @@ Carga datos ficticios realistas de 18 meses (persona: Maria Fernandez, marketing
 
 ## Pestanas del Dashboard
 
-El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un control segmentado (pill toggle). El grupo activo se recuerda entre sesiones.
+El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un control segmentado (pill toggle). El grupo activo se recuerda entre sesiones.
 
 ### Operaciones — dia a dia financiero
 
 | Pestana | Descripcion |
 |---------|-------------|
 | **Resumen** | KPIs de ingresos, gastos, superavit, net worth, tasa de ahorro y salud financiera |
-| **Alertas** | Pagos proximos, atrasados, alertas DTI, amortizacion negativa, fondo de emergencia y anomalias |
-| **Pagos del Mes** | Checklist de pagos con calendario visual, progreso por monto, y analisis de intereses |
+| **Alertas & Pagos** | Checklist de pagos con countdown, calendario visual, alertas DTI, amortizacion negativa, fondo de emergencia y anomalias |
 | **Registro** | Registro de gastos reales con categorias, transacciones recurrentes, graficos por tipo y totales del mes |
 | **Presupuesto** | Presupuesto base cero por categoria con comparacion vs gastos reales del Registro |
 | **Gastos** | Tabla completa de gastos y deudas con estado de pago, ETA de liquidacion por item |
-| **Fondos** | Saldos de cuentas (RD$/USD) vs compromisos mensuales, disponibilidad real y autonomia en meses |
+| **Fondos** | Saldos de cuentas (RD$/USD) vs compromisos mensuales, disponibilidad real, autonomia en meses y cashflow mensual detallado |
 
 ### Estrategia — planificacion y analisis
 
 | Pestana | Descripcion |
 |---------|-------------|
-| **Emergencia** | Fondos de emergencia con cobertura en meses, doughnut de progreso, plan de asignacion y cashflow |
+| **Emergencia** | Fondos de emergencia con cobertura en meses, doughnut de progreso y plan de asignacion |
 | **Deudas** | Cards individuales con balance, tasa, ETA de liquidacion, proyeccion de interes y boton "Liquidar deuda" |
 | **Proyector** | Simulador de pago de deudas: Avalancha vs Bola de Nieve con escenarios what-if |
 | **Metas** | Metas de ahorro con sparkline de proyeccion, progreso, ETA estimado y advertencia de sobrecompromiso |
@@ -103,25 +102,23 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 - **Distribucion de flujo de caja** -- Barra visual de gastos vs sobrante con metricas de retiro USD, tasa, ahorros y compromisos
 - **Hitos de net worth** -- Celebraciones automaticas al alcanzar net worth positivo, libre de deudas, RD$100K, RD$500K y RD$1M
 
-### Sistema de Alertas
-- **Vencimientos proximos** -- Pagos que vencen dentro de los proximos dias (configurable)
-- **Pagos atrasados** -- Compromisos no pagados despues de su dia de pago
-- **Fechas limite** -- Deudas con fecha limite dentro de 60 dias
-- **DTI elevado** -- Alerta a >36% (riesgo crediticio) y urgente a >43% (umbral de prestamistas). DTI se calcula como pagos mensuales de deuda / ingreso mensual (formula estandar de prestamistas)
-- **Amortizacion negativa** -- Alerta urgente cuando el pago mensual no cubre los intereses y la deuda crece
-- **Tasa alta** -- Advertencia para deudas con tasa >15% anual
-- **Fondo de emergencia** -- Critico si <25% de la meta, bajo si <50%
-- **Carga de intereses** -- Alerta si los intereses consumen >50% del superavit
-- **Anomalia de gastos** -- Alerta si los gastos del mes superan 120% del promedio de los ultimos 3 meses
-- **Indicador visual** -- Punto rojo pulsante en la pestana de alertas cuando hay urgencias
-
-### Checklist de Pagos
-- Marca cada compromiso como pagado con persistencia automatica
+### Alertas & Pagos (tab unificado)
+- **Checklist de pagos** -- Marca cada compromiso como pagado con persistencia automatica
 - **Cuenta regresiva** -- Muestra el proximo pago pendiente con dias restantes, nombre y monto (coloreado por urgencia)
 - **Calendario de pagos** -- Timeline visual de pagos pendientes agrupados por dia con totales
 - Progreso por cantidad y por monto (RD$)
 - Analisis de intereses con tabla de costo por deuda
 - Botones de "Marcar todos" y "Resetear"
+- **Vencimientos proximos** -- Pagos que vencen dentro de los proximos dias (configurable)
+- **Pagos atrasados** -- Compromisos no pagados despues de su dia de pago
+- **Fechas limite** -- Deudas con fecha limite dentro de 60 dias
+- **DTI elevado** -- Alerta a >36% (riesgo crediticio) y urgente a >43% (umbral de prestamistas)
+- **Amortizacion negativa** -- Alerta urgente cuando el pago mensual no cubre los intereses y la deuda crece
+- **Tasa alta** -- Advertencia para deudas con tasa >15% anual
+- **Fondo de emergencia** -- Critico si <25% de la meta, bajo si <50%
+- **Carga de intereses** -- Alerta si los intereses consumen >50% del superavit
+- **Anomalia de gastos** -- Alerta si los gastos del mes superan 120% del promedio de los ultimos 3 meses
+- **Indicador visual** -- Punto rojo pulsante en la pestana cuando hay urgencias
 
 ### Registro de Gastos
 - Registra gastos reales del dia a dia para responder "a donde se fue mi dinero?"
@@ -165,10 +162,8 @@ El dashboard tiene **13 pestanas** organizadas en **2 grupos** mediante un contr
 - Progreso individual por fondo con barra de color
 - Moneda dual (RD$/USD) con conversion automatica
 - **Meta vinculada a gastos** -- Nuevos fondos se pre-llenan con meta = 3x gastos mensuales
-- Recomendacion de 3-6 meses de gastos
 - Asignacion dinamica del superavit (20% si hay deuda de alta tasa, 50% si no)
 - Plan de aporte sugerido con estimado de tiempo para alcanzar meta
-- Prioridad: emergencia > deuda alta tasa > metas de ahorro
 
 ### Metas de Ahorro
 - Nombre, monto meta, monto ahorrado y aporte mensual por meta
