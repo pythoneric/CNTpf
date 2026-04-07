@@ -626,14 +626,23 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       </div>
     </button>
 
-    <!-- Option 4: Load demo data -->
-    <button class="btn btn-ghost" onclick="loadDemo()" style="width:100%;justify-content:center;border-style:dashed;gap:10px;padding:14px">
-      <span style="font-size:20px">👩‍💼</span>
-      <div style="text-align:left">
-        <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="loader_demo">Ver demo con datos de ejemplo</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px" data-i18n="loader_demo_sub">Explora el dashboard con datos ficticios realistas de 18 meses</div>
-      </div>
-    </button>
+    <!-- Option 4: Load demo data — TWO options -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn btn-ghost" onclick="loadDemo('RD')" style="justify-content:center;border-style:dashed;gap:8px;padding:14px">
+        <span style="font-size:20px">🇩🇴</span>
+        <div style="text-align:left">
+          <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="loader_demo_rd">Demo RD$</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px" data-i18n="loader_demo_rd_sub">Datos ficticios en Pesos</div>
+        </div>
+      </button>
+      <button class="btn btn-ghost" onclick="loadDemo('USD')" style="justify-content:center;border-style:dashed;gap:8px;padding:14px">
+        <span style="font-size:20px">🇺🇸</span>
+        <div style="text-align:left">
+          <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="loader_demo_usd">Demo USD</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px" data-i18n="loader_demo_usd_sub">Sample data in Dollars</div>
+        </div>
+      </button>
+    </div>
 
     <div id="errorMsg"></div>
     <div id="loadingSpinner"><div class="spinner"></div><div style="font-size:13px;color:var(--muted)" data-i18n="loader_processing">Procesando…</div></div>
@@ -1107,6 +1116,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 // ══════════════════════════════════
 const fmt=n=>{if(n===undefined||n===null||isNaN(n))return'—';return Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0})};
 const fmtUSD=n=>n===undefined||isNaN(n)?'—':'$'+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});
+function currencySymbol(){try{return(typeof _editData!=='undefined'&&_editData?.config?.monedaPrincipal==='USD')?'$':'RD$';}catch(e){return'RD$';}}
+function fmtC(n){if(n===undefined||n===null||isNaN(n))return'—';const s=currencySymbol();const abs=Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});return n<0?'-'+s+abs:s+abs;}
+function toDisplay(n){try{if(!_editData?.config)return n;return _editData.config.monedaPrincipal==='USD'?n/(_editData.config.tasa||60):n;}catch(e){return n;}}
+function fromDisplay(n){try{if(!_editData?.config)return n;return _editData.config.monedaPrincipal==='USD'?n*(_editData.config.tasa||60):n;}catch(e){return n;}}
 
 // ══════════════════════════════════
 // i18n — LANGUAGE SYSTEM
@@ -1149,8 +1162,8 @@ const LANG = {
     cf_withdrawusd:'Retirar USD', cf_rate:'Tasa Dólar', cf_savings:'Ahorros este mes', cf_committed:'Comprometido',
     // Gastos table
     gastostbl_title:'Gastos & Deudas Mensuales', gastostbl_paid:'Total Pagado', gastostbl_pending:'Pendiente este mes',
-    gastostbl_desc:'Descripción', gastostbl_tipo:'Tipo', gastostbl_pagado:'Pagado (RD$)', gastostbl_cuota:'Cuota (RD$)',
-    gastostbl_pctinc:'% Ing', gastostbl_day:'Día Pago', gastostbl_rate:'Tasa %', gastostbl_balance:'Balance (RD$)',
+    gastostbl_desc:'Descripción', gastostbl_tipo:'Tipo', gastostbl_pagado:'Pagado ({cs})', gastostbl_cuota:'Cuota ({cs})',
+    gastostbl_pctinc:'% Ing', gastostbl_day:'Día Pago', gastostbl_rate:'Tasa %', gastostbl_balance:'Balance ({cs})',
     gastostbl_status:'Estado', gastostbl_payoff:'Liquidación', gastostbl_total:'TOTALES',
     gastostbl_thismonth:'✓ Este mes', gastostbl_done:'✓ Pagado', gastostbl_partial:'◑ Parcial',
     gastostbl_pending2:'⏳ Pendiente',
@@ -1196,13 +1209,13 @@ const LANG = {
     hist_months:'Meses registrados', hist_recent:'Datos más recientes', hist_monthlydata:'Ingreso del mes',
     hist_assetminusliab:'Activos − Pasivos', hist_totalrecorded:'Total en historial',
     hist_table_title:'Registro Mensual Completo',
-    hist_col_month:'Mes', hist_col_year:'Año', hist_col_income:'Ingresos (RD$)', hist_col_expense:'Gasto (RD$)',
-    hist_col_savings:'Ahorro Neto', hist_col_savingsrate:'Tasa Ahorro', hist_col_debts:'Deudas (RD$)',
-    hist_col_emergency:'Emergencia (RD$)', hist_col_nw:'Net Worth (RD$)', hist_col_rate:'Tasa $',
+    hist_col_month:'Mes', hist_col_year:'Año', hist_col_income:'Ingresos ({cs})', hist_col_expense:'Gasto ({cs})',
+    hist_col_savings:'Ahorro Neto', hist_col_savingsrate:'Tasa Ahorro', hist_col_debts:'Deudas ({cs})',
+    hist_col_emergency:'Emergencia ({cs})', hist_col_nw:'Net Worth ({cs})', hist_col_rate:'Tasa $',
     hist_note:'📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.',
     hist_evolnw:'Evolución Net Worth & Deudas', hist_incvsexp:'Ingresos vs Gastos por Mes', hist_debttrend:'Balance de Deudas por Mes', hist_savingsrate:'Tasa de Ahorro por Mes',
     hist_count:'{n} meses registrados', hist_count_one:'1 mes registrado',
-    hist_chart_nw:'Net Worth (RD$)', hist_chart_debt:'Balance Deudas (RD$)',
+    hist_chart_nw:'Net Worth ({cs})', hist_chart_debt:'Balance Deudas ({cs})',
     hist_chart_income:'Ingresos', hist_chart_expense:'Gastos',
     hist_chart_debtbal:'Balance Deudas', hist_chart_ef:'Fondos Emergencia',
     hist_empty_title:'Sin historial registrado',
@@ -1225,19 +1238,19 @@ const LANG = {
     alert_overspend_title:'Gastos superan ingresos', alert_overspend_sub:'Estás gastando % más de lo que ingresas',
     alert_highexp_title:'Gastos elevados', alert_highexp_sub:'% del ingreso comprometido',
     alert_highdebt_title:'Deuda muy alta', alert_highdebt_sub:'% del ingreso anual en deudas',
-    alert_highrate_title:'Tasa alta:', alert_highrate_sub:'% anual — RD$ pendiente',
-    alert_ef_critical_title:'Fondo de emergencia crítico', alert_ef_critical_sub:'% completado — RD$ para alcanzar la meta',
+    alert_highrate_title:'Tasa alta:', alert_highrate_sub:'% anual — {cs} pendiente',
+    alert_ef_critical_title:'Fondo de emergencia crítico', alert_ef_critical_sub:'% completado — {cs} para alcanzar la meta',
     alert_ef_low_title:'Fondo de emergencia bajo', alert_ef_low_sub:'% completado — sigue aportando mensualmente',
-    alert_interest_title:'Carga de intereses elevada', alert_interest_sub:'RD$/mes en intereses — % de tu superávit',
-    alert_interest_deficit:'RD$/mes en intereses y estás en déficit — situación crítica',
+    alert_interest_title:'Carga de intereses elevada', alert_interest_sub:'{cs}/mes en intereses — % de tu superávit',
+    alert_interest_deficit:'{cs}/mes en intereses y estás en déficit — situación crítica',
     alert_dti_warn_title:'DTI elevado (>36%)', alert_dti_warn_sub:'Tu DTI (pagos mensuales de deuda / ingreso) es {pct}%. Prestamistas consideran >36% riesgoso — puede dificultar nuevos créditos.',
     alert_dti_urgent_title:'DTI crítico (>43%)', alert_dti_urgent_sub:'Tu DTI (pagos mensuales de deuda / ingreso) es {pct}%. Supera el umbral máximo de la mayoría de prestamistas — prioriza reducir deuda.',
-    alert_negamort_title:'⚠️ Deuda creciendo: {name}', alert_negamort_sub:'Tu pago mensual (RD${pay}) no cubre los intereses (RD${int}). Tu deuda crece RD${growth}/mes.',
+    alert_negamort_title:'⚠️ Deuda creciendo: {name}', alert_negamort_sub:'Tu pago mensual ({cs}{pay}) no cubre los intereses ({cs}{int}). Tu deuda crece {cs}{growth}/mes.',
     alert_expense_spike_title:'Gasto inusualmente alto', alert_expense_spike_sub:'Tus gastos este mes son {pct}% más que tu promedio reciente.',
     // Situacion
     sit_expenses:'Control de Gastos', sit_surplus:'Superávit Mensual', sit_debt:'Ratio Deuda', sit_dti:'DTI (Deuda/Ingreso)',
     sit_payments:'Próximos pagos', sit_used:'% del ingreso usado', sit_available:'disponible',
-    sit_deficit:'Déficit de RD$', sit_annualincome:'% del ingreso anual', sit_uptodate:'Al día este mes',
+    sit_deficit:'Déficit de {cs}', sit_annualincome:'% del ingreso anual', sit_uptodate:'Al día este mes',
     // Checklist
     chk_title:'Pagos del Mes', chk_of:'de', chk_marked:'pagos marcados',
     chk_pending_lbl:'Pendiente:', chk_paid_lbl:'Pagado:',
@@ -1259,8 +1272,8 @@ const LANG = {
     proy_committed_accounts:'Suma de saldos', proy_committed_expenses:'Total adeudado mensual',
     proy_committed_aftercommit:'Después de compromisos', proy_committed_redirectable:'Monto redirigible a deudas',
     proy_config_title:'⚙️ Parámetro de Proyección',
-    proy_slider_label:'Pago extra mensual disponible (RD$) — arrastra el slider o escribe un monto',
-    proy_per_month:'RD$/mes', proy_allsurplus:'Todo el superávit', proy_redirectsavings:'+ Redirigir ahorros',
+    proy_slider_label:'Pago extra mensual disponible ({cs}) — arrastra el slider o escribe un monto',
+    proy_per_month:'{cs}/mes', proy_allsurplus:'Todo el superávit', proy_redirectsavings:'+ Redirigir ahorros',
     proy_extra_label:'Pago extra/mes', proy_surplus_label:'Superávit mensual',
     proy_cost_title:'💸 Costo Real de Tus Deudas',
     proy_annual_interest:'Interés Anual', proy_monthly_interest:'Interés Mensual', proy_wtd_rate:'Tasa Ponderada',
@@ -1285,11 +1298,11 @@ const LANG = {
     proy_whatif_title:'🎯 Escenarios ¿Qué Pasaría Si…?',
     proy_whatif_col_scenario:'Escenario', proy_whatif_col_free:'Libre de deudas', proy_whatif_col_interest:'Interés total pagado',
     proy_whatif_col_vs:'vs. Escenario base', proy_whatif_col_saved:'Interés ahorrado',
-    proy_whatif_only_min:'Solo mínimos (RD$0 extra)', proy_whatif_pct25:'% superávit)',
+    proy_whatif_only_min:'Solo mínimos ({cs}0 extra)', proy_whatif_pct25:'% superávit)',
     proy_whatif_current:'actual)', proy_whatif_pct50:'% del superávit',
-    proy_whatif_redirect:'Redirigir ahorros (extra + RD$', proy_whatif_all:'Todo el superávit (RD$',
+    proy_whatif_redirect:'Redirigir ahorros (extra + {cs}', proy_whatif_all:'Todo el superávit ({cs}',
     proy_whatif_before:'m antes', proy_whatif_after:'m después',
-    proy_whatif_saves:'Ahorras RD$', proy_whatif_more:'Pagas RD$ más',
+    proy_whatif_saves:'Ahorras {cs}', proy_whatif_more:'Pagas {cs} más',
     proy_whatif_tip:'⚡ <strong>Estrategia Avalancha</strong> aplicada en todos los escenarios (mayor tasa primero). Los pagos mínimos liberados de deudas saldadas se acumulan automáticamente al siguiente objetivo.',
     proy_chart_title:'Proyección de Balance Total de Deudas',
     proy_avalanche_title:'🔥 Estrategia Avalancha', proy_avalanche_sub:'(mayor tasa primero)',
@@ -1298,7 +1311,7 @@ const LANG = {
     proy_rate_label:'Tasa', proy_deadline_warn:'Vence en',
     proy_no_debts:'¡Sin deudas con tasa!', proy_chart_avalancha:'Avalancha',
     proy_chart_snowball:'Bola de Nieve', proy_chart_noextra:'Sin extra',
-    proy_neg_amort_warn:'⚠️ <strong>{name}</strong>: tu cuota mensual (RD${payment}) no cubre el interés (RD${interest}). La deuda crece RD${growth}/mes aunque pagues.',
+    proy_neg_amort_warn:'⚠️ <strong>{name}</strong>: tu cuota mensual ({cs}{payment}) no cubre el interés ({cs}{interest}). La deuda crece {cs}{growth}/mes aunque pagues.',
     proy_strategy_title:'🔀 ¿Cuál estrategia elegir?',
     proy_strategy_explain:'<strong>Avalancha</strong> paga primero la deuda con mayor tasa de interés — es matemáticamente óptima y te ahorra más dinero. <strong>Bola de Nieve</strong> paga primero la deuda con menor balance — genera victorias rápidas y motivación psicológica. Ambas funcionan; elige según tu personalidad.',
     proy_no_surplus_warn:'Tu gasto supera tu ingreso — no hay superávit para pagos extra. Reduce gastos o aumenta ingresos primero.',
@@ -1326,13 +1339,13 @@ const LANG = {
     fornow_empty_sub:'Agrega tus cuentas de banco, ahorro o efectivo en el botón <strong>✏️ Editar</strong> para ver tu disponibilidad real.',
     fornow_snapshot_tip:'Los saldos son capturas manuales, no datos bancarios en vivo. Actualízalos regularmente con Editar o el asistente de cierre de mes.',
     fornow_runway:'Autonomía', fornow_runway_sub:'Meses de gastos cubiertos con fondos actuales', fornow_months:'meses', fornow_days:'días',
-    fornow_chart_assets:'Patrimonio Total (RD$)', fornow_chart_nw:'Net Worth (RD$)',
+    fornow_chart_assets:'Patrimonio Total ({cs})', fornow_chart_nw:'Net Worth ({cs})',
     // Cierre wizard
     cierre_title:'🗓 CIERRE DE MES',
     cierre_step1_title:'Paso 1 · Tasa Dólar', cierre_step1_sub:'Actualiza la tasa del dólar para este mes',
     cierre_step2_title:'Paso 2 · Mes y Año', cierre_step2_sub:'Confirma el período que estás cerrando',
     cierre_step3_title:'Paso 3 · Ingreso USD', cierre_step3_sub:'¿Cuánto ingresaste este mes en dólares?',
-    cierre_step4_title:'Paso 4 · Gasto Real del Mes', cierre_step4_sub:'¿Cuánto gastaste en total este mes? (RD$)',
+    cierre_step4_title:'Paso 4 · Gasto Real del Mes', cierre_step4_sub:'¿Cuánto gastaste en total este mes? ({cs})',
     cierre_step5_title:'Paso 5 · Saldos de Cuentas', cierre_step5_sub:'Actualiza los saldos actuales de tus cuentas',
     cierre_step6_title:'Paso 6 · Ahorros', cierre_step6_sub:'Registra tus ahorros del mes',
     cierre_step7_title:'Paso 7 · Confirmar y cerrar', cierre_step7_sub:'Revisa el resumen y agrega al historial',
@@ -1351,9 +1364,9 @@ const LANG = {
     // Milestones
     milestone_positive_nw:'🎉 ¡Net Worth positivo por primera vez!',
     milestone_debtfree:'🎉 ¡Libre de deudas!',
-    milestone_nw_100k:'🎉 ¡Net Worth superó RD$100,000!',
-    milestone_nw_500k:'🎉 ¡Net Worth superó RD$500,000!',
-    milestone_nw_1m:'🎉 ¡Net Worth superó RD$1,000,000!',
+    milestone_nw_100k:'🎉 ¡Net Worth superó {cs}100,000!',
+    milestone_nw_500k:'🎉 ¡Net Worth superó {cs}500,000!',
+    milestone_nw_1m:'🎉 ¡Net Worth superó {cs}1,000,000!',
     milestone_ef_complete:'🎉 ¡Fondo de emergencia completo!',
     // Edit modal
     edit_title:'Editar Datos', edit_sub:'Los cambios se aplican al dashboard y puedes descargar tu respaldo',
@@ -1370,7 +1383,7 @@ const LANG = {
     edit_delete_confirm:'¿Eliminar esta fila? Esta acción no se puede deshacer.',
     edit_cf_ingreso_note:'Se sincroniza automáticamente desde Configuración (USD × Tasa)',
     edit_currency_convert:'¿Convertir el saldo a la nueva moneda usando la tasa actual?',
-    edit_payment_detect:'El balance de "{name}" bajó RD${amt}. ¿Registrar como pago?',
+    edit_payment_detect:'El balance de "{name}" bajó {cs}{amt}. ¿Registrar como pago?',
     edit_tasa_warn:'⚠️ Usando tasa por defecto (60). Actualiza con la tasa real del mes.',
     // Config field labels
     ecfg_tasa:'Tasa Dólar (RD$/USD)', ecfg_tasa_note:'Actualizar mensualmente',
@@ -1380,18 +1393,18 @@ const LANG = {
     ecfg_ingresoRD:'Ingreso Mensual (RD$)', ecfg_ingresoRD_note:'En pesos — se sincroniza con USD',
     ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Rango: 1–30 días',
     // Cashflow field labels
-    ecf_ingreso:'Ingreso Mensual (RD$)', ecf_gasto:'Gasto Mensual Total',
+    ecf_ingreso:'Ingreso Mensual ({cs})', ecf_gasto:'Gasto Mensual Total',
     ecf_tasa:'Tasa Dólar', ecf_retirarUSD:'Retirar en USD',
     ecf_ahorros:'Ahorros este mes', ecf_balanceAhorros:'Balance Ahorros',
     // Edit table headers
-    eth_desc:'Descripción', eth_tipo:'Tipo', eth_pagado:'Pagado (RD$)', eth_adeudado:'Cuota (RD$)',
-    eth_dia:'Día Pago', eth_tasa:'Tasa %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
+    eth_desc:'Descripción', eth_tipo:'Tipo', eth_pagado:'Pagado ({cs})', eth_adeudado:'Cuota ({cs})',
+    eth_dia:'Día Pago', eth_tasa:'Tasa %', eth_balance:'Balance ({cs})', eth_originalRD:'Original (RD$)',
     eth_originalUSD:'Original (USD)', eth_tasaCreacion:'Tasa Creación', eth_fechaLimite:'Fecha Límite', eth_notas:'Notas',
     eth_cuenta:'Cuenta', eth_saldo:'Saldo',
     eth_fondo:'Fondo', eth_moneda:'Moneda', eth_balanceActual:'Balance', eth_metaMinima:'Meta',
-    eth_mes:'Mes', eth_anio:'Año', eth_ingresosRD:'Ingresos (RD$)', eth_gastoRD:'Gasto (RD$)',
-    eth_tasaDolar:'Tasa $', eth_deudasRD:'Deudas (RD$)', eth_emergenciaRD:'Emergencia (RD$)',
-    eth_netWorthRD:'Net Worth (RD$)',
+    eth_mes:'Mes', eth_anio:'Año', eth_ingresosRD:'Ingresos ({cs})', eth_gastoRD:'Gasto ({cs})',
+    eth_tasaDolar:'Tasa $', eth_deudasRD:'Deudas ({cs})', eth_emergenciaRD:'Emergencia ({cs})',
+    eth_netWorthRD:'Net Worth ({cs})',
     eth_fechaActualizado:'Fecha Actualizado',
     // Loader
     loader_title:'Personal Finance', loader_tagline:'Elige cómo empezar.',
@@ -1430,14 +1443,14 @@ const LANG = {
     metas_main_title:'🏆 Metas de Ahorro', metas_progress_title:'Progreso Total de Metas',
     metas_kpi_total:'Total Metas', metas_kpi_done:'Completadas', metas_kpi_saved:'Total Ahorrado',
     metas_empty:'Sin metas aún. Haz clic en "+ Agregar Meta" para empezar.',
-    metas_goal:'Meta (RD$)', metas_saved:'Ahorrado (RD$)', metas_monthly:'Aporte mensual (RD$)',
+    metas_goal:'Meta ({cs})', metas_saved:'Ahorrado ({cs})', metas_monthly:'Aporte mensual ({cs})',
     metas_name_ph:'Nombre de la meta (ej: Vacaciones)', metas_eta:'Fecha estimada',
     metas_done_badge:'✅ Completada', metas_months_left:'meses restantes',
     metas_add:'+ Agregar Meta', metas_pct_income:'del ingreso',
     metas_chart_saved:'Ahorrado', metas_chart_remaining:'Falta',
     metas_no_monthly:'Establece un aporte mensual para ver tu fecha estimada.',
     metas_eta_note:'La fecha estimada asume aportes constantes sin intereses.',
-    metas_overcommit:'⚠️ Tus aportes mensuales totales (RD${total}) superan tu superávit (RD${surplus}). Ajusta tus metas para que sean alcanzables.',
+    metas_overcommit:'⚠️ Tus aportes mensuales totales ({cs}{total}) superan tu superávit ({cs}{surplus}). Ajusta tus metas para que sean alcanzables.',
     metas_priority_tip:'💡 Prioridad financiera: Fondo de emergencia (3–6 meses) → Pagar deuda de alta tasa → Metas de ahorro.',
     metas_overlap_note:'Los saldos de metas son objetivos de seguimiento — pueden coincidir con fondos mostrados en otras pestañas.',
     // Feature 2 – Budget vs Actual
@@ -1447,9 +1460,9 @@ const LANG = {
     bva_over:'Sobre presup.', bva_under:'Bajo presup.', bva_exact:'Exacto',
     bva_total_budget:'Total Comprometido', bva_total_actual:'Total Pagado',
     bva_total_var:'Varianza Total',
-    bva_note:'Comprometido = cuota mensual fija · Real = pagado marcado este mes. Pagos no marcados aparecen como RD$0.',
+    bva_note:'Comprometido = cuota mensual fija · Real = pagado marcado este mes. Pagos no marcados aparecen como {cs}0.',
     bva_empty:'No hay datos de gastos. Sube tu archivo para ver la comparación.',
-    bva_zero_warn:'Todos los compromisos están en RD$0. Actualiza tus cuotas mensuales en Editar.',
+    bva_zero_warn:'Todos los compromisos están en {cs}0. Actualiza tus cuotas mensuales en Editar.',
     bva_col_desc:'Descripción', bva_col_type:'Tipo',
     bva_neg_amort_alert:'⚠️ <strong>{name}</strong>: tu cuota no cubre el interés — esta deuda crece cada mes.',
     dpd_neg_capital:'⚠ Negativo',
@@ -1473,11 +1486,11 @@ const LANG = {
     hist_chart_proj:'Proyección NW',
     wf_title:'💧 Flujo de Caja — ¿A dónde va tu dinero?', wf_income:'Ingreso', wf_obligations:'Compromisos fijos',
     wf_discretionary:'Gasto registrado', wf_goals:'Aportes a metas', wf_surplus:'Sobrante',
-    wf_interest_note:'De tus compromisos, ~RD${v} van a intereses.',
+    wf_interest_note:'De tus compromisos, ~{cs}{v} van a intereses.',
     metas_sparkline_title:'Proyección de ahorro',
     // Feature 5 – Transaction Tracking (Registro)
     reg_title:'🧾 Registro de Gastos', reg_add:'+ Agregar Gasto',
-    reg_fecha:'Fecha', reg_monto:'Monto (RD$)', reg_categoria:'Categoría', reg_nota:'Nota',
+    reg_fecha:'Fecha', reg_monto:'Monto ({cs})', reg_categoria:'Categoría', reg_nota:'Nota',
     reg_metodo:'Método', reg_vincular:'Vincular a gasto', reg_ninguno:'— Ninguno —',
     reg_efectivo:'Efectivo', reg_tarjeta:'Tarjeta', reg_transferencia:'Transferencia',
     reg_total_mes:'Total del Mes', reg_count:'Transacciones', reg_avg:'Promedio Diario',
@@ -1500,7 +1513,7 @@ const LANG = {
     pres_over_warn:'⚠ Gastaste más de lo presupuestado en {n} categorías.',
     pres_under_note:'✓ Dentro del presupuesto en todas las categorías.',
     pres_delete_confirm:'¿Eliminar esta asignación?',
-    pres_from_recurring:'~RD${n} de recurrentes',
+    pres_from_recurring:'~{cs}{n} de recurrentes',
     edit_tab_presupuesto:'📋 Presupuesto', edit_tab_recurrentes:'🔄 Recurrentes',
     // Feature 7 – Recurring Transactions
     rec_title:'🔄 Transacciones Recurrentes', rec_frecuencia:'Frecuencia',
@@ -1509,6 +1522,14 @@ const LANG = {
     rec_empty:'Sin reglas recurrentes. Al agregar un gasto con frecuencia, se repetirá automáticamente.',
     rec_delete_confirm:'¿Eliminar esta regla recurrente? Las transacciones ya generadas no se borran.',
     rec_generated:'{n} transacciones generadas',
+    // Dual-currency
+    currency_select:'Selecciona tu moneda principal',
+    currency_usd:'🇺🇸 Dólar (USD)', currency_rd:'🇩🇴 Peso Dominicano (RD$)',
+    currency_primary:'Moneda principal', currency_exchange:'Tasa de cambio',
+    currency_note_usd:'Los montos se muestran en USD. Cuentas en RD$ se convierten automáticamente.',
+    currency_note_rd:'Los montos se muestran en RD$. Cuentas en USD se convierten automáticamente.',
+    loader_demo_rd:'Demo RD$', loader_demo_rd_sub:'Datos ficticios en Pesos Dominicanos · 18 meses',
+    loader_demo_usd:'Demo USD', loader_demo_usd_sub:'Datos ficticios en Dólares · 18 meses',
   },
   en: {
     // Header buttons / overflow
@@ -1545,8 +1566,8 @@ const LANG = {
     cf_withdrawusd:'Withdraw USD', cf_rate:'USD Rate', cf_savings:'This month savings', cf_committed:'Committed',
     // Gastos table
     gastostbl_title:'Expenses & Monthly Debts', gastostbl_paid:'Total Paid', gastostbl_pending:'Pending this month',
-    gastostbl_desc:'Description', gastostbl_tipo:'Type', gastostbl_pagado:'Paid (RD$)', gastostbl_cuota:'Payment (RD$)',
-    gastostbl_pctinc:'% Inc', gastostbl_day:'Due Day', gastostbl_rate:'Rate %', gastostbl_balance:'Balance (RD$)',
+    gastostbl_desc:'Description', gastostbl_tipo:'Type', gastostbl_pagado:'Paid ({cs})', gastostbl_cuota:'Payment ({cs})',
+    gastostbl_pctinc:'% Inc', gastostbl_day:'Due Day', gastostbl_rate:'Rate %', gastostbl_balance:'Balance ({cs})',
     gastostbl_status:'Status', gastostbl_payoff:'Payoff', gastostbl_total:'TOTALS',
     gastostbl_thismonth:'✓ This month', gastostbl_done:'✓ Paid', gastostbl_partial:'◑ Partial',
     gastostbl_pending2:'⏳ Pending',
@@ -1592,13 +1613,13 @@ const LANG = {
     hist_months:'Months recorded', hist_recent:'Most recent data', hist_monthlydata:'Month income',
     hist_assetminusliab:'Assets − Liabilities', hist_totalrecorded:'Total in history',
     hist_table_title:'Complete Monthly Record',
-    hist_col_month:'Month', hist_col_year:'Year', hist_col_income:'Income (RD$)', hist_col_expense:'Expenses (RD$)',
-    hist_col_savings:'Net Savings', hist_col_savingsrate:'Savings Rate', hist_col_debts:'Debts (RD$)',
-    hist_col_emergency:'Emergency (RD$)', hist_col_nw:'Net Worth (RD$)', hist_col_rate:'Rate $',
+    hist_col_month:'Month', hist_col_year:'Year', hist_col_income:'Income ({cs})', hist_col_expense:'Expenses ({cs})',
+    hist_col_savings:'Net Savings', hist_col_savingsrate:'Savings Rate', hist_col_debts:'Debts ({cs})',
+    hist_col_emergency:'Emergency ({cs})', hist_col_nw:'Net Worth ({cs})', hist_col_rate:'Rate $',
     hist_note:'📌 Use the <strong>"🗓 Close Month"</strong> button in the header to record the current month with a guided wizard.',
     hist_evolnw:'Net Worth & Debt Evolution', hist_incvsexp:'Income vs Expenses by Month', hist_debttrend:'Debt Balance by Month', hist_savingsrate:'Savings Rate by Month',
     hist_count:'{n} months recorded', hist_count_one:'1 month recorded',
-    hist_chart_nw:'Net Worth (RD$)', hist_chart_debt:'Debt Balance (RD$)',
+    hist_chart_nw:'Net Worth ({cs})', hist_chart_debt:'Debt Balance ({cs})',
     hist_chart_income:'Income', hist_chart_expense:'Expenses',
     hist_chart_debtbal:'Debt Balance', hist_chart_ef:'Emergency Funds',
     hist_empty_title:'No history recorded',
@@ -1621,19 +1642,19 @@ const LANG = {
     alert_overspend_title:'Expenses exceed income', alert_overspend_sub:'You are spending % more than you earn',
     alert_highexp_title:'High expenses', alert_highexp_sub:'% of income committed',
     alert_highdebt_title:'Very high debt', alert_highdebt_sub:'% of annual income in debt',
-    alert_highrate_title:'High rate:', alert_highrate_sub:'% annual — RD$ outstanding',
-    alert_ef_critical_title:'Emergency fund critical', alert_ef_critical_sub:'% completed — RD$ to reach goal',
+    alert_highrate_title:'High rate:', alert_highrate_sub:'% annual — {cs} outstanding',
+    alert_ef_critical_title:'Emergency fund critical', alert_ef_critical_sub:'% completed — {cs} to reach goal',
     alert_ef_low_title:'Emergency fund low', alert_ef_low_sub:'% completed — keep contributing monthly',
-    alert_interest_title:'High interest burden', alert_interest_sub:'RD$/month in interest — % of your surplus',
-    alert_interest_deficit:'RD$/month in interest while in deficit — critical situation',
+    alert_interest_title:'High interest burden', alert_interest_sub:'{cs}/month in interest — % of your surplus',
+    alert_interest_deficit:'{cs}/month in interest while in deficit — critical situation',
     alert_dti_warn_title:'High DTI (>36%)', alert_dti_warn_sub:'Your DTI (monthly debt payments / income) is {pct}%. Lenders consider >36% risky — may hinder new credit.',
     alert_dti_urgent_title:'Critical DTI (>43%)', alert_dti_urgent_sub:'Your DTI (monthly debt payments / income) is {pct}%. Exceeds most lenders\' maximum threshold — prioritize debt reduction.',
-    alert_negamort_title:'⚠️ Debt growing: {name}', alert_negamort_sub:'Your monthly payment (RD${pay}) doesn\'t cover interest (RD${int}). Debt grows RD${growth}/mo.',
+    alert_negamort_title:'⚠️ Debt growing: {name}', alert_negamort_sub:'Your monthly payment ({cs}{pay}) doesn\'t cover interest ({cs}{int}). Debt grows {cs}{growth}/mo.',
     alert_expense_spike_title:'Unusually high expenses', alert_expense_spike_sub:'Your expenses this month are {pct}% above your recent average.',
     // Situacion
     sit_expenses:'Expense Control', sit_surplus:'Monthly Surplus', sit_debt:'Debt Ratio', sit_dti:'DTI (Debt/Income)',
     sit_payments:'Upcoming payments', sit_used:'% of income used', sit_available:'available',
-    sit_deficit:'Deficit of RD$', sit_annualincome:'% of annual income', sit_uptodate:'On track this month',
+    sit_deficit:'Deficit of {cs}', sit_annualincome:'% of annual income', sit_uptodate:'On track this month',
     // Checklist
     chk_title:'Monthly Payments', chk_of:'of', chk_marked:'payments marked',
     chk_pending_lbl:'Pending:', chk_paid_lbl:'Paid:',
@@ -1655,8 +1676,8 @@ const LANG = {
     proy_committed_accounts:'Sum of balances', proy_committed_expenses:'Total monthly owed',
     proy_committed_aftercommit:'After commitments', proy_committed_redirectable:'Amount redirectable to debts',
     proy_config_title:'⚙️ Projection Parameter',
-    proy_slider_label:'Available monthly extra payment (RD$) — drag the slider or type an amount',
-    proy_per_month:'RD$/month', proy_allsurplus:'All surplus', proy_redirectsavings:'+ Redirect savings',
+    proy_slider_label:'Available monthly extra payment ({cs}) — drag the slider or type an amount',
+    proy_per_month:'{cs}/month', proy_allsurplus:'All surplus', proy_redirectsavings:'+ Redirect savings',
     proy_extra_label:'Extra/month', proy_surplus_label:'Monthly surplus',
     proy_cost_title:'💸 Real Cost of Your Debts',
     proy_annual_interest:'Annual Interest', proy_monthly_interest:'Monthly Interest', proy_wtd_rate:'Weighted Rate',
@@ -1681,11 +1702,11 @@ const LANG = {
     proy_whatif_title:'🎯 What If…? Scenarios',
     proy_whatif_col_scenario:'Scenario', proy_whatif_col_free:'Debt-free in', proy_whatif_col_interest:'Total interest paid',
     proy_whatif_col_vs:'vs. Base scenario', proy_whatif_col_saved:'Interest saved',
-    proy_whatif_only_min:'Minimums only (RD$0 extra)', proy_whatif_pct25:'% of surplus)',
+    proy_whatif_only_min:'Minimums only ({cs}0 extra)', proy_whatif_pct25:'% of surplus)',
     proy_whatif_current:'current)', proy_whatif_pct50:'% of surplus',
-    proy_whatif_redirect:'Redirect savings (extra + RD$', proy_whatif_all:'All surplus (RD$',
+    proy_whatif_redirect:'Redirect savings (extra + {cs}', proy_whatif_all:'All surplus ({cs}',
     proy_whatif_before:'m earlier', proy_whatif_after:'m later',
-    proy_whatif_saves:'Save RD$', proy_whatif_more:'Pay RD$ more',
+    proy_whatif_saves:'Save {cs}', proy_whatif_more:'Pay {cs} more',
     proy_whatif_tip:'⚡ <strong>Avalanche Strategy</strong> applied in all scenarios (highest rate first). Freed minimum payments from paid-off debts roll over automatically to the next target.',
     proy_chart_title:'Total Debt Balance Projection',
     proy_avalanche_title:'🔥 Avalanche Strategy', proy_avalanche_sub:'(highest rate first)',
@@ -1694,7 +1715,7 @@ const LANG = {
     proy_rate_label:'Rate', proy_deadline_warn:'Due in',
     proy_no_debts:'No debts with interest!', proy_chart_avalancha:'Avalanche',
     proy_chart_snowball:'Snowball', proy_chart_noextra:'No extra',
-    proy_neg_amort_warn:'⚠️ <strong>{name}</strong>: your monthly payment (RD${payment}) doesn\'t cover interest (RD${interest}). The debt grows RD${growth}/mo even though you pay.',
+    proy_neg_amort_warn:'⚠️ <strong>{name}</strong>: your monthly payment ({cs}{payment}) doesn\'t cover interest ({cs}{interest}). The debt grows {cs}{growth}/mo even though you pay.',
     proy_strategy_title:'🔀 Which strategy to choose?',
     proy_strategy_explain:'<strong>Avalanche</strong> pays the highest-rate debt first — mathematically optimal, saves you the most money. <strong>Snowball</strong> pays the smallest balance first — creates quick wins and psychological momentum. Both work; choose based on your personality.',
     proy_no_surplus_warn:'Your expenses exceed your income — no surplus for extra payments. Reduce expenses or increase income first.',
@@ -1722,13 +1743,13 @@ const LANG = {
     fornow_empty_sub:'Add your bank, savings, or cash accounts via the <strong>✏️ Edit</strong> button to see your real availability.',
     fornow_snapshot_tip:'Balances are manually entered snapshots, not live bank data. Update them regularly via Edit or the monthly close wizard.',
     fornow_runway:'Runway', fornow_runway_sub:'Months of expenses covered by current funds', fornow_months:'months', fornow_days:'days',
-    fornow_chart_assets:'Total Assets (RD$)', fornow_chart_nw:'Net Worth (RD$)',
+    fornow_chart_assets:'Total Assets ({cs})', fornow_chart_nw:'Net Worth ({cs})',
     // Cierre wizard
     cierre_title:'🗓 MONTH CLOSE',
     cierre_step1_title:'Step 1 · USD Rate', cierre_step1_sub:'Update the dollar rate for this month',
     cierre_step2_title:'Step 2 · Month & Year', cierre_step2_sub:'Confirm the period you are closing',
     cierre_step3_title:'Step 3 · USD Income', cierre_step3_sub:'How much did you earn this month in dollars?',
-    cierre_step4_title:'Step 4 · Actual Monthly Expenses', cierre_step4_sub:'How much did you spend in total this month? (RD$)',
+    cierre_step4_title:'Step 4 · Actual Monthly Expenses', cierre_step4_sub:'How much did you spend in total this month? ({cs})',
     cierre_step5_title:'Step 5 · Account Balances', cierre_step5_sub:'Update your current account balances',
     cierre_step6_title:'Step 6 · Savings', cierre_step6_sub:'Record your savings for the month',
     cierre_step7_title:'Step 7 · Confirm & Close', cierre_step7_sub:'Review the summary and add to history',
@@ -1747,9 +1768,9 @@ const LANG = {
     // Milestones
     milestone_positive_nw:'🎉 Positive net worth for the first time!',
     milestone_debtfree:'🎉 Debt free!',
-    milestone_nw_100k:'🎉 Net worth exceeded RD$100,000!',
-    milestone_nw_500k:'🎉 Net worth exceeded RD$500,000!',
-    milestone_nw_1m:'🎉 Net worth exceeded RD$1,000,000!',
+    milestone_nw_100k:'🎉 Net worth exceeded {cs}100,000!',
+    milestone_nw_500k:'🎉 Net worth exceeded {cs}500,000!',
+    milestone_nw_1m:'🎉 Net worth exceeded {cs}1,000,000!',
     milestone_ef_complete:'🎉 Emergency fund fully funded!',
     // Edit modal
     edit_title:'Edit Data', edit_sub:'Changes apply to the dashboard and you can download your backup',
@@ -1766,7 +1787,7 @@ const LANG = {
     edit_delete_confirm:'Delete this row? This action cannot be undone.',
     edit_cf_ingreso_note:'Auto-synced from Settings (USD × Rate)',
     edit_currency_convert:'Convert the balance to the new currency using the current rate?',
-    edit_payment_detect:'Balance of "{name}" decreased by RD${amt}. Record as payment?',
+    edit_payment_detect:'Balance of "{name}" decreased by {cs}{amt}. Record as payment?',
     edit_tasa_warn:'⚠️ Using default rate (60). Update with this month\'s actual rate.',
     // Config field labels
     ecfg_tasa:'Exchange Rate (RD$/USD)', ecfg_tasa_note:'Update monthly',
@@ -1776,18 +1797,18 @@ const LANG = {
     ecfg_ingresoRD:'Monthly Income (RD$)', ecfg_ingresoRD_note:'In pesos — syncs with USD',
     ecfg_dias:'Payment alert days', ecfg_dias_note:'Range: 1–30 days',
     // Cashflow field labels
-    ecf_ingreso:'Monthly Income (RD$)', ecf_gasto:'Total Monthly Expenses',
+    ecf_ingreso:'Monthly Income ({cs})', ecf_gasto:'Total Monthly Expenses',
     ecf_tasa:'Exchange Rate', ecf_retirarUSD:'Withdraw in USD',
     ecf_ahorros:'Savings this month', ecf_balanceAhorros:'Savings Balance',
     // Edit table headers
-    eth_desc:'Description', eth_tipo:'Type', eth_pagado:'Paid (RD$)', eth_adeudado:'Payment (RD$)',
-    eth_dia:'Pay Day', eth_tasa:'Rate %', eth_balance:'Balance (RD$)', eth_originalRD:'Original (RD$)',
+    eth_desc:'Description', eth_tipo:'Type', eth_pagado:'Paid ({cs})', eth_adeudado:'Payment ({cs})',
+    eth_dia:'Pay Day', eth_tasa:'Rate %', eth_balance:'Balance ({cs})', eth_originalRD:'Original (RD$)',
     eth_originalUSD:'Original (USD)', eth_tasaCreacion:'Rate at Creation', eth_fechaLimite:'Deadline', eth_notas:'Notes',
     eth_cuenta:'Account', eth_saldo:'Balance',
     eth_fondo:'Fund', eth_moneda:'Currency', eth_balanceActual:'Balance', eth_metaMinima:'Goal',
-    eth_mes:'Month', eth_anio:'Year', eth_ingresosRD:'Income (RD$)', eth_gastoRD:'Expenses (RD$)',
-    eth_tasaDolar:'Rate $', eth_deudasRD:'Debts (RD$)', eth_emergenciaRD:'Emergency (RD$)',
-    eth_netWorthRD:'Net Worth (RD$)',
+    eth_mes:'Month', eth_anio:'Year', eth_ingresosRD:'Income ({cs})', eth_gastoRD:'Expenses ({cs})',
+    eth_tasaDolar:'Rate $', eth_deudasRD:'Debts ({cs})', eth_emergenciaRD:'Emergency ({cs})',
+    eth_netWorthRD:'Net Worth ({cs})',
     eth_fechaActualizado:'Date Updated',
     // Loader
     loader_title:'Personal Finance', loader_tagline:'Choose how to start.',
@@ -1826,14 +1847,14 @@ const LANG = {
     metas_main_title:'🏆 Savings Goals', metas_progress_title:'Total Goals Progress',
     metas_kpi_total:'Total Goals', metas_kpi_done:'Completed', metas_kpi_saved:'Total Saved',
     metas_empty:'No goals yet. Click "+ Add Goal" to start.',
-    metas_goal:'Goal (RD$)', metas_saved:'Saved (RD$)', metas_monthly:'Monthly contribution (RD$)',
+    metas_goal:'Goal ({cs})', metas_saved:'Saved ({cs})', metas_monthly:'Monthly contribution ({cs})',
     metas_name_ph:'Goal name (e.g. Vacation)', metas_eta:'Estimated date',
     metas_done_badge:'✅ Completed', metas_months_left:'months left',
     metas_add:'+ Add Goal', metas_pct_income:'of income',
     metas_chart_saved:'Saved', metas_chart_remaining:'Remaining',
     metas_no_monthly:'Set a monthly contribution to see your estimated date.',
     metas_eta_note:'Estimated date assumes constant contributions without interest.',
-    metas_overcommit:'⚠️ Your total monthly contributions (RD${total}) exceed your surplus (RD${surplus}). Adjust your goals to be achievable.',
+    metas_overcommit:'⚠️ Your total monthly contributions ({cs}{total}) exceed your surplus ({cs}{surplus}). Adjust your goals to be achievable.',
     metas_priority_tip:'💡 Financial priority: Emergency fund (3–6 months) → Pay off high-rate debt → Savings goals.',
     metas_overlap_note:'Goal balances are tracking targets — they may overlap with funds shown in other tabs.',
     // Feature 2 – Budget vs Actual
@@ -1843,9 +1864,9 @@ const LANG = {
     bva_over:'Over budget', bva_under:'Under budget', bva_exact:'On budget',
     bva_total_budget:'Total Committed', bva_total_actual:'Total Paid',
     bva_total_var:'Total Variance',
-    bva_note:'Committed = fixed monthly payment · Actual = marked as paid this month. Untracked payments show as RD$0.',
+    bva_note:'Committed = fixed monthly payment · Actual = marked as paid this month. Untracked payments show as {cs}0.',
     bva_empty:'No expense data. Upload your file to see the comparison.',
-    bva_zero_warn:'All commitments are set to RD$0. Update your monthly payments in Edit.',
+    bva_zero_warn:'All commitments are set to {cs}0. Update your monthly payments in Edit.',
     bva_col_desc:'Description', bva_col_type:'Type',
     bva_neg_amort_alert:'⚠️ <strong>{name}</strong>: your payment doesn\'t cover interest — this debt grows every month.',
     dpd_neg_capital:'⚠ Negative',
@@ -1869,11 +1890,11 @@ const LANG = {
     hist_chart_proj:'NW Projection',
     wf_title:'💧 Cash Flow — Where Does Your Money Go?', wf_income:'Income', wf_obligations:'Fixed obligations',
     wf_discretionary:'Tracked spending', wf_goals:'Goal contributions', wf_surplus:'Surplus',
-    wf_interest_note:'Of your obligations, ~RD${v} goes to interest.',
+    wf_interest_note:'Of your obligations, ~{cs}{v} goes to interest.',
     metas_sparkline_title:'Savings projection',
     // Feature 5 – Transaction Tracking (Registro)
     reg_title:'🧾 Expense Log', reg_add:'+ Add Expense',
-    reg_fecha:'Date', reg_monto:'Amount (RD$)', reg_categoria:'Category', reg_nota:'Note',
+    reg_fecha:'Date', reg_monto:'Amount ({cs})', reg_categoria:'Category', reg_nota:'Note',
     reg_metodo:'Method', reg_vincular:'Link to expense', reg_ninguno:'— None —',
     reg_efectivo:'Cash', reg_tarjeta:'Card', reg_transferencia:'Transfer',
     reg_total_mes:'Month Total', reg_count:'Transactions', reg_avg:'Daily Average',
@@ -1896,7 +1917,7 @@ const LANG = {
     pres_over_warn:'⚠ You overspent in {n} categories.',
     pres_under_note:'✓ Within budget in all categories.',
     pres_delete_confirm:'Delete this allocation?',
-    pres_from_recurring:'~RD${n} from recurring',
+    pres_from_recurring:'~{cs}{n} from recurring',
     edit_tab_presupuesto:'📋 Budget', edit_tab_recurrentes:'🔄 Recurring',
     // Feature 7 – Recurring Transactions
     rec_title:'🔄 Recurring Transactions', rec_frecuencia:'Frequency',
@@ -1905,10 +1926,18 @@ const LANG = {
     rec_empty:'No recurring rules. When you add an expense with a frequency, it will repeat automatically.',
     rec_delete_confirm:'Delete this recurring rule? Already generated transactions will not be removed.',
     rec_generated:'{n} transactions generated',
+    // Dual-currency
+    currency_select:'Select your primary currency',
+    currency_usd:'🇺🇸 US Dollar (USD)', currency_rd:'🇩🇴 Dominican Peso (RD$)',
+    currency_primary:'Primary currency', currency_exchange:'Exchange rate',
+    currency_note_usd:'Amounts shown in USD. RD$ accounts are converted automatically.',
+    currency_note_rd:'Amounts shown in RD$. USD accounts are converted automatically.',
+    loader_demo_rd:'Demo RD$', loader_demo_rd_sub:'Sample data in Dominican Pesos · 18 months',
+    loader_demo_usd:'Demo USD', loader_demo_usd_sub:'Sample data in US Dollars · 18 months',
   }
 };
 
-function t(key){ return (LANG[_lang]||LANG.es)[key]||key; }
+function t(key){ let v=(LANG[_lang]||LANG.es)[key]||key;if(typeof v==='string'&&v.includes('{cs}'))v=v.split('{cs}').join(currencySymbol());return v; }
 
 function applyI18n(){
   // Update all static elements with data-i18n
@@ -2160,7 +2189,7 @@ function defaultEditData(){
   const now=new Date();
   const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   return{
-    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5},
+    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD'},
     gastos:[],
     forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
     emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,ahorros:0,balanceAhorros:0}},
@@ -2197,7 +2226,7 @@ function renderSwGasto(i,g){
       <button class="row-del-btn" onclick="this.closest('.sw-gasto-row').remove()">✕</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (RD$)</div><input class="cierre-input sw-g-adeudado" type="number" step="any" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (${currencySymbol()})</div><input class="cierre-input sw-g-adeudado" type="number" step="any" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
       <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="number" step="any" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
       <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="number" step="any" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
       <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="number" step="any" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
@@ -2227,6 +2256,22 @@ const _setupSteps=[
     title:'Paso 1 · Parámetros básicos',
     sub:'Define el período y tu ingreso mensual',
     render:()=>`
+      <div style="margin-bottom:18px">
+        <label class="cierre-label">${t('currency_select')}</label>
+        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:6px">
+          <button type="button" id="sw-cur-usd-btn"
+            onclick="swSetPrimaryCurrency('USD')"
+            style="flex:1;padding:12px;border:none;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;${_editData.config.monedaPrincipal==='USD'?'background:var(--accent);color:#fff':'background:var(--surface2);color:var(--muted)'}">
+            🇺🇸 USD ($)
+          </button>
+          <button type="button" id="sw-cur-rd-btn"
+            onclick="swSetPrimaryCurrency('RD')"
+            style="flex:1;padding:12px;border:none;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;${_editData.config.monedaPrincipal==='RD'?'background:var(--accent);color:#fff':'background:var(--surface2);color:var(--muted)'}">
+            🇩🇴 RD$ (Peso)
+          </button>
+        </div>
+        <div id="sw-currency-note" style="font-size:11px;color:var(--muted);margin-bottom:4px">${_editData.config.monedaPrincipal==='USD'?t('currency_note_usd'):t('currency_note_rd')}</div>
+      </div>
       <div style="margin-bottom:14px">
         <label class="cierre-label">Mes actual</label>
         <select class="cierre-input" id="sw-mes" style="cursor:pointer">
@@ -2350,7 +2395,7 @@ const _setupSteps=[
       </div>
       <button class="row-add-btn" onclick="addSwFondo()" style="margin-top:8px">+ Agregar fondo</button>
       <div style="margin-top:16px">
-        <label class="cierre-label">Balance de ahorros acumulados (RD$)</label>
+        <label class="cierre-label">Balance de ahorros acumulados (${currencySymbol()})</label>
         <input class="cierre-input" type="number" step="any" id="sw-balAh" value="${_editData.emerg.cashflow.balanceAhorros||0}" placeholder="0">
       </div>
     `,
@@ -2377,10 +2422,10 @@ const _setupSteps=[
       const gasto=cf.gasto||0;
       const items=[
         ['Período',`${_editData.config.mes} ${_editData.config.anio}`],
-        ['Tasa Dólar',`RD$ ${_editData.config.tasa}`],
-        ['Ingreso',`${fmtUSD(_editData.config.ingresoUSD)} = RD$ ${fmt(ingreso)}`],
-        ['Gastos/Cuotas',`RD$ ${fmt(gasto)} · ${_editData.gastos.length} ítems`],
-        ['Cuentas',`${_editData.forNow.cuentas.length} cuentas · RD$ ${fmt(_editData.forNow.total)}`],
+        ['Tasa Dólar',`${currencySymbol()} ${_editData.config.tasa}`],
+        ['Ingreso',`${fmtUSD(_editData.config.ingresoUSD)} = ${fmtC(ingreso)}`],
+        ['Gastos/Cuotas',`${fmtC(gasto)} · ${_editData.gastos.length} ítems`],
+        ['Cuentas',`${_editData.forNow.cuentas.length} cuentas · ${fmtC(_editData.forNow.total)}`],
         ['Fondos emergencia',`${_editData.emerg.fondos.length} fondos`],
       ];
       return`<div style="background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:16px">
@@ -2409,6 +2454,20 @@ function closeSetup(){
   document.body.style.overflow='';
 }
 
+// ── Setup wizard: primary currency toggle ──
+function swSetPrimaryCurrency(currency){
+  _editData.config.monedaPrincipal=currency;
+  const usdBtn=document.getElementById('sw-cur-usd-btn');
+  const rdBtn=document.getElementById('sw-cur-rd-btn');
+  const note=document.getElementById('sw-currency-note');
+  if(usdBtn&&rdBtn){
+    if(currency==='USD'){usdBtn.style.background='var(--accent)';usdBtn.style.color='#fff';rdBtn.style.background='var(--surface2)';rdBtn.style.color='var(--muted)';}
+    else{rdBtn.style.background='var(--accent)';rdBtn.style.color='#fff';usdBtn.style.background='var(--surface2)';usdBtn.style.color='var(--muted)';}
+  }
+  if(note)note.textContent=currency==='USD'?t('currency_note_usd'):t('currency_note_rd');
+  // Default income to matching currency
+  if(currency==='USD')swSetIngresoCurrency('USD');else swSetIngresoCurrency('RD');
+}
 // ── Setup wizard: income currency toggle helpers ──
 function swSetIngresoCurrency(currency){
   const usdBtn=document.getElementById('sw-ing-usd-btn');
@@ -2435,7 +2494,7 @@ function swSetIngresoCurrency(currency){
     }
     rdBtn.style.background='var(--accent)';rdBtn.style.color='#fff';
     usdBtn.style.background='var(--surface2)';usdBtn.style.color='var(--muted)';
-    prefix.textContent='RD$';
+    prefix.textContent=currencySymbol();
     input.placeholder='ej. 240,000';
   }
   swUpdateIngresoPreview();
@@ -2455,7 +2514,7 @@ function swUpdateIngresoPreview(){
     const usd=tasa>0?val/tasa:0;
     preview.textContent=`≈ ${fmtUSD(Math.round(usd*100)/100)} USD (a tasa RD$ ${tasa})`;
   } else {
-    preview.textContent=`≈ RD$ ${fmt(Math.round(val*tasa))} (a tasa RD$ ${tasa})`;
+    preview.textContent=`≈ ${fmtC(Math.round(val*tasa))} (a tasa RD$ ${tasa})`;
   }
 }
 
@@ -2541,13 +2600,14 @@ async function hardResetCache(){
     if(btn){btn.style.opacity='';btn.style.pointerEvents='';}
   }
 }
-const _DEMO_DATA={"config":{"tasa":61.5,"mes":"Mayo","anio":2026,"ingresoUSD":3800,"diasAlerta":7,"ingresoRD":233700},"gastos":[{"nombre":"Hipoteca Apt. Naco","tipo":"Vivienda","pagado":52000,"adeudado":52000,"dia":5,"tasa":11.5,"balance":4185000,"originalRD":5500000,"originalUSD":89430,"tasaCreacion":54.5,"fechaLimite":"2041-03-05","notas":"Banco BHD · cuota fija 15 años","pagadoMes":true},{"nombre":"Mantenimiento Condo","tipo":"Vivienda","pagado":4500,"adeudado":4500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Incluye agua y basura","pagadoMes":true},{"nombre":"Préstamo Kia Sportage","tipo":"Préstamo","pagado":0,"adeudado":18500,"dia":15,"tasa":18,"balance":682400,"originalRD":950000,"originalUSD":15447,"tasaCreacion":57.2,"fechaLimite":"2028-09-15","notas":"Banreservas · 5 años","pagadoMes":false},{"nombre":"Visa Oro BPD","tipo":"Tarjeta","pagado":8000,"adeudado":12500,"dia":20,"tasa":60,"balance":145200,"originalRD":145200,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Pago mínimo no cubre intereses","pagadoMes":false},{"nombre":"Mastercard Banreservas","tipo":"Tarjeta","pagado":5000,"adeudado":6800,"dia":25,"tasa":45,"balance":38400,"originalRD":52000,"originalUSD":0,"tasaCreacion":60.5,"fechaLimite":"—","notas":"Consolidar con Visa","pagadoMes":false},{"nombre":"Edenorte (Electricidad)","tipo":"Servicio","pagado":4850,"adeudado":4850,"dia":10,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Promedio últimos 3 meses","pagadoMes":true},{"nombre":"Claro Triple Play","tipo":"Servicio","pagado":3200,"adeudado":3200,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Internet 200Mbps + TV + tel","pagadoMes":true},{"nombre":"Altice Móvil","tipo":"Servicio","pagado":1890,"adeudado":1890,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar 3 líneas","pagadoMes":true},{"nombre":"ARS Humano (Salud)","tipo":"Seguro","pagado":7200,"adeudado":7200,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar complementario","pagadoMes":true},{"nombre":"Supermercado Nacional","tipo":"Variable","pagado":0,"adeudado":22000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Estimado semanal ~RD$5,500","pagadoMes":false},{"nombre":"Gasolina / Transporte","tipo":"Variable","pagado":0,"adeudado":8500,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 tanques al mes","pagadoMes":false},{"nombre":"Gimnasio Body Shop","tipo":"Variable","pagado":2800,"adeudado":2800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Membresía mensual","pagadoMes":true},{"nombre":"Netflix + Disney+","tipo":"Servicio","pagado":1480,"adeudado":1480,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan estándar ambos","pagadoMes":true},{"nombre":"Inglés hija (APEC)","tipo":"Educación","pagado":6500,"adeudado":6500,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Curso trimestral · cuota mensual","pagadoMes":true},{"nombre":"Apoyo a mamá","tipo":"Familiar","pagado":0,"adeudado":8000,"dia":28,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Transferencia mensual fija","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Cuenta Corriente BPD","moneda":"RD","saldo":28450,"comp":0,"disp":0},{"nombre":"Cuenta de Ahorros Banreservas","moneda":"RD","saldo":142300,"comp":0,"disp":0},{"nombre":"Cuenta USD Popular","moneda":"USD","saldo":1840,"comp":0,"disp":0},{"nombre":"Cash en mano","moneda":"RD","saldo":8200,"comp":0,"disp":0},{"nombre":"Inversión corto plazo","moneda":"RD","saldo":75000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":367110,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"Fondo 3 Meses Gastos","moneda":"RD","balance":180000,"meta":234000},{"fondo":"Fondo Auto","moneda":"RD","balance":45000,"meta":80000},{"fondo":"Fondo Médico","moneda":"RD","balance":80000,"meta":80000},{"fondo":"Fondo Hogar","moneda":"RD","balance":22000,"meta":60000},{"fondo":"Fondo Educación Hija","moneda":"USD","balance":500,"meta":2000}],"cashflow":{"ingreso":233700,"gasto":160720,"tasa":61.5,"retirarUSD":2613.33,"ahorros":12000,"balanceAhorros":187500}},"historial":[{"mes":"Mayo","anio":2026,"ingresos":233700,"gasto":160720,"ahorro":72980,"tasaAhorro":0.312280701754386,"deudas":5051000,"emergencia":357750,"netWorth":-2831050,"tasa":61.5,"notas":"Mejor mes del año — pagué extra a Visa"},{"mes":"Abril","anio":2026,"ingresos":232180,"gasto":168400,"ahorro":63780,"tasaAhorro":0.27470066327849085,"deudas":5108000,"emergencia":342000,"netWorth":-2915820,"tasa":61,"notas":"Bono de Semana Santa ayudó"},{"mes":"Marzo","anio":2026,"ingresos":230660,"gasto":172300,"ahorro":58360,"tasaAhorro":0.2530130928639556,"deudas":5165000,"emergencia":325000,"netWorth":-3012700,"tasa":60.7,"notas":"Pagué cuota extra auto"},{"mes":"Febrero","anio":2026,"ingresos":229140,"gasto":165800,"ahorro":63340,"tasaAhorro":0.2764248930784673,"deudas":5225000,"emergencia":308000,"netWorth":-3098660,"tasa":60.3,"notas":""},{"mes":"Enero","anio":2026,"ingresos":228380,"gasto":170200,"ahorro":58180,"tasaAhorro":0.25475085384009105,"deudas":5290000,"emergencia":292000,"netWorth":-3186820,"tasa":60.1,"notas":"Gastos de Reyes subieron Variable"},{"mes":"Diciembre","anio":2025,"ingresos":235600,"gasto":195300,"ahorro":40300,"tasaAhorro":0.17105263157894737,"deudas":5358000,"emergencia":275000,"netWorth":-3285000,"tasa":62,"notas":"Navidad — gastos extras fuertes"},{"mes":"Noviembre","anio":2025,"ingresos":228000,"gasto":162400,"ahorro":65600,"tasaAhorro":0.28771929824561404,"deudas":5420000,"emergencia":260000,"netWorth":-3372000,"tasa":60,"notas":"Mes disciplinado"},{"mes":"Octubre","anio":2025,"ingresos":226480,"gasto":168700,"ahorro":57780,"tasaAhorro":0.25512186506534795,"deudas":5488000,"emergencia":244000,"netWorth":-3460800,"tasa":59.6,"notas":""},{"mes":"Septiembre","anio":2025,"ingresos":224200,"gasto":164300,"ahorro":59900,"tasaAhorro":0.2671721677074041,"deudas":5542000,"emergencia":228000,"netWorth":-3542000,"tasa":59,"notas":""},{"mes":"Agosto","anio":2025,"ingresos":224200,"gasto":218500,"ahorro":-5700,"tasaAhorro":-0.025423728813559324,"deudas":5598000,"emergencia":212000,"netWorth":-3628500,"tasa":59,"notas":"⚠ Mes malo — reparación auto RD$48K + urgencia médica"},{"mes":"Julio","anio":2025,"ingresos":222680,"gasto":165200,"ahorro":57480,"tasaAhorro":0.2581282557930663,"deudas":5580000,"emergencia":198000,"netWorth":-3611680,"tasa":58.6,"notas":"Buen mes — regresé a la disciplina"},{"mes":"Junio","anio":2025,"ingresos":222680,"gasto":170800,"ahorro":51880,"tasaAhorro":0.23298006107418717,"deudas":5645000,"emergencia":182000,"netWorth":-3698320,"tasa":58.6,"notas":""},{"mes":"Mayo","anio":2025,"ingresos":221920,"gasto":168400,"ahorro":53520,"tasaAhorro":0.24116798846431145,"deudas":5710000,"emergencia":168000,"netWorth":-3782080,"tasa":58.4,"notas":""},{"mes":"Abril","anio":2025,"ingresos":221160,"gasto":172600,"ahorro":48560,"tasaAhorro":0.21956954241273285,"deudas":5762000,"emergencia":155000,"netWorth":-3856240,"tasa":58.2,"notas":""},{"mes":"Marzo","anio":2025,"ingresos":220400,"gasto":175200,"ahorro":45200,"tasaAhorro":0.20508166969147004,"deudas":5820000,"emergencia":140000,"netWorth":-3935800,"tasa":58,"notas":"Empecé fondo educación hija"},{"mes":"Febrero","anio":2025,"ingresos":219640,"gasto":178500,"ahorro":41140,"tasaAhorro":0.1873065015479876,"deudas":5785000,"emergencia":125000,"netWorth":-3918860,"tasa":57.8,"notas":""},{"mes":"Enero","anio":2025,"ingresos":218880,"gasto":182300,"ahorro":36580,"tasaAhorro":0.1671235380116959,"deudas":5810000,"emergencia":108000,"netWorth":-3964120,"tasa":57.6,"notas":"Resolución: pagar deudas agresivamente"},{"mes":"Diciembre","anio":2024,"ingresos":222300,"gasto":210800,"ahorro":11500,"tasaAhorro":0.051731893837157,"deudas":5850000,"emergencia":92000,"netWorth":-4035700,"tasa":58.5,"notas":"Navidad — gastos altos pero controlados"}],"metas":[{"name":"Vacaciones Cancún","goal":85000,"saved":52000,"monthly":8500},{"name":"Laptop nueva","goal":45000,"saved":45000,"monthly":0},{"name":"Fondo universidad hija","goal":500000,"saved":38000,"monthly":5000},{"name":"Remodelación cocina","goal":120000,"saved":18500,"monthly":6000},{"name":"Fondo retiro anticipado","goal":2000000,"saved":95000,"monthly":12000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo.json"};
+const _DEMO_DATA_RD={"config":{"tasa":61.5,"mes":"Mayo","anio":2026,"ingresoUSD":3800,"diasAlerta":7,"ingresoRD":233700,"monedaPrincipal":"RD"},"gastos":[{"nombre":"Hipoteca Apt. Naco","tipo":"Vivienda","pagado":52000,"adeudado":52000,"dia":5,"tasa":11.5,"balance":4185000,"originalRD":5500000,"originalUSD":89430,"tasaCreacion":54.5,"fechaLimite":"2041-03-05","notas":"Banco BHD · cuota fija 15 años","pagadoMes":true},{"nombre":"Mantenimiento Condo","tipo":"Vivienda","pagado":4500,"adeudado":4500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Incluye agua y basura","pagadoMes":true},{"nombre":"Préstamo Kia Sportage","tipo":"Préstamo","pagado":0,"adeudado":18500,"dia":15,"tasa":18,"balance":682400,"originalRD":950000,"originalUSD":15447,"tasaCreacion":57.2,"fechaLimite":"2028-09-15","notas":"Banreservas · 5 años","pagadoMes":false},{"nombre":"Visa Oro BPD","tipo":"Tarjeta","pagado":8000,"adeudado":12500,"dia":20,"tasa":60,"balance":145200,"originalRD":145200,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Pago mínimo no cubre intereses","pagadoMes":false},{"nombre":"Mastercard Banreservas","tipo":"Tarjeta","pagado":5000,"adeudado":6800,"dia":25,"tasa":45,"balance":38400,"originalRD":52000,"originalUSD":0,"tasaCreacion":60.5,"fechaLimite":"—","notas":"Consolidar con Visa","pagadoMes":false},{"nombre":"Edenorte (Electricidad)","tipo":"Servicio","pagado":4850,"adeudado":4850,"dia":10,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Promedio últimos 3 meses","pagadoMes":true},{"nombre":"Claro Triple Play","tipo":"Servicio","pagado":3200,"adeudado":3200,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Internet 200Mbps + TV + tel","pagadoMes":true},{"nombre":"Altice Móvil","tipo":"Servicio","pagado":1890,"adeudado":1890,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar 3 líneas","pagadoMes":true},{"nombre":"ARS Humano (Salud)","tipo":"Seguro","pagado":7200,"adeudado":7200,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar complementario","pagadoMes":true},{"nombre":"Supermercado Nacional","tipo":"Variable","pagado":0,"adeudado":22000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Estimado semanal ~RD$5,500","pagadoMes":false},{"nombre":"Gasolina / Transporte","tipo":"Variable","pagado":0,"adeudado":8500,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 tanques al mes","pagadoMes":false},{"nombre":"Gimnasio Body Shop","tipo":"Variable","pagado":2800,"adeudado":2800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Membresía mensual","pagadoMes":true},{"nombre":"Netflix + Disney+","tipo":"Servicio","pagado":1480,"adeudado":1480,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan estándar ambos","pagadoMes":true},{"nombre":"Inglés hija (APEC)","tipo":"Educación","pagado":6500,"adeudado":6500,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Curso trimestral · cuota mensual","pagadoMes":true},{"nombre":"Apoyo a mamá","tipo":"Familiar","pagado":0,"adeudado":8000,"dia":28,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Transferencia mensual fija","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Cuenta Corriente BPD","moneda":"RD","saldo":28450,"comp":0,"disp":0},{"nombre":"Cuenta de Ahorros Banreservas","moneda":"RD","saldo":142300,"comp":0,"disp":0},{"nombre":"Cuenta USD Popular","moneda":"USD","saldo":1840,"comp":0,"disp":0},{"nombre":"Cash en mano","moneda":"RD","saldo":8200,"comp":0,"disp":0},{"nombre":"Inversión corto plazo","moneda":"RD","saldo":75000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":367110,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"Fondo 3 Meses Gastos","moneda":"RD","balance":180000,"meta":234000},{"fondo":"Fondo Auto","moneda":"RD","balance":45000,"meta":80000},{"fondo":"Fondo Médico","moneda":"RD","balance":80000,"meta":80000},{"fondo":"Fondo Hogar","moneda":"RD","balance":22000,"meta":60000},{"fondo":"Fondo Educación Hija","moneda":"USD","balance":500,"meta":2000}],"cashflow":{"ingreso":233700,"gasto":160720,"tasa":61.5,"retirarUSD":2613.33,"ahorros":12000,"balanceAhorros":187500}},"historial":[{"mes":"Mayo","anio":2026,"ingresos":233700,"gasto":160720,"ahorro":72980,"tasaAhorro":0.312280701754386,"deudas":5051000,"emergencia":357750,"netWorth":-2831050,"tasa":61.5,"notas":"Mejor mes del año — pagué extra a Visa"},{"mes":"Abril","anio":2026,"ingresos":232180,"gasto":168400,"ahorro":63780,"tasaAhorro":0.27470066327849085,"deudas":5108000,"emergencia":342000,"netWorth":-2915820,"tasa":61,"notas":"Bono de Semana Santa ayudó"},{"mes":"Marzo","anio":2026,"ingresos":230660,"gasto":172300,"ahorro":58360,"tasaAhorro":0.2530130928639556,"deudas":5165000,"emergencia":325000,"netWorth":-3012700,"tasa":60.7,"notas":"Pagué cuota extra auto"},{"mes":"Febrero","anio":2026,"ingresos":229140,"gasto":165800,"ahorro":63340,"tasaAhorro":0.2764248930784673,"deudas":5225000,"emergencia":308000,"netWorth":-3098660,"tasa":60.3,"notas":""},{"mes":"Enero","anio":2026,"ingresos":228380,"gasto":170200,"ahorro":58180,"tasaAhorro":0.25475085384009105,"deudas":5290000,"emergencia":292000,"netWorth":-3186820,"tasa":60.1,"notas":"Gastos de Reyes subieron Variable"},{"mes":"Diciembre","anio":2025,"ingresos":235600,"gasto":195300,"ahorro":40300,"tasaAhorro":0.17105263157894737,"deudas":5358000,"emergencia":275000,"netWorth":-3285000,"tasa":62,"notas":"Navidad — gastos extras fuertes"},{"mes":"Noviembre","anio":2025,"ingresos":228000,"gasto":162400,"ahorro":65600,"tasaAhorro":0.28771929824561404,"deudas":5420000,"emergencia":260000,"netWorth":-3372000,"tasa":60,"notas":"Mes disciplinado"},{"mes":"Octubre","anio":2025,"ingresos":226480,"gasto":168700,"ahorro":57780,"tasaAhorro":0.25512186506534795,"deudas":5488000,"emergencia":244000,"netWorth":-3460800,"tasa":59.6,"notas":""},{"mes":"Septiembre","anio":2025,"ingresos":224200,"gasto":164300,"ahorro":59900,"tasaAhorro":0.2671721677074041,"deudas":5542000,"emergencia":228000,"netWorth":-3542000,"tasa":59,"notas":""},{"mes":"Agosto","anio":2025,"ingresos":224200,"gasto":218500,"ahorro":-5700,"tasaAhorro":-0.025423728813559324,"deudas":5598000,"emergencia":212000,"netWorth":-3628500,"tasa":59,"notas":"⚠ Mes malo — reparación auto RD$48K + urgencia médica"},{"mes":"Julio","anio":2025,"ingresos":222680,"gasto":165200,"ahorro":57480,"tasaAhorro":0.2581282557930663,"deudas":5580000,"emergencia":198000,"netWorth":-3611680,"tasa":58.6,"notas":"Buen mes — regresé a la disciplina"},{"mes":"Junio","anio":2025,"ingresos":222680,"gasto":170800,"ahorro":51880,"tasaAhorro":0.23298006107418717,"deudas":5645000,"emergencia":182000,"netWorth":-3698320,"tasa":58.6,"notas":""},{"mes":"Mayo","anio":2025,"ingresos":221920,"gasto":168400,"ahorro":53520,"tasaAhorro":0.24116798846431145,"deudas":5710000,"emergencia":168000,"netWorth":-3782080,"tasa":58.4,"notas":""},{"mes":"Abril","anio":2025,"ingresos":221160,"gasto":172600,"ahorro":48560,"tasaAhorro":0.21956954241273285,"deudas":5762000,"emergencia":155000,"netWorth":-3856240,"tasa":58.2,"notas":""},{"mes":"Marzo","anio":2025,"ingresos":220400,"gasto":175200,"ahorro":45200,"tasaAhorro":0.20508166969147004,"deudas":5820000,"emergencia":140000,"netWorth":-3935800,"tasa":58,"notas":"Empecé fondo educación hija"},{"mes":"Febrero","anio":2025,"ingresos":219640,"gasto":178500,"ahorro":41140,"tasaAhorro":0.1873065015479876,"deudas":5785000,"emergencia":125000,"netWorth":-3918860,"tasa":57.8,"notas":""},{"mes":"Enero","anio":2025,"ingresos":218880,"gasto":182300,"ahorro":36580,"tasaAhorro":0.1671235380116959,"deudas":5810000,"emergencia":108000,"netWorth":-3964120,"tasa":57.6,"notas":"Resolución: pagar deudas agresivamente"},{"mes":"Diciembre","anio":2024,"ingresos":222300,"gasto":210800,"ahorro":11500,"tasaAhorro":0.051731893837157,"deudas":5850000,"emergencia":92000,"netWorth":-4035700,"tasa":58.5,"notas":"Navidad — gastos altos pero controlados"}],"metas":[{"name":"Vacaciones Cancún","goal":85000,"saved":52000,"monthly":8500},{"name":"Laptop nueva","goal":45000,"saved":45000,"monthly":0},{"name":"Fondo universidad hija","goal":500000,"saved":38000,"monthly":5000},{"name":"Remodelación cocina","goal":120000,"saved":18500,"monthly":6000},{"name":"Fondo retiro anticipado","goal":2000000,"saved":95000,"monthly":12000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo.json"};
+const _DEMO_DATA_USD={"config":{"tasa":60,"mes":"May","anio":2026,"ingresoUSD":6500,"diasAlerta":7,"ingresoRD":390000,"monedaPrincipal":"USD"},"gastos":[{"nombre":"Mortgage (Wells Fargo)","tipo":"Vivienda","pagado":111000,"adeudado":111000,"dia":1,"tasa":6.5,"balance":17100000,"originalRD":17100000,"originalUSD":285000,"tasaCreacion":60,"fechaLimite":"2054-01-01","notas":"30yr fixed · escrow included","pagadoMes":true},{"nombre":"Car Loan (Toyota)","tipo":"Préstamo","pagado":0,"adeudado":27000,"dia":15,"tasa":5.9,"balance":1080000,"originalRD":1680000,"originalUSD":28000,"tasaCreacion":60,"fechaLimite":"2029-06-15","notas":"5yr auto loan","pagadoMes":false},{"nombre":"Student Loan (Navient)","tipo":"Préstamo","pagado":21000,"adeudado":21000,"dia":20,"tasa":4.5,"balance":1680000,"originalRD":2700000,"originalUSD":45000,"tasaCreacion":60,"fechaLimite":"2034-09-20","notas":"Federal · 10yr standard","pagadoMes":true},{"nombre":"Visa (Chase)","tipo":"Tarjeta","pagado":12000,"adeudado":12000,"dia":25,"tasa":24.99,"balance":252000,"originalRD":252000,"originalUSD":4200,"tasaCreacion":60,"fechaLimite":"—","notas":"Minimum doesn't cover interest","pagadoMes":false},{"nombre":"Amex Blue Cash","tipo":"Tarjeta","pagado":0,"adeudado":9000,"dia":10,"tasa":21.99,"balance":108000,"originalRD":108000,"originalUSD":1800,"tasaCreacion":60,"fechaLimite":"—","notas":"Consolidate with Visa","pagadoMes":false},{"nombre":"Electric (Duke Energy)","tipo":"Servicio","pagado":9900,"adeudado":9900,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Average last 3 months","pagadoMes":true},{"nombre":"Internet (Xfinity)","tipo":"Servicio","pagado":4800,"adeudado":4800,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"300 Mbps plan","pagadoMes":true},{"nombre":"Cell Phone (T-Mobile)","tipo":"Servicio","pagado":8400,"adeudado":8400,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Family plan · 4 lines","pagadoMes":true},{"nombre":"Health Insurance","tipo":"Seguro","pagado":22800,"adeudado":22800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Employer + employee portion","pagadoMes":true},{"nombre":"Car Insurance (Geico)","tipo":"Seguro","pagado":9900,"adeudado":9900,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full coverage · 2 vehicles","pagadoMes":true},{"nombre":"Groceries (Costco/Walmart)","tipo":"Variable","pagado":0,"adeudado":39000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Weekly ~$160","pagadoMes":false},{"nombre":"Gas / Transport","tipo":"Variable","pagado":0,"adeudado":12000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 fill-ups per month","pagadoMes":false},{"nombre":"Gym (Planet Fitness)","tipo":"Variable","pagado":1500,"adeudado":1500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Monthly membership","pagadoMes":true},{"nombre":"Streaming (Netflix+Spotify+YT)","tipo":"Servicio","pagado":2520,"adeudado":2520,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Standard plans all three","pagadoMes":true},{"nombre":"Daycare / Childcare","tipo":"Educación","pagado":0,"adeudado":51000,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full-time daycare","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Checking (Chase)","moneda":"USD","saldo":3200,"comp":0,"disp":0},{"nombre":"Savings (Marcus)","moneda":"USD","saldo":8500,"comp":0,"disp":0},{"nombre":"Emergency Savings (Ally)","moneda":"USD","saldo":12000,"comp":0,"disp":0},{"nombre":"Cash","moneda":"USD","saldo":150,"comp":0,"disp":0},{"nombre":"Brokerage (Fidelity)","moneda":"USD","saldo":15000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":2331000,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"3-Month Expenses Fund","moneda":"USD","balance":12000,"meta":18000},{"fondo":"Car Repair Fund","moneda":"USD","balance":1500,"meta":3000},{"fondo":"Medical Fund","moneda":"USD","balance":2000,"meta":5000},{"fondo":"Home Repair Fund","moneda":"USD","balance":800,"meta":5000},{"fondo":"Kid's College 529","moneda":"USD","balance":4500,"meta":50000}],"cashflow":{"ingreso":390000,"gasto":341820,"tasa":60,"retirarUSD":0,"ahorros":24000,"balanceAhorros":510000}},"historial":[{"mes":"May","anio":2026,"ingresos":390000,"gasto":341820,"ahorro":48180,"tasaAhorro":0.1235,"deudas":20220000,"emergencia":1248000,"netWorth":-15558000,"tasa":60,"notas":"Best month — extra payment on Visa"},{"mes":"April","anio":2026,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":20370000,"emergencia":1188000,"netWorth":-15732000,"tasa":60,"notas":"Tax refund helped savings"},{"mes":"March","anio":2026,"ingresos":390000,"gasto":355200,"ahorro":34800,"tasaAhorro":0.0892,"deudas":20520000,"emergencia":1110000,"netWorth":-15990000,"tasa":60,"notas":"Paid extra on car loan"},{"mes":"February","anio":2026,"ingresos":390000,"gasto":346800,"ahorro":43200,"tasaAhorro":0.1108,"deudas":20670000,"emergencia":1032000,"netWorth":-16278000,"tasa":60,"notas":""},{"mes":"January","anio":2026,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":20820000,"emergencia":960000,"netWorth":-16500000,"tasa":60,"notas":"Post-holiday spending catch-up"},{"mes":"December","anio":2025,"ingresos":390000,"gasto":432000,"ahorro":-42000,"tasaAhorro":-0.1077,"deudas":20970000,"emergencia":912000,"netWorth":-16728000,"tasa":60,"notas":"Holiday spending high — gifts + travel"},{"mes":"November","anio":2025,"ingresos":390000,"gasto":339000,"ahorro":51000,"tasaAhorro":0.1308,"deudas":21090000,"emergencia":888000,"netWorth":-16872000,"tasa":60,"notas":"Disciplined month — Black Friday avoided"},{"mes":"October","anio":2025,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":21228000,"emergencia":840000,"netWorth":-17118000,"tasa":60,"notas":""},{"mes":"September","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21360000,"emergencia":792000,"netWorth":-17388000,"tasa":60,"notas":"Back to school supplies"},{"mes":"August","anio":2025,"ingresos":390000,"gasto":426000,"ahorro":-36000,"tasaAhorro":-0.0923,"deudas":21492000,"emergencia":750000,"netWorth":-17592000,"tasa":60,"notas":"⚠ Bad month — AC repair $1,200 + summer daycare costs up"},{"mes":"July","anio":2025,"ingresos":390000,"gasto":340800,"ahorro":49200,"tasaAhorro":0.1262,"deudas":21600000,"emergencia":708000,"netWorth":-17748000,"tasa":60,"notas":"Good month — got back on track"},{"mes":"June","anio":2025,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":21732000,"emergencia":660000,"netWorth":-18012000,"tasa":60,"notas":""},{"mes":"May","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21870000,"emergencia":612000,"netWorth":-18258000,"tasa":60,"notas":""},{"mes":"April","anio":2025,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22008000,"emergencia":570000,"netWorth":-18498000,"tasa":60,"notas":""},{"mes":"March","anio":2025,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":22140000,"emergencia":528000,"netWorth":-18732000,"tasa":60,"notas":"Started kid college 529 contributions"},{"mes":"February","anio":2025,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":22272000,"emergencia":480000,"netWorth":-18972000,"tasa":60,"notas":""},{"mes":"January","anio":2025,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":22410000,"emergencia":432000,"netWorth":-19218000,"tasa":60,"notas":"Resolution: pay debts aggressively"},{"mes":"December","anio":2024,"ingresos":390000,"gasto":450000,"ahorro":-60000,"tasaAhorro":-0.1538,"deudas":22500000,"emergencia":390000,"netWorth":-19440000,"tasa":60,"notas":"Holiday spending — high but manageable"}],"metas":[{"name":"Family Vacation (Hawaii)","goal":300000,"saved":168000,"monthly":24000},{"name":"New Laptop","goal":90000,"saved":90000,"monthly":0},{"name":"Kid's College Fund","goal":3000000,"saved":270000,"monthly":18000},{"name":"Kitchen Renovation","goal":900000,"saved":192000,"monthly":15000},{"name":"Early Retirement Fund","goal":30000000,"saved":900000,"monthly":30000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo_usd.json"};
 // ══════════════════════════════════
 // JSON EXPORT / IMPORT
 // ══════════════════════════════════
 function downloadJSON(){
   const data=JSON.parse(JSON.stringify(_editData));
-  data._meta={version:1,exportedAt:new Date().toISOString(),app:'CNTpf'};
+  data._meta={version:2,exportedAt:new Date().toISOString(),app:'CNTpf'};
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
@@ -2571,6 +2631,7 @@ function importJSON(file){
       _editData=data;
       _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
       _editData.emerg.cashflow.ingreso=_editData.config.ingresoUSD*_editData.config.tasa;
+      if(!_editData.config.monedaPrincipal)_editData.config.monedaPrincipal='RD';
       if(!_editData.metas)_editData.metas=[];
       if(!_editData.transacciones)_editData.transacciones=[];
       if(!_editData.presupuesto)_editData.presupuesto=[];
@@ -2587,13 +2648,18 @@ function importJSON(file){
   };
   reader.readAsText(file);
 }
-async function loadDemo(){
+async function loadDemo(currency){
   showSpinner();
   try{
-    if(typeof _DEMO_DATA!=='object')throw new Error('no demo');
-    _editData=JSON.parse(JSON.stringify(_DEMO_DATA));
-    _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
-    _editData.emerg.cashflow.ingreso=_editData.config.ingresoUSD*_editData.config.tasa;
+    const src=currency==='USD'?_DEMO_DATA_USD:_DEMO_DATA_RD;
+    if(typeof src!=='object')throw new Error('no demo');
+    _editData=JSON.parse(JSON.stringify(src));
+    if(_editData.config.monedaPrincipal==='USD'){
+      _editData.config.ingresoRD=_editData.config.ingresoUSD*(_editData.config.tasa||1);
+    } else {
+      _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
+    }
+    _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
     buildDashboard(_editData);
     applyI18n();
     document.getElementById('loaderScreen').style.display='none';
@@ -2682,9 +2748,9 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
     alertasVenc.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_novenc')}</div>`;
   } else {
     const vHtml=[];
-    vencPasados.forEach(g=>{vHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🚨</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_overdueago')} ${g.daysLate} ${t('alert_days')} — <span style="color:var(--red);font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:var(--red)">-${g.daysLate}d</div></div>`);});
-    vencProx.forEach(g=>{const cls=g.urgente?'urgent':'warning';vHtml.push(`<div class="alert-item ${cls}"><div class="alert-icon">${g.urgente?'⚠️':'🔔'}</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_dueday')} ${g.dia} — <span style="font-weight:700">RD$${fmt(g.adeudado)}</span></div></div><div class="alert-days" style="color:${g.urgente?'var(--red)':'var(--yellow)'}">${g.daysUntil===0?t('alert_today'):g.daysUntil+'d'}</div></div>`);});
-    limProx.forEach(g=>{vHtml.push(`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · ${t('alert_deadline')}</div><div class="alert-sub">${fmtFecha(g.fl,{day:'numeric',month:'long',year:'numeric'})} — ${t('alert_balance_lbl')} <span style="font-weight:700">RD$${fmt(g.balance)}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`);});
+    vencPasados.forEach(g=>{vHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🚨</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_overdueago')} ${g.daysLate} ${t('alert_days')} — <span style="color:var(--red);font-weight:700">${fmtC(toDisplay(g.adeudado))}</span></div></div><div class="alert-days" style="color:var(--red)">-${g.daysLate}d</div></div>`);});
+    vencProx.forEach(g=>{const cls=g.urgente?'urgent':'warning';vHtml.push(`<div class="alert-item ${cls}"><div class="alert-icon">${g.urgente?'⚠️':'🔔'}</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)}</div><div class="alert-sub">${t('alert_dueday')} ${g.dia} — <span style="font-weight:700">${fmtC(toDisplay(g.adeudado))}</span></div></div><div class="alert-days" style="color:${g.urgente?'var(--red)':'var(--yellow)'}">${g.daysUntil===0?t('alert_today'):g.daysUntil+'d'}</div></div>`);});
+    limProx.forEach(g=>{vHtml.push(`<div class="alert-item info"><div class="alert-icon">📅</div><div class="alert-text"><div class="alert-title">${escH(g.nombre)} · ${t('alert_deadline')}</div><div class="alert-sub">${fmtFecha(g.fl,{day:'numeric',month:'long',year:'numeric'})} — ${t('alert_balance_lbl')} <span style="font-weight:700">${fmtC(toDisplay(g.balance))}</span></div></div><div class="alert-days" style="color:var(--accent2)">${g.diffDays}d</div></div>`);});
     alertasVenc.innerHTML=vHtml.join('');
   }
   // ALERTAS GENERALES — declare ag first so tab-dot logic can reference it
@@ -2702,29 +2768,29 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
   const dRatio=ingreso>0?totalBalance/(ingreso*12):1;
   if(dRatio>1.5)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">${t('alert_highdebt_title')}</div><div class="alert-sub">${t('alert_highdebt_sub').replace('%',(dRatio*100).toFixed(0)+'%')}</div></div></div>`);
   const altaTasa=gastos.filter(g=>g.tasa>15&&g.balance>0);
-  altaTasa.forEach(g=>agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${t('alert_highrate_sub').replace('%',g.tasa+'%').replace('RD$','RD$'+fmt(g.balance))}</div></div></div>`));
+  altaTasa.forEach(g=>agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${t('alert_highrate_sub').replace('%',g.tasa+'%').replace(currencySymbol(),fmtC(toDisplay(g.balance)))}</div></div></div>`));
   if(emerg&&emerg.fondos&&emerg.fondos.length){
     const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
     const efMeta=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).meta,0);
     const efPct=efMeta>0?efTotal/efMeta:0;
-    if(efPct<0.25)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_critical_title')}</div><div class="alert-sub">${t('alert_ef_critical_sub').replace('%',Math.round(efPct*100)+'%').replace('RD$','RD$'+fmt(Math.round(efMeta-efTotal)))}</div></div></div>`);
+    if(efPct<0.25)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_critical_title')}</div><div class="alert-sub">${t('alert_ef_critical_sub').replace('%',Math.round(efPct*100)+'%').replace(currencySymbol(),fmtC(Math.round(efMeta-efTotal)))}</div></div></div>`);
     else if(efPct<0.5)agHtml.push(`<div class="alert-item warning"><div class="alert-icon">🛡️</div><div class="alert-text"><div class="alert-title">${t('alert_ef_low_title')}</div><div class="alert-sub">${t('alert_ef_low_sub').replace('%',Math.round(efPct*100)+'%')}</div></div></div>`);
   }
-  if(interesMensual>0&&resta<=0)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">${t('alert_interest_deficit').replace('RD$','RD$'+fmt(Math.round(interesMensual)))}</div></div></div>`);
-  else if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)agHtml.push(`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">${t('alert_interest_sub').replace('RD$','RD$'+fmt(Math.round(interesMensual))).replace('%',Math.round(interesMensual/resta*100)+'%')}</div></div></div>`);
+  if(interesMensual>0&&resta<=0)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">${t('alert_interest_deficit').replace(currencySymbol(),fmtC(Math.round(interesMensual)))}</div></div></div>`);
+  else if(interesMensual>0&&resta>0&&interesMensual/resta>0.5)agHtml.push(`<div class="alert-item ${interesMensual>resta?'urgent':'warning'}"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_interest_title')}</div><div class="alert-sub">${t('alert_interest_sub').replace(currencySymbol(),fmtC(Math.round(interesMensual))).replace('%',Math.round(interesMensual/resta*100)+'%')}</div></div></div>`);
   // DTI = monthly debt payments / monthly income (36% warning, 43% urgent — standard lending benchmarks)
   const dtiPct=ingreso>0?Math.round(cuotaDeudas/ingreso*100):0;
   if(dtiPct>43)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🏦</div><div class="alert-text"><div class="alert-title">${t('alert_dti_urgent_title')}</div><div class="alert-sub">${t('alert_dti_urgent_sub').replace('{pct}',dtiPct)}</div></div></div>`);
   else if(dtiPct>36)agHtml.push(`<div class="alert-item warning"><div class="alert-icon">🏦</div><div class="alert-text"><div class="alert-title">${t('alert_dti_warn_title')}</div><div class="alert-sub">${t('alert_dti_warn_sub').replace('{pct}',dtiPct)}</div></div></div>`);
   // Fix 1.3: Negative amortization — surface prominently when payment < interest
-  gastos.forEach(g=>{if(g.balance>0&&g.tasa>0&&g.adeudado>0){const intMes=g.balance*(g.tasa/100/12);if(g.adeudado<=intMes){const growth=Math.round(intMes-g.adeudado);agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_negamort_title').replace('{name}',escH(g.nombre))}</div><div class="alert-sub">${t('alert_negamort_sub').replace('{pay}',fmt(g.adeudado)).replace('{int}',fmt(Math.round(intMes))).replace('{growth}',fmt(growth))}</div></div></div>`);}}});
+  gastos.forEach(g=>{if(g.balance>0&&g.tasa>0&&g.adeudado>0){const intMes=g.balance*(g.tasa/100/12);if(g.adeudado<=intMes){const growth=Math.round(intMes-g.adeudado);agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_negamort_title').replace('{name}',escH(g.nombre))}</div><div class="alert-sub">${t('alert_negamort_sub').replace('{pay}',fmt(toDisplay(g.adeudado))).replace('{int}',fmt(toDisplay(Math.round(intMes)))).replace('{growth}',fmt(toDisplay(growth)))}</div></div></div>`);}}});
   // Fix 3.2: Expense trend anomaly — flag if current gasto > 120% of 3-month average
   if(_editData.historial&&_editData.historial.length>=2){const recent=_editData.historial.slice(0,3);const avg=recent.reduce((a,h)=>a+(h.gasto||0),0)/recent.length;if(avg>0&&gasto>avg*1.2){const spikePct=Math.round((gasto/avg-1)*100);agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📊</div><div class="alert-text"><div class="alert-title">${t('alert_expense_spike_title')}</div><div class="alert-sub">${t('alert_expense_spike_sub').replace('{pct}',spikePct)}</div></div></div>`);}}
   ag.innerHTML=agHtml.length?agHtml.join(''):`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_nofinancial')}</div>`;
   const as=document.getElementById('alertasSit');
   const items=[
     {icon:gpct<=.85?'✅':'⚠️',l:t('sit_expenses'),v:`${Math.round(gpct*100)}% ${t('sit_used')}`,c:gpct<=.85?'var(--green)':gpct<=1?'var(--yellow)':'var(--red)'},
-    {icon:resta>0?'✅':'🔴',l:t('sit_surplus'),v:resta>0?`RD$${fmt(resta)} ${t('sit_available')}`:`${t('sit_deficit')}${fmt(Math.abs(resta))}`,c:resta>0?'var(--green)':'var(--red)'},
+    {icon:resta>0?'✅':'🔴',l:t('sit_surplus'),v:resta>0?`${fmtC(resta)} ${t('sit_available')}`:`${t('sit_deficit')}${fmt(Math.abs(resta))}`,c:resta>0?'var(--green)':'var(--red)'},
     {icon:dtiPct<=36?'✅':'⚠️',l:t('sit_dti'),v:`${dtiPct}% DTI`,c:dtiPct<=36?'var(--green)':dtiPct<=43?'var(--yellow)':'var(--red)'},
     {icon:vencProx.length>0?'📅':'✅',l:t('sit_payments'),v:vencProx.length>0?vencProx.map(p=>`${p.nombre.split(' ')[0]} (${p.daysUntil===0?(_lang==='es'?'¡hoy!':'today!'):p.daysUntil+'d'})`).join(' · '):t('sit_uptodate'),c:vencProx.some(p=>p.urgente)?'var(--red)':vencProx.length>0?'var(--yellow)':'var(--green)'},
   ];
@@ -2759,18 +2825,18 @@ function buildChecklist(gastos){
   if(nextPay&&pending.length>0){
     const daysUntil=nextPay.dia>=dom?nextPay.dia-dom:0;
     const urgColor=daysUntil<=2?'var(--red)':daysUntil<=5?'var(--yellow)':'var(--accent)';
-    countdownHtml=`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface2);border-radius:10px;margin-bottom:12px"><div style="font-size:24px;font-weight:800;color:${urgColor}" class="mono">${daysUntil}d</div><div><div style="font-size:12px;font-weight:700;color:var(--text)">${t('chk_next_payment')}: ${escH(nextPay.nombre)}</div><div style="font-size:11px;color:var(--muted)">${t('chk_day')} ${nextPay.dia} · RD$${fmt(nextPay.adeudado)}</div></div></div>`;
+    countdownHtml=`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface2);border-radius:10px;margin-bottom:12px"><div style="font-size:24px;font-weight:800;color:${urgColor}" class="mono">${daysUntil}d</div><div><div style="font-size:12px;font-weight:700;color:var(--text)">${t('chk_next_payment')}: ${escH(nextPay.nombre)}</div><div style="font-size:11px;color:var(--muted)">${t('chk_day')} ${nextPay.dia} · ${fmtC(toDisplay(nextPay.adeudado))}</div></div></div>`;
   }
 
   document.getElementById('checklistProgress').innerHTML=`${countdownHtml}
     <div class="checklist-progress">
       <div class="checklist-pct" style="color:${doneMonPct===100?'var(--green)':doneMonPct>50?'var(--yellow)':'var(--accent)'}">${doneMonPct}%</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;margin-bottom:6px">${done.length} ${t('chk_of')} ${total} ${t('chk_marked')} · <span style="color:var(--green)">RD$${fmt(doneMonto)}</span> ${t('chk_of')} <span style="color:var(--muted)">RD$${fmt(totalMonto)}</span></div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">${done.length} ${t('chk_of')} ${total} ${t('chk_marked')} · <span style="color:var(--green)">${fmtC(toDisplay(doneMonto))}</span> ${t('chk_of')} <span style="color:var(--muted)">${fmtC(toDisplay(totalMonto))}</span></div>
         <div class="progress-wrap" style="margin:0"><div class="progress-bar" style="width:${doneMonPct}%;background:linear-gradient(90deg,var(--green),var(--accent2))"></div></div>
         <div style="font-size:11px;color:var(--muted);margin-top:6px">
-          ${t('chk_pending_lbl')} <span style="color:var(--red);font-weight:700">RD$${fmt(pendMonto)}</span>
-          &nbsp;·&nbsp; ${t('chk_paid_lbl')} <span style="color:var(--green);font-weight:700">RD$${fmt(doneMonto)}</span>
+          ${t('chk_pending_lbl')} <span style="color:var(--red);font-weight:700">${fmtC(toDisplay(pendMonto))}</span>
+          &nbsp;·&nbsp; ${t('chk_paid_lbl')} <span style="color:var(--green);font-weight:700">${fmtC(toDisplay(doneMonto))}</span>
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -2796,11 +2862,11 @@ function buildChecklist(gastos){
         <span class="pill" style="background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'—')}</span>
         &nbsp;· ${t('chk_day')} <strong>${g.dia||'—'}</strong>
         &nbsp;· <span style="color:var(--muted)">${pct}% ${t('chk_income')}</span>
-        ${intMes>0?`&nbsp;· <span style="color:var(--red);font-size:10px">~RD$${fmt(intMes)}/${t('kpi_exp_month')} ${t('chk_interest_lbl')}</span>`:''}
+        ${intMes>0?`&nbsp;· <span style="color:var(--red);font-size:10px">~${fmtC(toDisplay(intMes))}/${t('kpi_exp_month')} ${t('chk_interest_lbl')}</span>`:''}
         ${isDone?`<span style="color:var(--green);margin-left:8px;font-size:11px;font-weight:700">✓ ${t('chk_paidmonth')}</span>`:''}
       </div>
     </div>
-    <div class="check-amount" style="color:${isDone?'var(--green)':'var(--red)'}">RD$${fmt(g.adeudado)}</div>
+    <div class="check-amount" style="color:${isDone?'var(--green)':'var(--red)'}">${fmtC(toDisplay(g.adeudado))}</div>
   </div>`;
   };
 
@@ -2818,17 +2884,17 @@ function buildChecklist(gastos){
   const totalIntAnual=totalIntMes*12;
   document.getElementById('interestAnalysis').innerHTML=`
     <div class="grid g3" style="gap:10px;margin-bottom:16px">
-      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${t('chk_interest_annual')}</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--red);margin-top:4px">RD$${fmt(Math.round(totalIntAnual))}</div></div>
-      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${t('chk_interest_monthly')}</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--yellow);margin-top:4px">RD$${fmt(Math.round(totalIntMes))}</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${t('chk_interest_annual')}</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--red);margin-top:4px">${fmtC(toDisplay(Math.round(totalIntAnual)))}</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${t('chk_interest_monthly')}</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--yellow);margin-top:4px">${fmtC(toDisplay(Math.round(totalIntMes)))}</div></div>
       <div style="background:var(--surface2);border-radius:10px;padding:14px"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${t('chk_interest_count')}</div><div class="mono" style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px">${deudas.length}</div></div>
     </div>
     <div class="tbl-wrap"><table class="mobile-card-table"><thead><tr><th>${t('chk_tbl_debt')}</th><th>${t('chk_tbl_balance')}</th><th>${t('chk_tbl_rate')}</th><th>${t('chk_tbl_intmonth')}</th><th>${t('chk_tbl_intannual')}</th></tr></thead><tbody>
     ${deudas.sort((a,b)=>b.tasa-a.tasa).map(g=>`<tr>
       <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
-      <td data-label="${t('chk_tbl_balance')}" class="num" style="color:var(--red)">RD$${fmt(g.balance)}</td>
+      <td data-label="${t('chk_tbl_balance')}" class="num" style="color:var(--red)">${fmtC(toDisplay(g.balance))}</td>
       <td data-label="${t('chk_tbl_rate')}" class="mono" style="color:${g.tasa>15?'var(--red)':'var(--yellow)'};text-align:center">${g.tasa}%</td>
-      <td data-label="${t('chk_tbl_intmonth')}" class="num" style="color:var(--yellow)">RD$${fmt(Math.round(g.balance*(g.tasa/100/12)))}</td>
-      <td data-label="${t('chk_tbl_intannual')}" class="num" style="color:var(--red)">RD$${fmt(Math.round(g.balance*(g.tasa/100)))}</td>
+      <td data-label="${t('chk_tbl_intmonth')}" class="num" style="color:var(--yellow)">${fmtC(toDisplay(Math.round(g.balance*(g.tasa/100/12))))}</td>
+      <td data-label="${t('chk_tbl_intannual')}" class="num" style="color:var(--red)">${fmtC(toDisplay(Math.round(g.balance*(g.tasa/100))))}</td>
     </tr>`).join('')}
     </tbody></table></div>`;
   // Fix 2.5: Payment calendar — timeline of upcoming payments grouped by day
@@ -2841,8 +2907,8 @@ function buildChecklist(gastos){
     ${Object.keys(byDay).sort((a,b)=>a-b).map(d=>{const gs=byDay[d];const dayTotal=gs.reduce((a,g)=>a+g.adeudado,0);const isPast=parseInt(d)<todayDate;const isSoon=!isPast&&(parseInt(d)-todayDate)<=5;const borderC=isPast?'var(--red)':isSoon?'var(--yellow)':'var(--accent)';
       return`<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;padding:10px 14px;background:var(--surface2);border-radius:10px;border-left:3px solid ${borderC}">
         <div style="min-width:44px;text-align:center"><div style="font-size:22px;font-weight:800;color:${isPast?'var(--red)':'var(--text)'}">${d}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">${t('cal_day')}</div></div>
-        <div style="flex:1">${gs.map(g=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>${escH(g.nombre)} <span class="pill" style="font-size:9px;background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'')}</span></span><span class="mono" style="font-weight:700;color:var(--red)">RD$${fmt(g.adeudado)}</span></div>`).join('')}
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;border-top:1px dashed var(--border);padding-top:4px">${t('cal_total')}: <span class="mono" style="font-weight:700">RD$${fmt(dayTotal)}</span></div></div>
+        <div style="flex:1">${gs.map(g=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>${escH(g.nombre)} <span class="pill" style="font-size:9px;background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'')}</span></span><span class="mono" style="font-weight:700;color:var(--red)">${fmtC(toDisplay(g.adeudado))}</span></div>`).join('')}
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;border-top:1px dashed var(--border);padding-top:4px">${t('cal_total')}: <span class="mono" style="font-weight:700">${fmtC(toDisplay(dayTotal))}</span></div></div>
       </div>`;}).join('')}`;
   }
 }
@@ -2930,9 +2996,9 @@ function buildRegistro(transacciones,gastos,config){
 
   // KPIs
   document.getElementById('registroKpis').innerHTML=[
-    {l:totalLabel,v:`RD$${fmt(total)}`,c:totalColor,b:totalBg},
+    {l:totalLabel,v:`${fmtC(total)}`,c:totalColor,b:totalBg},
     {l:t('reg_count'),v:tx.length,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
-    {l:t('reg_avg'),v:`RD$${fmt(Math.round(avg))}`,c:'var(--accent2)',b:'rgba(6,182,212,.12)'},
+    {l:t('reg_avg'),v:`${fmtC(Math.round(avg))}`,c:'var(--accent2)',b:'rgba(6,182,212,.12)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div></div>`).join('');
 
   // Spending trend: current month vs last 2 months from historial
@@ -3002,7 +3068,7 @@ function buildRegistro(transacciones,gastos,config){
   const ctx=document.getElementById('regCatChart');
   if(cats.length>0){
     ctx.parentElement.style.display='';
-    charts.regCat=new Chart(ctx,{type:'doughnut',data:{labels:cats.map(c=>t('reg_cat_'+c)),datasets:[{data:cats.map(c=>catTotals[c]),backgroundColor:cats.map(c=>REG_CAT_COLORS[c]||'#4a5d80'),borderWidth:0}]},options:{responsive:true,plugins:{legend:{labels:{color:'var(--muted)',font:{size:11}}},tooltip:{...ttStyle}}}});
+    charts.regCat=new Chart(ctx,{type:'doughnut',data:{labels:cats.map(c=>t('reg_cat_'+c)),datasets:[{data:cats.map(c=>toDisplay(catTotals[c])),backgroundColor:cats.map(c=>REG_CAT_COLORS[c]||'#4a5d80'),borderWidth:0}]},options:{responsive:true,plugins:{legend:{labels:{color:'var(--muted)',font:{size:11}}},tooltip:{...ttStyle}}}});
   } else { ctx.parentElement.style.display='none'; }
 
   // Transaction list
@@ -3017,7 +3083,7 @@ function buildRegistro(transacciones,gastos,config){
       const dateStr=dateParts.length===3?`${dateParts[2]}/${dateParts[1]}`:`${tr.fecha}`;
       const metIcon=tr.metodo==='tarjeta'?'💳':tr.metodo==='transferencia'?'🏦':'💵';
       const recBadge=tr.recurrenteId?'<span style="font-size:9px;background:rgba(59,130,246,.15);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px">🔄</span>':'';
-      return`<div class="reg-item"><span class="reg-date">${dateStr}</span><div class="reg-desc">${escH(tr.nota||t('reg_cat_'+tr.categoria))} <span style="font-size:11px;color:var(--muted)">${metIcon}</span>${recBadge}</div><span class="reg-cat">${t('reg_cat_'+tr.categoria)}</span><span class="reg-amt">-RD$${fmt(tr.monto)}</span><button class="reg-del" onclick="deleteTransaccion(${idx})" title="Delete">✕</button></div>`;
+      return`<div class="reg-item"><span class="reg-date">${dateStr}</span><div class="reg-desc">${escH(tr.nota||t('reg_cat_'+tr.categoria))} <span style="font-size:11px;color:var(--muted)">${metIcon}</span>${recBadge}</div><span class="reg-cat">${t('reg_cat_'+tr.categoria)}</span><span class="reg-amt">-${fmtC(toDisplay(tr.monto))}</span><button class="reg-del" onclick="deleteTransaccion(${idx})" title="Delete">✕</button></div>`;
     }).join('');
   }
 
@@ -3029,7 +3095,7 @@ function buildRegistro(transacciones,gastos,config){
   } else {
     recEl.innerHTML=`<div class="card-title" style="margin-bottom:12px">${t('rec_title')}</div>`+recs.map((r,i)=>{
       const freqLabel=t('rec_'+r.frecuencia);
-      return`<div class="reg-item"><span class="reg-date" style="background:rgba(59,130,246,.15);color:var(--accent)">${freqLabel}</span><div class="reg-desc">${escH(r.nota||t('reg_cat_'+r.categoria))}</div><span class="reg-cat">${t('reg_cat_'+r.categoria)}</span><span class="reg-amt">RD$${fmt(r.monto)}</span><button class="reg-del" onclick="deleteRecurrente(${i})" title="Delete">✕</button></div>`;
+      return`<div class="reg-item"><span class="reg-date" style="background:rgba(59,130,246,.15);color:var(--accent)">${freqLabel}</span><div class="reg-desc">${escH(r.nota||t('reg_cat_'+r.categoria))}</div><span class="reg-cat">${t('reg_cat_'+r.categoria)}</span><span class="reg-amt">${fmtC(toDisplay(r.monto))}</span><button class="reg-del" onclick="deleteRecurrente(${i})" title="Delete">✕</button></div>`;
     }).join('');
   }
 }
@@ -3108,10 +3174,10 @@ function buildPresupuesto(presupuesto,transacciones,config){
 
   // KPIs
   document.getElementById('presKpis').innerHTML=[
-    {l:t('pres_income'),v:`RD$${fmt(ingreso)}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
-    {l:t('pres_obligations'),v:`RD$${fmt(totalAdeudado)}`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
-    {l:t('pres_available'),v:`RD$${fmt(disponible)}`,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
-    {l:unallocated>=0?t('pres_unallocated'):t('pres_over_allocated'),v:`RD$${fmt(Math.abs(unallocated))}`,c:unallocated>=0?'var(--accent2)':'var(--red)',b:unallocated>=0?'rgba(6,182,212,.12)':'rgba(244,96,106,.12)'},
+    {l:t('pres_income'),v:`${fmtC(toDisplay(ingreso))}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
+    {l:t('pres_obligations'),v:`${fmtC(toDisplay(totalAdeudado))}`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
+    {l:t('pres_available'),v:`${fmtC(toDisplay(disponible))}`,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
+    {l:unallocated>=0?t('pres_unallocated'):t('pres_over_allocated'),v:`${fmtC(toDisplay(Math.abs(unallocated)))}`,c:unallocated>=0?'var(--accent2)':'var(--red)',b:unallocated>=0?'rgba(6,182,212,.12)':'rgba(244,96,106,.12)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div></div>`).join('');
 
   // Form labels
@@ -3126,7 +3192,7 @@ function buildPresupuesto(presupuesto,transacciones,config){
   fg.innerHTML=REG_CATS.map(cat=>{
     const cur=pres.find(p=>p.categoria===cat)?.presupuestado||0;
     const recE=catData.find(d=>d.cat===cat)?.recEst||0;
-    const hint=recE>0?`<span style="font-size:10px;color:var(--muted)">${t('pres_from_recurring').replace('{n}',fmt(Math.round(recE)))}</span>`:'';
+    const hint=recE>0?`<span style="font-size:10px;color:var(--muted)">${t('pres_from_recurring').replace('{n}',fmt(toDisplay(Math.round(recE))))}</span>`:'';
     return`<div>
       <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">${t('reg_cat_'+cat)} ${hint}</label>
       <input type="number" min="0" step="100" value="${cur||''}" data-pres-cat="${cat}" class="cierre-input pres-input" style="font-size:14px;padding:8px 10px;width:100%" placeholder="0" oninput="updatePresUnalloc()">
@@ -3147,9 +3213,9 @@ function buildPresupuesto(presupuesto,transacciones,config){
       const remColor=d.remaining>=0?'var(--green)':'var(--red)';
       return`<tr>
         <td data-label="${t('pres_cat')}"><span class="pill" style="background:${REG_CAT_COLORS[d.cat]}22;color:${REG_CAT_COLORS[d.cat]}">${t('reg_cat_'+d.cat)}</span></td>
-        <td data-label="${t('pres_budgeted')}" class="num" style="color:var(--muted)">RD$${fmt(d.budgeted)}</td>
-        <td data-label="${t('pres_actual')}" class="num" style="color:${d.actual>0?'var(--text)':'var(--muted)'}">RD$${fmt(d.actual)}</td>
-        <td data-label="${t('pres_remaining')}" class="num" style="color:${remColor};font-weight:700">${d.remaining>=0?'':'−'}RD$${fmt(Math.abs(d.remaining))}</td>
+        <td data-label="${t('pres_budgeted')}" class="num" style="color:var(--muted)">${fmtC(toDisplay(d.budgeted))}</td>
+        <td data-label="${t('pres_actual')}" class="num" style="color:${d.actual>0?'var(--text)':'var(--muted)'}">${fmtC(toDisplay(d.actual))}</td>
+        <td data-label="${t('pres_remaining')}" class="num" style="color:${remColor};font-weight:700">${d.remaining>=0?'':'−'}${fmtC(toDisplay(Math.abs(d.remaining)))}</td>
         <td data-label="${t('pres_pct')}" style="min-width:90px">
           <div style="display:flex;align-items:center;gap:6px">
             <div style="flex:1;background:var(--surface2);border-radius:99px;height:5px;overflow:hidden;min-width:50px">
@@ -3178,10 +3244,10 @@ function buildPresupuesto(presupuesto,transacciones,config){
     charts.presChart=new Chart(cEl,{
       type:'bar',
       data:{labels:chartCats.map(d=>t('reg_cat_'+d.cat)),datasets:[
-        {label:t('pres_budgeted'),data:chartCats.map(d=>d.budgeted),backgroundColor:'rgba(59,130,246,.4)',borderColor:'#3b82f6',borderWidth:2,borderRadius:4},
-        {label:t('pres_actual'),data:chartCats.map(d=>d.actual),backgroundColor:'rgba(244,96,106,.45)',borderColor:'#f4606a',borderWidth:2,borderRadius:4},
+        {label:t('pres_budgeted'),data:chartCats.map(d=>toDisplay(d.budgeted)),backgroundColor:'rgba(59,130,246,.4)',borderColor:'#3b82f6',borderWidth:2,borderRadius:4},
+        {label:t('pres_actual'),data:chartCats.map(d=>toDisplay(d.actual)),backgroundColor:'rgba(244,96,106,.45)',borderColor:'#f4606a',borderWidth:2,borderRadius:4},
       ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
         scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxRotation:40}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
     });
   } else { cEl.parentElement.style.display='none'; }
@@ -3197,7 +3263,7 @@ function updatePresUnalloc(){
   const el=document.getElementById('presUnallocLabel');
   if(el){
     el.style.color=un>=0?'var(--accent2)':'var(--red)';
-    el.textContent=(un>=0?t('pres_unallocated'):t('pres_over_allocated'))+`: RD$${fmt(Math.abs(un))}`;
+    el.textContent=(un>=0?t('pres_unallocated'):t('pres_over_allocated'))+`: ${fmtC(toDisplay(Math.abs(un)))}`;
   }
 }
 
@@ -3305,12 +3371,12 @@ function buildProyector({gastos,ingreso,gasto,config}){
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
       <div style="flex:1;min-width:140px;background:var(--surface2);border-radius:10px;padding:14px 18px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_total')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--text);margin-top:2px">RD$${fmt(fnTotalProy)}</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:var(--text);margin-top:2px">${fmtC(toDisplay(fnTotalProy))}</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_accounts')}</div>
       </div>
       <div style="flex:1;min-width:140px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:10px;padding:14px 18px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_gastos')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--red);margin-top:2px">(RD$${fmt(fnCompProy)})</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:var(--red);margin-top:2px">(${fmtC(toDisplay(fnCompProy))})</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_expenses')}</div>
       </div>
       <div style="flex:1;min-width:140px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:10px;padding:14px 18px;text-align:center">
@@ -3320,7 +3386,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
       </div>
       <div style="flex:1;min-width:140px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px 18px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_debtpay')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px">RD$${fmt(fnDebtRedirect)}</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px">${fmtC(toDisplay(fnDebtRedirect))}</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_redirectable')}</div>
       </div>
     </div>
@@ -3360,16 +3426,16 @@ function buildProyector({gastos,ingreso,gasto,config}){
             ${t('proy_allsurplus')}</button>`:''}
           ${savingsMonthly>0?`<button onclick="document.getElementById('extraSlider').value=${extraPayment+savingsMonthly};document.getElementById('extraInput').value=${extraPayment+savingsMonthly};updateProyector()"
             style="padding:8px 12px;background:rgba(59,130,246,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">
-            ${t('proy_redirectsavings')} (RD$${fmt(savingsMonthly)})</button>`:''}
+            ${t('proy_redirectsavings')} (${fmtC(toDisplay(savingsMonthly))})</button>`:''}
         </div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:12px 18px;min-width:140px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_extra_label')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px" id="extraVal">RD$${fmt(extraPayment)}</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px" id="extraVal">${fmtC(extraPayment)}</div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:12px 18px;min-width:140px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_surplus_label')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:${resta>0?'var(--green)':'var(--red)'};margin-top:2px">RD$${fmt(resta)}</div>
+        <div class="mono" style="font-size:22px;font-weight:800;color:${resta>0?'var(--green)':'var(--red)'};margin-top:2px">${fmtC(resta)}</div>
       </div>
     </div>`;
 
@@ -3382,11 +3448,11 @@ function buildProyector({gastos,ingreso,gasto,config}){
     const pctInterest=g.adeudado>0?Math.round(intMes/g.adeudado*100):0;
     return `<tr>
       <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
-      <td data-label="${t('proy_cost_col_balance')}" class="mono" style="text-align:right">RD$${fmt(g.balance)}</td>
+      <td data-label="${t('proy_cost_col_balance')}" class="mono" style="text-align:right">${fmtC(toDisplay(g.balance))}</td>
       <td data-label="${t('proy_cost_col_rate')}" class="mono" style="color:${g.tasa>30?'var(--red)':g.tasa>18?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa}%</td>
-      <td data-label="${t('proy_cost_col_intmonth')}" class="mono" style="color:var(--red);text-align:right">RD$${fmt(intMes)}</td>
-      <td data-label="${t('proy_cost_col_monthly')}" class="mono" style="text-align:right">RD$${fmt(g.adeudado)}</td>
-      <td data-label="${t('proy_cost_col_capital')}" class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}RD$${fmt(Math.abs(netPaydown))}</td>
+      <td data-label="${t('proy_cost_col_intmonth')}" class="mono" style="color:var(--red);text-align:right">${fmtC(toDisplay(intMes))}</td>
+      <td data-label="${t('proy_cost_col_monthly')}" class="mono" style="text-align:right">${fmtC(toDisplay(g.adeudado))}</td>
+      <td data-label="${t('proy_cost_col_capital')}" class="mono" style="color:${netPaydown<0?'var(--red)':'var(--green)'};text-align:right">${netPaydown<0?'⚠ -':''}${fmtC(toDisplay(Math.abs(netPaydown)))}</td>
       <td data-label="${t('proy_cost_col_efficiency')}" style="text-align:center">
         <div style="background:var(--border);border-radius:99px;height:6px;width:80px;overflow:hidden;display:inline-block">
           <div style="height:6px;border-radius:99px;width:${Math.min(100-pctInterest,100)}%;background:${pctInterest>50?'var(--red)':pctInterest>25?'var(--yellow)':'var(--green)'}"></div>
@@ -3397,17 +3463,17 @@ function buildProyector({gastos,ingreso,gasto,config}){
   }).join('');
 
   document.getElementById('debtCostSnapshot').innerHTML=`
-    ${negAmortDebts.map(g=>{const intMes=g.balance*(g.tasa/100/12);const growth=intMes-g.adeudado;return `<div style="padding:10px 14px;background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.3);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">${t('proy_neg_amort_warn').replace('{name}',escH(g.nombre)).replace('{payment}',fmt(g.adeudado)).replace('{interest}',fmt(intMes)).replace('{growth}',fmt(Math.round(growth)))}</div>`;}).join('')}
+    ${negAmortDebts.map(g=>{const intMes=g.balance*(g.tasa/100/12);const growth=intMes-g.adeudado;return `<div style="padding:10px 14px;background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.3);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">${t('proy_neg_amort_warn').replace('{name}',escH(g.nombre)).replace('{payment}',fmt(toDisplay(g.adeudado))).replace('{interest}',fmt(toDisplay(intMes))).replace('{growth}',fmt(toDisplay(Math.round(growth))))}</div>`;}).join('')}
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
       <div class="card-title" style="margin:0">${t('proy_cost_title')}</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_monthly_interest')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">RD$${fmt(intMensual)}</div>
+          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">${fmtC(toDisplay(intMensual))}</div>
         </div>
         <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_annual_interest')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">RD$${fmt(intMensual*12)}</div>
+          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">${fmtC(toDisplay(intMensual*12))}</div>
         </div>
         <div style="background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_wtd_rate')}</div>
@@ -3447,8 +3513,8 @@ function buildProyector({gastos,ingreso,gasto,config}){
         oninput="updateRefiRow(${i})"
         style="background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);width:80px">
         <span style="font-size:11px;color:var(--muted)">%</span></td>
-      <td data-label="${t('proy_refi_col_monthly')}" class="mono" style="color:var(--green);text-align:right" id="refi-saving-${i}">RD$${fmt(Math.round(saving/12))}/${t('kpi_exp_month')}</td>
-      <td data-label="${t('proy_refi_col_annual')}" class="mono" style="color:var(--accent);text-align:right" id="refi-saving-yr-${i}">RD$${fmt(Math.round(saving))}/año</td>
+      <td data-label="${t('proy_refi_col_monthly')}" class="mono" style="color:var(--green);text-align:right" id="refi-saving-${i}">${fmtC(toDisplay(Math.round(saving/12)))}/${t('kpi_exp_month')}</td>
+      <td data-label="${t('proy_refi_col_annual')}" class="mono" style="color:var(--accent);text-align:right" id="refi-saving-yr-${i}">${fmtC(toDisplay(Math.round(saving)))}/año</td>
     </tr>`;
   }).join('');
 
@@ -3509,12 +3575,12 @@ function buildProyector({gastos,ingreso,gasto,config}){
     return `<tr style="${highlight?'background:rgba(34,211,160,.06);':''}">
       <td data-label="" style="font-weight:${highlight?'800':'600'}">${label}</td>
       <td data-label="${t('proy_whatif_col_free')}" class="mono" style="text-align:center;font-weight:${highlight?'800':'400'};color:${highlight?'var(--green)':'var(--text)'}">${result.display}</td>
-      <td data-label="${t('proy_whatif_col_interest')}" class="mono" style="color:var(--red);text-align:right">RD$${fmt(result.interest)}</td>
+      <td data-label="${t('proy_whatif_col_interest')}" class="mono" style="color:var(--red);text-align:right">${fmtC(toDisplay(result.interest))}</td>
       <td data-label="${t('proy_whatif_col_vs')}" class="mono" style="text-align:center;color:${monthsDiff>0?'var(--green)':monthsDiff<0?'var(--red)':'var(--muted)'}">
         ${monthsDiff>0?`▲ ${monthsDiff}${t('proy_whatif_before')}`:monthsDiff<0?`▼ ${Math.abs(monthsDiff)}${t('proy_whatif_after')}`:'—'}
       </td>
       <td data-label="${t('proy_whatif_col_saved')}" class="mono" style="text-align:right;color:${intDiff>0?'var(--green)':intDiff<0?'var(--red)':'var(--muted)'}">
-        ${intDiff>0?`${t('proy_whatif_saves')}${fmt(intDiff)}`:intDiff<0?`${t('proy_whatif_more').replace('RD$',`RD$${fmt(Math.abs(intDiff))}`)}`:'—'}
+        ${intDiff>0?`${t('proy_whatif_saves')}${fmt(toDisplay(intDiff))}`:intDiff<0?`${t('proy_whatif_more').replace(currencySymbol(),fmtC(toDisplay(Math.abs(intDiff))))}`:'—'}
       </td>
     </tr>`;
   };
@@ -3531,9 +3597,9 @@ function buildProyector({gastos,ingreso,gasto,config}){
       </tr></thead>
       <tbody>
         ${scRow(t('proy_whatif_only_min'),zeroExtra,baseResult)}
-        ${scRow(`RD$${fmt(Math.round(resta*0.25))}/${t('kpi_exp_month')} (25${t('proy_whatif_pct25')}`,pct25Result,baseResult)}
-        ${scRow(`RD$${fmt(extraPayment)}/${t('kpi_exp_month')} (${t('proy_whatif_current')}`,baseResult,baseResult)}
-        ${scRow(`${t('proy_whatif_pct50')} (RD$${fmt(Math.round(resta*0.5))}/${t('kpi_exp_month')})`,half,baseResult)}
+        ${scRow(`${fmtC(Math.round(resta*0.25))}/${t('kpi_exp_month')} (25${t('proy_whatif_pct25')}`,pct25Result,baseResult)}
+        ${scRow(`${fmtC(extraPayment)}/${t('kpi_exp_month')} (${t('proy_whatif_current')}`,baseResult,baseResult)}
+        ${scRow(`${t('proy_whatif_pct50')} (${fmtC(Math.round(resta*0.5))}/${t('kpi_exp_month')})`,half,baseResult)}
         ${plusSavings?scRow(`${t('proy_whatif_redirect')}${fmt(savingsMonthly)}/${t('kpi_exp_month')})`,plusSavings,baseResult,true):''}
         ${scRow(`${t('proy_whatif_all')}${fmt(Math.round(resta))}/${t('kpi_exp_month')})`,maxSurplus,baseResult,!plusSavings)}
       </tbody>
@@ -3552,13 +3618,13 @@ function updateRefiRow(i){
   const saving=g.balance*(g.tasa-newRate)/100;
   const savMes=document.getElementById(`refi-saving-${i}`);
   const savYr=document.getElementById(`refi-saving-yr-${i}`);
-  if(savMes)savMes.textContent=`RD$${fmt(Math.round(saving/12))}/${t('kpi_exp_month')}`;
-  if(savYr)savYr.textContent=`RD$${fmt(Math.round(saving))}/año`;
+  if(savMes)savMes.textContent=`${fmtC(toDisplay(Math.round(saving/12)))}/${t('kpi_exp_month')}`;
+  if(savYr)savYr.textContent=`${fmtC(toDisplay(Math.round(saving)))}/año`;
 }
 
 function updateProyector(){
   const extra=parseFloat(document.getElementById('extraSlider')?.value||0);
-  document.getElementById('extraVal').textContent='RD$'+fmt(extra);
+  document.getElementById('extraVal').textContent=fmtC(extra);
   const inp=document.getElementById('extraInput');
   if(inp&&parseFloat(inp.value)!==extra)inp.value=extra;
   const deudas=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).map(g=>({...g}));
@@ -3615,7 +3681,7 @@ function updateProyector(){
         return `<div class="timeline-item">
           <div class="timeline-dot" style="background:${COLORS[i%COLORS.length]}"></div>
           <div class="timeline-info"><div class="timeline-name">${escH(d.nombre)}${deadlineWarn}</div><div class="timeline-date">${Math.floor(d.paidMonth/12)}a ${d.paidMonth%12}m · ${t('proy_rate_label')} ${d.tasa}%</div></div>
-          <div class="timeline-int" style="color:var(--red)">~RD$${fmt(d.interestPaid||0)}<br><span style="font-size:10px;color:var(--muted)">${t('proy_int_total')}</span></div>
+          <div class="timeline-int" style="color:var(--red)">~${fmtC(d.interestPaid||0)}<br><span style="font-size:10px;color:var(--muted)">${t('proy_int_total')}</span></div>
         </div>`;
       }).join('');
   };
@@ -3655,7 +3721,7 @@ function updateProyector(){
       {label:t('proy_chart_snowball'),data:niData,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.06)',tension:.3,fill:false,pointRadius:0},
       {label:t('proy_chart_noextra'),data:noExtra,borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.3,fill:false,pointRadius:0,borderDash:[5,5]},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxTicksLimit:12}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
   });
 }
@@ -3690,7 +3756,9 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const pagadoReal=gastos.reduce((a,g)=>a+Math.max(0,(Math.max(g.originalRD||0,g.balance||0))-(g.balance||0)),0)+(config.liquidadoAcum||0);
   const deudaPct=totalOriginal>0?Math.round((pagadoReal/totalOriginal)*100):0;
   const interesMensual=allDeudas.filter(g=>g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
-  return{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual};
+  // Convert display values to primary currency
+  const toD=n=>config.monedaPrincipal==='USD'?n/(config.tasa||60):n;
+  return{cf,totalPagado:toD(totalPagado),totalAdeudado:toD(totalAdeudado),totalBalance:toD(totalBalance),totalOriginal:toD(totalOriginal),pagadoReal:toD(pagadoReal),ingreso:toD(ingreso),gasto:toD(gasto),resta:toD(resta),efTotal:toD(efTotal),efMeta:toD(efMeta),netWorth:toD(netWorth),gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas:toD(cuotaDeudas),deudaPct,interesMensual:toD(interesMensual)};
 }
 
 // ══════════════════════════════════
@@ -3704,7 +3772,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   document.getElementById('headerTitle').textContent=`${config.mes} ${config.anio}`;
   document.getElementById('hTasa').textContent='RD$'+config.tasa;
   document.getElementById('hIngUSD').textContent=fmtUSD(config.ingresoUSD);
-  document.getElementById('hIngRD').textContent='RD$'+fmt(ingreso);
+  document.getElementById('hIngRD').textContent='RD$'+fmt(config.ingresoUSD*config.tasa);
 
   // ── KPIs ── (with month-over-month delta arrows)
   const prevH=historial&&historial.length>0?historial[0]:null;
@@ -3716,10 +3784,10 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     return` <span style="font-size:10px;color:${color}">${arrow}</span>`;
   };
   document.getElementById('kpiRow').innerHTML=[
-    {l:t('kpi_income'),v:`RD$${fmt(ingreso)}${mkDelta(ingreso,prevH?.ingresos,true)}`,s:`≈ ${fmtUSD(config.ingresoUSD)} · Tasa RD$${config.tasa}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
-    {l:t('kpi_expenses'),v:`RD$${fmt(gasto)}${mkDelta(gasto,prevH?.gasto,false)}`,s:`${gastoPct}% ${t('kpi_exp_ofincome')} · ${t('kpi_exp_interest')}: RD$${fmt(Math.round(interesMensual))}/${t('kpi_exp_month')}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
-    {l:t('kpi_surplus'),v:`RD$${fmt(resta)}${mkDelta(resta,prevH?prevH.ingresos-prevH.gasto:null,true)}`,s:resta>=0?(ingreso>0?`${Math.round(resta/ingreso*100)}% ${t('kpi_surplus_pct')}`:t('kpi_surplus_pct')):t('kpi_deficit'),c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
-    {l:t('kpi_networth'),v:`RD$${netWorth<0?'('+fmt(Math.abs(netWorth))+')':fmt(netWorth)}${mkDelta(netWorth,prevH?.netWorth,true)}`,s:t('kpi_savings_ef'),c:netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
+    {l:t('kpi_income'),v:`${fmtC(ingreso)}${mkDelta(ingreso,prevH?.ingresos,true)}`,s:`≈ ${fmtUSD(config.ingresoUSD)} · Tasa RD$${config.tasa}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
+    {l:t('kpi_expenses'),v:`${fmtC(gasto)}${mkDelta(gasto,prevH?.gasto,false)}`,s:`${gastoPct}% ${t('kpi_exp_ofincome')} · ${t('kpi_exp_interest')}: ${fmtC(Math.round(interesMensual))}/${t('kpi_exp_month')}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
+    {l:t('kpi_surplus'),v:`${fmtC(resta)}${mkDelta(resta,prevH?prevH.ingresos-prevH.gasto:null,true)}`,s:resta>=0?(ingreso>0?`${Math.round(resta/ingreso*100)}% ${t('kpi_surplus_pct')}`:t('kpi_surplus_pct')):t('kpi_deficit'),c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
+    {l:t('kpi_networth'),v:`${netWorth<0?'('+currencySymbol()+fmt(Math.abs(netWorth))+')':fmtC(netWorth)}${mkDelta(netWorth,prevH?.netWorth,true)}`,s:t('kpi_savings_ef'),c:netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
     {l:t('kpi_savingsrate'),v:`${ingreso>0?Math.round(resta/ingreso*100):0}%`,s:`${t('kpi_savingsrate_sub')}<br><span style="font-size:10px;color:var(--muted)">${t('kpi_savingsrate_tip')}</span>`,c:ingreso>0&&resta/ingreso>=.2?'var(--green)':ingreso>0&&resta/ingreso>=.1?'var(--yellow)':'var(--red)',b:'rgba(167,139,250,.12)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
@@ -3753,10 +3821,10 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   // ── CF Bar ──
   document.getElementById('cfBarCard').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div class="card-title" style="margin:0">${t('cf_dist')} · RD$${fmt(ingreso)}</div>
+      <div class="card-title" style="margin:0">${t('cf_dist')} · ${fmtC(ingreso)}</div>
       <div style="display:flex;gap:16px;font-size:12px">
-        <span style="color:var(--muted)">${t('cf_expenses')}: <span class="mono" style="color:var(--red)">RD$${fmt(gasto)}</span></span>
-        <span style="color:var(--muted)">${t('cf_remainder')}: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span></span>
+        <span style="color:var(--muted)">${t('cf_expenses')}: <span class="mono" style="color:var(--red)">${fmtC(gasto)}</span></span>
+        <span style="color:var(--muted)">${t('cf_remainder')}: <span class="mono" style="color:var(--green)">${fmtC(resta)}</span></span>
       </div>
     </div>
     <div class="cf-bar">
@@ -3764,19 +3832,19 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       <div class="cf-seg" style="width:${Math.max(0,sobrante)}%;background:linear-gradient(90deg,#22d3a0,#06b6d4);color:#052e16">${t('cf_remainder')} ${sobrante}%</div>
     </div>
     <div class="grid g4" style="margin-top:14px;gap:10px">
-      ${[{l:t('cf_withdrawusd'),v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)'},{l:t('cf_rate'),v:`RD$${config.tasa}`,c:'var(--yellow)'},{l:t('cf_savings'),v:`RD$${fmt(cf.ahorros||0)}`,c:'var(--green)'},{l:t('cf_committed'),v:`RD$${fmt(gasto)}`,c:'var(--red)'}]
+      ${[{l:t('cf_withdrawusd'),v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)'},{l:t('cf_rate'),v:`${currencySymbol()}${config.tasa}`,c:'var(--yellow)'},{l:t('cf_savings'),v:`${fmtC(toDisplay(cf.ahorros||0))}`,c:'var(--green)'},{l:t('cf_committed'),v:`${fmtC(gasto)}`,c:'var(--red)'}]
         .map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:10px 14px"><div style="font-size:10px;color:var(--muted)">${i.l}</div><div class="mono" style="font-size:15px;font-weight:700;color:${i.c};margin-top:4px">${i.v}</div></div>`).join('')}
     </div>`;
 
   // ── Gastos Table ──
   const _isPaid=g=>g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0);
   const pendienteMes=gastos.filter(g=>g.adeudado>0&&!_isPaid(g)).reduce((a,g)=>a+g.adeudado,0);
-  document.getElementById('tPagado').textContent='RD$'+fmt(totalPagado);
-  document.getElementById('tAdeudado').textContent='RD$'+fmt(pendienteMes);
+  document.getElementById('tPagado').textContent=fmtC(totalPagado);
+  document.getElementById('tAdeudado').textContent=fmtC(toDisplay(pendienteMes));
   const tbody=document.getElementById('gastosBody');const tblRows=[];
   gastos.forEach(g=>{
     const tc=tipoColors[g.tipo]||'#94a3b8';
-    const pctIng=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
+    const pctIng=ingreso>0?Math.round(toDisplay(g.adeudado)/ingreso*100):0;
     let estLabel,estBg,estFg;
     if(g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0)){estLabel=t('gastostbl_done');estBg='#052e16';estFg='#22d3a0';}
     else if(g.pagado>0&&g.adeudado>0){estLabel=t('gastostbl_partial');estBg='#422006';estFg='#fbbf24';}
@@ -3785,26 +3853,26 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     tblRows.push(`<tr>
       <td data-label="" style="font-weight:600">${escH(g.nombre)}</td>
       <td data-label="${t('gastostbl_tipo')}"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
-      <td data-label="${t('gastostbl_pagado')}" class="num" style="color:${g.pagado>0?'var(--green)':'var(--muted)'}">${g.pagado>0?'RD$'+fmt(g.pagado):'—'}</td>
-      <td data-label="${t('gastostbl_cuota')}" class="num">${g.adeudado>0?'RD$'+fmt(g.adeudado):'—'}</td>
+      <td data-label="${t('gastostbl_pagado')}" class="num" style="color:${g.pagado>0?'var(--green)':'var(--muted)'}">${g.pagado>0?fmtC(toDisplay(g.pagado)):'—'}</td>
+      <td data-label="${t('gastostbl_cuota')}" class="num">${g.adeudado>0?fmtC(toDisplay(g.adeudado)):'—'}</td>
       <td data-label="${t('gastostbl_pctinc')}" class="mono" style="color:${pctIng>15?'var(--red)':pctIng>8?'var(--yellow)':'var(--muted)'};text-align:center">${g.adeudado>0?pctIng+'%':'—'}</td>
       <td data-label="${t('gastostbl_day')}" class="mono" style="color:var(--muted);text-align:center">${g.dia||'—'}</td>
       <td data-label="${t('gastostbl_rate')}" class="mono" style="color:${g.tasa>15?'var(--red)':g.tasa>0?'var(--yellow)':'var(--muted)'};text-align:center">${g.tasa>0?g.tasa+'%':'—'}</td>
-      <td data-label="${t('gastostbl_balance')}" class="num" style="color:${g.balance>0?'var(--red)':'var(--muted)'}">${g.balance>0?'RD$'+fmt(g.balance):'—'}</td>
+      <td data-label="${t('gastostbl_balance')}" class="num" style="color:${g.balance>0?'var(--red)':'var(--muted)'}">${g.balance>0?fmtC(toDisplay(g.balance)):'—'}</td>
       <td data-label="${t('gastostbl_payoff')}" class="mono" style="text-align:center;color:${(()=>{if(g.balance<=0||g.adeudado<=0)return'var(--muted)';const mr=g.tasa>0?g.tasa/100/12:0;if(mr>0&&g.adeudado<g.balance*mr)return'var(--red)';let b=g.balance,m=0;if(mr<=0)m=Math.ceil(b/g.adeudado);else{while(b>0&&m<360){m++;b=Math.max(0,b+b*mr-g.adeudado);}}return m<=12?'var(--green)':m<=36?'var(--yellow)':'var(--red)';})()}">${(()=>{if(g.balance<=0||g.adeudado<=0)return'—';const mr=g.tasa>0?g.tasa/100/12:0;if(mr>0&&g.adeudado<g.balance*mr)return'⚠';let b=g.balance,m=0;if(mr<=0)m=Math.ceil(b/g.adeudado);else{while(b>0&&m<360){m++;b=Math.max(0,b+b*mr-g.adeudado);}}const y=Math.floor(m/12),mo=m%12;return y>0?y+'a '+mo+'m':mo+'m';})()}</td>
       <td data-label="${t('gastostbl_status')}"><span class="pill" style="background:${estBg};color:${estFg}">${estLabel}</span></td>
     </tr>`);
   });
   const totalCuotas=gastos.reduce((a,g)=>a+g.adeudado,0);
-  tblRows.push(`<tr style="background:rgba(59,130,246,.04)"><td colspan="2" style="font-weight:800">${t('gastostbl_total')}</td><td class="num" style="font-weight:800;color:var(--green)">RD$${fmt(totalPagado)}</td><td class="num" style="font-weight:800">RD$${fmt(totalCuotas)}</td><td class="mono" style="text-align:center;font-weight:800;color:var(--muted)">${ingreso>0?Math.round(totalCuotas/ingreso*100)+'%':'—'}</td><td colspan="2"></td><td class="num" style="font-weight:800;color:var(--red)">RD$${fmt(totalBalance)}</td><td></td><td></td></tr>`);
+  tblRows.push(`<tr style="background:rgba(59,130,246,.04)"><td colspan="2" style="font-weight:800">${t('gastostbl_total')}</td><td class="num" style="font-weight:800;color:var(--green)">${fmtC(totalPagado)}</td><td class="num" style="font-weight:800">${fmtC(toDisplay(totalCuotas))}</td><td class="mono" style="text-align:center;font-weight:800;color:var(--muted)">${ingreso>0?Math.round(toDisplay(totalCuotas)/ingreso*100)+'%':'—'}</td><td colspan="2"></td><td class="num" style="font-weight:800;color:var(--red)">${fmtC(totalBalance)}</td><td></td><td></td></tr>`);
   tbody.innerHTML=tblRows.join('');
 
   // ── Deuda KPIs ──
   document.getElementById('deudaKpis').innerHTML=[
-    {l:t('deuda_total'),v:`RD$${fmt(totalBalance)}`,s:`≈ ${config.tasa>0?fmtUSD(totalBalance/config.tasa):'—'}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
+    {l:t('deuda_total'),v:`${fmtC(totalBalance)}`,s:`≈ ${config.tasa>0?fmtUSD(totalBalance/config.tasa):'—'}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
     {l:t('deuda_mostexpensive'),v:masCaraDeuda?escH(masCaraDeuda.nombre):'—',s:masCaraDeuda?`${masCaraDeuda.tasa}% ${t('deuda_annualrate')}`:'—',c:'var(--yellow)',b:'rgba(245,200,66,.1)'},
-    {l:t('deuda_monthly'),v:`RD$${fmt(cuotaDeudas)}`,s:`${t('deuda_onlybalance')} · ${allDeudas.length} ${t('deuda_debts')}`,c:'var(--red)',b:'rgba(244,96,106,.1)'},
-    {l:t('deuda_progress'),v:`${deudaPct}%`,s:`${t('deuda_paid_lbl')} RD$${fmt(Math.round(pagadoReal))}`,c:'var(--accent)',b:'rgba(59,130,246,.1)'},
+    {l:t('deuda_monthly'),v:`${fmtC(cuotaDeudas)}`,s:`${t('deuda_onlybalance')} · ${allDeudas.length} ${t('deuda_debts')}`,c:'var(--red)',b:'rgba(244,96,106,.1)'},
+    {l:t('deuda_progress'),v:`${deudaPct}%`,s:`${t('deuda_paid_lbl')} ${fmtC(Math.round(pagadoReal))}`,c:'var(--accent)',b:'rgba(59,130,246,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:20px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   // ── Deuda Cards ──
@@ -3835,14 +3903,14 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     return `<div class="debt-card">
       <div class="debt-header">
         <div><div class="debt-name">${escH(d.nombre)}</div><span class="pill" style="background:${(tipoColors[d.tipo]||'#64748b')}22;color:${tipoColors[d.tipo]||'#94a3b8'};margin-top:4px;display:inline-block">${escH(d.tipo)}</span></div>
-        <div style="text-align:right"><div class="debt-amount">RD$${fmt(d.balance)}</div>${d.tasa>0?`<div style="font-size:12px;color:${d.tasa>15?'var(--red)':'var(--yellow)'};margin-top:2px">${d.tasa}% ${t('deuda_annualrate')}</div>`:''}</div>
+        <div style="text-align:right"><div class="debt-amount">${fmtC(toDisplay(d.balance))}</div>${d.tasa>0?`<div style="font-size:12px;color:${d.tasa>15?'var(--red)':'var(--yellow)'};margin-top:2px">${d.tasa}% ${t('deuda_annualrate')}</div>`:''}</div>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${pct}% ${t('dcard_oftotal')}</div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       ${indivPct>0?`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;margin-bottom:2px"><span>${t('dcard_payoff_progress')}</span><span>${indivPct}%</span></div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${indivPct}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>`:''}
       <div class="debt-meta">
-        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">RD$${fmt(d.adeudado)}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~RD$${fmt(Math.round(d.balance*(d.tasa/100/12)))}</div></div>`:''}        ${payoffStr}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${t('chk_day')} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
+        ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">${fmtC(toDisplay(d.adeudado))}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~${fmtC(toDisplay(Math.round(d.balance*(d.tasa/100/12))))}</div></div>`:''}        ${payoffStr}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${t('chk_day')} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
       <div style="margin-top:10px;text-align:right"><button class="btn btn-sm btn-success" onclick="liquidarDeuda(${gastos.indexOf(d)})">${t('dcard_liquidar')}</button></div>
     </div>`;
   }).join('');
@@ -3851,7 +3919,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   document.getElementById('deudaSummary').innerHTML=`
     <div class="card-title">${t('deuda_summary_title')}</div>
     <div class="grid g4" style="gap:10px;margin-bottom:14px">
-      ${[{l:t('deuda_balancetotal'),v:`RD$${fmt(totalBalance)}`,c:'var(--red)'},{l:t('deuda_original'),v:`RD$${fmt(totalOriginal)}`,c:'var(--muted)'},{l:t('deuda_paidtodate'),v:`RD$${fmt(Math.round(pagadoReal))}`,c:'var(--green)'},{l:t('deuda_advance'),v:`${deudaPct}%`,c:'var(--accent)'}]
+      ${[{l:t('deuda_balancetotal'),v:`${fmtC(totalBalance)}`,c:'var(--red)'},{l:t('deuda_original'),v:`${fmtC(totalOriginal)}`,c:'var(--muted)'},{l:t('deuda_paidtodate'),v:`${fmtC(Math.round(pagadoReal))}`,c:'var(--green)'},{l:t('deuda_advance'),v:`${deudaPct}%`,c:'var(--accent)'}]
         .map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:12px 16px"><div style="font-size:10px;color:var(--muted)">${i.l}</div><div class="mono" style="font-size:18px;font-weight:700;color:${i.c};margin-top:4px">${i.v}</div></div>`).join('')}
     </div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${t('deuda_globalprogress')}</div>
@@ -3862,9 +3930,9 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   document.getElementById('netWorthAlert').innerHTML=`<div class="${netWorth<0?'alert-box':'card'}" style="${netWorth>=0?'border-color:rgba(34,211,160,.2)':''}">
     <div style="font-size:22px">${netWorth<0?'⚠️':'✅'}</div>
     <div style="flex:1">
-      <div style="font-weight:700;color:${netWorth<0?'var(--red)':'var(--green)'};font-size:14px">${netWorth<0?t('nw_negative')+': (RD$'+fmt(Math.abs(netWorth))+')':t('nw_positive')+': RD$'+fmt(netWorth)}</div>
+      <div style="font-weight:700;color:${netWorth<0?'var(--red)':'var(--green)'};font-size:14px">${netWorth<0?t('nw_negative')+': ('+currencySymbol()+fmt(Math.abs(netWorth))+')':t('nw_positive')+': '+fmtC(netWorth)}</div>
       <div style="font-size:12px;color:var(--muted);margin-top:4px">${netWorth<0?t('nw_advice_neg')+(masCaraDeuda?' ('+escH(masCaraDeuda.nombre)+' '+masCaraDeuda.tasa+'%).':'.' ):t('nw_advice_pos')}</div>
-      ${interesMensual>0?`<div style="font-size:11px;margin-top:8px;padding:6px 10px;background:rgba(244,96,106,.08);border-radius:6px;color:var(--muted)">💸 ${t('nw_interest_label')}: <span style="color:var(--red);font-weight:700;font-family:var(--mono)">RD$${fmt(Math.round(interesMensual))}</span> — <span style="color:var(--yellow)">RD$${fmt(Math.round(interesMensual*12))}/año ${t('nw_peryear')}</span></div>`:''}
+      ${interesMensual>0?`<div style="font-size:11px;margin-top:8px;padding:6px 10px;background:rgba(244,96,106,.08);border-radius:6px;color:var(--muted)">💸 ${t('nw_interest_label')}: <span style="color:var(--red);font-weight:700;font-family:var(--mono)">${fmtC(Math.round(interesMensual))}</span> — <span style="color:var(--yellow)">${fmtC(Math.round(interesMensual*12))}/año ${t('nw_peryear')}</span></div>`:''}
     </div></div>`;
 
   // ── Emergency KPIs ──
@@ -3872,10 +3940,10 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const efMonthsColor=efMonthsCovered>=6?'var(--green)':efMonthsCovered>=3?'var(--yellow)':'var(--red)';
   const efMonthsLabel=efMonthsCovered>=1?`${efMonthsCovered.toFixed(1)} ${t('ef_months')}`:`${Math.round(efMonthsCovered*30)} ${t('ef_days')}`;
   document.getElementById('efKpis').innerHTML=[
-    {l:t('ef_balance'),v:`RD$${fmt(efTotal)}`,s:`${t('ef_goal')} RD$${fmt(efMeta)} ${t('ef_goal_word')}`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
-    {l:t('ef_missing'),v:efTotal>=efMeta&&efMeta>0?t('ef_overfunded'):`RD$${fmt(Math.max(0,efMeta-efTotal))}`,s:`${efMeta>0?Math.min(100,Math.round((efTotal/efMeta)*100)):0}% ${t('ef_completed')}`,c:efTotal>=efMeta&&efMeta>0?'var(--green)':'var(--red)',b:efTotal>=efMeta&&efMeta>0?'rgba(34,211,160,.12)':'rgba(244,96,106,.12)'},
+    {l:t('ef_balance'),v:`${fmtC(efTotal)}`,s:`${t('ef_goal')} ${fmtC(efMeta)} ${t('ef_goal_word')}`,c:'var(--yellow)',b:'rgba(245,200,66,.12)'},
+    {l:t('ef_missing'),v:efTotal>=efMeta&&efMeta>0?t('ef_overfunded'):`${fmtC(Math.max(0,efMeta-efTotal))}`,s:`${efMeta>0?Math.min(100,Math.round((efTotal/efMeta)*100)):0}% ${t('ef_completed')}`,c:efTotal>=efMeta&&efMeta>0?'var(--green)':'var(--red)',b:efTotal>=efMeta&&efMeta>0?'rgba(34,211,160,.12)':'rgba(244,96,106,.12)'},
     {l:t('ef_coverage'),v:efMonthsLabel,s:`${t('ef_target')}: 3-6 ${t('ef_months')}`,c:efMonthsColor,b:efMonthsCovered>=3?'rgba(34,211,160,.12)':'rgba(244,96,106,.12)'},
-    {l:t('ef_surplus'),v:`RD$${fmt(resta)}`,s:resta>=0?t('ef_available'):t('ef_deficit'),c:resta>=0?'var(--green)':'var(--red)',b:'rgba(34,211,160,.1)'},
+    {l:t('ef_surplus'),v:`${fmtC(resta)}`,s:resta>=0?t('ef_available'):t('ef_deficit'),c:resta>=0?'var(--green)':'var(--red)',b:'rgba(34,211,160,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
 
   const efEl=document.getElementById('efFunds');efEl.innerHTML='';
@@ -3902,7 +3970,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       </div></div>
       <div style="display:flex;align-items:center;gap:10px"><div class="progress-wrap" style="flex:1;margin:0"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       <span class="mono" style="font-size:12px;color:${pct>90?'var(--green)':'var(--muted)'};min-width:36px;text-align:right">${pct}%</span></div>
-      ${faltaRD>0?`<div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--muted)"><span>${t('ef_suggested')}: <span class="mono" style="color:var(--accent)">RD$${fmt(aporteSug)}/${t('kpi_exp_month')}${isUSD?' (≈USD$'+fmt(Math.round(aporteSug/tasa))+')':''}</span></span><span>${t('ef_goalin')} <span class="mono" style="color:var(--yellow)">~${mesesFondo} ${t('ef_months')}</span></span></div>`:''}
+      ${faltaRD>0?`<div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--muted)"><span>${t('ef_suggested')}: <span class="mono" style="color:var(--accent)">${fmtC(aporteSug)}/${t('kpi_exp_month')}${isUSD?' (≈USD$'+fmt(Math.round(aporteSug/tasa))+')':''}</span></span><span>${t('ef_goalin')} <span class="mono" style="color:var(--yellow)">~${mesesFondo} ${t('ef_months')}</span></span></div>`:''}
     </div>`;
   }).join('');
   // Fix #3: Empty state + Fix #4: Recommended target + Fix #6: Account tip + Fix #7: Replenishment tip
@@ -3910,28 +3978,28 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     efEl.innerHTML=`<div style="text-align:center;padding:28px;color:var(--muted)"><div style="font-size:14px;font-weight:700;margin-bottom:8px">${t('ef_empty_title')}</div><div style="font-size:12px;line-height:1.6">${t('ef_empty_sub')}</div></div>`;
   }
   const recMin=Math.round(gasto*3);const recMax=Math.round(gasto*6);
-  if(gasto>0) efEl.innerHTML+=`<div style="margin-top:12px;padding:12px 16px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:10px;font-size:12px;color:var(--muted)"><div style="font-weight:700;margin-bottom:6px;color:var(--accent)">${t('ef_recommended')}</div><div style="display:flex;gap:16px;flex-wrap:wrap"><span>${t('ef_rec_min')}: <span class="mono" style="color:var(--yellow);font-weight:700">RD$${fmt(recMin)}</span></span><span>${t('ef_rec_max')}: <span class="mono" style="color:var(--green);font-weight:700">RD$${fmt(recMax)}</span></span></div></div>`;
+  if(gasto>0) efEl.innerHTML+=`<div style="margin-top:12px;padding:12px 16px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:10px;font-size:12px;color:var(--muted)"><div style="font-weight:700;margin-bottom:6px;color:var(--accent)">${t('ef_recommended')}</div><div style="display:flex;gap:16px;flex-wrap:wrap"><span>${t('ef_rec_min')}: <span class="mono" style="color:var(--yellow);font-weight:700">${fmtC(recMin)}</span></span><span>${t('ef_rec_max')}: <span class="mono" style="color:var(--green);font-weight:700">${fmtC(recMax)}</span></span></div></div>`;
   efEl.innerHTML+=`<div style="font-size:11px;color:var(--muted);margin-top:10px;padding:8px 12px;background:rgba(34,211,160,.05);border:1px solid rgba(34,211,160,.15);border-radius:8px;line-height:1.6">${t('ef_account_tip')}<br>${t('ef_replenish_tip')}</div>`;
   // Fix #5: Show debt priority note if applicable
   if(hasHighRateDebt&&efTotal<oneMonthExpenses) efEl.innerHTML+=`<div style="font-size:11px;color:var(--red);margin-top:8px;padding:8px 12px;background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.18);border-radius:8px">⚠️ ${t('ef_debt_priority')}</div>`;
 
   document.getElementById('cfRows').innerHTML=[
-    {l:t('cf_monthlyincome'),v:`RD$${fmt(ingreso)}`,c:'var(--green)',d:`${fmtUSD(config.ingresoUSD)} × RD$${config.tasa}`},
-    {l:t('cf_monthlygasto'),v:`RD$${fmt(gasto)}`,c:'var(--red)',d:t('cf_esenciales')},
-    {l:t('cf_rate_global'),v:`RD$${config.tasa}`,c:'var(--yellow)',d:t('cf_global')},
+    {l:t('cf_monthlyincome'),v:`${fmtC(ingreso)}`,c:'var(--green)',d:`${fmtUSD(config.ingresoUSD)} × ${currencySymbol()}${config.tasa}`},
+    {l:t('cf_monthlygasto'),v:`${fmtC(gasto)}`,c:'var(--red)',d:t('cf_esenciales')},
+    {l:t('cf_rate_global'),v:`${currencySymbol()}${config.tasa}`,c:'var(--yellow)',d:t('cf_global')},
     {l:t('cf_withdrawusd2'),v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)',d:t('cf_expensedivrate')},
-    {l:t('cf_remainder2'),v:`RD$${fmt(resta)}`,c:resta>=0?'var(--green)':'var(--red)',d:resta>=0?t('cf_surplus2'):t('cf_deficit2')},
-    {l:t('cf_savings2'),v:`RD$${fmt(cf.ahorros||0)}`,c:'var(--purple)',d:t('cf_manual')},
-    {l:t('cf_savingsbalance'),v:`RD$${fmt(cf.balanceAhorros||0)}`,c:'var(--purple)',d:t('cf_accumulated')},
+    {l:t('cf_remainder2'),v:`${fmtC(resta)}`,c:resta>=0?'var(--green)':'var(--red)',d:resta>=0?t('cf_surplus2'):t('cf_deficit2')},
+    {l:t('cf_savings2'),v:`${fmtC(toDisplay(cf.ahorros||0))}`,c:'var(--purple)',d:t('cf_manual')},
+    {l:t('cf_savingsbalance'),v:`${fmtC(toDisplay(cf.balanceAhorros||0))}`,c:'var(--purple)',d:t('cf_accumulated')},
   ].map(r=>`<div class="cf-row"><div><div class="cf-label">${r.l}</div><div class="cf-desc">${r.d}</div></div><div class="cf-val" style="color:${r.c}">${r.v}</div></div>`).join('');
 
   const meses=resta>0&&(efMeta-efTotal)>0?Math.ceil((efMeta-efTotal)/efSurplusAlloc):'—';
-  const intMensualEf=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
+  const intMensualEf=toDisplay(_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0));
   const intPct=resta>0?Math.round(intMensualEf/resta*100):0;
   const allocPctDisplay=Math.round(efAllocationPct*100);
   document.getElementById('efTip').innerHTML=`<div style="margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:var(--yellow)">${t('ef_plan_title')}</div></div>
-    <div style="font-size:13px;color:var(--muted);line-height:2">${t('ef_plan_surplus')}: <span class="mono" style="color:var(--green)">RD$${fmt(resta)}</span>/${t('kpi_exp_month')}<br>${allocPctDisplay}% ${t('ef_plan_to_ef')}: <span class="mono" style="color:var(--accent)">RD$${fmt(Math.round(efSurplusAlloc))}/${t('kpi_exp_month')}</span><br><br>${t('ef_plan_timetarget')}<br><span class="mono" style="color:var(--yellow);font-size:20px;font-weight:700">~${meses} ${t('ef_months')}</span></div>
-    ${intMensualEf>0?`<div style="margin-top:16px;padding:10px 14px;background:rgba(244,96,106,.07);border-radius:8px;border:1px solid rgba(244,96,106,.2)"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">${t('ef_plan_interest_title')}</div><div style="font-size:12px;color:var(--muted)">RD$${fmt(Math.round(intMensualEf))}/${t('kpi_exp_month')} ${t('ef_plan_in_interest')} = <span style="color:${intPct>80?'var(--red)':'var(--yellow)'};font-weight:700">${intPct}% ${t('ef_plan_of_surplus')}</span>. ${t('ef_plan_interest_tip')}</div></div>`:''}`;
+    <div style="font-size:13px;color:var(--muted);line-height:2">${t('ef_plan_surplus')}: <span class="mono" style="color:var(--green)">${fmtC(resta)}</span>/${t('kpi_exp_month')}<br>${allocPctDisplay}% ${t('ef_plan_to_ef')}: <span class="mono" style="color:var(--accent)">${fmtC(Math.round(efSurplusAlloc))}/${t('kpi_exp_month')}</span><br><br>${t('ef_plan_timetarget')}<br><span class="mono" style="color:var(--yellow);font-size:20px;font-weight:700">~${meses} ${t('ef_months')}</span></div>
+    ${intMensualEf>0?`<div style="margin-top:16px;padding:10px 14px;background:rgba(244,96,106,.07);border-radius:8px;border:1px solid rgba(244,96,106,.2)"><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">${t('ef_plan_interest_title')}</div><div style="font-size:12px;color:var(--muted)">${fmtC(Math.round(intMensualEf))}/${t('kpi_exp_month')} ${t('ef_plan_in_interest')} = <span style="color:${intPct>80?'var(--red)':'var(--yellow)'};font-weight:700">${intPct}% ${t('ef_plan_of_surplus')}</span>. ${t('ef_plan_interest_tip')}</div></div>`:''}`;
 
   // ── ForNow ──
   const fnKpis=document.getElementById('forNowKpis');
@@ -3964,9 +4032,9 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   // Fix #9: available row tint — green when positive, red when negative
   const availSt=fnDisp>=0?'background:rgba(34,211,160,.06);border:1px solid rgba(34,211,160,.2);border-radius:10px;':'background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:10px;';
   document.getElementById('forNowDetail').innerHTML=`<div class="card-title">${t('fornow_availability')} · ${t('fornow_updated')} ${fDate}</div>
-    ${[{l:t('fornow_total'),v:`RD$${fmt(fnTotal)}`,c:'var(--text)',d:t('fornow_accounts'),st:''},
-       {l:t('fornow_committed'),v:`(RD$${fmt(Math.abs(fnComp))})`,c:'var(--red)',d:t('fornow_commitments'),st:''},
-       {l:t('fornow_available'),v:fnDisp<0?`(RD$${fmt(Math.abs(fnDisp))})`:`RD$${fmt(fnDisp)}`,c:fnDisp>=0?'var(--green)':'var(--red)',d:t('fornow_aftercommit'),st:availSt}]
+    ${[{l:t('fornow_total'),v:`${fmtC(toDisplay(fnTotal))}`,c:'var(--text)',d:t('fornow_accounts'),st:''},
+       {l:t('fornow_committed'),v:`(${fmtC(toDisplay(Math.abs(fnComp)))})`,c:'var(--red)',d:t('fornow_commitments'),st:''},
+       {l:t('fornow_available'),v:fnDisp<0?`(${fmtC(toDisplay(Math.abs(fnDisp)))})`:`${fmtC(toDisplay(fnDisp))}`,c:fnDisp>=0?'var(--green)':'var(--red)',d:t('fornow_aftercommit'),st:availSt}]
       .map(r=>`<div class="cf-row" style="${r.st}"><div><div class="cf-label">${r.l}</div><div class="cf-desc">${r.d}</div></div><div class="cf-val" style="color:${r.c}">${r.v}</div></div>`).join('')}
     ${fnDisp<0?`<div style="padding:8px 12px;background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:8px;font-size:11px;color:var(--red);margin-top:8px;line-height:1.6">⚠️ ${t('fornow_negative_tip')}</div>`:''}
     ${(()=>{
@@ -3985,7 +4053,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     charts.pieChart=new Chart(document.getElementById('pieChart'),{
       type:'doughnut',
       data:{labels:Object.keys(tipoColors),datasets:[{data:Object.keys(tipoColors).map(t=>gastos.filter(g=>g.tipo===t).reduce((a,g)=>a+g.adeudado,0)),backgroundColor:Object.values(tipoColors).map(c=>c+'cc'),borderColor:'var(--surface)',borderWidth:3,hoverOffset:8}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:10,filter:i=>i.raw>0}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}}}
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:10,filter:i=>i.raw>0}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}}}
     });
     charts.barChart=new Chart(document.getElementById('barChart'),{
       type:'bar',
@@ -3993,20 +4061,20 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
         {label:'Pagado',data:gastos.filter(g=>g.adeudado>0).map(g=>g.pagado),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:4},
         {label:'Pendiente',data:gastos.filter(g=>g.adeudado>0).map(g=>Math.max(0,g.adeudado-g.pagado)),backgroundColor:'#f4606a66',borderColor:'#f4606a',borderWidth:2,borderRadius:4},
       ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
         scales:{x:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxRotation:40}},y:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
     });
     if(allDeudas2.length){
       charts.deudaBar=new Chart(document.getElementById('deudaBar'),{
         type:'bar',
         data:{labels:allDeudas2.map(d=>d.nombre),datasets:[{label:'Balance',data:allDeudas2.map(d=>d.balance),backgroundColor:allDeudas2.map(d=>(tipoColors[d.tipo]||'#f87171')+'cc'),borderColor:allDeudas2.map(d=>tipoColors[d.tipo]||'#f87171'),borderWidth:2,borderRadius:6}]},
-        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
           scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:11}}}}}
       });
       charts.deudaPie=new Chart(document.getElementById('deudaPie'),{
         type:'doughnut',
         data:{labels:allDeudas2.map(d=>d.nombre),datasets:[{data:allDeudas2.map(d=>d.balance),backgroundColor:allDeudas2.map((_,i)=>COLORS[i%COLORS.length]+'cc'),borderColor:'var(--surface)',borderWidth:3,hoverOffset:10}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10,color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)} (${totalBalance>0?Math.round(ctx.raw/totalBalance*100):0}%)`}}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10,color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)} (${totalBalance>0?Math.round(ctx.raw/totalBalance*100):0}%)`}}}}
       });
     }
     const _gRows=gastos.filter(g=>g.adeudado>0);
@@ -4019,16 +4087,16 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
           {label:'Pendiente',data:_gRows.map(g=>Math.max(0,g.adeudado-(g.pagadoMes?g.adeudado:Math.min(g.pagado,g.adeudado)))),backgroundColor:_gRows.map(g=>(tipoColors[g.tipo]||'#f87171')+'99'),borderColor:_gRows.map(g=>tipoColors[g.tipo]||'#f87171'),borderWidth:2,borderRadius:4,stack:'s'}
         ]
       },
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
         scales:{x:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxRotation:40}},y:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
     });
     charts.efChart=new Chart(document.getElementById('efChart'),{
       type:'bar',
       data:{labels:emerg.fondos.map(e=>e.fondo+(e.moneda==='USD'?' (USD)':'')),datasets:[
-        {label:'Balance Actual (RD$)',data:emerg.fondos.map(e=>fondoToRD(e).balance),backgroundColor:'#22d3a099',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
-        {label:'Meta (RD$)',data:emerg.fondos.map(e=>fondoToRD(e).meta),backgroundColor:'rgba(26,37,64,.5)',borderColor:'#1a2540',borderWidth:1,borderRadius:6},
+        {label:t('ef_balance')+' ('+currencySymbol()+')',data:emerg.fondos.map(e=>fondoToRD(e).balance),backgroundColor:'#22d3a099',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
+        {label:t('ef_goal_lbl')+' ('+currencySymbol()+')',data:emerg.fondos.map(e=>fondoToRD(e).meta),backgroundColor:'rgba(26,37,64,.5)',borderColor:'#1a2540',borderWidth:1,borderRadius:6},
       ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
         scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
     });
     // EF Coverage doughnut — months of expenses covered
@@ -4061,7 +4129,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
           {label:t('fornow_chart_assets'),data:hBalances,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.10)',tension:.4,fill:true,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#3b82f6'},
           {label:t('fornow_chart_nw'),data:hNW,borderColor:'#22d3a0',backgroundColor:'rgba(34,211,160,.06)',tension:.4,fill:false,pointRadius:historial.length===1?6:4,pointBackgroundColor:'#22d3a0'},
         ]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
           scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
       });
       fnChartWrap.style.display='';
@@ -4095,6 +4163,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
 // HISTORIAL
 // ══════════════════════════════════
 function buildHistorial(historial,config){
+  const hToD=(val,h)=>config.monedaPrincipal==='USD'?val/(h.tasa||config.tasa||60):val;
   const reversed=[...historial].reverse();
   const labels=reversed.map(h=>`${h.mes} ${h.anio}`);
   const soloUno=historial.length===1;
@@ -4107,8 +4176,8 @@ function buildHistorial(historial,config){
   }
   document.getElementById('histKpis').innerHTML=[
     {l:t('hist_lasmonth'),v:`${ultimo.mes} ${ultimo.anio}`,s:t('hist_recent'),c:'var(--accent)',b:'rgba(59,130,246,.1)'},
-    {l:t('hist_income'),v:`RD$${fmt(ultimo.ingresos)}`,s:t('hist_monthlydata'),c:'var(--green)',b:'rgba(34,211,160,.1)'},
-    {l:t('hist_networth'),v:`RD$${ultimo.netWorth<0?'('+fmt(Math.abs(ultimo.netWorth))+')':fmt(ultimo.netWorth)}`,s:t('hist_assetminusliab'),c:ultimo.netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
+    {l:t('hist_income'),v:`${fmtC(hToD(ultimo.ingresos,ultimo))}`,s:t('hist_monthlydata'),c:'var(--green)',b:'rgba(34,211,160,.1)'},
+    {l:t('hist_networth'),v:`${ultimo.netWorth<0?'('+currencySymbol()+fmt(Math.abs(hToD(ultimo.netWorth,ultimo)))+')':fmtC(hToD(ultimo.netWorth,ultimo))}`,s:t('hist_assetminusliab'),c:ultimo.netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
     {l:t('hist_months'),v:String(historial.length),s:t('hist_totalrecorded'),c:'var(--purple)',b:'rgba(167,139,250,.1)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:${k.l===t('hist_lasmonth')?'18':'22'}px">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
   // Fix #12: histCount i18n
@@ -4124,13 +4193,13 @@ function buildHistorial(historial,config){
     hb.innerHTML+=`<tr>
       <td data-label="" style="font-weight:700">${escH(h.mes)}</td>
       <td data-label="${t('hist_col_year')}" class="mono" style="color:var(--muted);text-align:right">${h.anio}</td>
-      <td data-label="${t('hist_col_income')}" class="num" style="color:var(--green)">RD$${fmt(h.ingresos)}</td>
-      <td data-label="${t('hist_col_expense')}" class="num" style="color:var(--red)">RD$${fmt(h.gasto)}</td>
-      <td data-label="${t('hist_col_savings')}" class="num" style="color:${ahorroColor}">${h.ahorro<0?'(RD$'+fmt(Math.abs(h.ahorro))+')':'RD$'+fmt(h.ahorro)}</td>
+      <td data-label="${t('hist_col_income')}" class="num" style="color:var(--green)">${fmtC(hToD(h.ingresos,h))}</td>
+      <td data-label="${t('hist_col_expense')}" class="num" style="color:var(--red)">${fmtC(hToD(h.gasto,h))}</td>
+      <td data-label="${t('hist_col_savings')}" class="num" style="color:${ahorroColor}">${h.ahorro<0?'('+currencySymbol()+fmt(Math.abs(hToD(h.ahorro,h)))+')':fmtC(hToD(h.ahorro,h))}</td>
       <td data-label="${t('hist_col_savingsrate')}" class="mono" style="color:${srColor};text-align:right">${tasaStr}</td>
-      <td data-label="${t('hist_col_debts')}" class="num" style="color:var(--red)">RD$${fmt(h.deudas)}</td>
-      <td data-label="${t('hist_col_emergency')}" class="num" style="color:var(--yellow)">RD$${fmt(h.emergencia)}</td>
-      <td data-label="${t('hist_col_nw')}" class="num" style="color:${nwColor}">${h.netWorth<0?'(RD$'+fmt(Math.abs(h.netWorth))+')':'RD$'+fmt(h.netWorth)}</td>
+      <td data-label="${t('hist_col_debts')}" class="num" style="color:var(--red)">${fmtC(hToD(h.deudas,h))}</td>
+      <td data-label="${t('hist_col_emergency')}" class="num" style="color:var(--yellow)">${fmtC(hToD(h.emergencia,h))}</td>
+      <td data-label="${t('hist_col_nw')}" class="num" style="color:${nwColor}">${h.netWorth<0?'('+currencySymbol()+fmt(Math.abs(hToD(h.netWorth,h)))+')':fmtC(hToD(h.netWorth,h))}</td>
       <td data-label="${t('hist_col_rate')}" class="mono" style="color:var(--muted);text-align:right">${h.tasa||'—'}</td>
     </tr>`;
   });
@@ -4141,7 +4210,7 @@ function buildHistorial(historial,config){
     `<span>💱 ${t('hist_rate_note')}</span></div>`);
   // Fix #9: chart labels i18n
   // Net worth projection (3-month linear extrapolation)
-  const nwData=reversed.map(h=>h.netWorth);
+  const nwData=reversed.map(h=>hToD(h.netWorth,h));
   const projLabels=[...labels];
   const projData=nwData.map(()=>null);// nulls for historical points
   const PROJ_MONTHS=3;
@@ -4162,7 +4231,7 @@ function buildHistorial(historial,config){
   }
   // Pad existing datasets with nulls for projection months
   const nwPadded=[...nwData,...Array(projLabels.length-nwData.length).fill(null)];
-  const debtPadded=[...reversed.map(h=>-h.deudas),...Array(projLabels.length-reversed.length).fill(null)];
+  const debtPadded=[...reversed.map(h=>-hToD(h.deudas,h)),...Array(projLabels.length-reversed.length).fill(null)];
 
   charts.histLine=new Chart(document.getElementById('histLine'),{
     type:'line',
@@ -4171,25 +4240,25 @@ function buildHistorial(historial,config){
       {label:t('hist_chart_debt'),data:debtPadded,borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a',spanGaps:false},
       {label:t('hist_chart_proj'),data:projData,borderColor:'#22d3a0',borderDash:[6,4],backgroundColor:'transparent',tension:.3,fill:false,pointRadius:3,pointBackgroundColor:'#22d3a066',pointBorderColor:'#22d3a0',pointStyle:'circle',spanGaps:false},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>{const v=ctx.raw;return v!==null?` RD$${fmt(Math.abs(v))}`:''}}}},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>{const v=ctx.raw;return v!==null?` ${fmtC(Math.abs(v))}`:''}}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:11}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:v<=-1e6?`(${(-v/1e6).toFixed(1)}M)`:`${(v/1000).toFixed(0)}k`}}}}
   });
   charts.histBar=new Chart(document.getElementById('histBar'),{
     type:'bar',
     data:{labels,datasets:[
-      {label:t('hist_chart_income'),data:reversed.map(h=>h.ingresos),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
-      {label:t('hist_chart_expense'),data:reversed.map(h=>h.gasto),backgroundColor:'#f4606a66',borderColor:'#f4606a',borderWidth:2,borderRadius:6},
+      {label:t('hist_chart_income'),data:reversed.map(h=>hToD(h.ingresos,h)),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:6},
+      {label:t('hist_chart_expense'),data:reversed.map(h=>hToD(h.gasto,h)),backgroundColor:'#f4606a66',borderColor:'#f4606a',borderWidth:2,borderRadius:6},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
   });
   charts.histDeudaLine=new Chart(document.getElementById('histDeudaLine'),{
     type:'line',
     data:{labels,datasets:[
-      {label:t('hist_chart_debtbal'),data:reversed.map(h=>h.deudas),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
-      {label:t('hist_chart_ef'),data:reversed.map(h=>h.emergencia),borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f5c842'},
+      {label:t('hist_chart_debtbal'),data:reversed.map(h=>hToD(h.deudas,h)),borderColor:'#f4606a',backgroundColor:'rgba(244,96,106,.08)',tension:.4,fill:true,pointRadius:soloUno?6:4,pointBackgroundColor:'#f4606a'},
+      {label:t('hist_chart_ef'),data:reversed.map(h=>hToD(h.emergencia,h)),borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.06)',tension:.4,fill:false,pointRadius:soloUno?6:4,pointBackgroundColor:'#f5c842'},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
       scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}}}}
   });
   // Fix 3.4: Savings rate trend chart
@@ -4234,10 +4303,10 @@ function buildAnalisisSummary(gastos,ingreso,gasto,interesMensual){
   el.innerHTML=`<div class="card-title">${t('ana_summary_title')}</div>
     <div class="grid g4" style="gap:10px;margin-top:10px">
       ${[
-        {l:t('ana_monthly_obligations'),v:`RD$${fmt(gasto)}`,c:'var(--red)'},
-        {l:t('ana_monthly_interest'),v:`RD$${fmt(Math.round(interesMensual))}`,c:'var(--yellow)'},
+        {l:t('ana_monthly_obligations'),v:`${fmtC(gasto)}`,c:'var(--red)'},
+        {l:t('ana_monthly_interest'),v:`${fmtC(Math.round(interesMensual))}`,c:'var(--yellow)'},
         {l:t('ana_debt_free_in'),v:durStr,c:durColor},
-        {l:t('ana_total_interest'),v:hasInfinite?'∞':`RD$${fmt(totalInterest)}`,c:'var(--red)'},
+        {l:t('ana_total_interest'),v:hasInfinite?'∞':`${fmtC(toDisplay(totalInterest))}`,c:'var(--red)'},
       ].map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:12px 16px"><div style="font-size:10px;color:var(--muted)">${i.l}</div><div class="mono" style="font-size:18px;font-weight:700;color:${i.c};margin-top:4px">${i.v}</div></div>`).join('')}
     </div>
     ${intPctOfSurplus>50?`<div style="margin-top:10px;padding:8px 12px;background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.15);border-radius:8px;font-size:11px;color:var(--red)">⚠ ${t('ana_interest_warning').replace('{pct}',intPctOfSurplus)}</div>`:''}`;
@@ -4246,10 +4315,10 @@ function buildAnalisisSummary(gastos,ingreso,gasto,interesMensual){
 function buildCashflowWaterfall(ingreso,gastos,config,metas){
   const el=document.getElementById('cashflowWaterfall');
   if(!el||ingreso<=0){if(el)el.innerHTML='';return;}
-  const obligations=gastos.reduce((a,g)=>a+(g.adeudado||0),0);
-  const txGasto=(_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio).reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
-  const goalContrib=(metas||[]).reduce((a,m)=>a+(m.monthly||0),0);
-  const interest=gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
+  const obligations=toDisplay(gastos.reduce((a,g)=>a+(g.adeudado||0),0));
+  const txGasto=toDisplay((_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio).reduce((a,t)=>a+(parseFloat(t.monto)||0),0));
+  const goalContrib=toDisplay((metas||[]).reduce((a,m)=>a+(m.monthly||0),0));
+  const interest=toDisplay(gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0));
   const surplus=ingreso-obligations-txGasto-goalContrib;
   const steps=[
     {l:t('wf_income'),v:ingreso,type:'total'},
@@ -4267,7 +4336,7 @@ function buildCashflowWaterfall(ingreso,gastos,config,metas){
     return`<div style="display:grid;grid-template-columns:120px 1fr 90px;gap:8px;align-items:center;padding:6px 0">
       <div style="font-size:12px;color:var(--muted)">${s.l}</div>
       ${bar(s.v,maxVal,color)}
-      <div class="mono" style="font-size:13px;font-weight:700;color:${color};text-align:right">${sign}RD$${fmt(Math.abs(Math.round(s.v)))}</div>
+      <div class="mono" style="font-size:13px;font-weight:700;color:${color};text-align:right">${sign}${fmtC(Math.abs(Math.round(s.v)))}</div>
     </div>`;
   }).join('');
   const intNote=interest>0?`<div style="font-size:10px;color:var(--muted);margin-top:6px">💡 ${t('wf_interest_note').replace('{v}',fmt(Math.round(interest)))}</div>`:'';
@@ -4303,8 +4372,8 @@ function buildExpenseTrend(historial,gastos){
     const pctStr=delta===0?'—':`${arrow} ${Math.abs(pct)}%`;
     return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(26,37,64,.4)">
       <div style="font-size:13px;font-weight:600;color:var(--text)">${escH(r.name)}</div>
-      <div class="mono" style="font-size:12px;color:var(--muted);text-align:right">RD$${fmt(r.prev)}</div>
-      <div class="mono" style="font-size:12px;font-weight:700;color:var(--text);text-align:right">RD$${fmt(r.curr)}</div>
+      <div class="mono" style="font-size:12px;color:var(--muted);text-align:right">${fmtC(toDisplay(r.prev))}</div>
+      <div class="mono" style="font-size:12px;font-weight:700;color:var(--text);text-align:right">${fmtC(toDisplay(r.curr))}</div>
       <div class="mono" style="font-size:12px;font-weight:700;color:${arrowColor};text-align:right;min-width:70px">${pctStr}</div>
     </div>`;
   }).join('');
@@ -4325,7 +4394,7 @@ function buildExpenseTrend(historial,gastos){
         <div style="flex:1;background:var(--surface2);border-radius:99px;height:6px;overflow:hidden">
           <div style="height:6px;border-radius:99px;background:${tc};width:${Math.min(100,Math.round(val/curr.gasto*100)||0)}%"></div>
         </div>
-        <span class="mono" style="font-size:12px;font-weight:700;color:var(--text)">RD$${fmt(val)}</span>
+        <span class="mono" style="font-size:12px;font-weight:700;color:var(--text)">${fmtC(toDisplay(val))}</span>
         <span style="font-size:11px;color:var(--muted)">${Math.round(val/curr.gasto*100)||0}%</span>
       </div>`;
     }).join('');
@@ -4353,7 +4422,7 @@ function buildSavingsGoals(){
     kpiEl.innerHTML=[
       {l:t('metas_kpi_total'),v:String(metas.length),c:'var(--accent)',b:'rgba(59,130,246,.1)'},
       {l:t('metas_kpi_done'),v:String(done),c:'var(--green)',b:'rgba(34,211,160,.1)'},
-      {l:t('metas_kpi_saved'),v:`RD$${fmt(totalSaved)}`,c:'var(--purple)',b:'rgba(167,139,250,.1)'},
+      {l:t('metas_kpi_saved'),v:`${fmtC(toDisplay(totalSaved))}`,c:'var(--purple)',b:'rgba(167,139,250,.1)'},
     ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div></div>`).join('');
   }
 
@@ -4432,7 +4501,7 @@ function buildSavingsGoals(){
     // Fix #2: aggregate monthly vs surplus warning
     const totalMonthly=metas.reduce((a,m)=>a+(m.monthly||0),0);
     if(totalMonthly>0&&totalMonthly>surplus&&surplus>0){
-      listEl.innerHTML+=`<div style="padding:10px 14px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;font-size:12px;color:var(--red);line-height:1.6;margin-bottom:8px">${t('metas_overcommit').replace('{total}',fmt(totalMonthly)).replace('{surplus}',fmt(Math.round(surplus)))}</div>`;
+      listEl.innerHTML+=`<div style="padding:10px 14px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;font-size:12px;color:var(--red);line-height:1.6;margin-bottom:8px">${t('metas_overcommit').replace('{total}',fmt(toDisplay(totalMonthly))).replace('{surplus}',fmt(toDisplay(Math.round(surplus))))}</div>`;
     }
     // Fix #8: ETA disclaimer + Fix #10: prioritization tip + Fix #13: overlap note
     listEl.innerHTML+=`<div style="font-size:10px;color:var(--muted);padding:6px 12px;line-height:1.8;margin-top:4px">${t('metas_eta_note')}<br>${t('metas_priority_tip')}<br>${t('metas_overlap_note')}</div>`;
@@ -4449,11 +4518,11 @@ function buildSavingsGoals(){
       data:{
         labels:metas.map(m=>m.name||'—'),
         datasets:[
-          {label:t('metas_chart_saved'),data:metas.map(m=>m.saved||0),backgroundColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]+'aa'),borderColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]),borderWidth:2,borderRadius:6},
-          {label:t('metas_chart_remaining'),data:metas.map(m=>Math.max(0,(m.goal||0)-(m.saved||0))),backgroundColor:'rgba(26,37,64,.4)',borderColor:'rgba(74,93,128,.3)',borderWidth:1,borderRadius:6},
+          {label:t('metas_chart_saved'),data:metas.map(m=>toDisplay(m.saved||0)),backgroundColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]+'aa'),borderColor:metas.map((_,i)=>GOAL_COLORS[i%GOAL_COLORS.length]),borderWidth:2,borderRadius:6},
+          {label:t('metas_chart_remaining'),data:metas.map(m=>toDisplay(Math.max(0,(m.goal||0)-(m.saved||0)))),backgroundColor:'rgba(26,37,64,.4)',borderColor:'rgba(74,93,128,.3)',borderWidth:1,borderRadius:6},
         ]
       },
-      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
         scales:{x:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}},y:{stacked:true,grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:11}}}}}
     });
   },100);
@@ -4495,15 +4564,15 @@ function buildBudgetVsActual(gastos,ingreso){
     if(delta>threshold)overCount++;else if(delta<-threshold)underCount++;
     // Fix #1: for fixed commitments, under-payment (delta<0) is RED (shortfall), over-payment is GREEN (extra paydown)
     const varColor=delta>0?'var(--green)':delta<0?'var(--red)':'var(--muted)';
-    const varText=delta>0?`▲ RD$${fmt(delta)}`:delta<0?`▼ RD$${fmt(Math.abs(delta))}`:'—';
+    const varText=delta>0?`▲ ${fmtC(toDisplay(delta))}`:delta<0?`▼ ${fmtC(toDisplay(Math.abs(delta)))}`:'—';
     const barW=Math.min(120,pct);
     const barColor=pct>=100?'var(--green)':pct>80?'var(--yellow)':'var(--red)';
     const tc=tipoColors[g.tipo]||'#94a3b8';
     return `<tr>
       <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
       <td data-label="${t('bva_col_type')}"><span class="pill" style="background:${tc}22;color:${tc}">${escH(g.tipo||'—')}</span></td>
-      <td data-label="${t('bva_budget')}" class="num" style="color:var(--muted)">RD$${fmt(budget)}</td>
-      <td data-label="${t('bva_actual')}" class="num" style="color:${actual>0?'var(--text)':'var(--muted)'}">RD$${fmt(actual)}</td>
+      <td data-label="${t('bva_budget')}" class="num" style="color:var(--muted)">${fmtC(toDisplay(budget))}</td>
+      <td data-label="${t('bva_actual')}" class="num" style="color:${actual>0?'var(--text)':'var(--muted)'}">${fmtC(toDisplay(actual))}</td>
       <td data-label="${t('bva_variance')}" class="num" style="color:${varColor};font-weight:700">${varText}</td>
       <td data-label="%" style="min-width:90px">
         <div style="display:flex;align-items:center;gap:6px">
@@ -4528,15 +4597,15 @@ function buildBudgetVsActual(gastos,ingreso){
     <div class="grid g3" style="gap:10px;margin-bottom:18px">
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_budget')}</div>
-        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">RD$${fmt(totalBudget)}</div>
+        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">${fmtC(toDisplay(totalBudget))}</div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_actual')}</div>
-        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">RD$${fmt(totalActual)}</div>
+        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">${fmtC(toDisplay(totalActual))}</div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_var')}</div>
-        <div class="mono" style="font-size:20px;font-weight:800;color:${summaryColor}">${summaryArrow} RD$${fmt(Math.abs(totalDelta))}</div>
+        <div class="mono" style="font-size:20px;font-weight:800;color:${summaryColor}">${summaryArrow} ${fmtC(toDisplay(Math.abs(totalDelta)))}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:3px">${overCount} ${t('bva_over')} · ${underCount} ${t('bva_under')}</div>
       </div>
     </div>
@@ -4563,10 +4632,10 @@ function buildBudgetVsActual(gastos,ingreso){
     charts.bvaChart=new Chart(cEl,{
       type:'bar',
       data:{labels,datasets:[
-        {label:t('bva_budget'),data:gastos.map(g=>g.adeudado||0),backgroundColor:'rgba(59,130,246,.4)',borderColor:'#3b82f6',borderWidth:2,borderRadius:4},
-        {label:t('bva_actual'),data:gastos.map(g=>g.pagado||0),backgroundColor:'rgba(34,211,160,.45)',borderColor:'#22d3a0',borderWidth:2,borderRadius:4},
+        {label:t('bva_budget'),data:gastos.map(g=>toDisplay(g.adeudado||0)),backgroundColor:'rgba(59,130,246,.4)',borderColor:'#3b82f6',borderWidth:2,borderRadius:4},
+        {label:t('bva_actual'),data:gastos.map(g=>toDisplay(g.pagado||0)),backgroundColor:'rgba(34,211,160,.45)',borderColor:'#22d3a0',borderWidth:2,borderRadius:4},
       ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` RD$${fmt(ctx.raw)}`}}},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},color:'#4a5d80',boxWidth:10}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
         scales:{x:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},maxRotation:40}},y:{grid:{color:'rgba(26,37,64,.5)'},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
     });
   },120);
@@ -4627,11 +4696,11 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
         <div>
           <div style="font-size:14px;font-weight:800;color:var(--text)">${escH(d.nombre)}</div>
           <div style="margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
-            <span>${t('dpd_balance_lbl')} <strong class="mono" style="color:var(--red)">RD$${fmt(d.balance)}</strong></span>
+            <span>${t('dpd_balance_lbl')} <strong class="mono" style="color:var(--red)">${fmtC(toDisplay(d.balance))}</strong></span>
             <span>·</span>
             <span>${t('dpd_rate_lbl')} <strong class="mono" style="color:${d.tasa>30?'var(--red)':d.tasa>18?'var(--yellow)':'var(--muted)'}">${d.tasa}%</strong></span>
             <span>·</span>
-            <span>${t('dpd_payment_lbl')} <strong class="mono">RD$${fmt(d.adeudado)}/${t('kpi_exp_month')}</strong></span>
+            <span>${t('dpd_payment_lbl')} <strong class="mono">${fmtC(toDisplay(d.adeudado))}/${t('kpi_exp_month')}</strong></span>
           </div>
         </div>
         <div style="text-align:right">
@@ -4644,17 +4713,17 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
         <div style="background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_int_total')}</div>
           <div class="mono" style="font-size:16px;font-weight:800;color:var(--red)">
-            ${totalInt===Infinity?'∞':('RD$'+fmt(totalInt))}
+            ${totalInt===Infinity?'∞':fmtC(toDisplay(totalInt))}
           </div>
         </div>
         <div style="background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_intmonth')}</div>
-          <div class="mono" style="font-size:16px;font-weight:800;color:var(--text)">RD$${fmt(Math.round(d.balance*monthlyRate))}</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:var(--text)">${fmtC(toDisplay(Math.round(d.balance*monthlyRate)))}</div>
         </div>
         <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_capitalmonth')}</div>
           <div class="mono" style="font-size:16px;font-weight:800;color:${!isNegAmort?'var(--accent)':'var(--red)'}">
-            ${!isNegAmort?'RD$'+fmt(Math.round(d.adeudado-d.balance*monthlyRate)):t('dpd_neg_capital')}
+            ${!isNegAmort?fmtC(toDisplay(Math.round(d.adeudado-d.balance*monthlyRate))):t('dpd_neg_capital')}
           </div>
         </div>
       </div>
@@ -4668,7 +4737,7 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
   // Fix #4: aggregate total interest across all debts
   const grandIntHtml=`<div style="background:rgba(244,96,106,.06);border:1px solid rgba(244,96,106,.2);border-radius:10px;padding:14px 18px;text-align:center;margin-bottom:16px">
     <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${t('dpd_total_interest_all')}</div>
-    <div class="mono" style="font-size:24px;font-weight:800;color:var(--red)">RD$${fmt(grandTotalInterest)}${negAmortDebts.length?' + ∞':''}</div>
+    <div class="mono" style="font-size:24px;font-weight:800;color:var(--red)">${fmtC(toDisplay(grandTotalInterest))}${negAmortDebts.length?' + ∞':''}</div>
   </div>`;
 
   el.innerHTML=grandIntHtml+rows+`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.15);border-radius:8px">
@@ -4685,9 +4754,9 @@ const _cierreSteps=[
   {titleKey:'cierre_step1_title',subKey:'cierre_step1_sub',fields:[{id:'cw-tasa',label:'Tasa Dólar (RD$/USD)',type:'number',key:'tasa',step:'0.01'}]},
   {titleKey:'cierre_step2_title',subKey:'cierre_step2_sub',fields:[{id:'cw-mes',label:'Mes',type:'text',key:'mes'},{id:'cw-anio',label:'Año',type:'number',key:'anio'}]},
   {titleKey:'cierre_step3_title',subKey:'cierre_step3_sub',fields:[{id:'cw-ingreso',label:'Ingreso Mensual (USD)',type:'number',key:'ingresoUSD',step:'1'}]},
-  {titleKey:'cierre_step4_title',subKey:'cierre_step4_sub',fields:[{id:'cw-gasto',label:'Gasto Total del Mes (RD$)',type:'number',key:'gasto',step:'any'}]},
+  {titleKey:'cierre_step4_title',subKey:'cierre_step4_sub',fields:[{id:'cw-gasto',label:'Gasto Total del Mes ('+currencySymbol()+')',type:'number',key:'gasto',step:'any'}]},
   {titleKey:'cierre_step5_title',subKey:'cierre_step5_sub',fields:[]},
-  {titleKey:'cierre_step6_title',subKey:'cierre_step6_sub',fields:[{id:'cw-ahorros',label:'Ahorros este mes (RD$)',type:'number',key:'ahorros'},{id:'cw-balAh',label:'Balance total de ahorros (RD$) — sugerido: balance anterior + este mes',type:'number',key:'balanceAhorros'}]},
+  {titleKey:'cierre_step6_title',subKey:'cierre_step6_sub',fields:[{id:'cw-ahorros',label:'Ahorros este mes ('+currencySymbol()+')',type:'number',key:'ahorros'},{id:'cw-balAh',label:'Balance total de ahorros ('+currencySymbol()+') — sugerido: balance anterior + este mes',type:'number',key:'balanceAhorros'}]},
   {titleKey:'cierre_step7_title',subKey:'cierre_step7_sub',fields:[]},
   {titleKey:'cierre_step8_title',subKey:'cierre_step8_sub',fields:[]},
 ];
@@ -4720,11 +4789,11 @@ function renderCierre(){
     const tbl=`<div style="background:var(--surface2);border-radius:12px;padding:16px">
       ${[
         [_lang==='es'?'Mes/Año':'Month/Year',`${_editData.config.mes} ${_editData.config.anio}`],
-        [_lang==='es'?'Tasa Dólar':'USD Rate',`RD$${_editData.config.tasa}`],
-        [_lang==='es'?'Ingreso':'Income',`${fmtUSD(_editData.config.ingresoUSD)} = RD$${fmt(ingreso)}`],
-        [_lang==='es'?'Gasto':'Expenses',`RD$${fmt(gasto)}`],
-        [_lang==='es'?'Superávit':'Surplus',`RD$${fmt(resta)}`],
-        [_lang==='es'?'Ahorros':'Savings',`RD$${fmt(cf.ahorros||0)}`]
+        [_lang==='es'?'Tasa Dólar':'USD Rate',`${currencySymbol()}${_editData.config.tasa}`],
+        [_lang==='es'?'Ingreso':'Income',`${fmtUSD(_editData.config.ingresoUSD)} = ${fmtC(toDisplay(ingreso))}`],
+        [_lang==='es'?'Gasto':'Expenses',`${fmtC(toDisplay(gasto))}`],
+        [_lang==='es'?'Superávit':'Surplus',`${fmtC(toDisplay(resta))}`],
+        [_lang==='es'?'Ahorros':'Savings',`${fmtC(toDisplay(cf.ahorros||0))}`]
       ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--muted)">${l}</span><span style="font-weight:700;font-family:var(--mono)">${v}</span></div>`).join('')}
     </div>
     <div style="font-size:12px;color:var(--muted);margin-top:12px;padding:10px;background:rgba(59,130,246,.06);border-radius:8px">${t('cierre_note')}</div>`;
@@ -4749,7 +4818,7 @@ function renderCierre(){
         const ahorrosInput=document.getElementById('cw-ahorros');
         const ahorrosEste=ahorrosInput?parseFloat(ahorrosInput.value)||0:(_editData.emerg?.cashflow?.ahorros||0);
         curVal=prevBal+ahorrosEste;
-        html+=`<div class="cierre-field"><label class="cierre-label">${f.label} <span style="font-size:11px;color:var(--green)">← se acumula automáticamente</span></label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">Balance anterior: RD$${fmt(prevBal)} + ahorros este mes. Edita si el total real es diferente.</div></div>`;
+        html+=`<div class="cierre-field"><label class="cierre-label">${f.label} <span style="font-size:11px;color:var(--green)">← se acumula automáticamente</span></label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">Balance anterior: ${fmtC(toDisplay(prevBal))} + ahorros este mes. Edita si el total real es diferente.</div></div>`;
         return;
       }
       html+=`<div class="cierre-field"><label class="cierre-label">${f.label}</label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"></div>`;
@@ -4826,8 +4895,8 @@ function cierreNav(dir){
       const summaryHtml=`<div style="text-align:left;line-height:1.8">
         <div style="font-weight:700;margin-bottom:4px">${t('cierre_summary_title')}</div>
         <div>${t('cierre_summary_saverate')}: <strong style="color:${saveRate>=20?'var(--green)':saveRate>=10?'var(--yellow)':'var(--red)'}">${saveRate}%</strong></div>
-        ${prevHist?`<div>${t('cierre_summary_debtdelta')}: <strong style="color:${debtDelta<=0?'var(--green)':'var(--red)'}">${debtDelta<=0?'▼':'▲'} RD$${fmt(Math.abs(Math.round(debtDelta)))}</strong></div>
-        <div>${t('cierre_summary_nwdelta')}: <strong style="color:${nwDelta>=0?'var(--green)':'var(--red)'}">${nwDelta>=0?'▲':'▼'} RD$${fmt(Math.abs(Math.round(nwDelta)))}</strong></div>`:''}
+        ${prevHist?`<div>${t('cierre_summary_debtdelta')}: <strong style="color:${debtDelta<=0?'var(--green)':'var(--red)'}">${debtDelta<=0?'▼':'▲'} ${fmtC(Math.abs(Math.round(debtDelta)))}</strong></div>
+        <div>${t('cierre_summary_nwdelta')}: <strong style="color:${nwDelta>=0?'var(--green)':'var(--red)'}">${nwDelta>=0?'▲':'▼'} ${fmtC(Math.abs(Math.round(nwDelta)))}</strong></div>`:''}
         <div style="font-size:11px;color:var(--muted);margin-top:4px">${summaryMsg}</div>
       </div>`;
       showToast(summaryHtml,saveRate>=20?'var(--green)':'var(--yellow)');
@@ -5020,8 +5089,10 @@ function onCurrencySwitch(i,sel,collection){
   }
   collection[i].moneda=nw;markChanged(sel);buildEditForms();
 }
-// Convert fondo balance/meta to RD$ — if moneda=USD, multiply by config.tasa
+// Convert fondo balance/meta to base currency (RD$) — if moneda=USD, multiply by config.tasa
 function fondoToRD(f){const tasa=_editData.config.tasa||60;const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
+// Convert fondo to display currency
+function fondoToDisplay(f){const tasa=_editData.config.tasa||60;const primary=_editData?.config?.monedaPrincipal||'RD';if(primary==='USD'){const m=f.moneda==='USD'?1:1/tasa;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
 function fmtFecha(f,opts){
   // Normaliza cualquier formato de fecha (Date, string ISO, string larga) a fecha local en español
   if(!f)return'—';
@@ -5033,7 +5104,8 @@ function fmtFecha(f,opts){
 function buildEditForms(){
   const {config,gastos,forNow,emerg,historial}=_editData;
   // CONFIG — Fix #4: real-time sync to _editData; Fix #1: tasa warning; Fix #2: ingresoRD field
-  document.getElementById('configFields').innerHTML=[
+  const currencyFieldHtml=`<div class="field-group"><label class="field-label">${t('currency_primary')}</label><div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden"><button type="button" onclick="_editData.config.monedaPrincipal='USD';markChanged(this);buildEditForms();applyChanges()" style="flex:1;padding:8px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;${config.monedaPrincipal==='USD'?'background:var(--accent);color:#fff':'background:var(--surface2);color:var(--muted)'}">🇺🇸 USD</button><button type="button" onclick="_editData.config.monedaPrincipal='RD';markChanged(this);buildEditForms();applyChanges()" style="flex:1;padding:8px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;${config.monedaPrincipal==='RD'?'background:var(--accent);color:#fff':'background:var(--surface2);color:var(--muted)'}">🇩🇴 RD$</button></div><div class="field-note">${config.monedaPrincipal==='USD'?t('currency_note_usd'):t('currency_note_rd')}</div></div>`;
+  document.getElementById('configFields').innerHTML=currencyFieldHtml+[
     {id:'cfg-tasa',label:t('ecfg_tasa'),note:t('ecfg_tasa_note'),key:'tasa',val:config.tasa,min:1,extra:`<div id="tasa-warn" class="field-note" style="color:var(--yellow);display:${config.tasa===60?'block':'none'}">${t('edit_tasa_warn')}</div>`},
     {id:'cfg-mes',label:t('ecfg_mes'),note:t('ecfg_mes_note'),key:'mes',val:config.mes,type:'text'},
     {id:'cfg-anio',label:t('ecfg_anio'),note:t('ecfg_anio_note'),key:'anio',val:config.anio},
@@ -5157,7 +5229,7 @@ function buildEditForms(){
 }
 
 function deleteGastoRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
-function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} RD$${fmt(g.balance)}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);g.balance=0;g.adeudado=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
+function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} ${fmtC(toDisplay(g.balance))}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);g.balance=0;g.adeudado=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
 function deleteFornowRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}

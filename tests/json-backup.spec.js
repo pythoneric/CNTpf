@@ -51,7 +51,7 @@ test.describe('JSON Backup — Export', () => {
     const content = await (await download.createReadStream()).toArray();
     const data = JSON.parse(Buffer.concat(content).toString());
     expect(data._meta).toBeDefined();
-    expect(data._meta.version).toBe(1);
+    expect(data._meta.version).toBe(2);
     expect(data._meta.app).toBe('CNTpf');
     expect(data._meta.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
