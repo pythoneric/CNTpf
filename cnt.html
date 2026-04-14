@@ -2139,6 +2139,10 @@ async function autoSave(){
   },500);
 }
 
+// Flush pending save when leaving / hiding the page
+window.addEventListener('beforeunload',()=>{if(_pendingSave&&_editData&&Object.keys(_editData).length){clearTimeout(_autoSaveTimer);saveToDB();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&_pendingSave&&_editData&&Object.keys(_editData).length){clearTimeout(_autoSaveTimer);saveToDB();_pendingSave=false;}});
+
 window.addEventListener('load',()=>{
   checkSavedData();
   // Set initial active on mobile nav
@@ -5049,7 +5053,7 @@ let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
 window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
-function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;}
+function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;autoSave();}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
 function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';_balanceSnapshot=(_editData.gastos||[]).map(g=>g.balance||0);buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(force){
@@ -5070,6 +5074,7 @@ function syncConfigField(key,el){
     case 'ingresoRD':_editData.config.ingresoRD=Math.max(0,pf(v));_editData.config.ingresoUSD=_editData.config.tasa>0?Math.round(_editData.config.ingresoRD/_editData.config.tasa*100)/100:0;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const usdEl=document.getElementById('cfg-ingreso');if(usdEl)usdEl.value=_editData.config.ingresoUSD;break;
     case 'diasAlerta':{const d=parseInt(v);_editData.config.diasAlerta=Math.min(30,Math.max(1,isNaN(d)?5:d));}break;
   }
+  autoSave();
 }
 function syncOriginal(idx,field,el){
   const tasa=_editData.gastos[idx].tasaCreacion||_editData.config.tasa||60;const v=pf(el.value);
