@@ -558,9 +558,48 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   #kpiRow.g4{grid-template-columns:repeat(2,1fr)!important}
   #efKpis.g4{grid-template-columns:repeat(2,1fr)!important}
 }
+
+/* ══ PWA INSTALL BANNER ══ */
+#pwaInstallBanner{
+  position:fixed;bottom:0;left:0;right:0;z-index:250;
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:14px max(20px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  transform:translateY(100%);opacity:0;
+  transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s ease;
+  box-shadow:0 -4px 24px rgba(0,0,0,.3)
+}
+#pwaInstallBanner.show{transform:translateY(0);opacity:1}
+.pwa-banner-content{display:flex;align-items:center;gap:14px;max-width:600px;margin:0 auto}
+.pwa-banner-icon{font-size:28px;flex-shrink:0}
+.pwa-banner-text{flex:1;min-width:0}
+.pwa-banner-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.pwa-banner-sub{font-size:12px;color:var(--muted);line-height:1.4}
+.pwa-banner-sub kbd{display:inline-block;padding:1px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-family:var(--font);font-size:11px;font-weight:700}
+.pwa-banner-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+@media(max-width:640px){
+  .pwa-banner-content{flex-wrap:wrap;gap:10px}
+  .pwa-banner-actions{width:100%;justify-content:stretch}
+  .pwa-banner-actions .btn{flex:1;justify-content:center}
+}
 </style>
 </head>
 <body>
+
+<!-- ══ PWA INSTALL BANNER ══ -->
+<div id="pwaInstallBanner" style="display:none">
+  <div class="pwa-banner-content">
+    <div class="pwa-banner-icon">📲</div>
+    <div class="pwa-banner-text">
+      <div class="pwa-banner-title" data-i18n="pwa_title">Instalar BitEric Finance</div>
+      <div class="pwa-banner-sub" id="pwaInstallInstructions">Accede más rápido desde tu pantalla de inicio.</div>
+    </div>
+    <div class="pwa-banner-actions">
+      <button class="btn btn-primary btn-sm" id="pwaInstallBtn" data-i18n="pwa_install">Instalar</button>
+      <button class="btn btn-ghost btn-sm" id="pwaCloseBtn" style="padding:7px 10px;min-width:36px;justify-content:center" aria-label="Cerrar">✕</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ LOADER ══ -->
 <div id="loaderScreen" class="z1">
@@ -1530,6 +1569,11 @@ const LANG = {
     currency_note_rd:'Los montos se muestran en RD$. Cuentas en USD se convierten automáticamente.',
     loader_demo_rd:'Demo RD$', loader_demo_rd_sub:'Datos ficticios en Pesos Dominicanos · 18 meses',
     loader_demo_usd:'Demo USD', loader_demo_usd_sub:'Datos ficticios en Dólares · 18 meses',
+    pwa_title:'Instalar BitEric Finance',
+    pwa_sub_android:'Accede más rápido desde tu pantalla de inicio.',
+    pwa_sub_ios:'Toca <kbd>Compartir</kbd> ↗ y luego <kbd>Agregar a inicio</kbd>.',
+    pwa_sub_desktop:'Instala la app para acceso directo y uso sin conexión.',
+    pwa_install:'Instalar',
   },
   en: {
     // Header buttons / overflow
@@ -1934,6 +1978,11 @@ const LANG = {
     currency_note_rd:'Amounts shown in RD$. USD accounts are converted automatically.',
     loader_demo_rd:'Demo RD$', loader_demo_rd_sub:'Sample data in Dominican Pesos · 18 months',
     loader_demo_usd:'Demo USD', loader_demo_usd_sub:'Sample data in US Dollars · 18 months',
+    pwa_title:'Install BitEric Finance',
+    pwa_sub_android:'Get faster access from your home screen.',
+    pwa_sub_ios:'Tap <kbd>Share</kbd> ↗ then <kbd>Add to Home Screen</kbd>.',
+    pwa_sub_desktop:'Install the app for direct access and offline use.',
+    pwa_install:'Install',
   }
 };
 
@@ -2010,6 +2059,95 @@ if('serviceWorker' in navigator){
       .catch(e=>console.warn('SW failed:',e));
   });
 }
+
+// ══════════════════════════════════
+// PWA — Install Prompt
+// ══════════════════════════════════
+const PWA_DISMISS_KEY='cnt_pwa_dismissed';
+let _deferredInstallPrompt=null;
+
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  _deferredInstallPrompt=e;
+  const btn=document.getElementById('pwaInstallBtn');
+  if(btn) btn.style.display='';
+});
+
+function detectPwaPlatform(){
+  const ua=navigator.userAgent;
+  const isStandalone=window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone===true;
+  if(isStandalone) return 'standalone';
+  const isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(isIOS) return 'ios';
+  if(/Android/.test(ua)) return 'android';
+  if(/Chrome/.test(ua)||/Edg/.test(ua)) return 'desktop-chromium';
+  return 'unsupported';
+}
+
+function showPwaInstallBanner(){
+  const platform=detectPwaPlatform();
+  if(platform==='standalone') return;
+  if(localStorage.getItem(PWA_DISMISS_KEY)) return;
+  if(platform==='unsupported') return;
+  const loader=document.getElementById('loaderScreen');
+  if(loader&&loader.style.display==='none') return;
+
+  const banner=document.getElementById('pwaInstallBanner');
+  if(!banner) return;
+  const instructions=document.getElementById('pwaInstallInstructions');
+  const installBtn=document.getElementById('pwaInstallBtn');
+
+  if(platform==='ios'){
+    instructions.setAttribute('data-i18n','pwa_sub_ios');
+    instructions.innerHTML=t('pwa_sub_ios');
+    installBtn.style.display='none';
+  } else if(platform==='desktop-chromium'){
+    instructions.setAttribute('data-i18n','pwa_sub_desktop');
+    instructions.innerHTML=t('pwa_sub_desktop');
+    installBtn.style.display=_deferredInstallPrompt?'':'none';
+  } else {
+    instructions.setAttribute('data-i18n','pwa_sub_android');
+    instructions.innerHTML=t('pwa_sub_android');
+    installBtn.style.display=_deferredInstallPrompt?'':'none';
+  }
+
+  banner.style.display='';
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{ banner.classList.add('show'); });
+  });
+}
+
+function dismissPwaBanner(){
+  const banner=document.getElementById('pwaInstallBanner');
+  if(!banner) return;
+  banner.classList.remove('show');
+  setTimeout(()=>{ banner.style.display='none'; },400);
+  localStorage.setItem(PWA_DISMISS_KEY,'1');
+}
+
+async function triggerPwaInstall(){
+  if(!_deferredInstallPrompt) return;
+  _deferredInstallPrompt.prompt();
+  const{outcome}=await _deferredInstallPrompt.userChoice;
+  _deferredInstallPrompt=null;
+  if(outcome==='accepted'){
+    dismissPwaBanner();
+    showToast(t('pwa_title')+' ✓','var(--green)');
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const closeBtn=document.getElementById('pwaCloseBtn');
+  if(closeBtn) closeBtn.addEventListener('click',dismissPwaBanner);
+  const installBtn=document.getElementById('pwaInstallBtn');
+  if(installBtn) installBtn.addEventListener('click',triggerPwaInstall);
+  setTimeout(showPwaInstallBanner,1500);
+});
+
+window.addEventListener('appinstalled',()=>{
+  dismissPwaBanner();
+  _deferredInstallPrompt=null;
+});
 
 // ══════════════════════════════════
 // IndexedDB — Persistencia Local
