@@ -4432,6 +4432,8 @@ function buildSavingsGoals(){
 
   const listEl=document.getElementById('metasList');
   if(!listEl)return;
+  const _skipListRebuild=listEl.contains(document.activeElement);
+  if(!_skipListRebuild)
   if(!metas.length){
     listEl.innerHTML=`<p style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">${t('metas_empty')}</p>`;
   } else {
@@ -4459,6 +4461,7 @@ function buildSavingsGoals(){
           <div style="flex:1;min-width:160px">
             <input value="${escH(m.name||'')}" placeholder="${t('metas_name_ph')}"
               oninput="_editData.metas[${i}].name=this.value;autoSave()"
+              onblur="buildSavingsGoals()"
               style="font-size:15px;font-weight:700;background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text);font-family:var(--font);padding:2px 4px;width:100%;outline:none">
             <div style="font-size:12px;color:var(--muted);margin-top:5px">${t('metas_eta')}: <strong style="color:${isDone?'var(--green)':'var(--accent)'}">${eta}</strong>${monthsLeft?` · ${monthsLeft} ${t('metas_months_left')}`:''}${pctOfIncome?` · <span style="color:var(--muted)">${pctOfIncome}% ${t('metas_pct_income')}</span>`:''}</div>
             ${noMonthlyWarn}
@@ -4483,20 +4486,23 @@ function buildSavingsGoals(){
         <div class="grid g3" style="gap:12px">
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_saved')}</div>
-            <input type="text" inputmode="decimal" value="${saved}" placeholder="0"
+            <input type="text" inputmode="decimal" value="${saved||''}" placeholder="0"
               oninput="_editData.metas[${i}].saved=pf(this.value);autoSave();_metasDebounce()"
+              onblur="buildSavingsGoals()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green);width:100%;outline:none">
           </div>
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_goal')}</div>
             <input type="text" inputmode="decimal" value="${goal||''}" placeholder="0"
               oninput="_editData.metas[${i}].goal=pf(this.value);autoSave();_metasDebounce()"
+              onblur="buildSavingsGoals()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:100%;outline:none">
           </div>
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${t('metas_monthly')}</div>
-            <input type="text" inputmode="decimal" value="${monthly}" placeholder="0"
+            <input type="text" inputmode="decimal" value="${monthly||''}" placeholder="0"
               oninput="_editData.metas[${i}].monthly=pf(this.value);autoSave();_metasDebounce()"
+              onblur="buildSavingsGoals()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);width:100%;outline:none">
           </div>
         </div>
@@ -4509,7 +4515,7 @@ function buildSavingsGoals(){
     }
     // Fix #8: ETA disclaimer + Fix #10: prioritization tip + Fix #13: overlap note
     listEl.innerHTML+=`<div style="font-size:10px;color:var(--muted);padding:6px 12px;line-height:1.8;margin-top:4px">${t('metas_eta_note')}<br>${t('metas_priority_tip')}<br>${t('metas_overlap_note')}</div>`;
-  }
+  } // end _skipListRebuild guard
 
   // Chart — horizontal bar per goal (Fix #4: i18n labels)
   setTimeout(()=>{
