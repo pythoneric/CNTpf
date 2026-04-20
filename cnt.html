@@ -773,6 +773,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <!-- RESUMEN -->
   <div id="tab-resumen" class="panel active">
     <div class="grid g4" style="margin-bottom:16px" id="kpiRow"></div>
+    <div id="summaryExtras" style="margin-bottom:16px"></div>
     <div class="grid g13" style="margin-bottom:16px">
       <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;min-width:0" id="scoreCard"></div>
       <div class="card" id="cfBarCard"></div>
@@ -3900,7 +3901,7 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const interesMensual=allDeudas.filter(g=>g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
   // Convert display values to primary currency
   const toD=n=>config.monedaPrincipal==='USD'?n/(config.tasa||60):n;
-  return{cf,totalPagado:toD(totalPagado),totalAdeudado:toD(totalAdeudado),totalBalance:toD(totalBalance),totalOriginal:toD(totalOriginal),pagadoReal:toD(pagadoReal),ingreso:toD(ingreso),gasto:toD(gasto),resta:toD(resta),efTotal:toD(efTotal),efMeta:toD(efMeta),netWorth:toD(netWorth),gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas:toD(cuotaDeudas),deudaPct,interesMensual:toD(interesMensual)};
+  return{cf,totalPagado:toD(totalPagado),totalAdeudado:toD(totalAdeudado),totalBalance:toD(totalBalance),totalOriginal:toD(totalOriginal),pagadoReal:toD(pagadoReal),ingreso:toD(ingreso),gasto:toD(gasto),resta:toD(resta),efTotal:toD(efTotal),efMeta:toD(efMeta),netWorth:toD(netWorth),gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas:toD(cuotaDeudas),deudaPct,interesMensual:toD(interesMensual),txGasto:toD(txGasto)};
 }
 
 // ══════════════════════════════════
@@ -3908,7 +3909,7 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
 // ══════════════════════════════════
 function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   destroyCharts();
-  const{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual}=calcDerivedMetrics({config,gastos,forNow,emerg});
+  const{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual,txGasto}=calcDerivedMetrics({config,gastos,forNow,emerg});
 
   // Header
   document.getElementById('headerTitle').textContent=`${config.mes} ${config.anio}`;
@@ -3925,13 +3926,63 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const arrow=d>0?'▲':'▼';const color=good?'var(--green)':'var(--red)';
     return` <span style="font-size:10px;color:${color}">${arrow}</span>`;
   };
+  const efMo=gasto>0?efTotal/gasto:0;
+  const efMoVal=efMo>=1?`${efMo.toFixed(1)} ${t('ef_months')}`:`${Math.round(efMo*30)} ${t('ef_days')}`;
+  const efMoC=efMo>=6?'var(--green)':efMo>=3?'var(--yellow)':'var(--red)';
+  const efMoB=efMo>=3?'rgba(34,211,160,.12)':'rgba(244,96,106,.12)';
   document.getElementById('kpiRow').innerHTML=[
     {l:t('kpi_income'),v:`${fmtC(ingreso)}${mkDelta(ingreso,prevH?.ingresos,true)}`,s:`≈ ${fmtUSD(config.ingresoUSD)} · Tasa RD$${config.tasa}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
     {l:t('kpi_expenses'),v:`${fmtC(gasto)}${mkDelta(gasto,prevH?.gasto,false)}`,s:`${gastoPct}% ${t('kpi_exp_ofincome')} · ${t('kpi_exp_interest')}: ${fmtC(Math.round(interesMensual))}/${t('kpi_exp_month')}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
     {l:t('kpi_surplus'),v:`${fmtC(resta)}${mkDelta(resta,prevH?prevH.ingresos-prevH.gasto:null,true)}`,s:resta>=0?(ingreso>0?`${Math.round(resta/ingreso*100)}% ${t('kpi_surplus_pct')}`:t('kpi_surplus_pct')):t('kpi_deficit'),c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
     {l:t('kpi_networth'),v:`${netWorth<0?'('+currencySymbol()+fmt(Math.abs(netWorth))+')':fmtC(netWorth)}${mkDelta(netWorth,prevH?.netWorth,true)}`,s:t('kpi_savings_ef'),c:netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
     {l:t('kpi_savingsrate'),v:`${ingreso>0?Math.round(resta/ingreso*100):0}%`,s:`${t('kpi_savingsrate_sub')}<br><span style="font-size:10px;color:var(--muted)">${t('kpi_savingsrate_tip')}</span>`,c:ingreso>0&&resta/ingreso>=.2?'var(--green)':ingreso>0&&resta/ingreso>=.1?'var(--yellow)':'var(--red)',b:'rgba(167,139,250,.12)'},
+    {l:t('ef_coverage'),v:efMoVal,s:`${t('ef_target')}: 3-6 ${t('ef_months')}`,c:efMoC,b:efMoB},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
+
+  // ── Summary Extras: Goals progress + Presupuesto variance ──
+  const seEl=document.getElementById('summaryExtras');
+  if(seEl){
+    const metasAll=(_editData.metas||[]).filter(m=>m&&(m.name||m.goal||m.saved));
+    const mSaved=metasAll.reduce((a,m)=>a+(m.saved||0),0);
+    const mGoal=metasAll.reduce((a,m)=>a+(m.goal||0),0);
+    const mDone=metasAll.filter(m=>(m.saved||0)>=(m.goal||1)&&m.goal>0).length;
+    const mPct=mGoal>0?Math.min(100,Math.round(mSaved/mGoal*100)):0;
+    const pres=(_editData.presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio&&(p.presupuestado||0)>0);
+    const tx=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio);
+    const pBudget=pres.reduce((a,p)=>a+p.presupuestado,0);
+    const budgetedCats=new Set(pres.map(p=>p.categoria));
+    const pActual=tx.filter(x=>budgetedCats.has(x.categoria)).reduce((a,x)=>a+(parseFloat(x.monto)||0),0);
+    const pOver=pres.reduce((c,p)=>{const a=tx.filter(x=>x.categoria===p.categoria).reduce((s,x)=>s+(parseFloat(x.monto)||0),0);return c+(a>p.presupuestado?1:0);},0);
+    const hasGoals=metasAll.length>0;
+    const hasBudget=pBudget>0;
+    const goalsCard=hasGoals?`<div class="card">
+      <div class="card-title" style="margin-bottom:10px">${t('metas_main_title')}</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-bottom:8px">
+        <span style="color:var(--muted)">${t('metas_kpi_total')}: <span class="mono" style="color:var(--accent);font-weight:700">${metasAll.length}</span></span>
+        <span style="color:var(--muted)">${t('metas_kpi_done')}: <span class="mono" style="color:var(--green);font-weight:700">${mDone}</span></span>
+        <span style="color:var(--muted)">${t('metas_kpi_saved')}: <span class="mono" style="color:var(--purple);font-weight:700">${fmtC(toDisplay(mSaved))}${mGoal>0?' / '+fmtC(toDisplay(mGoal)):''}</span></span>
+      </div>
+      ${mGoal>0?`<div class="progress-wrap"><div class="progress-bar" style="width:${mPct}%;background:linear-gradient(90deg,#a78bfa,#22d3a0)"></div></div><div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:right">${mPct}%</div>`:''}
+    </div>`:'';
+    const bDelta=pActual-pBudget;
+    const bPct=pBudget>0?Math.round(pActual/pBudget*100):0;
+    const bClr=bDelta>0?'var(--red)':bDelta<0?'var(--green)':'var(--muted)';
+    const bArw=bDelta>0?'▲':bDelta<0?'▼':'';
+    const bNote=pOver>0?t('pres_over_warn').replace('{n}',pOver):t('pres_under_note');
+    const bNoteClr=pOver>0?'var(--red)':'var(--green)';
+    const budgetCard=hasBudget?`<div class="card">
+      <div class="card-title" style="margin-bottom:10px">${t('bva_title')}</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-bottom:8px">
+        <span style="color:var(--muted)">${t('bva_total_budget')}: <span class="mono" style="color:var(--text);font-weight:700">${fmtC(toDisplay(pBudget))}</span></span>
+        <span style="color:var(--muted)">${t('bva_total_actual')}: <span class="mono" style="color:var(--text);font-weight:700">${fmtC(toDisplay(pActual))}</span></span>
+        <span style="color:var(--muted)">${t('bva_variance')}: <span class="mono" style="color:${bClr};font-weight:700">${bArw} ${fmtC(toDisplay(Math.abs(bDelta)))} (${bPct}%)</span></span>
+      </div>
+      <div style="font-size:11px;color:${bNoteClr}">${bNote}</div>
+    </div>`:'';
+    if(!hasGoals&&!hasBudget)seEl.innerHTML='';
+    else if(hasGoals&&hasBudget)seEl.innerHTML=`<div class="grid g2" style="gap:16px">${goalsCard}${budgetCard}</div>`;
+    else seEl.innerHTML=goalsCard||budgetCard;
+  }
 
   // ── Score ──
   const sc=calcScore({ingreso,gasto,resta,totalBalance,cuotaDeudas,config,emerg,historial});
@@ -3964,8 +4015,8 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   document.getElementById('cfBarCard').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div class="card-title" style="margin:0">${t('cf_dist')} · ${fmtC(ingreso)}</div>
-      <div style="display:flex;gap:16px;font-size:12px">
-        <span style="color:var(--muted)">${t('cf_expenses')}: <span class="mono" style="color:var(--red)">${fmtC(gasto)}</span></span>
+      <div style="display:flex;gap:16px;font-size:12px;flex-wrap:wrap">
+        <span style="color:var(--muted)">${t('cf_expenses')}: <span class="mono" style="color:var(--red)">${fmtC(gasto)}</span>${txGasto>0?` <span style="font-size:10px;color:var(--muted)">(${t('reg_tracked')}: <span class="mono" style="color:var(--purple)">${fmtC(txGasto)}</span>)</span>`:''}</span>
         <span style="color:var(--muted)">${t('cf_remainder')}: <span class="mono" style="color:var(--green)">${fmtC(resta)}</span></span>
       </div>
     </div>
@@ -3974,7 +4025,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       <div class="cf-seg" style="width:${Math.max(0,sobrante)}%;background:linear-gradient(90deg,#22d3a0,#06b6d4);color:#052e16">${t('cf_remainder')} ${sobrante}%</div>
     </div>
     <div class="grid g4" style="margin-top:14px;gap:10px">
-      ${[{l:t('cf_withdrawusd'),v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)'},{l:t('cf_rate'),v:`${currencySymbol()}${config.tasa}`,c:'var(--yellow)'},{l:t('cf_savings'),v:`${fmtC(toDisplay(cf.ahorros||0))}`,c:'var(--green)'},{l:t('cf_committed'),v:`${fmtC(gasto)}`,c:'var(--red)'}]
+      ${[{l:t('cf_withdrawusd'),v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)'},{l:t('cf_rate'),v:`${currencySymbol()}${config.tasa}`,c:'var(--yellow)'},{l:t('cf_savings'),v:`${fmtC(toDisplay(cf.ahorros||0))}`,c:'var(--green)'},{l:t('cf_committed'),v:`${fmtC(cuotaDeudas)}`,c:'var(--red)'}]
         .map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:10px 14px"><div style="font-size:10px;color:var(--muted)">${i.l}</div><div class="mono" style="font-size:15px;font-weight:700;color:${i.c};margin-top:4px">${i.v}</div></div>`).join('')}
     </div>`;
 
@@ -4192,9 +4243,14 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   setTimeout(()=>{
     // Fix #4: use allDeudas (balance > 0) not arbitrary > 100 threshold
     const allDeudas2=allDeudas;
+    const txGastoRaw=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio).reduce((a,x)=>a+(parseFloat(x.monto)||0),0);
+    const pieLabels=[...Object.keys(tipoColors)];
+    const pieData=Object.keys(tipoColors).map(ty=>gastos.filter(g=>g.tipo===ty).reduce((a,g)=>a+g.adeudado,0));
+    const pieColors=Object.values(tipoColors).map(c=>c+'cc');
+    if(txGastoRaw>0){pieLabels.push(t('reg_tracked'));pieData.push(txGastoRaw);pieColors.push('#a78bfacc');}
     charts.pieChart=new Chart(document.getElementById('pieChart'),{
       type:'doughnut',
-      data:{labels:Object.keys(tipoColors),datasets:[{data:Object.keys(tipoColors).map(t=>gastos.filter(g=>g.tipo===t).reduce((a,g)=>a+g.adeudado,0)),backgroundColor:Object.values(tipoColors).map(c=>c+'cc'),borderColor:'var(--surface)',borderWidth:3,hoverOffset:8}]},
+      data:{labels:pieLabels,datasets:[{data:pieData,backgroundColor:pieColors,borderColor:'var(--surface)',borderWidth:3,hoverOffset:8}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:10,filter:i=>i.raw>0}},tooltip:{...ttStyle,callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}}}
     });
     charts.barChart=new Chart(document.getElementById('barChart'),{

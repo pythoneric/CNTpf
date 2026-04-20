@@ -131,11 +131,11 @@ test.describe('1.4 — Savings rate KPI', () => {
     await expect(kpiRow).toContainText(/Tasa de Ahorro|Savings Rate/);
   });
 
-  test('KPI row has 5 cards (including savings rate)', async ({ page }) => {
+  test('KPI row has 6 cards (including savings rate and EF coverage)', async ({ page }) => {
     await loadApp(page);
 
     const cards = page.locator('#kpiRow .card');
-    await expect(cards).toHaveCount(5);
+    await expect(cards).toHaveCount(6);
   });
 
   test('savings rate shows 50/30/20 guidance text', async ({ page }) => {

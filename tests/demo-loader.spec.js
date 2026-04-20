@@ -56,7 +56,7 @@ test.describe('Demo Data Loader', () => {
     expect(headerTitle).toContain('2026');
 
     const kpiRow = page.locator('#kpiRow');
-    await expect(kpiRow.locator('.card')).toHaveCount(5);
+    await expect(kpiRow.locator('.card')).toHaveCount(6);
     await expect(kpiRow).toContainText('RD$');
   });
 
@@ -71,7 +71,7 @@ test.describe('Demo Data Loader', () => {
     await expect(page.locator('#loaderScreen')).toBeHidden();
 
     const kpiRow = page.locator('#kpiRow');
-    await expect(kpiRow.locator('.card')).toHaveCount(5);
+    await expect(kpiRow.locator('.card')).toHaveCount(6);
     // USD demo should show $ prefix, NOT RD$
     const kpiText = await kpiRow.textContent();
     expect(kpiText).toContain('$');
