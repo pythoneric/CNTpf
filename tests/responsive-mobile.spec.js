@@ -231,7 +231,7 @@ test.describe('Responsive - Small Phone (375px)', () => {
     await loadApp(page);
     const kpiRow = page.locator('#kpiRow');
     const cards = kpiRow.locator('.card');
-    await expect(cards).toHaveCount(5);
+    await expect(cards).toHaveCount(6);
     // All cards should be visible without horizontal overflow
     const overflows = await findHorizontalOverflows(page);
     expect(overflows).toHaveLength(0);
