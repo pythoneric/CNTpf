@@ -10,7 +10,10 @@
       "Bash(gh pr:*)",
       "WebFetch(domain:pythoneric.github.io)",
       "Bash(npx playwright:*)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(npm install *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

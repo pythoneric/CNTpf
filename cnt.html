@@ -25,6 +25,18 @@
   --green:#22d3a0;--red:#f4606a;--yellow:#f5c842;--purple:#a78bfa;--orange:#fb923c;
   --font:'Syne',sans-serif;--mono:'JetBrains Mono',monospace;
   --radius:16px;--shadow:0 4px 24px rgba(0,0,0,.4);
+  /* Mobile chrome height (bottom nav 60 + group toggle 40 + breathing room 20) */
+  --mobile-chrome-h:120px;
+  /* Z-index scale — keeps overlays from fighting each other */
+  --z-header:100;
+  --z-nav:200;
+  --z-group-toggle:201;
+  --z-pwa-banner:250;
+  --z-overflow:300;
+  --z-edit-modal:500;
+  --z-cierre-modal:600;
+  --z-toast:900;
+  --z-setup-modal:1100;
 }
 body.light{
   --bg:#f0f4f8;--surface:#ffffff;--surface2:#e8edf5;--border:#d0d9e8;
@@ -32,7 +44,7 @@ body.light{
   --green:#059669;--red:#dc2626;--yellow:#d97706;--purple:#7c3aed;--orange:#ea580c;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);font-size:14px;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;overscroll-behavior-y:contain}
+body{font-family:var(--font);font-size:14px;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;overflow-x:hidden;transition:background .3s,color .3s;overscroll-behavior-y:contain}
 @media(min-width:1024px){body{font-size:16px}}
 body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
 body.light::before{background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px)}
@@ -40,7 +52,7 @@ body::after{content:'';position:fixed;top:-300px;right:-200px;width:700px;height
 .z1{position:relative;z-index:1}
 
 /* ══ LOADER ══ */
-#loaderScreen{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:12px 24px;overflow-y:auto}
+#loaderScreen{position:fixed;inset:0;z-index:var(--z-setup-modal);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:12px 24px;overflow-y:auto}
 .loader-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 20px var(--accent),0 0 40px rgba(59,130,246,.3);animation:pulse 2.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.85)}}
 .loader-logo{display:flex;align-items:center;gap:14px;width:100%;max-width:440px}
@@ -62,15 +74,16 @@ body::after{content:'';position:fixed;top:-300px;right:-200px;width:700px;height
 
 /* ══ DASHBOARD ══ */
 #dashApp{display:none}
-header{background:linear-gradient(180deg,var(--surface) 0%,rgba(6,9,18,0) 100%);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px)}
+header{background:linear-gradient(180deg,var(--surface) 0%,rgba(6,9,18,0) 100%);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:var(--z-header);backdrop-filter:blur(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+header.hidden{transform:translateY(-100%)}
 body.light header{background:linear-gradient(180deg,var(--surface) 0%,transparent 100%)}
 .logo{display:flex;align-items:center;gap:12px}
 .logo-dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 16px var(--accent);animation:pulse 2.5s ease-in-out infinite}
-.logo-label{font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;font-weight:600}
+.logo-label{font-size:11px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;font-weight:600}
 .logo-title{font-size:20px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .header-meta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
 .meta-item{text-align:right}
-.meta-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.meta-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 .meta-val{font-family:var(--mono);font-size:15px;font-weight:700;margin-top:2px}
 .hdr-btn{padding:7px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
 .hdr-btn:hover{border-color:var(--accent);color:var(--accent)}
@@ -102,7 +115,7 @@ body.light td{border-bottom-color:rgba(208,217,232,.5)}
 tr:last-child td{border-bottom:none}
 tbody tr{transition:background .15s}
 tbody tr:hover td{background:rgba(59,130,246,.03)}
-.mono{font-family:var(--mono)}.num{font-family:var(--mono);text-align:right}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
 .cf-bar{display:flex;height:42px;border-radius:10px;overflow:hidden;gap:2px}
 .cf-seg{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;padding:0 10px;white-space:nowrap}
 /* chart-wrap height handled by responsive CSS below */
@@ -112,7 +125,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .debt-amount{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--red)}
 .debt-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .debt-meta-item{background:var(--bg);border-radius:8px;padding:8px 12px;flex:1 1 90px}
-.dmi-label{font-size:10px;color:var(--muted)}
+.dmi-label{font-size:11px;color:var(--muted)}
 .dmi-val{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);margin-top:3px}
 .ef-row{padding:16px 0;border-bottom:1px solid var(--border)}
 .ef-row:last-child{border-bottom:none}
@@ -132,7 +145,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .score-ring svg{transform:rotate(-90deg)}
 .score-ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .score-num{font-family:var(--mono);font-size:26px;font-weight:800}
-.score-label-sm{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.score-label-sm{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 
 /* ══ ALERTS PANEL ══ */
 .alert-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;margin-bottom:8px}
@@ -180,7 +193,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .checklist-pct{font-family:var(--mono);font-size:28px;font-weight:800;color:var(--accent)}
 
 /* ══ CIERRE DE MES (wizard) ══ */
-#cierreModal{position:fixed;inset:0;z-index:600;background:rgba(6,9,18,.94);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px}
+#cierreModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.94);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px}
 #cierreModal.open{display:flex;align-items:flex-start;justify-content:center}
 .cierre-container{max-width:620px;width:100%;margin:auto}
 .cierre-header{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin-bottom:20px}
@@ -198,7 +211,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .cierre-nav{display:flex;gap:10px;justify-content:space-between;margin-top:20px}
 
 /* ══ EDIT MODAL ══ */
-#editModal{position:fixed;inset:0;z-index:500;background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:24px}
+#editModal{position:fixed;inset:0;z-index:var(--z-edit-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:24px}
 #editModal.open{display:block}
 .edit-container{max-width:1100px;margin:0 auto}
 .edit-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:16px}
@@ -227,7 +240,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .field-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text);transition:border-color .2s;width:100%}
 .field-input:focus{outline:none;border-color:var(--accent);background:rgba(59,130,246,.05)}
 .field-input.changed{border-color:var(--yellow);background:rgba(245,200,66,.05)}
-.field-note{font-size:10px;color:var(--muted);margin-top:2px}
+.field-note{font-size:11px;color:var(--muted);margin-top:2px}
 .edit-table-wrap{overflow-x:auto}
 .edit-table{width:100%;border-collapse:collapse;font-size:13px}
 .edit-table th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;background:var(--surface2)}
@@ -249,15 +262,20 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
-/* ══ CHART HEIGHTS — responsive ══ */
-.chart-wrap{position:relative;height:clamp(160px,28vw,260px)}
+/* ══ CHART HEIGHTS — explicit breakpoints (vw jitters on iOS URL-bar toggle) ══ */
+.chart-wrap{position:relative;height:220px}
 @media(max-width:640px){.chart-wrap{height:200px}}
+@media(min-width:1024px){.chart-wrap{height:260px}}
 @media(min-width:1280px){.chart-wrap{height:300px}}
 
 /* ══ GPU HINTS — smooth animations on mobile ══ */
 .panel{will-change:opacity,transform}
 .loader-dot,.logo-dot{will-change:opacity,transform}
 header{will-change:auto}
+
+/* ══ ICONS — inline SVG (replaces cross-platform-inconsistent emojis) ══ */
+.icon{display:inline-block;vertical-align:-3px;flex-shrink:0}
+.hdr-btn .icon,.btn .icon{vertical-align:middle}
 
 /* ══ TOUCH TARGETS — min 44px ══ */
 .hdr-btn{min-height:44px;min-width:44px;padding:10px 14px}
@@ -266,6 +284,15 @@ header{will-change:auto}
 .check-box{width:26px;height:26px}
 .btn{min-height:44px}
 .btn-sm{min-height:36px;padding:8px 14px}
+
+/* ══ REDUCED MOTION — respect user preference for vestibular accessibility ══ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .loader-dot,.logo-dot,.alert-dot{animation:none!important}
+}
+
+/* ══ MOMENTUM SCROLLING — smooth native feel on iOS inside modals ══ */
+#editModal,#cierreModal,#setupModal,.tbl-wrap,.edit-table-wrap{-webkit-overflow-scrolling:touch}
 
 /* ══ iOS SAFE AREA ══ */
 header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
@@ -281,14 +308,14 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 .group-pill:hover:not(.active){border-color:var(--accent);color:var(--accent)}
 
 /* ══ MOBILE NAV BAR ══ */
-#mobileNav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
+#mobileNav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:var(--z-nav);
   background:var(--surface);border-top:1px solid var(--border);
   padding:8px max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   display:none;gap:0;overflow-x:auto;justify-content:space-around;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
 #mobileNav::-webkit-scrollbar{height:0}
-.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-width:52px;border-radius:10px;transition:all .2s;flex-shrink:0;scroll-snap-align:start}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-width:52px;border-radius:10px;transition:all .2s;flex-shrink:0;scroll-snap-align:start}
 .mnav-btn .mnav-icon{font-size:20px;line-height:1}
 .mnav-btn.active{color:var(--accent);background:rgba(59,130,246,.08)}
 .mnav-btn .alert-dot{width:6px;height:6px;background:var(--red);border-radius:50%;position:absolute;top:4px;right:8px;animation:pulse 1.5s infinite}
@@ -296,7 +323,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
 /* ══ MOBILE HEADER OVERFLOW MENU ══ */
 #hdrOverflow{display:none;position:relative}
-#hdrOverflowMenu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:8px;min-width:180px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.4);flex-direction:column;gap:4px}
+#hdrOverflowMenu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:8px;min-width:180px;z-index:var(--z-overflow);box-shadow:0 8px 32px rgba(0,0,0,.4);flex-direction:column;gap:4px}
 #hdrOverflowMenu.open{display:flex}
 .overflow-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:none;background:transparent;color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;width:100%;text-align:left;transition:background .15s}
 .overflow-item:hover{background:var(--surface2)}
@@ -331,10 +358,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 @media(max-width:640px){
   /* Layout */
   header{padding:10px 16px;gap:8px}
-  .panel{padding:14px 16px;padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+  .panel{padding:14px 16px;padding-bottom:calc(var(--mobile-chrome-h) + env(safe-area-inset-bottom))}
   .tabs{display:none}/* replaced by bottom nav */
   #mobileNav{display:flex}
-  #groupToggle{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom));left:0;right:0;z-index:201;padding:6px 16px;background:var(--surface);border-top:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+  #groupToggle{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom));left:0;right:0;z-index:var(--z-group-toggle);padding:6px 16px;background:var(--surface);border-top:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
   .group-pill{font-size:11px;padding:6px 16px}
 
   /* Grids → single column */
@@ -345,7 +372,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .hdr-meta-overflow-hide{display:none}
   #hdrOverflow{display:block}
   .logo-title{font-size:16px}
-  .logo-label{font-size:9px}
+  .logo-label{font-size:10px}
 
   /* KPIs */
   .kpi-val{font-size:20px}
@@ -371,7 +398,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .cierre-container{padding:0}
   .cierre-header{border-radius:12px;padding:16px}
   .cierre-input{font-size:16px;padding:12px 14px} /* prevent iOS zoom + bigger tap target */
-  #setupModal>div>div{padding:20px 16px!important;border-radius:16px!important}
+  #setupModal .setup-card{padding:20px 16px!important;border-radius:16px!important}
 
   /* Edit modal */
   .edit-container{padding:0 4px}
@@ -392,17 +419,19 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .score-ring svg{width:90px;height:90px}
   .score-num{font-size:22px}
 
-  /* Proyector slider row wraps */
-  #proyectorConfig [style*="display:flex"]{flex-wrap:wrap}
-
   /* Loader */
   .lcard{padding:20px 16px}
 }
 
+/* ══ COMPACT PHONE NAV ≤400px — icon-only (keep labels visible to AT via sr-only) ══ */
+@media(max-width:400px){
+  .mnav-btn span:not(.mnav-icon){position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .mnav-btn{min-width:44px;padding:8px 6px}
+  .mnav-btn .mnav-icon{font-size:22px}
+}
+
 /* ══ SMALL PHONES ≤375px ══ */
 @media(max-width:375px){
-  .mnav-btn{min-width:44px;padding:6px 6px;font-size:8px}
-  .mnav-btn .mnav-icon{font-size:18px}
   .card{padding:12px}
   .kpi-val{font-size:18px}
   .cierre-header{padding:12px}
@@ -436,7 +465,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 /* ══ SWIPE INDICATOR (mobile) ══ */
 .swipe-hint{display:none}
 @media(max-width:640px){
-  .swipe-hint{display:block;text-align:center;font-size:10px;color:var(--muted);padding:6px 0 2px;letter-spacing:.06em}
+  .swipe-hint{display:block;text-align:center;font-size:11px;color:var(--muted);padding:6px 0 2px;letter-spacing:.06em}
 }
 
 /* ══ EDIT MODAL MOBILE — scrollable tabs ══ */
@@ -449,7 +478,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   /* Edit tables - show as stacked cards on mobile */
   .edit-table-wrap{border-radius:10px;overflow-x:auto}
   .edit-table{font-size:12px}
-  .edit-table th{font-size:9px;padding:6px 8px}
+  .edit-table th{font-size:10px;padding:6px 8px}
   .edit-table td{padding:4px 6px}
   .tbl-input{min-width:70px!important;font-size:13px!important}
 }
@@ -485,48 +514,49 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .cf-val{font-size:15px;text-align:left}
 }
 
-/* ══ RESPONSIVE STAT PILLS — foldable inner screens (650-768px) ══ */
+/* ══ STAT PILL SYSTEM — replaces fragile [style*=...] attribute selectors ══ */
+/* Base classes (visual layout driven by inline styles; these exist so responsive
+   overrides can target semantic hooks instead of substring-matching style attrs). */
+.stat-row{display:flex;flex-wrap:wrap;gap:12px}
+.stat-row.tight{gap:10px}
+.stat-row.loose{gap:16px}
+.stat-pill{min-width:140px}
+.stat-pill.md{min-width:160px}
+.stat-pill.lg{min-width:200px}
+.stat-value{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:22px;font-weight:800;line-height:1.1}
+.stat-value.md{font-size:20px}
+.stat-value.sm{font-size:18px}
+.stat-value.xs{font-size:16px}
+.stat-card{padding:16px 18px;border-radius:10px}
+
+/* Foldable inner screens (650-768px): shrink committedSimulation pills */
 @media(max-width:768px){
-  #committedSimulation [style*="display:flex;gap:12px;flex-wrap:wrap"]{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:10px!important}
-  #committedSimulation .mono[style*="font-size:22px"]{font-size:18px!important}
-  #committedSimulation [style*="min-width:140px"]{min-width:0!important}
+  #committedSimulation .stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  #committedSimulation .stat-value{font-size:18px}
+  #committedSimulation .stat-pill{min-width:0}
 }
-/* ══ RESPONSIVE STAT PILLS — prevent overflow on phones ══ */
-/* Committed Funds, Proyector config, BVA summary, Debt Payoff, Checklist interest KPIs */
+/* Phones: prevent pill overflow, fold containers to 2-col grid */
 @media(max-width:640px){
-  /* All inline flex stat pill containers: force 2-col grid on mobile */
-  #committedSimulation .grid,
-  #debtCostSnapshot .grid{gap:8px}
-  /* Override min-width on inline stat pills */
-  [style*="min-width:140px"],
-  [style*="min-width:160px"],
-  [style*="min-width:200px"]{min-width:0!important}
-  /* Shrink large inline mono values that overflow narrow pills */
-  #committedSimulation .mono[style*="font-size:22px"],
-  #proyectorConfig .mono[style*="font-size:22px"],
-  #debtCostSnapshot .mono[style*="font-size:18px"]{font-size:16px!important;word-break:break-all}
-  /* BVA summary pills */
-  #budgetVsActual .mono[style*="font-size:20px"]{font-size:16px!important}
-  /* Debt payoff stat boxes — shrink and allow wrapping */
-  #debtPayoffDates [style*="display:flex;gap:16px"]{gap:8px!important}
-  #debtPayoffDates .mono[style*="font-size:16px"]{font-size:14px!important}
-  /* Goals tab — pct display */
-  #metasList .mono[style*="font-size:22px"]{font-size:18px!important}
-  /* Proyector config — slider area */
-  #proyectorConfig [style*="display:flex;align-items:center;gap:16px"]{gap:10px!important}
-  /* Ensure all stat pill containers wrap to 2-col grid */
-  #committedSimulation [style*="display:flex;gap:12px;flex-wrap:wrap"],
-  #debtCostSnapshot [style*="display:flex;gap:10px;flex-wrap:wrap"]{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:8px!important}
+  #committedSimulation .grid,#debtCostSnapshot .grid{gap:8px}
+  .stat-pill,.stat-pill.md,.stat-pill.lg{min-width:0}
+  #committedSimulation .stat-value,
+  #proyectorConfig .stat-value,
+  #debtCostSnapshot .stat-value.sm{font-size:16px;word-break:break-all}
+  #budgetVsActual .stat-value.md{font-size:16px}
+  #debtPayoffDates .stat-row.loose{gap:8px}
+  #debtPayoffDates .stat-value.xs{font-size:14px}
+  #metasList .stat-value{font-size:18px}
+  #proyectorConfig .stat-row.loose{gap:10px}
+  #committedSimulation .stat-row,
+  #debtCostSnapshot .stat-row.tight{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 }
 @media(max-width:375px){
-  /* Extra-small phones: single column for stat pills */
-  #committedSimulation [style*="display:flex;gap:12px;flex-wrap:wrap"],
-  #debtCostSnapshot [style*="display:flex;gap:10px;flex-wrap:wrap"]{grid-template-columns:1fr!important}
-  #committedSimulation .mono[style*="font-size:22px"],
-  #proyectorConfig .mono[style*="font-size:22px"]{font-size:14px!important}
-  #budgetVsActual .mono[style*="font-size:20px"]{font-size:14px!important}
-  /* Debt cards — narrower padding */
-  #debtPayoffDates [style*="padding:16px 18px"]{padding:12px 14px!important}
+  #committedSimulation .stat-row,
+  #debtCostSnapshot .stat-row.tight{grid-template-columns:1fr}
+  #committedSimulation .stat-value,
+  #proyectorConfig .stat-value{font-size:14px}
+  #budgetVsActual .stat-value.md{font-size:14px}
+  #debtPayoffDates .stat-card{padding:12px 14px}
 }
 
 /* ══ EMERGENCY TIP CARD — min height so it doesn't collapse ══ */
@@ -561,7 +591,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
 /* ══ PWA INSTALL BANNER ══ */
 #pwaInstallBanner{
-  position:fixed;bottom:0;left:0;right:0;z-index:250;
+  position:fixed;bottom:0;left:0;right:0;z-index:var(--z-pwa-banner);
   background:var(--surface);border-top:1px solid var(--border);
   padding:14px max(20px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
@@ -596,7 +626,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     </div>
     <div class="pwa-banner-actions">
       <button class="btn btn-primary btn-sm" id="pwaInstallBtn" data-i18n="pwa_install">Instalar</button>
-      <button class="btn btn-ghost btn-sm" id="pwaCloseBtn" style="padding:7px 10px;min-width:36px;justify-content:center" aria-label="Cerrar">✕</button>
+      <button class="btn btn-ghost btn-sm" id="pwaCloseBtn" style="padding:7px 10px;min-width:36px;justify-content:center" aria-label="Cerrar" data-icon-only="x"></button>
     </div>
   </div>
 </div>
@@ -713,45 +743,45 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="meta-item"><div class="meta-label" data-i18n="hdr_ingrd">Ingreso RD$</div><div class="meta-val" style="color:var(--green)" id="hIngRD">—</div></div>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="openCierre()" data-i18n="closemonth">🗓 Cerrar Mes</button>
       <button class="hdr-btn edit hdr-meta-overflow-hide" onclick="openEditModal()" data-i18n="edit">✏️ Editar</button>
-      <span id="dbSyncStatus" style="display:none;font-size:11px;color:var(--green);font-weight:700;align-items:center;gap:4px">💾 Guardado</span>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleTheme()" id="themeBtn" title="Modo claro/oscuro">☀️</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleLang()" id="langBtn" title="Switch language">🇺🇸 EN</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="exportSnapshot()" title="Exportar snapshot PDF">📸</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="resetLoader()">↩</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="hardResetCache()" title="Limpiar caché y recargar" style="font-size:15px">🔄</button>
+      <span id="dbSyncStatus" role="status" aria-live="polite" style="display:none;font-size:11px;color:var(--green);font-weight:700;align-items:center;gap:4px">💾 Guardado</span>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleTheme()" id="themeBtn" title="Modo claro/oscuro" aria-label="Modo claro/oscuro"></button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleLang()" id="langBtn" title="Switch language" aria-label="Switch language">🇺🇸 EN</button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="exportSnapshot()" title="Exportar snapshot PDF" aria-label="Exportar snapshot PDF" id="snapBtn"></button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="resetLoader()" aria-label="Cambiar archivo" title="Cambiar archivo" id="backBtn"></button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="hardResetCache()" title="Limpiar caché y recargar" aria-label="Limpiar caché y recargar" id="refreshBtn"></button>
       <!-- Mobile overflow menu -->
       <div id="hdrOverflow">
-        <button class="hdr-btn" onclick="toggleOverflow()" id="overflowBtn" title="Más opciones">⋯</button>
-        <div id="hdrOverflowMenu">
-          <button class="overflow-item" onclick="openCierre();closeOverflow()" data-i18n="closemonth">🗓 Cerrar Mes</button>
-          <button class="overflow-item" onclick="openEditModal();closeOverflow()" data-i18n="editdata">✏️ Editar datos</button>
-          <button class="overflow-item" onclick="toggleTheme();closeOverflow()" id="themeBtnMobile">☀️ <span data-i18n="changetheme">Cambiar tema</span></button>
-          <button class="overflow-item" onclick="toggleLang();closeOverflow()" id="langBtnMobile">🇺🇸 <span id="langBtnMobileLabel">Switch to English</span></button>
-          <button class="overflow-item" onclick="exportSnapshot();closeOverflow()" data-i18n="exportpdf">📸 Exportar PDF</button>
-          <button class="overflow-item" onclick="resetLoader();closeOverflow()" data-i18n="changefile">↩ Cambiar archivo</button>
-          <button class="overflow-item" onclick="hardResetCache();closeOverflow()" data-i18n="clearcache">🔄 Limpiar caché</button>
+        <button class="hdr-btn" onclick="toggleOverflow()" id="overflowBtn" title="Más opciones" aria-label="Más opciones" aria-haspopup="menu" aria-expanded="false"></button>
+        <div id="hdrOverflowMenu" role="menu" aria-label="Más opciones">
+          <button class="overflow-item" role="menuitem" onclick="openCierre();closeOverflow()" data-i18n="closemonth">🗓 Cerrar Mes</button>
+          <button class="overflow-item" role="menuitem" onclick="openEditModal();closeOverflow()" data-i18n="editdata">✏️ Editar datos</button>
+          <button class="overflow-item" role="menuitem" onclick="toggleTheme();closeOverflow()" id="themeBtnMobile">☀️ <span data-i18n="changetheme">Cambiar tema</span></button>
+          <button class="overflow-item" role="menuitem" onclick="toggleLang();closeOverflow()" id="langBtnMobile">🇺🇸 <span id="langBtnMobileLabel">Switch to English</span></button>
+          <button class="overflow-item" role="menuitem" onclick="exportSnapshot();closeOverflow()" data-i18n="exportpdf">📸 Exportar PDF</button>
+          <button class="overflow-item" role="menuitem" onclick="resetLoader();closeOverflow()" data-i18n="changefile">↩ Cambiar archivo</button>
+          <button class="overflow-item" role="menuitem" onclick="hardResetCache();closeOverflow()" data-i18n="clearcache">🔄 Limpiar caché</button>
         </div>
       </div>
     </div>
   </header>
 
-  <div id="groupToggle">
-    <button class="group-pill active" id="pillOps" onclick="switchGroup('ops')" data-i18n="group_ops">Operaciones</button>
-    <button class="group-pill" id="pillStrat" onclick="switchGroup('strat')" data-i18n="group_strat">Estrategia</button>
+  <div id="groupToggle" role="tablist" aria-label="Grupo de pestañas">
+    <button class="group-pill active" id="pillOps" role="tab" aria-selected="true" onclick="switchGroup('ops')" data-i18n="group_ops">Operaciones</button>
+    <button class="group-pill" id="pillStrat" role="tab" aria-selected="false" onclick="switchGroup('strat')" data-i18n="group_strat">Estrategia</button>
   </div>
-  <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('resumen',this)" data-group="ops" data-i18n="tab_resumen">📊 Resumen</button>
-    <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas" data-group="ops" data-i18n="tab_alertas">🔔 Alertas & Pagos</button>
-    <button class="tab-btn" onclick="showTab('registro',this)" data-group="ops" data-i18n="tab_registro">🧾 Registro</button>
-    <button class="tab-btn" onclick="showTab('presupuesto',this)" data-group="ops" data-i18n="tab_presupuesto">📋 Presupuesto</button>
-    <button class="tab-btn" onclick="showTab('gastos',this)" data-group="ops" data-i18n="tab_gastos">💸 Gastos</button>
-    <button class="tab-btn" onclick="showTab('fornow',this)" data-group="ops" data-i18n="tab_fornow">💳 Fondos</button>
-    <button class="tab-btn" onclick="showTab('emergency',this)" data-group="strat" data-i18n="tab_emergency" style="display:none">🛡 Emergencias</button>
-    <button class="tab-btn" onclick="showTab('deudas',this)" data-group="strat" data-i18n="tab_deudas" style="display:none">🏦 Deudas</button>
-    <button class="tab-btn" onclick="showTab('proyector',this)" data-group="strat" data-i18n="tab_proyector" style="display:none">🎯 Proyector</button>
-    <button class="tab-btn" onclick="showTab('metas',this)" data-group="strat" data-i18n="tab_metas" style="display:none">🏆 Metas</button>
-    <button class="tab-btn" onclick="showTab('analisis',this)" data-group="strat" data-i18n="tab_analisis" style="display:none">📈 Análisis</button>
-    <button class="tab-btn" onclick="showTab('historial',this)" data-group="strat" data-i18n="tab_historial" style="display:none">📅 Historial</button>
+  <div class="tabs" role="tablist" aria-label="Secciones del dashboard">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-resumen" onclick="showTab('resumen',this)" data-group="ops" data-i18n="tab_resumen">📊 Resumen</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-alertas" onclick="showTab('alertas',this)" id="tabAlertas" data-group="ops" data-i18n="tab_alertas">🔔 Alertas & Pagos</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-registro" onclick="showTab('registro',this)" data-group="ops" data-i18n="tab_registro">🧾 Registro</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-presupuesto" onclick="showTab('presupuesto',this)" data-group="ops" data-i18n="tab_presupuesto">📋 Presupuesto</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-gastos" onclick="showTab('gastos',this)" data-group="ops" data-i18n="tab_gastos">💸 Gastos</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-fornow" onclick="showTab('fornow',this)" data-group="ops" data-i18n="tab_fornow">💳 Fondos</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-emergency" onclick="showTab('emergency',this)" data-group="strat" data-i18n="tab_emergency" style="display:none">🛡 Emergencias</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-deudas" onclick="showTab('deudas',this)" data-group="strat" data-i18n="tab_deudas" style="display:none">🏦 Deudas</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-proyector" onclick="showTab('proyector',this)" data-group="strat" data-i18n="tab_proyector" style="display:none">🎯 Proyector</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-metas" onclick="showTab('metas',this)" data-group="strat" data-i18n="tab_metas" style="display:none">🏆 Metas</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-analisis" onclick="showTab('analisis',this)" data-group="strat" data-i18n="tab_analisis" style="display:none">📈 Análisis</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-historial" onclick="showTab('historial',this)" data-group="strat" data-i18n="tab_historial" style="display:none">📅 Historial</button>
   </div>
 
   <!-- Mobile bottom navigation -->
@@ -771,8 +801,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </nav>
 
   <!-- RESUMEN -->
-  <div id="tab-resumen" class="panel active">
-    <div class="grid g4" style="margin-bottom:16px" id="kpiRow"></div>
+  <div id="tab-resumen" class="panel active" role="tabpanel">
+    <div class="grid g4" style="margin-bottom:16px" id="kpiRow" aria-live="polite" aria-atomic="false"></div>
     <div id="summaryExtras" style="margin-bottom:16px"></div>
     <div class="grid g13" style="margin-bottom:16px">
       <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;min-width:0" id="scoreCard"></div>
@@ -787,7 +817,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- ALERTAS & PAGOS (merged) -->
-  <div id="tab-alertas" class="panel">
+  <div id="tab-alertas" class="panel" role="tabpanel">
     <div class="card" style="margin-bottom:16px" id="checklistProgress"></div>
     <div class="card" style="margin-bottom:16px" id="paymentCalendar"></div>
     <div class="grid g2" style="margin-bottom:16px">
@@ -803,7 +833,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- GASTOS -->
-  <div id="tab-gastos" class="panel">
+  <div id="tab-gastos" class="panel" role="tabpanel">
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:18px">
         <div class="card-title" style="margin:0" data-i18n="gastostbl_title">Gastos & Deudas Mensuales</div>
@@ -821,7 +851,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- REGISTRO DE GASTOS -->
-  <div id="tab-registro" class="panel">
+  <div id="tab-registro" class="panel" role="tabpanel">
     <div id="registroKpis" class="grid g3" style="margin-bottom:16px"></div>
     <div id="regTrendCard" class="card" style="margin-bottom:16px;display:none"></div>
     <div class="card" style="margin-bottom:16px">
@@ -832,7 +862,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div id="regFormWrap" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" class="reg-form">
           <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblFecha"></label><input type="date" id="regFecha" class="cierre-input" style="font-size:14px;padding:8px 10px"></div>
-          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblMonto"></label><input type="number" id="regMonto" min="0" step="0.01" class="cierre-input" style="font-size:14px;padding:8px 10px" placeholder="0.00"></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblMonto"></label><input type="text" inputmode="decimal" id="regMonto" class="cierre-input" style="font-size:14px;padding:8px 10px" placeholder="0.00"></div>
           <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblCat"></label><select id="regCategoria" class="cierre-input" style="font-size:14px;padding:8px 10px;cursor:pointer"></select></div>
           <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblMetodo"></label><select id="regMetodo" class="cierre-input" style="font-size:14px;padding:8px 10px;cursor:pointer"></select></div>
           <div style="grid-column:1/-1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblVincular"></label><select id="regVincular" class="cierre-input" style="font-size:14px;padding:8px 10px;cursor:pointer;width:100%"></select></div>
@@ -848,7 +878,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- PRESUPUESTO (Forward Budget) -->
-  <div id="tab-presupuesto" class="panel">
+  <div id="tab-presupuesto" class="panel" role="tabpanel">
     <div id="presKpis" class="grid g4" style="margin-bottom:16px"></div>
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
@@ -871,14 +901,14 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <!-- (checklist merged into tab-alertas above) -->
 
   <!-- DEUDAS -->
-  <div id="tab-deudas" class="panel">
+  <div id="tab-deudas" class="panel" role="tabpanel">
     <div class="grid g4" style="margin-bottom:20px" id="deudaKpis"></div>
     <div id="deudaCards"></div>
     <div class="card"><div class="card-title" data-i18n="panel_deudas_dist">Distribución de Deudas</div><div class="chart-wrap"><canvas id="deudaPie"></canvas></div></div>
   </div>
 
   <!-- PROYECTOR DE DEUDAS -->
-  <div id="tab-proyector" class="panel">
+  <div id="tab-proyector" class="panel" role="tabpanel">
     <div class="card" style="margin-bottom:16px" id="proyectorConfig"></div>
 
     <!-- Committed Funds Simulation -->
@@ -906,7 +936,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- EMERGENCY -->
-  <div id="tab-emergency" class="panel">
+  <div id="tab-emergency" class="panel" role="tabpanel">
     <div class="grid g4" style="margin-bottom:16px" id="efKpis"></div>
     <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_progress">Fondos de Emergencia · Progreso</div><div id="efFunds"></div></div>
     <div class="grid g2" style="margin-bottom:16px">
@@ -917,7 +947,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- FOR NOW -->
-  <div id="tab-fornow" class="panel">
+  <div id="tab-fornow" class="panel" role="tabpanel">
     <div class="grid g4" style="margin-bottom:16px" id="forNowKpis"></div>
     <div class="card" id="forNowDetail"></div>
     <div class="card" style="margin-top:16px;margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_cashflow">Cashflow Mensual Detallado</div><div id="cfRows"></div></div>
@@ -925,7 +955,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- HISTORIAL -->
-  <div id="tab-historial" class="panel">
+  <div id="tab-historial" class="panel" role="tabpanel">
     <div class="grid g4" style="margin-bottom:16px" id="histKpis"></div>
     <div class="card" style="margin-bottom:16px">
       <div class="card-title" data-i18n="panel_hist_chart">Evolución Net Worth & Deudas</div>
@@ -955,7 +985,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- METAS DE AHORRO (Feature 1) -->
-  <div id="tab-metas" class="panel">
+  <div id="tab-metas" class="panel" role="tabpanel">
     <div class="grid g3" style="margin-bottom:16px" id="metasKpis"></div>
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px">
@@ -971,7 +1001,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- ANÁLISIS: Budget vs Actual + Debt Payoff Dates (Features 2 & 3) -->
-  <div id="tab-analisis" class="panel">
+  <div id="tab-analisis" class="panel" role="tabpanel">
     <!-- Analysis Summary -->
     <div class="card" style="margin-bottom:16px" id="analisisSummary"></div>
     <!-- Cash Flow Waterfall -->
@@ -994,9 +1024,9 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 </div>
 
 <!-- ══ SETUP WIZARD (Start from Scratch) ══ -->
-<div id="setupModal" style="position:fixed;inset:0;z-index:1100;background:rgba(6,9,18,.96);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px;align-items:flex-start;justify-content:center">
+<div id="setupModal" style="position:fixed;inset:0;z-index:var(--z-setup-modal);background:rgba(6,9,18,.96);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px;align-items:flex-start;justify-content:center">
   <div style="max-width:560px;width:100%;margin:auto">
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px">
+    <div class="setup-card" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px">
 
       <!-- Header -->
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
@@ -1028,7 +1058,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="cierre-header">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
         <div id="cierreModalTitle" style="font-size:14px;font-weight:800;color:var(--accent)">🗓 CIERRE DE MES</div>
-        <button class="btn btn-ghost btn-sm" onclick="closeCierre()" aria-label="Cerrar wizard de cierre de mes">✕ Cerrar</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeCierre()" aria-label="Cerrar wizard de cierre de mes" data-icon-close>Cerrar</button>
       </div>
       <div class="step-indicator" id="stepDots"></div>
       <div id="cierreSteps"></div>
@@ -1055,7 +1085,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <span class="changes-badge" id="changesBadge" style="display:none">● <span id="changesCount">0</span> <span data-i18n="edit_changes">cambios</span></span>
         <button class="btn btn-success" onclick="applyAndDownload()" data-i18n="edit_save">💾 Guardar y exportar</button>
         <button class="btn btn-primary" onclick="applyChanges()" data-i18n="edit_apply">✓ Guardar</button>
-        <button class="btn btn-ghost" onclick="closeEditModal()" data-i18n="edit_close">✕ Cerrar</button>
+        <button class="btn btn-ghost" onclick="closeEditModal()" data-i18n="edit_close" data-icon-close>Cerrar</button>
       </div>
     </div>
     <div class="edit-tabs">
@@ -1160,6 +1190,27 @@ function currencySymbol(){try{return(typeof _editData!=='undefined'&&_editData?.
 function fmtC(n){if(n===undefined||n===null||isNaN(n))return'—';const s=currencySymbol();const abs=Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});return n<0?'-'+s+abs:s+abs;}
 function toDisplay(n){try{if(!_editData?.config)return n;return _editData.config.monedaPrincipal==='USD'?n/(_editData.config.tasa||60):n;}catch(e){return n;}}
 function fromDisplay(n){try{if(!_editData?.config)return n;return _editData.config.monedaPrincipal==='USD'?n*(_editData.config.tasa||60):n;}catch(e){return n;}}
+
+// ══════════════════════════════════
+// ICONS — lucide-inspired inline SVG for platform-consistent rendering
+// ══════════════════════════════════
+// Emojis used as icon-only buttons render differently on iOS / Android / Windows
+// (and some are missing in the Syne fallback). SVG avoids that entirely.
+// Kept intentionally small: only the functional icons flagged in the review.
+const _ICON_PATHS={
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>',
+  moon:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  back:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>',
+  refresh:'<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>',
+  more:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
+};
+function icon(name,size){
+  const p=_ICON_PATHS[name];if(!p)return'';
+  const s=size||18;
+  return `<svg class="icon" aria-hidden="true" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+}
 
 // ══════════════════════════════════
 // i18n — LANGUAGE SYSTEM
@@ -1410,7 +1461,7 @@ const LANG = {
     milestone_ef_complete:'🎉 ¡Fondo de emergencia completo!',
     // Edit modal
     edit_title:'Editar Datos', edit_sub:'Los cambios se aplican al dashboard y puedes descargar tu respaldo',
-    edit_save:'💾 Guardar y exportar', edit_apply:'✓ Guardar', edit_close:'✕ Cerrar',
+    edit_save:'💾 Guardar y exportar', edit_apply:'✓ Guardar', edit_close:'Cerrar',
     edit_tab_config:'⚙️ Configuración', edit_tab_gastos:'💸 Gastos & Deudas',
     edit_tab_fornow:'💳 Fondos', edit_tab_emergency:'🛡 Emergencia', edit_tab_historial:'📅 Historial',
     edit_card_config:'⚙️ Parámetros Globales', edit_card_gastos:'💸 Gastos & Deudas Mensuales',
@@ -1819,7 +1870,7 @@ const LANG = {
     milestone_ef_complete:'🎉 Emergency fund fully funded!',
     // Edit modal
     edit_title:'Edit Data', edit_sub:'Changes apply to the dashboard and you can download your backup',
-    edit_save:'💾 Save & export', edit_apply:'✓ Save', edit_close:'✕ Close',
+    edit_save:'💾 Save & export', edit_apply:'✓ Save', edit_close:'Close',
     edit_tab_config:'⚙️ Settings', edit_tab_gastos:'💸 Expenses & Debts',
     edit_tab_fornow:'💳 Funds', edit_tab_emergency:'🛡 Emergency', edit_tab_historial:'📅 History',
     edit_card_config:'⚙️ Global Settings', edit_card_gastos:'💸 Monthly Expenses & Debts',
@@ -2009,6 +2060,8 @@ function applyI18n(){
   // Update mobile overflow lang label
   const lbm=document.getElementById('langBtnMobileLabel');
   if(lbm) lbm.textContent=t('langswitch');
+  // Re-render SVG chrome icons (applyI18n may overwrite innerHTML of icon buttons)
+  if(typeof renderChromeIcons==='function')renderChromeIcons();
 }
 
 function toggleLoaderLang(){
@@ -2028,7 +2081,23 @@ function toggleLang(){
 }
 
 // Apply language on page load (loader screen)
-document.addEventListener('DOMContentLoaded',()=>applyI18n());
+document.addEventListener('DOMContentLoaded',()=>{applyI18n();renderChromeIcons();});
+
+// Populate SVG icons for chrome buttons (theme, snap, back, refresh, overflow
+// trigger, modal closes). Called on load and on theme toggle.
+function renderChromeIcons(){
+  const isLight=document.body.classList.contains('light');
+  const set=(id,svg)=>{const el=document.getElementById(id);if(el)el.innerHTML=svg;};
+  set('themeBtn',icon(isLight?'moon':'sun'));
+  set('snapBtn',icon('camera'));
+  set('backBtn',icon('back'));
+  set('refreshBtn',icon('refresh'));
+  set('overflowBtn',icon('more'));
+  // Icon-only buttons: replace content entirely with the named SVG
+  document.querySelectorAll('[data-icon-only]').forEach(b=>{b.innerHTML=icon(b.getAttribute('data-icon-only'),14);});
+  // Modal close buttons: prepend x icon if not already present (keeps text label)
+  document.querySelectorAll('[data-icon-close]').forEach(b=>{if(!b.querySelector('.icon'))b.insertAdjacentHTML('afterbegin',icon('x',14)+' ');});
+}
 const tipoColors={Familiar:'#22d3a0',Variable:'#fcd34d',Seguro:'#93c5fd','Educación':'#c4b5fd',Servicio:'#fca5a5',Vivienda:'#fda4af',Cuota:'#f9a8d4',Tarjeta:'#fb923c','Préstamo':'#f87171',Fijo:'#818cf8'};
 const COLORS=['#22d3a0','#fcd34d','#93c5fd','#c4b5fd','#fca5a5','#fda4af','#f9a8d4','#fb923c','#f87171','#818cf8'];
 const ttStyle={backgroundColor:'#1a2540',titleColor:'#e2eaf8',bodyColor:'#94a3b8',borderColor:'#1e293b',borderWidth:1};
@@ -2324,6 +2393,37 @@ window.addEventListener('load',()=>{
 })();
 
 // ══════════════════════════════════
+// HIDE-ON-SCROLL HEADER (mobile only)
+// ══════════════════════════════════
+// Reclaims ~50px of vertical space on small screens by sliding the sticky
+// header up on scroll-down and instantly revealing it on scroll-up.
+// Only active below 640px; respects prefers-reduced-motion.
+(()=>{
+  const HIDE_AFTER=100;    // only start hiding after 100px of scroll
+  const DOWN_DELTA=20;     // ignore jitter smaller than this on scroll-down
+  let _lastY=0,_ticking=false;
+  const reducedMotion=window.matchMedia?.('(prefers-reduced-motion:reduce)')?.matches;
+  window.addEventListener('scroll',()=>{
+    if(_ticking)return;
+    if(reducedMotion||window.innerWidth>640)return;
+    if(document.getElementById('editModal')?.classList.contains('open'))return;
+    if(document.getElementById('cierreModal')?.classList.contains('open'))return;
+    _ticking=true;
+    requestAnimationFrame(()=>{
+      const y=window.scrollY||window.pageYOffset||0;
+      const hdr=document.querySelector('header');
+      if(hdr){
+        if(y<HIDE_AFTER){hdr.classList.remove('hidden');}
+        else if(y>_lastY+DOWN_DELTA){hdr.classList.add('hidden');}
+        else if(y<_lastY){hdr.classList.remove('hidden');}
+      }
+      _lastY=y;
+      _ticking=false;
+    });
+  },{passive:true});
+})();
+
+// ══════════════════════════════════
 // START FROM SCRATCH — Setup Wizard
 // ══════════════════════════════════
 let _setupStep=0;
@@ -2351,7 +2451,7 @@ function renderSwCuenta(i,c){
   return`<div class="sw-cuenta-row" style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
     <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
     <select class="cierre-input sw-cnt-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
-    <input class="cierre-input sw-cnt-saldo" type="number" step="any" placeholder="Saldo" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
+    <input class="cierre-input sw-cnt-saldo" type="text" inputmode="decimal" placeholder="Saldo" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
     <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
   </div>`;
 }
@@ -2369,10 +2469,10 @@ function renderSwGasto(i,g){
       <button class="row-del-btn" onclick="this.closest('.sw-gasto-row').remove()">✕</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (${currencySymbol()})</div><input class="cierre-input sw-g-adeudado" type="number" step="any" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="number" step="any" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="number" step="any" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="number" step="any" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (${currencySymbol()})</div><input class="cierre-input sw-g-adeudado" type="text" inputmode="decimal" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="text" inputmode="decimal" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="text" inputmode="decimal" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="text" inputmode="decimal" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
     </div>
   </div>`;
 }
@@ -2384,8 +2484,8 @@ function renderSwFondo(i,f){
   return`<div class="sw-fondo-row" style="display:grid;grid-template-columns:1fr auto 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
     <input class="cierre-input sw-f-nombre" placeholder="Nombre fondo" value="${escH(f.fondo)}" style="font-size:13px;padding:8px 10px">
     <select class="cierre-input sw-f-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
-    <input class="cierre-input sw-f-balance" type="number" step="any" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
-    <input class="cierre-input sw-f-meta" type="number" step="any" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-balance" type="text" inputmode="decimal" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-meta" type="text" inputmode="decimal" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
     <button class="row-del-btn" onclick="this.closest('.sw-fondo-row').remove()">✕</button>
   </div>`;
 }
@@ -2423,8 +2523,8 @@ const _setupSteps=[
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div><label class="cierre-label">Año</label><input class="cierre-input" type="number" step="any" id="sw-anio" value="${_editData.config.anio}"></div>
-        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="number" step="any" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
+        <div><label class="cierre-label">Año</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-anio" value="${_editData.config.anio}"></div>
+        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
       </div>
       <div style="margin-top:14px">
         <label class="cierre-label">Ingreso mensual</label>
@@ -2442,7 +2542,7 @@ const _setupSteps=[
         </div>
         <div style="position:relative">
           <span id="sw-ing-prefix" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--muted);pointer-events:none">USD</span>
-          <input class="cierre-input" type="number" step="any" id="sw-ingreso"
+          <input class="cierre-input" type="text" inputmode="decimal" id="sw-ingreso"
             value="${_editData.config.ingresoUSD||''}"
             placeholder="ej. 1500"
             style="padding-left:52px"
@@ -2450,14 +2550,14 @@ const _setupSteps=[
         </div>
         <div id="sw-ingreso-preview" style="margin-top:8px;padding:8px 12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:12px;color:var(--accent);display:none"></div>
       </div>
-      <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="number" step="any" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
+      <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
     `,
     save:()=>{
       _editData.config.mes=document.getElementById('sw-mes').value;
       _editData.config.anio=parseInt(document.getElementById('sw-anio').value)||new Date().getFullYear();
-      _editData.config.tasa=parseFloat(document.getElementById('sw-tasa').value)||60;
+      _editData.config.tasa=pf(document.getElementById('sw-tasa').value)||60;
       _editData.config.diasAlerta=parseInt(document.getElementById('sw-alerta').value)||5;
-      const rawVal=parseFloat(document.getElementById('sw-ingreso').value)||0;
+      const rawVal=pf(document.getElementById('sw-ingreso').value);
       const currency=document.getElementById('sw-ing-rd-btn')?.style.background==='var(--accent)'?'RD':'USD';
       if(currency==='RD'){
         _editData.config.ingresoRD=rawVal;
@@ -2488,7 +2588,7 @@ const _setupSteps=[
       rows.forEach(row=>{
         const nombre=row.querySelector('.sw-cnt-nombre').value.trim();
         const moneda=row.querySelector('.sw-cnt-moneda')?.value||'RD';
-        const saldo=parseFloat(row.querySelector('.sw-cnt-saldo').value)||0;
+        const saldo=pf(row.querySelector('.sw-cnt-saldo').value);
         if(nombre) _editData.forNow.cuentas.push({nombre,moneda,saldo,comp:0,disp:saldo});
       });
       const tasa=_editData.config.tasa||60;
@@ -2514,10 +2614,10 @@ const _setupSteps=[
       rows.forEach(row=>{
         const nombre=row.querySelector('.sw-g-nombre').value.trim();
         if(!nombre)return;
-        const adeudado=parseFloat(row.querySelector('.sw-g-adeudado').value)||0;
+        const adeudado=pf(row.querySelector('.sw-g-adeudado').value);
         const dia=parseInt(row.querySelector('.sw-g-dia').value)||1;
-        const tasa=parseFloat(row.querySelector('.sw-g-tasa').value)||0;
-        const balance=parseFloat(row.querySelector('.sw-g-balance').value)||0;
+        const tasa=pf(row.querySelector('.sw-g-tasa').value);
+        const balance=pf(row.querySelector('.sw-g-balance').value);
         const tipo=row.querySelector('.sw-g-tipo').value;
         _editData.gastos.push({nombre,tipo,pagado:0,adeudado,dia,tasa,balance,originalRD:balance||adeudado,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:null,notas:'',pagadoMes:false});
       });
@@ -2539,7 +2639,7 @@ const _setupSteps=[
       <button class="row-add-btn" onclick="addSwFondo()" style="margin-top:8px">+ Agregar fondo</button>
       <div style="margin-top:16px">
         <label class="cierre-label">Balance de ahorros acumulados (${currencySymbol()})</label>
-        <input class="cierre-input" type="number" step="any" id="sw-balAh" value="${_editData.emerg.cashflow.balanceAhorros||0}" placeholder="0">
+        <input class="cierre-input" type="text" inputmode="decimal" id="sw-balAh" value="${_editData.emerg.cashflow.balanceAhorros||0}" placeholder="0">
       </div>
     `,
     save:()=>{
@@ -2549,11 +2649,11 @@ const _setupSteps=[
         const fondo=row.querySelector('.sw-f-nombre').value.trim();
         if(!fondo)return;
         const moneda=row.querySelector('.sw-f-moneda').value||'RD';
-        const balance=parseFloat(row.querySelector('.sw-f-balance').value)||0;
-        const meta=parseFloat(row.querySelector('.sw-f-meta').value)||0;
+        const balance=pf(row.querySelector('.sw-f-balance').value);
+        const meta=pf(row.querySelector('.sw-f-meta').value);
         _editData.emerg.fondos.push({fondo,balance,meta,falta:Math.max(0,meta-balance),moneda});
       });
-      _editData.emerg.cashflow.balanceAhorros=parseFloat(document.getElementById('sw-balAh').value)||0;
+      _editData.emerg.cashflow.balanceAhorros=pf(document.getElementById('sw-balAh').value);
     }
   },
   {
@@ -2618,8 +2718,8 @@ function swSetIngresoCurrency(currency){
   const prefix=document.getElementById('sw-ing-prefix');
   const input=document.getElementById('sw-ingreso');
   if(!usdBtn||!rdBtn)return;
-  const tasa=parseFloat(document.getElementById('sw-tasa')?.value)||60;
-  const currentVal=parseFloat(input.value)||0;
+  const tasa=pf(document.getElementById('sw-tasa')?.value)||60;
+  const currentVal=pf(input.value);
 
   if(currency==='USD'){
     // If switching FROM RD to USD, convert the current value
@@ -2648,8 +2748,8 @@ function swUpdateIngresoPreview(){
   const input=document.getElementById('sw-ingreso');
   const rdBtn=document.getElementById('sw-ing-rd-btn');
   if(!preview||!input||!rdBtn)return;
-  const tasa=parseFloat(document.getElementById('sw-tasa')?.value)||60;
-  const val=parseFloat(input.value)||0;
+  const tasa=pf(document.getElementById('sw-tasa')?.value)||60;
+  const val=pf(input.value);
   const isRD=rdBtn.style.background==='var(--accent)';
   if(!val){preview.style.display='none';return;}
   preview.style.display='block';
@@ -2701,7 +2801,7 @@ function setupNav(dir){
 }
 function toggleTheme(){
   document.body.classList.toggle('light');
-  document.getElementById('themeBtn').textContent=document.body.classList.contains('light')?'🌙':'☀️';
+  renderChromeIcons();
 }
 
 // ══════════════════════════════════
@@ -2903,7 +3003,7 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
   const tabAl=document.getElementById('tabAlertas');
   const existDot=tabAl.querySelector('.alert-dot');
   if(existDot)existDot.remove();
-  if(urgentCount>0){const d=document.createElement('span');d.className='alert-dot';tabAl.appendChild(d);}
+  if(urgentCount>0){const d=document.createElement('span');d.className='alert-dot';d.setAttribute('role','status');d.setAttribute('aria-label',_lang==='en'?'Urgent alerts':'Alertas urgentes');tabAl.appendChild(d);}
   const gpct=ingreso>0?gasto/ingreso:1;
   const agHtml=[];
   if(gpct>1)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🔴</div><div class="alert-text"><div class="alert-title">${t('alert_overspend_title')}</div><div class="alert-sub">${t('alert_overspend_sub').replace('%',Math.round((gpct-1)*100)+'%')}</div></div></div>`);
@@ -3245,7 +3345,7 @@ function buildRegistro(transacciones,gastos,config){
 
 function addTransaccion(){
   const fecha=document.getElementById('regFecha').value;
-  const monto=parseFloat(document.getElementById('regMonto').value)||0;
+  const monto=pf(document.getElementById('regMonto').value);
   const categoria=document.getElementById('regCategoria').value;
   const nota=document.getElementById('regNota').value.trim();
   const metodo=document.getElementById('regMetodo').value;
@@ -3338,7 +3438,7 @@ function buildPresupuesto(presupuesto,transacciones,config){
     const hint=recE>0?`<span style="font-size:10px;color:var(--muted)">${t('pres_from_recurring').replace('{n}',fmt(toDisplay(Math.round(recE))))}</span>`:'';
     return`<div>
       <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">${t('reg_cat_'+cat)} ${hint}</label>
-      <input type="number" min="0" step="100" value="${cur||''}" data-pres-cat="${cat}" class="cierre-input pres-input" style="font-size:14px;padding:8px 10px;width:100%" placeholder="0" oninput="updatePresUnalloc()">
+      <input type="text" inputmode="decimal" value="${cur||''}" data-pres-cat="${cat}" class="cierre-input pres-input" style="font-size:14px;padding:8px 10px;width:100%" placeholder="0" oninput="updatePresUnalloc()">
     </div>`;
   }).join('');
 
@@ -3401,7 +3501,7 @@ function updatePresUnalloc(){
   const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
   const disponible=ingreso-totalAdeudado;
   let total=0;
-  document.querySelectorAll('.pres-input').forEach(inp=>{total+=parseFloat(inp.value)||0;});
+  document.querySelectorAll('.pres-input').forEach(inp=>{total+=pf(inp.value);});
   const un=disponible-total;
   const el=document.getElementById('presUnallocLabel');
   if(el){
@@ -3415,7 +3515,7 @@ function savePresupuesto(){
   const mes=_editData.config.mes,anio=_editData.config.anio;
   document.querySelectorAll('.pres-input').forEach(inp=>{
     const cat=inp.dataset.presCat;
-    const val=parseFloat(inp.value)||0;
+    const val=pf(inp.value);
     const idx=_editData.presupuesto.findIndex(p=>p.categoria===cat&&p.mes===mes&&p.anio===anio);
     if(val>0){
       if(idx>=0)_editData.presupuesto[idx].presupuestado=val;
@@ -3511,25 +3611,25 @@ function buildProyector({gastos,ingreso,gasto,config}){
   document.getElementById('committedSimulation').innerHTML=`
     <div class="card-title" style="margin-bottom:4px">${t('proy_committed_title')}</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${t('proy_committed_sub')}</div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-      <div style="flex:1;min-width:140px;background:var(--surface2);border-radius:10px;padding:14px 18px;text-align:center">
+    <div class="stat-row" style="margin-bottom:16px">
+      <div class="stat-pill stat-card" style="flex:1;background:var(--surface2);text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_total')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--text);margin-top:2px">${fmtC(toDisplay(fnTotalProy))}</div>
+        <div class="mono stat-value" style="color:var(--text);margin-top:2px">${fmtC(toDisplay(fnTotalProy))}</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_accounts')}</div>
       </div>
-      <div style="flex:1;min-width:140px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:10px;padding:14px 18px;text-align:center">
+      <div class="stat-pill stat-card" style="flex:1;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_gastos')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--red);margin-top:2px">(${fmtC(toDisplay(fnCompProy))})</div>
+        <div class="mono stat-value" style="color:var(--red);margin-top:2px">(${fmtC(toDisplay(fnCompProy))})</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_expenses')}</div>
       </div>
-      <div style="flex:1;min-width:140px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:10px;padding:14px 18px;text-align:center">
+      <div class="stat-pill stat-card" style="flex:1;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_runway_label')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:${fnRunwayColor};margin-top:2px">${fnRunwayDisplay}</div>
+        <div class="mono stat-value" style="color:${fnRunwayColor};margin-top:2px">${fnRunwayDisplay}</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_runway')}</div>
       </div>
-      <div style="flex:1;min-width:140px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px 18px;text-align:center">
+      <div class="stat-pill stat-card" style="flex:1;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_debtpay')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px">${fmtC(toDisplay(fnDebtRedirect))}</div>
+        <div class="mono stat-value" style="color:var(--accent);margin-top:2px">${fmtC(toDisplay(fnDebtRedirect))}</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_redirectable')}</div>
       </div>
     </div>
@@ -3555,13 +3655,13 @@ function buildProyector({gastos,ingreso,gasto,config}){
   document.getElementById('proyectorConfig').innerHTML=`
     <div class="card-title">${t('proy_config_title')}</div>
     ${resta<=0?`<div style="padding:10px 14px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">⚠️ ${t('proy_no_surplus_warn')}</div>`:''}
-    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-      <div style="flex:1;min-width:200px">
+    <div class="stat-row loose" style="align-items:center">
+      <div class="stat-pill lg" style="flex:1">
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${t('proy_slider_label')}</div>
         <input type="range" id="extraSlider" min="0" max="${sliderMax}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
-          <input type="number" id="extraInput" value="${extraPayment}" min="0" step="any"
-            oninput="document.getElementById('extraSlider').value=this.value;updateProyector()"
+          <input type="text" inputmode="decimal" id="extraInput" value="${extraPayment}"
+            oninput="document.getElementById('extraSlider').value=pf(this.value);updateProyector()"
             style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:140px;min-width:100px">
           <span style="font-size:12px;color:var(--muted)">${t('proy_per_month')}</span>
           ${resta>0?`<button onclick="document.getElementById('extraSlider').value=${Math.round(resta)};document.getElementById('extraInput').value=${Math.round(resta)};updateProyector()"
@@ -3572,13 +3672,13 @@ function buildProyector({gastos,ingreso,gasto,config}){
             ${t('proy_redirectsavings')} (${fmtC(toDisplay(savingsMonthly))})</button>`:''}
         </div>
       </div>
-      <div style="background:var(--surface2);border-radius:10px;padding:12px 18px;min-width:140px;text-align:center">
+      <div class="stat-pill" style="background:var(--surface2);border-radius:10px;padding:12px 18px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_extra_label')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px" id="extraVal">${fmtC(extraPayment)}</div>
+        <div class="mono stat-value" style="color:var(--accent);margin-top:2px" id="extraVal">${fmtC(extraPayment)}</div>
       </div>
-      <div style="background:var(--surface2);border-radius:10px;padding:12px 18px;min-width:140px;text-align:center">
+      <div class="stat-pill" style="background:var(--surface2);border-radius:10px;padding:12px 18px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_surplus_label')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:${resta>0?'var(--green)':'var(--red)'};margin-top:2px">${fmtC(resta)}</div>
+        <div class="mono stat-value" style="color:${resta>0?'var(--green)':'var(--red)'};margin-top:2px">${fmtC(resta)}</div>
       </div>
     </div>`;
 
@@ -3609,22 +3709,22 @@ function buildProyector({gastos,ingreso,gasto,config}){
     ${negAmortDebts.map(g=>{const intMes=g.balance*(g.tasa/100/12);const growth=intMes-g.adeudado;return `<div style="padding:10px 14px;background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.3);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">${t('proy_neg_amort_warn').replace('{name}',escH(g.nombre)).replace('{payment}',fmt(toDisplay(g.adeudado))).replace('{interest}',fmt(toDisplay(intMes))).replace('{growth}',fmt(toDisplay(Math.round(growth))))}</div>`;}).join('')}
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
       <div class="card-title" style="margin:0">${t('proy_cost_title')}</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="stat-row tight">
         <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_monthly_interest')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">${fmtC(toDisplay(intMensual))}</div>
+          <div class="mono stat-value sm" style="color:var(--red)">${fmtC(toDisplay(intMensual))}</div>
         </div>
         <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_annual_interest')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">${fmtC(toDisplay(intMensual*12))}</div>
+          <div class="mono stat-value sm" style="color:var(--red)">${fmtC(toDisplay(intMensual*12))}</div>
         </div>
         <div style="background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_wtd_rate')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:var(--yellow)">${wtdAvgRate.toFixed(2)}%</div>
+          <div class="mono stat-value sm" style="color:var(--yellow)">${wtdAvgRate.toFixed(2)}%</div>
         </div>
         <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_interest_pct_surplus')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:${intMensual>resta?'var(--red)':'var(--accent)'}">${resta>0?Math.round(intMensual/resta*100):'∞'}%</div>
+          <div class="mono stat-value sm" style="color:${intMensual>resta?'var(--red)':'var(--accent)'}">${resta>0?Math.round(intMensual/resta*100):'∞'}%</div>
         </div>
       </div>
     </div>
@@ -3652,7 +3752,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
     return `<tr>
       <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
       <td data-label="${t('proy_refi_col_current')}" class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
-      <td data-label="${t('proy_refi_col_target')}"><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="any"
+      <td data-label="${t('proy_refi_col_target')}"><input type="text" inputmode="decimal" id="refi-rate-${i}" value="${refiRate}"
         oninput="updateRefiRow(${i})"
         style="background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);width:80px">
         <span style="font-size:11px;color:var(--muted)">%</span></td>
@@ -3756,7 +3856,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
 function updateRefiRow(i){
   const g=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0)[i];
   if(!g)return;
-  const newRate=parseFloat(document.getElementById(`refi-rate-${i}`)?.value||0);
+  const newRate=pf(document.getElementById(`refi-rate-${i}`)?.value);
   if(newRate<=0||newRate>=g.tasa)return;
   const saving=g.balance*(g.tasa-newRate)/100;
   const savMes=document.getElementById(`refi-saving-${i}`);
@@ -3766,10 +3866,10 @@ function updateRefiRow(i){
 }
 
 function updateProyector(){
-  const extra=parseFloat(document.getElementById('extraSlider')?.value||0);
+  const extra=pf(document.getElementById('extraSlider')?.value);
   document.getElementById('extraVal').textContent=fmtC(extra);
   const inp=document.getElementById('extraInput');
-  if(inp&&parseFloat(inp.value)!==extra)inp.value=extra;
+  if(inp&&pf(inp.value)!==extra)inp.value=extra;
   const deudas=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).map(g=>({...g}));
   // Fix #11: Strategy explainer
   const explainerEl=document.getElementById('strategyExplainer');
@@ -4661,7 +4761,7 @@ function buildSavingsGoals(){
             ${noMonthlyWarn}
           </div>
           <div style="display:flex;align-items:center;gap:10px">
-            <div class="mono" style="font-size:22px;font-weight:800;color:${barColor}">${pct}%</div>
+            <div class="mono stat-value" style="color:${barColor}">${pct}%</div>
             <button onclick="_editData.metas.splice(${i},1);autoSave();buildSavingsGoals()"
               style="background:rgba(244,96,106,.12);border:1px solid rgba(244,96,106,.3);border-radius:8px;color:var(--red);padding:4px 10px;font-size:12px;cursor:pointer;font-weight:700">✕</button>
           </div>
@@ -4801,15 +4901,15 @@ function buildBudgetVsActual(gastos,ingreso){
     <div class="grid g3" style="gap:10px;margin-bottom:18px">
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_budget')}</div>
-        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">${fmtC(toDisplay(totalBudget))}</div>
+        <div class="mono stat-value md" style="color:var(--text)">${fmtC(toDisplay(totalBudget))}</div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_actual')}</div>
-        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">${fmtC(toDisplay(totalActual))}</div>
+        <div class="mono stat-value md" style="color:var(--text)">${fmtC(toDisplay(totalActual))}</div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_var')}</div>
-        <div class="mono" style="font-size:20px;font-weight:800;color:${summaryColor}">${summaryArrow} ${fmtC(toDisplay(Math.abs(totalDelta)))}</div>
+        <div class="mono stat-value md" style="color:${summaryColor}">${summaryArrow} ${fmtC(toDisplay(Math.abs(totalDelta)))}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:3px">${overCount} ${t('bva_over')} · ${underCount} ${t('bva_under')}</div>
       </div>
     </div>
@@ -4894,7 +4994,7 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
     // Fix #14: urgency factors in interest rate — high rate + >12mo = red
     const urgColor=months===Infinity?'var(--red)':(months>36||(months>12&&d.tasa>20))?'var(--red)':months>12?'var(--yellow)':'var(--green)';
 
-    return `<div style="background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${color};border-radius:12px;padding:16px 18px;margin-bottom:12px">
+    return `<div class="stat-card" style="background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${color};border-radius:12px;margin-bottom:12px">
       ${isNegAmort?`<div style="padding:8px 12px;background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.3);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">${t('bva_neg_amort_alert').replace('{name}',escH(d.nombre))}</div>`:''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">
         <div>
@@ -4913,20 +5013,20 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
           <div class="mono" style="font-size:12px;color:var(--muted)">${durStr}</div>
         </div>
       </div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div class="stat-row loose">
         <div style="background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_int_total')}</div>
-          <div class="mono" style="font-size:16px;font-weight:800;color:var(--red)">
+          <div class="mono stat-value xs" style="color:var(--red)">
             ${totalInt===Infinity?'∞':fmtC(toDisplay(totalInt))}
           </div>
         </div>
         <div style="background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_intmonth')}</div>
-          <div class="mono" style="font-size:16px;font-weight:800;color:var(--text)">${fmtC(toDisplay(Math.round(d.balance*monthlyRate)))}</div>
+          <div class="mono stat-value xs" style="color:var(--text)">${fmtC(toDisplay(Math.round(d.balance*monthlyRate)))}</div>
         </div>
         <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_capitalmonth')}</div>
-          <div class="mono" style="font-size:16px;font-weight:800;color:${!isNegAmort?'var(--accent)':'var(--red)'}">
+          <div class="mono stat-value xs" style="color:${!isNegAmort?'var(--accent)':'var(--red)'}">
             ${!isNegAmort?fmtC(toDisplay(Math.round(d.adeudado-d.balance*monthlyRate))):t('dpd_neg_capital')}
           </div>
         </div>
@@ -4982,7 +5082,7 @@ function renderCierre(){
     // Saldos cuentas — use numeric index for IDs (account names may contain spaces/special chars)
     html+=_editData.forNow.cuentas.map((c,idx)=>{
       const cur=c.moneda==='USD'?'USD$':'RD$';
-      return `<div class="cierre-field"><label class="cierre-label">${escH(c.nombre)}${c.moneda==='USD'?' <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px">USD</span>':''}</label><input class="cierre-input" type="number" step="any" placeholder="${cur}${fmt(c.saldo)}" id="cw-saldo-${idx}" value="${c.saldo||0}"></div>`;
+      return `<div class="cierre-field"><label class="cierre-label">${escH(c.nombre)}${c.moneda==='USD'?' <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px">USD</span>':''}</label><input class="cierre-input" type="text" inputmode="decimal" placeholder="${cur}${fmt(c.saldo)}" id="cw-saldo-${idx}" value="${c.saldo||0}"></div>`;
     }).join('');
   } else if(_cierreStep===6){
     // Bug 3 fix: use same income formula as calcDerivedMetrics — never stale config.ingresoRD
@@ -5012,7 +5112,7 @@ function renderCierre(){
     const savedMes=_cierreNextMes||months[nextIdx];
     const savedAnio=_cierreNextAnio||nextAnio;
     html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_mes')}</label><input class="cierre-input" type="text" id="cw-nextmes" value="${savedMes}"></div>`;
-    html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_anio')}</label><input class="cierre-input" type="number" step="any" id="cw-nextanio" value="${savedAnio}"></div>`;
+    html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_anio')}</label><input class="cierre-input" type="text" inputmode="decimal" id="cw-nextanio" value="${savedAnio}"></div>`;
   } else {
     s.fields.forEach(f=>{
       let curVal=f.key?(_editData.config[f.key]!==undefined?_editData.config[f.key]:(_editData.emerg?.cashflow[f.key]!==undefined?_editData.emerg.cashflow[f.key]:'')):'';
@@ -5020,12 +5120,12 @@ function renderCierre(){
       if(f.id==='cw-balAh'){
         const prevBal=_editData.emerg?.cashflow?.balanceAhorros||0;
         const ahorrosInput=document.getElementById('cw-ahorros');
-        const ahorrosEste=ahorrosInput?parseFloat(ahorrosInput.value)||0:(_editData.emerg?.cashflow?.ahorros||0);
+        const ahorrosEste=ahorrosInput?pf(ahorrosInput.value):(_editData.emerg?.cashflow?.ahorros||0);
         curVal=prevBal+ahorrosEste;
-        html+=`<div class="cierre-field"><label class="cierre-label">${f.label} <span style="font-size:11px;color:var(--green)">← se acumula automáticamente</span></label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">Balance anterior: ${fmtC(toDisplay(prevBal))} + ahorros este mes. Edita si el total real es diferente.</div></div>`;
+        html+=`<div class="cierre-field"><label class="cierre-label">${f.label} <span style="font-size:11px;color:var(--green)">← se acumula automáticamente</span></label><input class="cierre-input" ${cierreInputAttrs(f)} id="${f.id}" value="${curVal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">Balance anterior: ${fmtC(toDisplay(prevBal))} + ahorros este mes. Edita si el total real es diferente.</div></div>`;
         return;
       }
-      html+=`<div class="cierre-field"><label class="cierre-label">${f.label}</label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"></div>`;
+      html+=`<div class="cierre-field"><label class="cierre-label">${f.label}</label><input class="cierre-input" ${cierreInputAttrs(f)} id="${f.id}" value="${curVal}"></div>`;
     });
   }
   document.getElementById('cierreSteps').innerHTML=html;
@@ -5035,23 +5135,24 @@ function renderCierre(){
 function cierreNav(dir){
   if(dir===1){
     const s=_cierreSteps[_cierreStep];
-    if(_cierreStep===0){_editData.config.tasa=parseFloat(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
+    if(_cierreStep===0){_editData.config.tasa=pf(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     else if(_cierreStep===1){_editData.config.mes=document.getElementById('cw-mes')?.value||_editData.config.mes;_editData.config.anio=parseInt(document.getElementById('cw-anio')?.value)||_editData.config.anio;}
-    else if(_cierreStep===2){_editData.config.ingresoUSD=parseFloat(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
+    else if(_cierreStep===2){_editData.config.ingresoUSD=pf(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     // Fix #2: step 3 = gasto real
-    else if(_cierreStep===3){const g=parseFloat(document.getElementById('cw-gasto')?.value);if(!isNaN(g)&&g>0)_editData.emerg.cashflow.gasto=g;}
+    else if(_cierreStep===3){const g=pf(document.getElementById('cw-gasto')?.value);if(g>0)_editData.emerg.cashflow.gasto=g;}
     else if(_cierreStep===4){
       _editData.forNow.cuentas.forEach((c,idx)=>{
         const el=document.getElementById(`cw-saldo-${idx}`);
-        if(el)c.saldo=parseFloat(el.value)||0;
+        if(el)c.saldo=pf(el.value);
       });
       _editData.forNow.total=_editData.forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?(_editData.config.tasa||60):1;return a+(c.saldo||0)*m;},0);
     }
     else if(_cierreStep===5){
-      const ahorrosEste=parseFloat(document.getElementById('cw-ahorros')?.value)||0;
+      const ahorrosEste=pf(document.getElementById('cw-ahorros')?.value);
       _editData.emerg.cashflow.ahorros=ahorrosEste;
       // Auto-accumulate: add this month's savings to the running balance
-      const newBalAh=parseFloat(document.getElementById('cw-balAh')?.value);
+      const balAhRaw=document.getElementById('cw-balAh')?.value;
+      const newBalAh=balAhRaw===undefined||balAhRaw===''?NaN:pf(balAhRaw);
       _editData.emerg.cashflow.balanceAhorros=isNaN(newBalAh)?(_editData.emerg.cashflow.balanceAhorros||0)+ahorrosEste:newBalAh;
     }
     else if(_cierreStep===7){
@@ -5084,6 +5185,7 @@ function cierreNav(dir){
         presMes.forEach(p=>{_editData.presupuesto.push({categoria:p.categoria,presupuestado:p.presupuestado,mes:_editData.config.mes,anio:_editData.config.anio});});
       }
       _pendingSave=false;
+      if(navigator.vibrate)navigator.vibrate([20,50,20,50,30]);
       // Fix 3.5: Post-close summary — show key deltas before redirecting
       const prevHist=_editData.historial.length>1?_editData.historial[1]:null;
       const saveRate=ingreso>0?Math.round(ahorro/ingreso*100):0;
@@ -5129,8 +5231,9 @@ let _activeGroup='ops';
 
 function switchGroup(group){
   _activeGroup=group;
-  document.getElementById('pillOps').classList.toggle('active',group==='ops');
-  document.getElementById('pillStrat').classList.toggle('active',group==='strat');
+  const pillOps=document.getElementById('pillOps'),pillStrat=document.getElementById('pillStrat');
+  pillOps.classList.toggle('active',group==='ops');pillOps.setAttribute('aria-selected',String(group==='ops'));
+  pillStrat.classList.toggle('active',group==='strat');pillStrat.setAttribute('aria-selected',String(group==='strat'));
   document.querySelectorAll('.tab-btn[data-group]').forEach(btn=>{btn.style.display=btn.dataset.group===group?'':'none';});
   document.querySelectorAll('.mnav-btn[data-group]').forEach(btn=>{btn.style.display=btn.dataset.group===group?'':'none';});
   const activePanel=document.querySelector('.panel.active');
@@ -5160,9 +5263,9 @@ function showTab(id,btn){
     }
   }
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false');});
   const p=document.getElementById('tab-'+id);if(p)p.classList.add('active');
-  if(btn)btn.classList.add('active');
+  if(btn){btn.classList.add('active');btn.setAttribute('aria-selected','true');}
   if(id==='proyector')updateProyector();
 }
 
@@ -5218,17 +5321,19 @@ function mobileTab(id,btn){
   if(tabAlMobile&&tabAlDesktop){
     const dot=tabAlDesktop.querySelector('.alert-dot');
     tabAlMobile.querySelector('.alert-dot')?.remove();
-    if(dot){const d=document.createElement('span');d.className='alert-dot';tabAlMobile.appendChild(d);}
+    if(dot){const d=document.createElement('span');d.className='alert-dot';d.setAttribute('role','status');d.setAttribute('aria-label',_lang==='en'?'Urgent alerts':'Alertas urgentes');tabAlMobile.appendChild(d);}
   }
 }
 
 // Overflow menu
 function toggleOverflow(){
   const m=document.getElementById('hdrOverflowMenu');
-  m.classList.toggle('open');
+  const open=m.classList.toggle('open');
+  document.getElementById('overflowBtn')?.setAttribute('aria-expanded',String(open));
 }
 function closeOverflow(){
   document.getElementById('hdrOverflowMenu')?.classList.remove('open');
+  document.getElementById('overflowBtn')?.setAttribute('aria-expanded','false');
 }
 // Close overflow on outside click
 document.addEventListener('click',e=>{
@@ -5242,6 +5347,18 @@ document.addEventListener('keydown',e=>{
     if(document.getElementById('editModal')?.classList.contains('open'))closeEditModal();
     else if(document.getElementById('cierreModal')?.classList.contains('open'))closeCierre();
   }
+});
+// Close modals on backdrop tap (mobile-friendly: tap outside the modal body to dismiss).
+// Setup wizard is intentionally excluded — losing multi-step onboarding progress on an
+// accidental tap would be worse than forcing the user to complete or refresh.
+['editModal','cierreModal'].forEach(id=>{
+  const m=document.getElementById(id);
+  if(!m)return;
+  m.addEventListener('click',e=>{
+    if(e.target!==m||!m.classList.contains('open'))return;
+    if(id==='editModal')closeEditModal();
+    else closeCierre();
+  });
 });
 
 // ══════════════════════════════════
@@ -5263,6 +5380,14 @@ function closeEditModal(force){
 }
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function pf(v){return parseFloat(String(v).replace(/,/g,''))||0;}
+// Map a cierre-wizard field config to input attrs. Integer step uses numeric keypad,
+// decimal step uses decimal keypad; legacy `type:'number'` is rewritten to text+decimal
+// so mobile keyboards show a proper numeric pad and pasted commas ("1,500") still parse.
+function cierreInputAttrs(f){
+  if(f.type==='text') return 'type="text"';
+  const isInt=f.step==='1';
+  return `type="text" inputmode="${isInt?'numeric':'decimal'}"`;
+}
 const TIPOS=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
 function syncConfigField(key,el){
   const v=el.value;
@@ -5317,7 +5442,7 @@ function buildEditForms(){
     {id:'cfg-ingreso',label:t('ecfg_ingreso'),note:t('ecfg_ingreso_note'),key:'ingresoUSD',val:config.ingresoUSD,min:0},
     {id:'cfg-ingresoRD',label:t('ecfg_ingresoRD'),note:t('ecfg_ingresoRD_note'),key:'ingresoRD',val:Math.round(config.ingresoRD||config.ingresoUSD*(config.tasa||60)),min:0},
     {id:'cfg-diasAlerta',label:t('ecfg_dias'),note:t('ecfg_dias_note'),key:'diasAlerta',val:config.diasAlerta||5,min:1,max:30},
-  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="${f.type||'number'}" value="${f.val}" oninput="markChanged(this);syncConfigField('${f.key}',this)" step="any"${f.min!=null?' min="'+f.min+'"':''}${f.max!=null?' max="'+f.max+'"':''}><div class="field-note">${f.note}</div>${f.extra||''}</div>`).join('');
+  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="${f.key==='anio'||f.key==='diasAlerta'?'numeric':'decimal'}" value="${f.val}" oninput="markChanged(this);syncConfigField('${f.key}',this)"${f.min!=null?' min="'+f.min+'"':''}${f.max!=null?' max="'+f.max+'"':''}><div class="field-note">${f.note}</div>${f.extra||''}</div>`).join('');
   // ESENCIALES
   const eb=document.getElementById('esencialesEditBody');eb.innerHTML='';
   gastos.forEach((g,i)=>{
@@ -5325,14 +5450,14 @@ function buildEditForms(){
     eb.innerHTML+=`<tr data-idx="${i}">
       <td><input class="tbl-input" style="min-width:140px" value="${escH(g.nombre)}" oninput="markChanged(this);_editData.gastos[${i}].nombre=this.value"></td>
       <td><select class="tbl-input" style="min-width:90px" onchange="markChanged(this);_editData.gastos[${i}].tipo=this.value">${tipoOpts}</select></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${g.pagado||0}" oninput="markChanged(this);_editData.gastos[${i}].pagado=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${g.adeudado||0}" oninput="markChanged(this);_editData.gastos[${i}].adeudado=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="1" min="1" max="31" value="${g.dia||1}" oninput="markChanged(this);_editData.gastos[${i}].dia=Math.min(31,Math.max(1,parseInt(this.value)||1))" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" max="100" value="${g.tasa||0}" oninput="markChanged(this);_editData.gastos[${i}].tasa=Math.min(100,Math.max(0,pf(this.value)))" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${g.balance||0}" oninput="markChanged(this);_editData.gastos[${i}].balance=Math.max(0,pf(this.value))"></td>
-      <td><input class="tbl-input" id="origRD-${i}" type="number" step="any" min="0" value="${g.originalRD||0}" oninput="markChanged(this);syncOriginal(${i},'originalRD',this)"></td>
-      <td><input class="tbl-input" id="origUSD-${i}" type="number" step="any" min="0" value="${g.originalUSD||0}" oninput="markChanged(this);syncOriginal(${i},'originalUSD',this)" style="min-width:80px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${g.tasaCreacion||''}" readonly style="min-width:70px;opacity:.6;cursor:not-allowed"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${g.pagado||0}" oninput="markChanged(this);_editData.gastos[${i}].pagado=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${g.adeudado||0}" oninput="markChanged(this);_editData.gastos[${i}].adeudado=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="numeric" min="1" max="31" value="${g.dia||1}" oninput="markChanged(this);_editData.gastos[${i}].dia=Math.min(31,Math.max(1,parseInt(this.value)||1))" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" max="100" value="${g.tasa||0}" oninput="markChanged(this);_editData.gastos[${i}].tasa=Math.min(100,Math.max(0,pf(this.value)))" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${g.balance||0}" oninput="markChanged(this);_editData.gastos[${i}].balance=Math.max(0,pf(this.value))"></td>
+      <td><input class="tbl-input" id="origRD-${i}" type="text" inputmode="decimal" min="0" value="${g.originalRD||0}" oninput="markChanged(this);syncOriginal(${i},'originalRD',this)"></td>
+      <td><input class="tbl-input" id="origUSD-${i}" type="text" inputmode="decimal" min="0" value="${g.originalUSD||0}" oninput="markChanged(this);syncOriginal(${i},'originalUSD',this)" style="min-width:80px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" value="${g.tasaCreacion||''}" readonly style="min-width:70px;opacity:.6;cursor:not-allowed"></td>
       <td><input class="tbl-input" type="date" value="${g.fechaLimite?String(g.fechaLimite).slice(0,10):''}" oninput="markChanged(this);_editData.gastos[${i}].fechaLimite=this.value" style="min-width:120px"></td>
       <td><input class="tbl-input" value="${escH(g.notas||'')}" oninput="markChanged(this);_editData.gastos[${i}].notas=this.value" style="min-width:120px"></td>
       <td><button class="row-del-btn" onclick="deleteGastoRow(${i})">✕</button></td>
@@ -5346,7 +5471,7 @@ function buildEditForms(){
     const mon=c.moneda||'RD';
     fb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
       <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.forNow.cuentas)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
       <td><button class="row-del-btn" onclick="deleteFornowRow(${i})">✕</button></td></tr>`;
   });
   // EMERGENCY
@@ -5355,8 +5480,8 @@ function buildEditForms(){
     const mon=f.moneda||'RD';
     efb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(f.fondo)}" oninput="markChanged(this);_editData.emerg.fondos[${i}].fondo=this.value" style="min-width:140px"></td>
       <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.emerg.fondos)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${f.balance||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].balance=Math.max(0,pf(this.value))"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${f.meta||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].meta=Math.max(0,pf(this.value))"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${f.balance||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].balance=Math.max(0,pf(this.value))"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${f.meta||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].meta=Math.max(0,pf(this.value))"></td>
       <td><button class="row-del-btn" onclick="deleteEmergFundRow(${i})">✕</button></td></tr>`;
   });
   // CASHFLOW
@@ -5369,20 +5494,20 @@ function buildEditForms(){
     // resta removed — always calculated as ingreso - gasto
     {id:'cf-ahorros',label:t('ecf_ahorros'),key:'ahorros',val:cf.ahorros||0},
     {id:'cf-balanceAhorros',label:t('ecf_balanceAhorros'),key:'balanceAhorros',val:cf.balanceAhorros||0},
-  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="number" step="any" value="${f.val}" ${f.readonly?'readonly style="opacity:.6;cursor:not-allowed"':''} oninput="markChanged(this);_editData.emerg.cashflow['${f.key}']=parseFloat(this.value)||0">${f.note?`<div class="field-note">${f.note}</div>`:''}</div>`).join('');
+  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="decimal" value="${f.val}" ${f.readonly?'readonly style="opacity:.6;cursor:not-allowed"':''} oninput="markChanged(this);_editData.emerg.cashflow['${f.key}']=pf(this.value)">${f.note?`<div class="field-note">${f.note}</div>`:''}</div>`).join('');
   // HISTORIAL
   const hb=document.getElementById('historialEditBody');hb.innerHTML='';
   historial.forEach((h,i)=>{
     // Fix #1: income stored in RD$ — no reverse conversion needed
     hb.innerHTML+=`<tr>
       <td><input class="tbl-input" value="${escH(h.mes)}" oninput="markChanged(this);_editData.historial[${i}].mes=this.value" style="min-width:90px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.anio}" oninput="markChanged(this);_editData.historial[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.ingresos||0}" oninput="markChanged(this);_editData.historial[${i}].ingresos=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.gasto||0}" oninput="markChanged(this);_editData.historial[${i}].gasto=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" min="1" value="${h.tasa||60}" oninput="markChanged(this);_editData.historial[${i}].tasa=Math.max(1,pf(this.value))" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.deudas||0}" oninput="markChanged(this);_editData.historial[${i}].deudas=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.emergencia||0}" oninput="markChanged(this);_editData.historial[${i}].emergencia=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.netWorth||0}" oninput="markChanged(this);_editData.historial[${i}].netWorth=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" value="${h.anio}" oninput="markChanged(this);_editData.historial[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${h.ingresos||0}" oninput="markChanged(this);_editData.historial[${i}].ingresos=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${h.gasto||0}" oninput="markChanged(this);_editData.historial[${i}].gasto=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="1" value="${h.tasa||60}" oninput="markChanged(this);_editData.historial[${i}].tasa=Math.max(1,pf(this.value))" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${h.deudas||0}" oninput="markChanged(this);_editData.historial[${i}].deudas=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${h.emergencia||0}" oninput="markChanged(this);_editData.historial[${i}].emergencia=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" value="${h.netWorth||0}" oninput="markChanged(this);_editData.historial[${i}].netWorth=pf(this.value)"></td>
       <td><input class="tbl-input" value="${escH(h.notas||'')}" oninput="markChanged(this);_editData.historial[${i}].notas=this.value" style="min-width:100px"></td>
       <td><button class="row-del-btn" onclick="deleteHistorialRow(${i})">✕</button></td>
     </tr>`;
@@ -5393,12 +5518,12 @@ function buildEditForms(){
   txArr.forEach((tx,i)=>{
     txb.innerHTML+=`<tr>
       <td><input class="tbl-input" type="date" value="${escH(tx.fecha)}" oninput="markChanged(this);_editData.transacciones[${i}].fecha=this.value" style="min-width:110px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${tx.monto}" oninput="markChanged(this);_editData.transacciones[${i}].monto=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${tx.monto}" oninput="markChanged(this);_editData.transacciones[${i}].monto=pf(this.value)"></td>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.transacciones[${i}].categoria=this.value">${REG_CATS.map(c=>`<option value="${c}" ${tx.categoria===c?'selected':''}>${c}</option>`).join('')}</select></td>
       <td><input class="tbl-input" value="${escH(tx.nota||'')}" oninput="markChanged(this);_editData.transacciones[${i}].nota=this.value" style="min-width:80px"></td>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.transacciones[${i}].metodo=this.value"><option value="efectivo" ${tx.metodo==='efectivo'?'selected':''}>Efectivo</option><option value="tarjeta" ${tx.metodo==='tarjeta'?'selected':''}>Tarjeta</option><option value="transferencia" ${tx.metodo==='transferencia'?'selected':''}>Transfer</option></select></td>
       <td><input class="tbl-input" value="${escH(tx.mes||'')}" oninput="markChanged(this);_editData.transacciones[${i}].mes=this.value" style="min-width:70px"></td>
-      <td><input class="tbl-input" type="number" step="1" value="${tx.anio||0}" oninput="markChanged(this);_editData.transacciones[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="numeric" value="${tx.anio||0}" oninput="markChanged(this);_editData.transacciones[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
       <td><button class="row-del-btn" onclick="deleteTxEditRow(${i})">✕</button></td>
     </tr>`;
   });
@@ -5409,9 +5534,9 @@ function buildEditForms(){
   presArr.forEach((p,i)=>{
     presb.innerHTML+=`<tr>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.presupuesto[${i}].categoria=this.value">${REG_CATS.map(c=>`<option value="${c}" ${p.categoria===c?'selected':''}>${c}</option>`).join('')}</select></td>
-      <td><input class="tbl-input" type="number" step="100" min="0" value="${p.presupuestado}" oninput="markChanged(this);_editData.presupuesto[${i}].presupuestado=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" value="${p.presupuestado}" oninput="markChanged(this);_editData.presupuesto[${i}].presupuestado=pf(this.value)"></td>
       <td><input class="tbl-input" value="${escH(p.mes||'')}" oninput="markChanged(this);_editData.presupuesto[${i}].mes=this.value" style="min-width:70px"></td>
-      <td><input class="tbl-input" type="number" step="1" value="${p.anio||0}" oninput="markChanged(this);_editData.presupuesto[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="numeric" value="${p.anio||0}" oninput="markChanged(this);_editData.presupuesto[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
       <td><button class="row-del-btn" onclick="deletePresEditRow(${i})">✕</button></td>
     </tr>`;
   });
@@ -5423,7 +5548,7 @@ function buildEditForms(){
   recArr.forEach((r,i)=>{
     recb.innerHTML+=`<tr>
       <td><input class="tbl-input" type="date" value="${escH(r.fecha)}" oninput="markChanged(this);_editData.recurrentes[${i}].fecha=this.value" style="min-width:110px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${r.monto}" oninput="markChanged(this);_editData.recurrentes[${i}].monto=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${r.monto}" oninput="markChanged(this);_editData.recurrentes[${i}].monto=pf(this.value)"></td>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.recurrentes[${i}].categoria=this.value">${REG_CATS.map(c=>`<option value="${c}" ${r.categoria===c?'selected':''}>${c}</option>`).join('')}</select></td>
       <td><input class="tbl-input" value="${escH(r.nota||'')}" oninput="markChanged(this);_editData.recurrentes[${i}].nota=this.value" style="min-width:80px"></td>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.recurrentes[${i}].metodo=this.value"><option value="efectivo" ${r.metodo==='efectivo'?'selected':''}>Efectivo</option><option value="tarjeta" ${r.metodo==='tarjeta'?'selected':''}>Tarjeta</option><option value="transferencia" ${r.metodo==='transferencia'?'selected':''}>Transfer</option></select></td>
@@ -5434,7 +5559,7 @@ function buildEditForms(){
 }
 
 function deleteGastoRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
-function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} ${fmtC(toDisplay(g.balance))}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);g.balance=0;g.adeudado=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
+function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} ${fmtC(toDisplay(g.balance))}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);g.balance=0;g.adeudado=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();if(navigator.vibrate)navigator.vibrate([15,40,15,40,20]);showToast(t('dcard_liquidar_toast'),'var(--green)');}
 function deleteFornowRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
