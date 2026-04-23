@@ -254,7 +254,7 @@ test.describe('Blur triggers visual update', () => {
     await page.waitForTimeout(200);
 
     const pctText = await page.evaluate(() => {
-      const pctEl = document.querySelector('#metasList .mono[style*="font-size:22px"]');
+      const pctEl = document.querySelector('#metasList .mono.stat-value');
       return pctEl ? pctEl.textContent.trim() : '';
     });
     expect(pctText).toBe('50%');

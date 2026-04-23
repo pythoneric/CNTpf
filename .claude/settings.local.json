@@ -12,7 +12,8 @@
       "Bash(npx playwright:*)",
       "Bash(node -e \":*)",
       "Bash(npm install *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

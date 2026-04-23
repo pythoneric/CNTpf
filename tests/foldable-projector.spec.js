@@ -97,7 +97,8 @@ test.describe('Foldable inner screen (717px)', () => {
 
     const layout = await page.evaluate(() => {
       const container = document.getElementById('committedSimulation');
-      const flexContainer = container?.querySelector('[style*="display:flex;gap:12px"]') ||
+      const flexContainer = container?.querySelector('.stat-row') ||
+                           container?.querySelector('[style*="display:flex;gap:12px"]') ||
                            container?.querySelector('[style*="display:grid"]');
       if (!flexContainer) return null;
       const cs = getComputedStyle(flexContainer);

@@ -259,6 +259,10 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .loader-dot,.logo-dot{will-change:opacity,transform}
 header{will-change:auto}
 
+/* ══ ICONS — inline SVG (replaces cross-platform-inconsistent emojis) ══ */
+.icon{display:inline-block;vertical-align:-3px;flex-shrink:0}
+.hdr-btn .icon,.btn .icon{vertical-align:middle}
+
 /* ══ TOUCH TARGETS — min 44px ══ */
 .hdr-btn{min-height:44px;min-width:44px;padding:10px 14px}
 .tab-btn{min-height:44px;padding:10px 16px}
@@ -401,9 +405,6 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .score-ring svg{width:90px;height:90px}
   .score-num{font-size:22px}
 
-  /* Proyector slider row wraps */
-  #proyectorConfig [style*="display:flex"]{flex-wrap:wrap}
-
   /* Loader */
   .lcard{padding:20px 16px}
 }
@@ -494,48 +495,49 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .cf-val{font-size:15px;text-align:left}
 }
 
-/* ══ RESPONSIVE STAT PILLS — foldable inner screens (650-768px) ══ */
+/* ══ STAT PILL SYSTEM — replaces fragile [style*=...] attribute selectors ══ */
+/* Base classes (visual layout driven by inline styles; these exist so responsive
+   overrides can target semantic hooks instead of substring-matching style attrs). */
+.stat-row{display:flex;flex-wrap:wrap;gap:12px}
+.stat-row.tight{gap:10px}
+.stat-row.loose{gap:16px}
+.stat-pill{min-width:140px}
+.stat-pill.md{min-width:160px}
+.stat-pill.lg{min-width:200px}
+.stat-value{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:22px;font-weight:800;line-height:1.1}
+.stat-value.md{font-size:20px}
+.stat-value.sm{font-size:18px}
+.stat-value.xs{font-size:16px}
+.stat-card{padding:16px 18px;border-radius:10px}
+
+/* Foldable inner screens (650-768px): shrink committedSimulation pills */
 @media(max-width:768px){
-  #committedSimulation [style*="display:flex;gap:12px;flex-wrap:wrap"]{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:10px!important}
-  #committedSimulation .mono[style*="font-size:22px"]{font-size:18px!important}
-  #committedSimulation [style*="min-width:140px"]{min-width:0!important}
+  #committedSimulation .stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  #committedSimulation .stat-value{font-size:18px}
+  #committedSimulation .stat-pill{min-width:0}
 }
-/* ══ RESPONSIVE STAT PILLS — prevent overflow on phones ══ */
-/* Committed Funds, Proyector config, BVA summary, Debt Payoff, Checklist interest KPIs */
+/* Phones: prevent pill overflow, fold containers to 2-col grid */
 @media(max-width:640px){
-  /* All inline flex stat pill containers: force 2-col grid on mobile */
-  #committedSimulation .grid,
-  #debtCostSnapshot .grid{gap:8px}
-  /* Override min-width on inline stat pills */
-  [style*="min-width:140px"],
-  [style*="min-width:160px"],
-  [style*="min-width:200px"]{min-width:0!important}
-  /* Shrink large inline mono values that overflow narrow pills */
-  #committedSimulation .mono[style*="font-size:22px"],
-  #proyectorConfig .mono[style*="font-size:22px"],
-  #debtCostSnapshot .mono[style*="font-size:18px"]{font-size:16px!important;word-break:break-all}
-  /* BVA summary pills */
-  #budgetVsActual .mono[style*="font-size:20px"]{font-size:16px!important}
-  /* Debt payoff stat boxes — shrink and allow wrapping */
-  #debtPayoffDates [style*="display:flex;gap:16px"]{gap:8px!important}
-  #debtPayoffDates .mono[style*="font-size:16px"]{font-size:14px!important}
-  /* Goals tab — pct display */
-  #metasList .mono[style*="font-size:22px"]{font-size:18px!important}
-  /* Proyector config — slider area */
-  #proyectorConfig [style*="display:flex;align-items:center;gap:16px"]{gap:10px!important}
-  /* Ensure all stat pill containers wrap to 2-col grid */
-  #committedSimulation [style*="display:flex;gap:12px;flex-wrap:wrap"],
-  #debtCostSnapshot [style*="display:flex;gap:10px;flex-wrap:wrap"]{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:8px!important}
+  #committedSimulation .grid,#debtCostSnapshot .grid{gap:8px}
+  .stat-pill,.stat-pill.md,.stat-pill.lg{min-width:0}
+  #committedSimulation .stat-value,
+  #proyectorConfig .stat-value,
+  #debtCostSnapshot .stat-value.sm{font-size:16px;word-break:break-all}
+  #budgetVsActual .stat-value.md{font-size:16px}
+  #debtPayoffDates .stat-row.loose{gap:8px}
+  #debtPayoffDates .stat-value.xs{font-size:14px}
+  #metasList .stat-value{font-size:18px}
+  #proyectorConfig .stat-row.loose{gap:10px}
+  #committedSimulation .stat-row,
+  #debtCostSnapshot .stat-row.tight{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 }
 @media(max-width:375px){
-  /* Extra-small phones: single column for stat pills */
-  #committedSimulation [style*="display:flex;gap:12px;flex-wrap:wrap"],
-  #debtCostSnapshot [style*="display:flex;gap:10px;flex-wrap:wrap"]{grid-template-columns:1fr!important}
-  #committedSimulation .mono[style*="font-size:22px"],
-  #proyectorConfig .mono[style*="font-size:22px"]{font-size:14px!important}
-  #budgetVsActual .mono[style*="font-size:20px"]{font-size:14px!important}
-  /* Debt cards — narrower padding */
-  #debtPayoffDates [style*="padding:16px 18px"]{padding:12px 14px!important}
+  #committedSimulation .stat-row,
+  #debtCostSnapshot .stat-row.tight{grid-template-columns:1fr}
+  #committedSimulation .stat-value,
+  #proyectorConfig .stat-value{font-size:14px}
+  #budgetVsActual .stat-value.md{font-size:14px}
+  #debtPayoffDates .stat-card{padding:12px 14px}
 }
 
 /* ══ EMERGENCY TIP CARD — min height so it doesn't collapse ══ */
@@ -605,7 +607,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     </div>
     <div class="pwa-banner-actions">
       <button class="btn btn-primary btn-sm" id="pwaInstallBtn" data-i18n="pwa_install">Instalar</button>
-      <button class="btn btn-ghost btn-sm" id="pwaCloseBtn" style="padding:7px 10px;min-width:36px;justify-content:center" aria-label="Cerrar">✕</button>
+      <button class="btn btn-ghost btn-sm" id="pwaCloseBtn" style="padding:7px 10px;min-width:36px;justify-content:center" aria-label="Cerrar" data-icon-only="x"></button>
     </div>
   </div>
 </div>
@@ -723,14 +725,14 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="openCierre()" data-i18n="closemonth">🗓 Cerrar Mes</button>
       <button class="hdr-btn edit hdr-meta-overflow-hide" onclick="openEditModal()" data-i18n="edit">✏️ Editar</button>
       <span id="dbSyncStatus" role="status" aria-live="polite" style="display:none;font-size:11px;color:var(--green);font-weight:700;align-items:center;gap:4px">💾 Guardado</span>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleTheme()" id="themeBtn" title="Modo claro/oscuro" aria-label="Modo claro/oscuro">☀️</button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleTheme()" id="themeBtn" title="Modo claro/oscuro" aria-label="Modo claro/oscuro"></button>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleLang()" id="langBtn" title="Switch language" aria-label="Switch language">🇺🇸 EN</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="exportSnapshot()" title="Exportar snapshot PDF" aria-label="Exportar snapshot PDF">📸</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="resetLoader()" aria-label="Cambiar archivo" title="Cambiar archivo">↩</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="hardResetCache()" title="Limpiar caché y recargar" aria-label="Limpiar caché y recargar" style="font-size:15px">🔄</button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="exportSnapshot()" title="Exportar snapshot PDF" aria-label="Exportar snapshot PDF" id="snapBtn"></button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="resetLoader()" aria-label="Cambiar archivo" title="Cambiar archivo" id="backBtn"></button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="hardResetCache()" title="Limpiar caché y recargar" aria-label="Limpiar caché y recargar" id="refreshBtn"></button>
       <!-- Mobile overflow menu -->
       <div id="hdrOverflow">
-        <button class="hdr-btn" onclick="toggleOverflow()" id="overflowBtn" title="Más opciones" aria-label="Más opciones" aria-haspopup="menu" aria-expanded="false">⋯</button>
+        <button class="hdr-btn" onclick="toggleOverflow()" id="overflowBtn" title="Más opciones" aria-label="Más opciones" aria-haspopup="menu" aria-expanded="false"></button>
         <div id="hdrOverflowMenu" role="menu" aria-label="Más opciones">
           <button class="overflow-item" role="menuitem" onclick="openCierre();closeOverflow()" data-i18n="closemonth">🗓 Cerrar Mes</button>
           <button class="overflow-item" role="menuitem" onclick="openEditModal();closeOverflow()" data-i18n="editdata">✏️ Editar datos</button>
@@ -1037,7 +1039,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="cierre-header">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
         <div id="cierreModalTitle" style="font-size:14px;font-weight:800;color:var(--accent)">🗓 CIERRE DE MES</div>
-        <button class="btn btn-ghost btn-sm" onclick="closeCierre()" aria-label="Cerrar wizard de cierre de mes">✕ Cerrar</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeCierre()" aria-label="Cerrar wizard de cierre de mes" data-icon-close>Cerrar</button>
       </div>
       <div class="step-indicator" id="stepDots"></div>
       <div id="cierreSteps"></div>
@@ -1064,7 +1066,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <span class="changes-badge" id="changesBadge" style="display:none">● <span id="changesCount">0</span> <span data-i18n="edit_changes">cambios</span></span>
         <button class="btn btn-success" onclick="applyAndDownload()" data-i18n="edit_save">💾 Guardar y exportar</button>
         <button class="btn btn-primary" onclick="applyChanges()" data-i18n="edit_apply">✓ Guardar</button>
-        <button class="btn btn-ghost" onclick="closeEditModal()" data-i18n="edit_close">✕ Cerrar</button>
+        <button class="btn btn-ghost" onclick="closeEditModal()" data-i18n="edit_close" data-icon-close>Cerrar</button>
       </div>
     </div>
     <div class="edit-tabs">
@@ -1169,6 +1171,27 @@ function currencySymbol(){try{return(typeof _editData!=='undefined'&&_editData?.
 function fmtC(n){if(n===undefined||n===null||isNaN(n))return'—';const s=currencySymbol();const abs=Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});return n<0?'-'+s+abs:s+abs;}
 function toDisplay(n){try{if(!_editData?.config)return n;return _editData.config.monedaPrincipal==='USD'?n/(_editData.config.tasa||60):n;}catch(e){return n;}}
 function fromDisplay(n){try{if(!_editData?.config)return n;return _editData.config.monedaPrincipal==='USD'?n*(_editData.config.tasa||60):n;}catch(e){return n;}}
+
+// ══════════════════════════════════
+// ICONS — lucide-inspired inline SVG for platform-consistent rendering
+// ══════════════════════════════════
+// Emojis used as icon-only buttons render differently on iOS / Android / Windows
+// (and some are missing in the Syne fallback). SVG avoids that entirely.
+// Kept intentionally small: only the functional icons flagged in the review.
+const _ICON_PATHS={
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>',
+  moon:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  back:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>',
+  refresh:'<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>',
+  more:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
+};
+function icon(name,size){
+  const p=_ICON_PATHS[name];if(!p)return'';
+  const s=size||18;
+  return `<svg class="icon" aria-hidden="true" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+}
 
 // ══════════════════════════════════
 // i18n — LANGUAGE SYSTEM
@@ -1419,7 +1442,7 @@ const LANG = {
     milestone_ef_complete:'🎉 ¡Fondo de emergencia completo!',
     // Edit modal
     edit_title:'Editar Datos', edit_sub:'Los cambios se aplican al dashboard y puedes descargar tu respaldo',
-    edit_save:'💾 Guardar y exportar', edit_apply:'✓ Guardar', edit_close:'✕ Cerrar',
+    edit_save:'💾 Guardar y exportar', edit_apply:'✓ Guardar', edit_close:'Cerrar',
     edit_tab_config:'⚙️ Configuración', edit_tab_gastos:'💸 Gastos & Deudas',
     edit_tab_fornow:'💳 Fondos', edit_tab_emergency:'🛡 Emergencia', edit_tab_historial:'📅 Historial',
     edit_card_config:'⚙️ Parámetros Globales', edit_card_gastos:'💸 Gastos & Deudas Mensuales',
@@ -1828,7 +1851,7 @@ const LANG = {
     milestone_ef_complete:'🎉 Emergency fund fully funded!',
     // Edit modal
     edit_title:'Edit Data', edit_sub:'Changes apply to the dashboard and you can download your backup',
-    edit_save:'💾 Save & export', edit_apply:'✓ Save', edit_close:'✕ Close',
+    edit_save:'💾 Save & export', edit_apply:'✓ Save', edit_close:'Close',
     edit_tab_config:'⚙️ Settings', edit_tab_gastos:'💸 Expenses & Debts',
     edit_tab_fornow:'💳 Funds', edit_tab_emergency:'🛡 Emergency', edit_tab_historial:'📅 History',
     edit_card_config:'⚙️ Global Settings', edit_card_gastos:'💸 Monthly Expenses & Debts',
@@ -2018,6 +2041,8 @@ function applyI18n(){
   // Update mobile overflow lang label
   const lbm=document.getElementById('langBtnMobileLabel');
   if(lbm) lbm.textContent=t('langswitch');
+  // Re-render SVG chrome icons (applyI18n may overwrite innerHTML of icon buttons)
+  if(typeof renderChromeIcons==='function')renderChromeIcons();
 }
 
 function toggleLoaderLang(){
@@ -2037,7 +2062,23 @@ function toggleLang(){
 }
 
 // Apply language on page load (loader screen)
-document.addEventListener('DOMContentLoaded',()=>applyI18n());
+document.addEventListener('DOMContentLoaded',()=>{applyI18n();renderChromeIcons();});
+
+// Populate SVG icons for chrome buttons (theme, snap, back, refresh, overflow
+// trigger, modal closes). Called on load and on theme toggle.
+function renderChromeIcons(){
+  const isLight=document.body.classList.contains('light');
+  const set=(id,svg)=>{const el=document.getElementById(id);if(el)el.innerHTML=svg;};
+  set('themeBtn',icon(isLight?'moon':'sun'));
+  set('snapBtn',icon('camera'));
+  set('backBtn',icon('back'));
+  set('refreshBtn',icon('refresh'));
+  set('overflowBtn',icon('more'));
+  // Icon-only buttons: replace content entirely with the named SVG
+  document.querySelectorAll('[data-icon-only]').forEach(b=>{b.innerHTML=icon(b.getAttribute('data-icon-only'),14);});
+  // Modal close buttons: prepend x icon if not already present (keeps text label)
+  document.querySelectorAll('[data-icon-close]').forEach(b=>{if(!b.querySelector('.icon'))b.insertAdjacentHTML('afterbegin',icon('x',14)+' ');});
+}
 const tipoColors={Familiar:'#22d3a0',Variable:'#fcd34d',Seguro:'#93c5fd','Educación':'#c4b5fd',Servicio:'#fca5a5',Vivienda:'#fda4af',Cuota:'#f9a8d4',Tarjeta:'#fb923c','Préstamo':'#f87171',Fijo:'#818cf8'};
 const COLORS=['#22d3a0','#fcd34d','#93c5fd','#c4b5fd','#fca5a5','#fda4af','#f9a8d4','#fb923c','#f87171','#818cf8'];
 const ttStyle={backgroundColor:'#1a2540',titleColor:'#e2eaf8',bodyColor:'#94a3b8',borderColor:'#1e293b',borderWidth:1};
@@ -2710,7 +2751,7 @@ function setupNav(dir){
 }
 function toggleTheme(){
   document.body.classList.toggle('light');
-  document.getElementById('themeBtn').textContent=document.body.classList.contains('light')?'🌙':'☀️';
+  renderChromeIcons();
 }
 
 // ══════════════════════════════════
@@ -3520,25 +3561,25 @@ function buildProyector({gastos,ingreso,gasto,config}){
   document.getElementById('committedSimulation').innerHTML=`
     <div class="card-title" style="margin-bottom:4px">${t('proy_committed_title')}</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${t('proy_committed_sub')}</div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-      <div style="flex:1;min-width:140px;background:var(--surface2);border-radius:10px;padding:14px 18px;text-align:center">
+    <div class="stat-row" style="margin-bottom:16px">
+      <div class="stat-pill stat-card" style="flex:1;background:var(--surface2);text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_total')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--text);margin-top:2px">${fmtC(toDisplay(fnTotalProy))}</div>
+        <div class="mono stat-value" style="color:var(--text);margin-top:2px">${fmtC(toDisplay(fnTotalProy))}</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_accounts')}</div>
       </div>
-      <div style="flex:1;min-width:140px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:10px;padding:14px 18px;text-align:center">
+      <div class="stat-pill stat-card" style="flex:1;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_gastos')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--red);margin-top:2px">(${fmtC(toDisplay(fnCompProy))})</div>
+        <div class="mono stat-value" style="color:var(--red);margin-top:2px">(${fmtC(toDisplay(fnCompProy))})</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_expenses')}</div>
       </div>
-      <div style="flex:1;min-width:140px;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:10px;padding:14px 18px;text-align:center">
+      <div class="stat-pill stat-card" style="flex:1;background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_runway_label')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:${fnRunwayColor};margin-top:2px">${fnRunwayDisplay}</div>
+        <div class="mono stat-value" style="color:${fnRunwayColor};margin-top:2px">${fnRunwayDisplay}</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_runway')}</div>
       </div>
-      <div style="flex:1;min-width:140px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px 18px;text-align:center">
+      <div class="stat-pill stat-card" style="flex:1;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_debtpay')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px">${fmtC(toDisplay(fnDebtRedirect))}</div>
+        <div class="mono stat-value" style="color:var(--accent);margin-top:2px">${fmtC(toDisplay(fnDebtRedirect))}</div>
         <div style="font-size:10px;color:var(--muted)">${t('proy_committed_redirectable')}</div>
       </div>
     </div>
@@ -3564,8 +3605,8 @@ function buildProyector({gastos,ingreso,gasto,config}){
   document.getElementById('proyectorConfig').innerHTML=`
     <div class="card-title">${t('proy_config_title')}</div>
     ${resta<=0?`<div style="padding:10px 14px;background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">⚠️ ${t('proy_no_surplus_warn')}</div>`:''}
-    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-      <div style="flex:1;min-width:200px">
+    <div class="stat-row loose" style="align-items:center">
+      <div class="stat-pill lg" style="flex:1">
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${t('proy_slider_label')}</div>
         <input type="range" id="extraSlider" min="0" max="${sliderMax}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
@@ -3581,13 +3622,13 @@ function buildProyector({gastos,ingreso,gasto,config}){
             ${t('proy_redirectsavings')} (${fmtC(toDisplay(savingsMonthly))})</button>`:''}
         </div>
       </div>
-      <div style="background:var(--surface2);border-radius:10px;padding:12px 18px;min-width:140px;text-align:center">
+      <div class="stat-pill" style="background:var(--surface2);border-radius:10px;padding:12px 18px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_extra_label')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:var(--accent);margin-top:2px" id="extraVal">${fmtC(extraPayment)}</div>
+        <div class="mono stat-value" style="color:var(--accent);margin-top:2px" id="extraVal">${fmtC(extraPayment)}</div>
       </div>
-      <div style="background:var(--surface2);border-radius:10px;padding:12px 18px;min-width:140px;text-align:center">
+      <div class="stat-pill" style="background:var(--surface2);border-radius:10px;padding:12px 18px;text-align:center">
         <div style="font-size:10px;color:var(--muted)">${t('proy_surplus_label')}</div>
-        <div class="mono" style="font-size:22px;font-weight:800;color:${resta>0?'var(--green)':'var(--red)'};margin-top:2px">${fmtC(resta)}</div>
+        <div class="mono stat-value" style="color:${resta>0?'var(--green)':'var(--red)'};margin-top:2px">${fmtC(resta)}</div>
       </div>
     </div>`;
 
@@ -3618,22 +3659,22 @@ function buildProyector({gastos,ingreso,gasto,config}){
     ${negAmortDebts.map(g=>{const intMes=g.balance*(g.tasa/100/12);const growth=intMes-g.adeudado;return `<div style="padding:10px 14px;background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.3);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">${t('proy_neg_amort_warn').replace('{name}',escH(g.nombre)).replace('{payment}',fmt(toDisplay(g.adeudado))).replace('{interest}',fmt(toDisplay(intMes))).replace('{growth}',fmt(toDisplay(Math.round(growth))))}</div>`;}).join('')}
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
       <div class="card-title" style="margin:0">${t('proy_cost_title')}</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="stat-row tight">
         <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_monthly_interest')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">${fmtC(toDisplay(intMensual))}</div>
+          <div class="mono stat-value sm" style="color:var(--red)">${fmtC(toDisplay(intMensual))}</div>
         </div>
         <div style="background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_annual_interest')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:var(--red)">${fmtC(toDisplay(intMensual*12))}</div>
+          <div class="mono stat-value sm" style="color:var(--red)">${fmtC(toDisplay(intMensual*12))}</div>
         </div>
         <div style="background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_wtd_rate')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:var(--yellow)">${wtdAvgRate.toFixed(2)}%</div>
+          <div class="mono stat-value sm" style="color:var(--yellow)">${wtdAvgRate.toFixed(2)}%</div>
         </div>
         <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center">
           <div style="font-size:10px;color:var(--muted)">${t('proy_interest_pct_surplus')}</div>
-          <div class="mono" style="font-size:18px;font-weight:800;color:${intMensual>resta?'var(--red)':'var(--accent)'}">${resta>0?Math.round(intMensual/resta*100):'∞'}%</div>
+          <div class="mono stat-value sm" style="color:${intMensual>resta?'var(--red)':'var(--accent)'}">${resta>0?Math.round(intMensual/resta*100):'∞'}%</div>
         </div>
       </div>
     </div>
@@ -4670,7 +4711,7 @@ function buildSavingsGoals(){
             ${noMonthlyWarn}
           </div>
           <div style="display:flex;align-items:center;gap:10px">
-            <div class="mono" style="font-size:22px;font-weight:800;color:${barColor}">${pct}%</div>
+            <div class="mono stat-value" style="color:${barColor}">${pct}%</div>
             <button onclick="_editData.metas.splice(${i},1);autoSave();buildSavingsGoals()"
               style="background:rgba(244,96,106,.12);border:1px solid rgba(244,96,106,.3);border-radius:8px;color:var(--red);padding:4px 10px;font-size:12px;cursor:pointer;font-weight:700">✕</button>
           </div>
@@ -4810,15 +4851,15 @@ function buildBudgetVsActual(gastos,ingreso){
     <div class="grid g3" style="gap:10px;margin-bottom:18px">
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_budget')}</div>
-        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">${fmtC(toDisplay(totalBudget))}</div>
+        <div class="mono stat-value md" style="color:var(--text)">${fmtC(toDisplay(totalBudget))}</div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_actual')}</div>
-        <div class="mono" style="font-size:20px;font-weight:800;color:var(--text)">${fmtC(toDisplay(totalActual))}</div>
+        <div class="mono stat-value md" style="color:var(--text)">${fmtC(toDisplay(totalActual))}</div>
       </div>
       <div style="background:var(--surface2);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px">${t('bva_total_var')}</div>
-        <div class="mono" style="font-size:20px;font-weight:800;color:${summaryColor}">${summaryArrow} ${fmtC(toDisplay(Math.abs(totalDelta)))}</div>
+        <div class="mono stat-value md" style="color:${summaryColor}">${summaryArrow} ${fmtC(toDisplay(Math.abs(totalDelta)))}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:3px">${overCount} ${t('bva_over')} · ${underCount} ${t('bva_under')}</div>
       </div>
     </div>
@@ -4903,7 +4944,7 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
     // Fix #14: urgency factors in interest rate — high rate + >12mo = red
     const urgColor=months===Infinity?'var(--red)':(months>36||(months>12&&d.tasa>20))?'var(--red)':months>12?'var(--yellow)':'var(--green)';
 
-    return `<div style="background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${color};border-radius:12px;padding:16px 18px;margin-bottom:12px">
+    return `<div class="stat-card" style="background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${color};border-radius:12px;margin-bottom:12px">
       ${isNegAmort?`<div style="padding:8px 12px;background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.3);border-radius:8px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.6">${t('bva_neg_amort_alert').replace('{name}',escH(d.nombre))}</div>`:''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">
         <div>
@@ -4922,20 +4963,20 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
           <div class="mono" style="font-size:12px;color:var(--muted)">${durStr}</div>
         </div>
       </div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div class="stat-row loose">
         <div style="background:rgba(244,96,106,.08);border:1px solid rgba(244,96,106,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_int_total')}</div>
-          <div class="mono" style="font-size:16px;font-weight:800;color:var(--red)">
+          <div class="mono stat-value xs" style="color:var(--red)">
             ${totalInt===Infinity?'∞':fmtC(toDisplay(totalInt))}
           </div>
         </div>
         <div style="background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_intmonth')}</div>
-          <div class="mono" style="font-size:16px;font-weight:800;color:var(--text)">${fmtC(toDisplay(Math.round(d.balance*monthlyRate)))}</div>
+          <div class="mono stat-value xs" style="color:var(--text)">${fmtC(toDisplay(Math.round(d.balance*monthlyRate)))}</div>
         </div>
         <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 14px;text-align:center;flex:1">
           <div style="font-size:10px;color:var(--muted)">${t('dpd_capitalmonth')}</div>
-          <div class="mono" style="font-size:16px;font-weight:800;color:${!isNegAmort?'var(--accent)':'var(--red)'}">
+          <div class="mono stat-value xs" style="color:${!isNegAmort?'var(--accent)':'var(--red)'}">
             ${!isNegAmort?fmtC(toDisplay(Math.round(d.adeudado-d.balance*monthlyRate))):t('dpd_neg_capital')}
           </div>
         </div>
@@ -5351,7 +5392,7 @@ function buildEditForms(){
     {id:'cfg-ingreso',label:t('ecfg_ingreso'),note:t('ecfg_ingreso_note'),key:'ingresoUSD',val:config.ingresoUSD,min:0},
     {id:'cfg-ingresoRD',label:t('ecfg_ingresoRD'),note:t('ecfg_ingresoRD_note'),key:'ingresoRD',val:Math.round(config.ingresoRD||config.ingresoUSD*(config.tasa||60)),min:0},
     {id:'cfg-diasAlerta',label:t('ecfg_dias'),note:t('ecfg_dias_note'),key:'diasAlerta',val:config.diasAlerta||5,min:1,max:30},
-  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="${f.type||'number'}" value="${f.val}" oninput="markChanged(this);syncConfigField('${f.key}',this)" step="any"${f.min!=null?' min="'+f.min+'"':''}${f.max!=null?' max="'+f.max+'"':''}><div class="field-note">${f.note}</div>${f.extra||''}</div>`).join('');
+  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="${f.key==='anio'||f.key==='diasAlerta'?'numeric':'decimal'}" value="${f.val}" oninput="markChanged(this);syncConfigField('${f.key}',this)"${f.min!=null?' min="'+f.min+'"':''}${f.max!=null?' max="'+f.max+'"':''}><div class="field-note">${f.note}</div>${f.extra||''}</div>`).join('');
   // ESENCIALES
   const eb=document.getElementById('esencialesEditBody');eb.innerHTML='';
   gastos.forEach((g,i)=>{
