@@ -32,7 +32,7 @@ body.light{
   --green:#059669;--red:#dc2626;--yellow:#d97706;--purple:#7c3aed;--orange:#ea580c;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);font-size:14px;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;overscroll-behavior-y:contain}
+body{font-family:var(--font);font-size:14px;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;overflow-x:hidden;transition:background .3s,color .3s;overscroll-behavior-y:contain}
 @media(min-width:1024px){body{font-size:16px}}
 body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
 body.light::before{background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px)}
@@ -832,7 +832,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div id="regFormWrap" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" class="reg-form">
           <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblFecha"></label><input type="date" id="regFecha" class="cierre-input" style="font-size:14px;padding:8px 10px"></div>
-          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblMonto"></label><input type="number" id="regMonto" min="0" step="0.01" class="cierre-input" style="font-size:14px;padding:8px 10px" placeholder="0.00"></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblMonto"></label><input type="text" inputmode="decimal" id="regMonto" class="cierre-input" style="font-size:14px;padding:8px 10px" placeholder="0.00"></div>
           <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblCat"></label><select id="regCategoria" class="cierre-input" style="font-size:14px;padding:8px 10px;cursor:pointer"></select></div>
           <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblMetodo"></label><select id="regMetodo" class="cierre-input" style="font-size:14px;padding:8px 10px;cursor:pointer"></select></div>
           <div style="grid-column:1/-1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px" id="regLblVincular"></label><select id="regVincular" class="cierre-input" style="font-size:14px;padding:8px 10px;cursor:pointer;width:100%"></select></div>
@@ -2351,7 +2351,7 @@ function renderSwCuenta(i,c){
   return`<div class="sw-cuenta-row" style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
     <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
     <select class="cierre-input sw-cnt-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
-    <input class="cierre-input sw-cnt-saldo" type="number" step="any" placeholder="Saldo" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
+    <input class="cierre-input sw-cnt-saldo" type="text" inputmode="decimal" placeholder="Saldo" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
     <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
   </div>`;
 }
@@ -2369,10 +2369,10 @@ function renderSwGasto(i,g){
       <button class="row-del-btn" onclick="this.closest('.sw-gasto-row').remove()">✕</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (${currencySymbol()})</div><input class="cierre-input sw-g-adeudado" type="number" step="any" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="number" step="any" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="number" step="any" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="number" step="any" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (${currencySymbol()})</div><input class="cierre-input sw-g-adeudado" type="text" inputmode="decimal" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="text" inputmode="decimal" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="text" inputmode="decimal" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="text" inputmode="decimal" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
     </div>
   </div>`;
 }
@@ -2384,8 +2384,8 @@ function renderSwFondo(i,f){
   return`<div class="sw-fondo-row" style="display:grid;grid-template-columns:1fr auto 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
     <input class="cierre-input sw-f-nombre" placeholder="Nombre fondo" value="${escH(f.fondo)}" style="font-size:13px;padding:8px 10px">
     <select class="cierre-input sw-f-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
-    <input class="cierre-input sw-f-balance" type="number" step="any" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
-    <input class="cierre-input sw-f-meta" type="number" step="any" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-balance" type="text" inputmode="decimal" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-meta" type="text" inputmode="decimal" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
     <button class="row-del-btn" onclick="this.closest('.sw-fondo-row').remove()">✕</button>
   </div>`;
 }
@@ -2423,8 +2423,8 @@ const _setupSteps=[
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div><label class="cierre-label">Año</label><input class="cierre-input" type="number" step="any" id="sw-anio" value="${_editData.config.anio}"></div>
-        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="number" step="any" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
+        <div><label class="cierre-label">Año</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-anio" value="${_editData.config.anio}"></div>
+        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
       </div>
       <div style="margin-top:14px">
         <label class="cierre-label">Ingreso mensual</label>
@@ -2442,7 +2442,7 @@ const _setupSteps=[
         </div>
         <div style="position:relative">
           <span id="sw-ing-prefix" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--muted);pointer-events:none">USD</span>
-          <input class="cierre-input" type="number" step="any" id="sw-ingreso"
+          <input class="cierre-input" type="text" inputmode="decimal" id="sw-ingreso"
             value="${_editData.config.ingresoUSD||''}"
             placeholder="ej. 1500"
             style="padding-left:52px"
@@ -2450,14 +2450,14 @@ const _setupSteps=[
         </div>
         <div id="sw-ingreso-preview" style="margin-top:8px;padding:8px 12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:12px;color:var(--accent);display:none"></div>
       </div>
-      <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="number" step="any" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
+      <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
     `,
     save:()=>{
       _editData.config.mes=document.getElementById('sw-mes').value;
       _editData.config.anio=parseInt(document.getElementById('sw-anio').value)||new Date().getFullYear();
-      _editData.config.tasa=parseFloat(document.getElementById('sw-tasa').value)||60;
+      _editData.config.tasa=pf(document.getElementById('sw-tasa').value)||60;
       _editData.config.diasAlerta=parseInt(document.getElementById('sw-alerta').value)||5;
-      const rawVal=parseFloat(document.getElementById('sw-ingreso').value)||0;
+      const rawVal=pf(document.getElementById('sw-ingreso').value);
       const currency=document.getElementById('sw-ing-rd-btn')?.style.background==='var(--accent)'?'RD':'USD';
       if(currency==='RD'){
         _editData.config.ingresoRD=rawVal;
@@ -2488,7 +2488,7 @@ const _setupSteps=[
       rows.forEach(row=>{
         const nombre=row.querySelector('.sw-cnt-nombre').value.trim();
         const moneda=row.querySelector('.sw-cnt-moneda')?.value||'RD';
-        const saldo=parseFloat(row.querySelector('.sw-cnt-saldo').value)||0;
+        const saldo=pf(row.querySelector('.sw-cnt-saldo').value);
         if(nombre) _editData.forNow.cuentas.push({nombre,moneda,saldo,comp:0,disp:saldo});
       });
       const tasa=_editData.config.tasa||60;
@@ -2514,10 +2514,10 @@ const _setupSteps=[
       rows.forEach(row=>{
         const nombre=row.querySelector('.sw-g-nombre').value.trim();
         if(!nombre)return;
-        const adeudado=parseFloat(row.querySelector('.sw-g-adeudado').value)||0;
+        const adeudado=pf(row.querySelector('.sw-g-adeudado').value);
         const dia=parseInt(row.querySelector('.sw-g-dia').value)||1;
-        const tasa=parseFloat(row.querySelector('.sw-g-tasa').value)||0;
-        const balance=parseFloat(row.querySelector('.sw-g-balance').value)||0;
+        const tasa=pf(row.querySelector('.sw-g-tasa').value);
+        const balance=pf(row.querySelector('.sw-g-balance').value);
         const tipo=row.querySelector('.sw-g-tipo').value;
         _editData.gastos.push({nombre,tipo,pagado:0,adeudado,dia,tasa,balance,originalRD:balance||adeudado,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:null,notas:'',pagadoMes:false});
       });
@@ -2539,7 +2539,7 @@ const _setupSteps=[
       <button class="row-add-btn" onclick="addSwFondo()" style="margin-top:8px">+ Agregar fondo</button>
       <div style="margin-top:16px">
         <label class="cierre-label">Balance de ahorros acumulados (${currencySymbol()})</label>
-        <input class="cierre-input" type="number" step="any" id="sw-balAh" value="${_editData.emerg.cashflow.balanceAhorros||0}" placeholder="0">
+        <input class="cierre-input" type="text" inputmode="decimal" id="sw-balAh" value="${_editData.emerg.cashflow.balanceAhorros||0}" placeholder="0">
       </div>
     `,
     save:()=>{
@@ -2549,11 +2549,11 @@ const _setupSteps=[
         const fondo=row.querySelector('.sw-f-nombre').value.trim();
         if(!fondo)return;
         const moneda=row.querySelector('.sw-f-moneda').value||'RD';
-        const balance=parseFloat(row.querySelector('.sw-f-balance').value)||0;
-        const meta=parseFloat(row.querySelector('.sw-f-meta').value)||0;
+        const balance=pf(row.querySelector('.sw-f-balance').value);
+        const meta=pf(row.querySelector('.sw-f-meta').value);
         _editData.emerg.fondos.push({fondo,balance,meta,falta:Math.max(0,meta-balance),moneda});
       });
-      _editData.emerg.cashflow.balanceAhorros=parseFloat(document.getElementById('sw-balAh').value)||0;
+      _editData.emerg.cashflow.balanceAhorros=pf(document.getElementById('sw-balAh').value);
     }
   },
   {
@@ -2618,8 +2618,8 @@ function swSetIngresoCurrency(currency){
   const prefix=document.getElementById('sw-ing-prefix');
   const input=document.getElementById('sw-ingreso');
   if(!usdBtn||!rdBtn)return;
-  const tasa=parseFloat(document.getElementById('sw-tasa')?.value)||60;
-  const currentVal=parseFloat(input.value)||0;
+  const tasa=pf(document.getElementById('sw-tasa')?.value)||60;
+  const currentVal=pf(input.value);
 
   if(currency==='USD'){
     // If switching FROM RD to USD, convert the current value
@@ -2648,8 +2648,8 @@ function swUpdateIngresoPreview(){
   const input=document.getElementById('sw-ingreso');
   const rdBtn=document.getElementById('sw-ing-rd-btn');
   if(!preview||!input||!rdBtn)return;
-  const tasa=parseFloat(document.getElementById('sw-tasa')?.value)||60;
-  const val=parseFloat(input.value)||0;
+  const tasa=pf(document.getElementById('sw-tasa')?.value)||60;
+  const val=pf(input.value);
   const isRD=rdBtn.style.background==='var(--accent)';
   if(!val){preview.style.display='none';return;}
   preview.style.display='block';
@@ -3245,7 +3245,7 @@ function buildRegistro(transacciones,gastos,config){
 
 function addTransaccion(){
   const fecha=document.getElementById('regFecha').value;
-  const monto=parseFloat(document.getElementById('regMonto').value)||0;
+  const monto=pf(document.getElementById('regMonto').value);
   const categoria=document.getElementById('regCategoria').value;
   const nota=document.getElementById('regNota').value.trim();
   const metodo=document.getElementById('regMetodo').value;
@@ -3338,7 +3338,7 @@ function buildPresupuesto(presupuesto,transacciones,config){
     const hint=recE>0?`<span style="font-size:10px;color:var(--muted)">${t('pres_from_recurring').replace('{n}',fmt(toDisplay(Math.round(recE))))}</span>`:'';
     return`<div>
       <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">${t('reg_cat_'+cat)} ${hint}</label>
-      <input type="number" min="0" step="100" value="${cur||''}" data-pres-cat="${cat}" class="cierre-input pres-input" style="font-size:14px;padding:8px 10px;width:100%" placeholder="0" oninput="updatePresUnalloc()">
+      <input type="text" inputmode="decimal" value="${cur||''}" data-pres-cat="${cat}" class="cierre-input pres-input" style="font-size:14px;padding:8px 10px;width:100%" placeholder="0" oninput="updatePresUnalloc()">
     </div>`;
   }).join('');
 
@@ -3401,7 +3401,7 @@ function updatePresUnalloc(){
   const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
   const disponible=ingreso-totalAdeudado;
   let total=0;
-  document.querySelectorAll('.pres-input').forEach(inp=>{total+=parseFloat(inp.value)||0;});
+  document.querySelectorAll('.pres-input').forEach(inp=>{total+=pf(inp.value);});
   const un=disponible-total;
   const el=document.getElementById('presUnallocLabel');
   if(el){
@@ -3415,7 +3415,7 @@ function savePresupuesto(){
   const mes=_editData.config.mes,anio=_editData.config.anio;
   document.querySelectorAll('.pres-input').forEach(inp=>{
     const cat=inp.dataset.presCat;
-    const val=parseFloat(inp.value)||0;
+    const val=pf(inp.value);
     const idx=_editData.presupuesto.findIndex(p=>p.categoria===cat&&p.mes===mes&&p.anio===anio);
     if(val>0){
       if(idx>=0)_editData.presupuesto[idx].presupuestado=val;
@@ -3560,8 +3560,8 @@ function buildProyector({gastos,ingreso,gasto,config}){
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${t('proy_slider_label')}</div>
         <input type="range" id="extraSlider" min="0" max="${sliderMax}" step="1000" value="${extraPayment}" oninput="updateProyector()" style="width:100%;accent-color:var(--accent)">
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
-          <input type="number" id="extraInput" value="${extraPayment}" min="0" step="any"
-            oninput="document.getElementById('extraSlider').value=this.value;updateProyector()"
+          <input type="text" inputmode="decimal" id="extraInput" value="${extraPayment}"
+            oninput="document.getElementById('extraSlider').value=pf(this.value);updateProyector()"
             style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);width:140px;min-width:100px">
           <span style="font-size:12px;color:var(--muted)">${t('proy_per_month')}</span>
           ${resta>0?`<button onclick="document.getElementById('extraSlider').value=${Math.round(resta)};document.getElementById('extraInput').value=${Math.round(resta)};updateProyector()"
@@ -3652,7 +3652,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
     return `<tr>
       <td data-label="" style="font-weight:700">${escH(g.nombre)}</td>
       <td data-label="${t('proy_refi_col_current')}" class="mono" style="color:var(--red);text-align:center">${g.tasa}%</td>
-      <td data-label="${t('proy_refi_col_target')}"><input type="number" id="refi-rate-${i}" value="${refiRate}" min="1" max="${g.tasa-1}" step="any"
+      <td data-label="${t('proy_refi_col_target')}"><input type="text" inputmode="decimal" id="refi-rate-${i}" value="${refiRate}"
         oninput="updateRefiRow(${i})"
         style="background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);width:80px">
         <span style="font-size:11px;color:var(--muted)">%</span></td>
@@ -3756,7 +3756,7 @@ function buildProyector({gastos,ingreso,gasto,config}){
 function updateRefiRow(i){
   const g=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0)[i];
   if(!g)return;
-  const newRate=parseFloat(document.getElementById(`refi-rate-${i}`)?.value||0);
+  const newRate=pf(document.getElementById(`refi-rate-${i}`)?.value);
   if(newRate<=0||newRate>=g.tasa)return;
   const saving=g.balance*(g.tasa-newRate)/100;
   const savMes=document.getElementById(`refi-saving-${i}`);
@@ -3766,10 +3766,10 @@ function updateRefiRow(i){
 }
 
 function updateProyector(){
-  const extra=parseFloat(document.getElementById('extraSlider')?.value||0);
+  const extra=pf(document.getElementById('extraSlider')?.value);
   document.getElementById('extraVal').textContent=fmtC(extra);
   const inp=document.getElementById('extraInput');
-  if(inp&&parseFloat(inp.value)!==extra)inp.value=extra;
+  if(inp&&pf(inp.value)!==extra)inp.value=extra;
   const deudas=_editData.gastos.filter(g=>g.balance>0&&g.tasa>0).map(g=>({...g}));
   // Fix #11: Strategy explainer
   const explainerEl=document.getElementById('strategyExplainer');
@@ -4982,7 +4982,7 @@ function renderCierre(){
     // Saldos cuentas — use numeric index for IDs (account names may contain spaces/special chars)
     html+=_editData.forNow.cuentas.map((c,idx)=>{
       const cur=c.moneda==='USD'?'USD$':'RD$';
-      return `<div class="cierre-field"><label class="cierre-label">${escH(c.nombre)}${c.moneda==='USD'?' <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px">USD</span>':''}</label><input class="cierre-input" type="number" step="any" placeholder="${cur}${fmt(c.saldo)}" id="cw-saldo-${idx}" value="${c.saldo||0}"></div>`;
+      return `<div class="cierre-field"><label class="cierre-label">${escH(c.nombre)}${c.moneda==='USD'?' <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px">USD</span>':''}</label><input class="cierre-input" type="text" inputmode="decimal" placeholder="${cur}${fmt(c.saldo)}" id="cw-saldo-${idx}" value="${c.saldo||0}"></div>`;
     }).join('');
   } else if(_cierreStep===6){
     // Bug 3 fix: use same income formula as calcDerivedMetrics — never stale config.ingresoRD
@@ -5012,7 +5012,7 @@ function renderCierre(){
     const savedMes=_cierreNextMes||months[nextIdx];
     const savedAnio=_cierreNextAnio||nextAnio;
     html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_mes')}</label><input class="cierre-input" type="text" id="cw-nextmes" value="${savedMes}"></div>`;
-    html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_anio')}</label><input class="cierre-input" type="number" step="any" id="cw-nextanio" value="${savedAnio}"></div>`;
+    html+=`<div class="cierre-field"><label class="cierre-label">${t('cierre_step8_anio')}</label><input class="cierre-input" type="text" inputmode="decimal" id="cw-nextanio" value="${savedAnio}"></div>`;
   } else {
     s.fields.forEach(f=>{
       let curVal=f.key?(_editData.config[f.key]!==undefined?_editData.config[f.key]:(_editData.emerg?.cashflow[f.key]!==undefined?_editData.emerg.cashflow[f.key]:'')):'';
@@ -5020,12 +5020,12 @@ function renderCierre(){
       if(f.id==='cw-balAh'){
         const prevBal=_editData.emerg?.cashflow?.balanceAhorros||0;
         const ahorrosInput=document.getElementById('cw-ahorros');
-        const ahorrosEste=ahorrosInput?parseFloat(ahorrosInput.value)||0:(_editData.emerg?.cashflow?.ahorros||0);
+        const ahorrosEste=ahorrosInput?pf(ahorrosInput.value):(_editData.emerg?.cashflow?.ahorros||0);
         curVal=prevBal+ahorrosEste;
-        html+=`<div class="cierre-field"><label class="cierre-label">${f.label} <span style="font-size:11px;color:var(--green)">← se acumula automáticamente</span></label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">Balance anterior: ${fmtC(toDisplay(prevBal))} + ahorros este mes. Edita si el total real es diferente.</div></div>`;
+        html+=`<div class="cierre-field"><label class="cierre-label">${f.label} <span style="font-size:11px;color:var(--green)">← se acumula automáticamente</span></label><input class="cierre-input" ${cierreInputAttrs(f)} id="${f.id}" value="${curVal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">Balance anterior: ${fmtC(toDisplay(prevBal))} + ahorros este mes. Edita si el total real es diferente.</div></div>`;
         return;
       }
-      html+=`<div class="cierre-field"><label class="cierre-label">${f.label}</label><input class="cierre-input" type="${f.type}" step="${f.step||'any'}" id="${f.id}" value="${curVal}"></div>`;
+      html+=`<div class="cierre-field"><label class="cierre-label">${f.label}</label><input class="cierre-input" ${cierreInputAttrs(f)} id="${f.id}" value="${curVal}"></div>`;
     });
   }
   document.getElementById('cierreSteps').innerHTML=html;
@@ -5035,23 +5035,24 @@ function renderCierre(){
 function cierreNav(dir){
   if(dir===1){
     const s=_cierreSteps[_cierreStep];
-    if(_cierreStep===0){_editData.config.tasa=parseFloat(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
+    if(_cierreStep===0){_editData.config.tasa=pf(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     else if(_cierreStep===1){_editData.config.mes=document.getElementById('cw-mes')?.value||_editData.config.mes;_editData.config.anio=parseInt(document.getElementById('cw-anio')?.value)||_editData.config.anio;}
-    else if(_cierreStep===2){_editData.config.ingresoUSD=parseFloat(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
+    else if(_cierreStep===2){_editData.config.ingresoUSD=pf(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     // Fix #2: step 3 = gasto real
-    else if(_cierreStep===3){const g=parseFloat(document.getElementById('cw-gasto')?.value);if(!isNaN(g)&&g>0)_editData.emerg.cashflow.gasto=g;}
+    else if(_cierreStep===3){const g=pf(document.getElementById('cw-gasto')?.value);if(g>0)_editData.emerg.cashflow.gasto=g;}
     else if(_cierreStep===4){
       _editData.forNow.cuentas.forEach((c,idx)=>{
         const el=document.getElementById(`cw-saldo-${idx}`);
-        if(el)c.saldo=parseFloat(el.value)||0;
+        if(el)c.saldo=pf(el.value);
       });
       _editData.forNow.total=_editData.forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?(_editData.config.tasa||60):1;return a+(c.saldo||0)*m;},0);
     }
     else if(_cierreStep===5){
-      const ahorrosEste=parseFloat(document.getElementById('cw-ahorros')?.value)||0;
+      const ahorrosEste=pf(document.getElementById('cw-ahorros')?.value);
       _editData.emerg.cashflow.ahorros=ahorrosEste;
       // Auto-accumulate: add this month's savings to the running balance
-      const newBalAh=parseFloat(document.getElementById('cw-balAh')?.value);
+      const balAhRaw=document.getElementById('cw-balAh')?.value;
+      const newBalAh=balAhRaw===undefined||balAhRaw===''?NaN:pf(balAhRaw);
       _editData.emerg.cashflow.balanceAhorros=isNaN(newBalAh)?(_editData.emerg.cashflow.balanceAhorros||0)+ahorrosEste:newBalAh;
     }
     else if(_cierreStep===7){
@@ -5243,6 +5244,18 @@ document.addEventListener('keydown',e=>{
     else if(document.getElementById('cierreModal')?.classList.contains('open'))closeCierre();
   }
 });
+// Close modals on backdrop tap (mobile-friendly: tap outside the modal body to dismiss).
+// Setup wizard is intentionally excluded — losing multi-step onboarding progress on an
+// accidental tap would be worse than forcing the user to complete or refresh.
+['editModal','cierreModal'].forEach(id=>{
+  const m=document.getElementById(id);
+  if(!m)return;
+  m.addEventListener('click',e=>{
+    if(e.target!==m||!m.classList.contains('open'))return;
+    if(id==='editModal')closeEditModal();
+    else closeCierre();
+  });
+});
 
 // ══════════════════════════════════
 // EDIT MODE
@@ -5263,6 +5276,14 @@ function closeEditModal(force){
 }
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function pf(v){return parseFloat(String(v).replace(/,/g,''))||0;}
+// Map a cierre-wizard field config to input attrs. Integer step uses numeric keypad,
+// decimal step uses decimal keypad; legacy `type:'number'` is rewritten to text+decimal
+// so mobile keyboards show a proper numeric pad and pasted commas ("1,500") still parse.
+function cierreInputAttrs(f){
+  if(f.type==='text') return 'type="text"';
+  const isInt=f.step==='1';
+  return `type="text" inputmode="${isInt?'numeric':'decimal'}"`;
+}
 const TIPOS=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
 function syncConfigField(key,el){
   const v=el.value;
@@ -5325,14 +5346,14 @@ function buildEditForms(){
     eb.innerHTML+=`<tr data-idx="${i}">
       <td><input class="tbl-input" style="min-width:140px" value="${escH(g.nombre)}" oninput="markChanged(this);_editData.gastos[${i}].nombre=this.value"></td>
       <td><select class="tbl-input" style="min-width:90px" onchange="markChanged(this);_editData.gastos[${i}].tipo=this.value">${tipoOpts}</select></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${g.pagado||0}" oninput="markChanged(this);_editData.gastos[${i}].pagado=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${g.adeudado||0}" oninput="markChanged(this);_editData.gastos[${i}].adeudado=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="1" min="1" max="31" value="${g.dia||1}" oninput="markChanged(this);_editData.gastos[${i}].dia=Math.min(31,Math.max(1,parseInt(this.value)||1))" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" max="100" value="${g.tasa||0}" oninput="markChanged(this);_editData.gastos[${i}].tasa=Math.min(100,Math.max(0,pf(this.value)))" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${g.balance||0}" oninput="markChanged(this);_editData.gastos[${i}].balance=Math.max(0,pf(this.value))"></td>
-      <td><input class="tbl-input" id="origRD-${i}" type="number" step="any" min="0" value="${g.originalRD||0}" oninput="markChanged(this);syncOriginal(${i},'originalRD',this)"></td>
-      <td><input class="tbl-input" id="origUSD-${i}" type="number" step="any" min="0" value="${g.originalUSD||0}" oninput="markChanged(this);syncOriginal(${i},'originalUSD',this)" style="min-width:80px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${g.tasaCreacion||''}" readonly style="min-width:70px;opacity:.6;cursor:not-allowed"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${g.pagado||0}" oninput="markChanged(this);_editData.gastos[${i}].pagado=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${g.adeudado||0}" oninput="markChanged(this);_editData.gastos[${i}].adeudado=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="numeric" min="1" max="31" value="${g.dia||1}" oninput="markChanged(this);_editData.gastos[${i}].dia=Math.min(31,Math.max(1,parseInt(this.value)||1))" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" max="100" value="${g.tasa||0}" oninput="markChanged(this);_editData.gastos[${i}].tasa=Math.min(100,Math.max(0,pf(this.value)))" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${g.balance||0}" oninput="markChanged(this);_editData.gastos[${i}].balance=Math.max(0,pf(this.value))"></td>
+      <td><input class="tbl-input" id="origRD-${i}" type="text" inputmode="decimal" min="0" value="${g.originalRD||0}" oninput="markChanged(this);syncOriginal(${i},'originalRD',this)"></td>
+      <td><input class="tbl-input" id="origUSD-${i}" type="text" inputmode="decimal" min="0" value="${g.originalUSD||0}" oninput="markChanged(this);syncOriginal(${i},'originalUSD',this)" style="min-width:80px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" value="${g.tasaCreacion||''}" readonly style="min-width:70px;opacity:.6;cursor:not-allowed"></td>
       <td><input class="tbl-input" type="date" value="${g.fechaLimite?String(g.fechaLimite).slice(0,10):''}" oninput="markChanged(this);_editData.gastos[${i}].fechaLimite=this.value" style="min-width:120px"></td>
       <td><input class="tbl-input" value="${escH(g.notas||'')}" oninput="markChanged(this);_editData.gastos[${i}].notas=this.value" style="min-width:120px"></td>
       <td><button class="row-del-btn" onclick="deleteGastoRow(${i})">✕</button></td>
@@ -5346,7 +5367,7 @@ function buildEditForms(){
     const mon=c.moneda||'RD';
     fb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
       <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.forNow.cuentas)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
       <td><button class="row-del-btn" onclick="deleteFornowRow(${i})">✕</button></td></tr>`;
   });
   // EMERGENCY
@@ -5355,8 +5376,8 @@ function buildEditForms(){
     const mon=f.moneda||'RD';
     efb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(f.fondo)}" oninput="markChanged(this);_editData.emerg.fondos[${i}].fondo=this.value" style="min-width:140px"></td>
       <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.emerg.fondos)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${f.balance||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].balance=Math.max(0,pf(this.value))"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${f.meta||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].meta=Math.max(0,pf(this.value))"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${f.balance||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].balance=Math.max(0,pf(this.value))"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${f.meta||0}" oninput="markChanged(this);_editData.emerg.fondos[${i}].meta=Math.max(0,pf(this.value))"></td>
       <td><button class="row-del-btn" onclick="deleteEmergFundRow(${i})">✕</button></td></tr>`;
   });
   // CASHFLOW
@@ -5369,20 +5390,20 @@ function buildEditForms(){
     // resta removed — always calculated as ingreso - gasto
     {id:'cf-ahorros',label:t('ecf_ahorros'),key:'ahorros',val:cf.ahorros||0},
     {id:'cf-balanceAhorros',label:t('ecf_balanceAhorros'),key:'balanceAhorros',val:cf.balanceAhorros||0},
-  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="number" step="any" value="${f.val}" ${f.readonly?'readonly style="opacity:.6;cursor:not-allowed"':''} oninput="markChanged(this);_editData.emerg.cashflow['${f.key}']=parseFloat(this.value)||0">${f.note?`<div class="field-note">${f.note}</div>`:''}</div>`).join('');
+  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="decimal" value="${f.val}" ${f.readonly?'readonly style="opacity:.6;cursor:not-allowed"':''} oninput="markChanged(this);_editData.emerg.cashflow['${f.key}']=pf(this.value)">${f.note?`<div class="field-note">${f.note}</div>`:''}</div>`).join('');
   // HISTORIAL
   const hb=document.getElementById('historialEditBody');hb.innerHTML='';
   historial.forEach((h,i)=>{
     // Fix #1: income stored in RD$ — no reverse conversion needed
     hb.innerHTML+=`<tr>
       <td><input class="tbl-input" value="${escH(h.mes)}" oninput="markChanged(this);_editData.historial[${i}].mes=this.value" style="min-width:90px"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.anio}" oninput="markChanged(this);_editData.historial[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.ingresos||0}" oninput="markChanged(this);_editData.historial[${i}].ingresos=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.gasto||0}" oninput="markChanged(this);_editData.historial[${i}].gasto=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" min="1" value="${h.tasa||60}" oninput="markChanged(this);_editData.historial[${i}].tasa=Math.max(1,pf(this.value))" style="min-width:60px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.deudas||0}" oninput="markChanged(this);_editData.historial[${i}].deudas=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${h.emergencia||0}" oninput="markChanged(this);_editData.historial[${i}].emergencia=pf(this.value)"></td>
-      <td><input class="tbl-input" type="number" step="any" value="${h.netWorth||0}" oninput="markChanged(this);_editData.historial[${i}].netWorth=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" value="${h.anio}" oninput="markChanged(this);_editData.historial[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${h.ingresos||0}" oninput="markChanged(this);_editData.historial[${i}].ingresos=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${h.gasto||0}" oninput="markChanged(this);_editData.historial[${i}].gasto=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="1" value="${h.tasa||60}" oninput="markChanged(this);_editData.historial[${i}].tasa=Math.max(1,pf(this.value))" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${h.deudas||0}" oninput="markChanged(this);_editData.historial[${i}].deudas=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${h.emergencia||0}" oninput="markChanged(this);_editData.historial[${i}].emergencia=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" value="${h.netWorth||0}" oninput="markChanged(this);_editData.historial[${i}].netWorth=pf(this.value)"></td>
       <td><input class="tbl-input" value="${escH(h.notas||'')}" oninput="markChanged(this);_editData.historial[${i}].notas=this.value" style="min-width:100px"></td>
       <td><button class="row-del-btn" onclick="deleteHistorialRow(${i})">✕</button></td>
     </tr>`;
@@ -5393,12 +5414,12 @@ function buildEditForms(){
   txArr.forEach((tx,i)=>{
     txb.innerHTML+=`<tr>
       <td><input class="tbl-input" type="date" value="${escH(tx.fecha)}" oninput="markChanged(this);_editData.transacciones[${i}].fecha=this.value" style="min-width:110px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${tx.monto}" oninput="markChanged(this);_editData.transacciones[${i}].monto=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${tx.monto}" oninput="markChanged(this);_editData.transacciones[${i}].monto=pf(this.value)"></td>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.transacciones[${i}].categoria=this.value">${REG_CATS.map(c=>`<option value="${c}" ${tx.categoria===c?'selected':''}>${c}</option>`).join('')}</select></td>
       <td><input class="tbl-input" value="${escH(tx.nota||'')}" oninput="markChanged(this);_editData.transacciones[${i}].nota=this.value" style="min-width:80px"></td>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.transacciones[${i}].metodo=this.value"><option value="efectivo" ${tx.metodo==='efectivo'?'selected':''}>Efectivo</option><option value="tarjeta" ${tx.metodo==='tarjeta'?'selected':''}>Tarjeta</option><option value="transferencia" ${tx.metodo==='transferencia'?'selected':''}>Transfer</option></select></td>
       <td><input class="tbl-input" value="${escH(tx.mes||'')}" oninput="markChanged(this);_editData.transacciones[${i}].mes=this.value" style="min-width:70px"></td>
-      <td><input class="tbl-input" type="number" step="1" value="${tx.anio||0}" oninput="markChanged(this);_editData.transacciones[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="numeric" value="${tx.anio||0}" oninput="markChanged(this);_editData.transacciones[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
       <td><button class="row-del-btn" onclick="deleteTxEditRow(${i})">✕</button></td>
     </tr>`;
   });
@@ -5409,9 +5430,9 @@ function buildEditForms(){
   presArr.forEach((p,i)=>{
     presb.innerHTML+=`<tr>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.presupuesto[${i}].categoria=this.value">${REG_CATS.map(c=>`<option value="${c}" ${p.categoria===c?'selected':''}>${c}</option>`).join('')}</select></td>
-      <td><input class="tbl-input" type="number" step="100" min="0" value="${p.presupuestado}" oninput="markChanged(this);_editData.presupuesto[${i}].presupuestado=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" value="${p.presupuestado}" oninput="markChanged(this);_editData.presupuesto[${i}].presupuestado=pf(this.value)"></td>
       <td><input class="tbl-input" value="${escH(p.mes||'')}" oninput="markChanged(this);_editData.presupuesto[${i}].mes=this.value" style="min-width:70px"></td>
-      <td><input class="tbl-input" type="number" step="1" value="${p.anio||0}" oninput="markChanged(this);_editData.presupuesto[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
+      <td><input class="tbl-input" type="text" inputmode="numeric" value="${p.anio||0}" oninput="markChanged(this);_editData.presupuesto[${i}].anio=parseInt(this.value)||0" style="min-width:60px"></td>
       <td><button class="row-del-btn" onclick="deletePresEditRow(${i})">✕</button></td>
     </tr>`;
   });
@@ -5423,7 +5444,7 @@ function buildEditForms(){
   recArr.forEach((r,i)=>{
     recb.innerHTML+=`<tr>
       <td><input class="tbl-input" type="date" value="${escH(r.fecha)}" oninput="markChanged(this);_editData.recurrentes[${i}].fecha=this.value" style="min-width:110px"></td>
-      <td><input class="tbl-input" type="number" step="any" min="0" value="${r.monto}" oninput="markChanged(this);_editData.recurrentes[${i}].monto=pf(this.value)"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${r.monto}" oninput="markChanged(this);_editData.recurrentes[${i}].monto=pf(this.value)"></td>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.recurrentes[${i}].categoria=this.value">${REG_CATS.map(c=>`<option value="${c}" ${r.categoria===c?'selected':''}>${c}</option>`).join('')}</select></td>
       <td><input class="tbl-input" value="${escH(r.nota||'')}" oninput="markChanged(this);_editData.recurrentes[${i}].nota=this.value" style="min-width:80px"></td>
       <td><select class="tbl-input" oninput="markChanged(this);_editData.recurrentes[${i}].metodo=this.value"><option value="efectivo" ${r.metodo==='efectivo'?'selected':''}>Efectivo</option><option value="tarjeta" ${r.metodo==='tarjeta'?'selected':''}>Tarjeta</option><option value="transferencia" ${r.metodo==='transferencia'?'selected':''}>Transfer</option></select></td>

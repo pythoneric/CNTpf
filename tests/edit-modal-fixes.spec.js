@@ -217,7 +217,7 @@ test.describe('Fix #5 — Gastos field validation', () => {
     // Switch to gastos tab
     await page.locator('.edit-tab', { hasText: /Gastos/ }).click();
 
-    const diaInput = page.locator('#esencialesEditBody tr').first().locator('input[type="number"][min="1"][max="31"]');
+    const diaInput = page.locator('#esencialesEditBody tr').first().locator('input[inputmode="numeric"][min="1"][max="31"]');
     await diaInput.fill('45');
     await diaInput.dispatchEvent('input');
 
@@ -236,7 +236,7 @@ test.describe('Fix #5 — Gastos field validation', () => {
     await openEdit(page);
     await page.locator('.edit-tab', { hasText: /Gastos/ }).click();
 
-    const tasaInput = page.locator('#esencialesEditBody tr').first().locator('input[type="number"][max="100"]');
+    const tasaInput = page.locator('#esencialesEditBody tr').first().locator('input[inputmode="decimal"][max="100"]');
     await tasaInput.fill('150');
     await tasaInput.dispatchEvent('input');
 
