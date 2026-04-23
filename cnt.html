@@ -66,11 +66,11 @@ header{background:linear-gradient(180deg,var(--surface) 0%,rgba(6,9,18,0) 100%);
 body.light header{background:linear-gradient(180deg,var(--surface) 0%,transparent 100%)}
 .logo{display:flex;align-items:center;gap:12px}
 .logo-dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 16px var(--accent);animation:pulse 2.5s ease-in-out infinite}
-.logo-label{font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;font-weight:600}
+.logo-label{font-size:11px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;font-weight:600}
 .logo-title{font-size:20px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .header-meta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
 .meta-item{text-align:right}
-.meta-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.meta-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 .meta-val{font-family:var(--mono);font-size:15px;font-weight:700;margin-top:2px}
 .hdr-btn{padding:7px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
 .hdr-btn:hover{border-color:var(--accent);color:var(--accent)}
@@ -102,7 +102,7 @@ body.light td{border-bottom-color:rgba(208,217,232,.5)}
 tr:last-child td{border-bottom:none}
 tbody tr{transition:background .15s}
 tbody tr:hover td{background:rgba(59,130,246,.03)}
-.mono{font-family:var(--mono)}.num{font-family:var(--mono);text-align:right}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
 .cf-bar{display:flex;height:42px;border-radius:10px;overflow:hidden;gap:2px}
 .cf-seg{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;padding:0 10px;white-space:nowrap}
 /* chart-wrap height handled by responsive CSS below */
@@ -112,7 +112,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .debt-amount{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--red)}
 .debt-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .debt-meta-item{background:var(--bg);border-radius:8px;padding:8px 12px;flex:1 1 90px}
-.dmi-label{font-size:10px;color:var(--muted)}
+.dmi-label{font-size:11px;color:var(--muted)}
 .dmi-val{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);margin-top:3px}
 .ef-row{padding:16px 0;border-bottom:1px solid var(--border)}
 .ef-row:last-child{border-bottom:none}
@@ -132,7 +132,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .score-ring svg{transform:rotate(-90deg)}
 .score-ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .score-num{font-family:var(--mono);font-size:26px;font-weight:800}
-.score-label-sm{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.score-label-sm{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 
 /* ══ ALERTS PANEL ══ */
 .alert-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;margin-bottom:8px}
@@ -227,7 +227,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .field-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text);transition:border-color .2s;width:100%}
 .field-input:focus{outline:none;border-color:var(--accent);background:rgba(59,130,246,.05)}
 .field-input.changed{border-color:var(--yellow);background:rgba(245,200,66,.05)}
-.field-note{font-size:10px;color:var(--muted);margin-top:2px}
+.field-note{font-size:11px;color:var(--muted);margin-top:2px}
 .edit-table-wrap{overflow-x:auto}
 .edit-table{width:100%;border-collapse:collapse;font-size:13px}
 .edit-table th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;background:var(--surface2)}
@@ -267,6 +267,15 @@ header{will-change:auto}
 .btn{min-height:44px}
 .btn-sm{min-height:36px;padding:8px 14px}
 
+/* ══ REDUCED MOTION — respect user preference for vestibular accessibility ══ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .loader-dot,.logo-dot,.alert-dot{animation:none!important}
+}
+
+/* ══ MOMENTUM SCROLLING — smooth native feel on iOS inside modals ══ */
+#editModal,#cierreModal,#setupModal,.tbl-wrap,.edit-table-wrap{-webkit-overflow-scrolling:touch}
+
 /* ══ iOS SAFE AREA ══ */
 header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
 .tabs{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
@@ -288,7 +297,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   display:none;gap:0;overflow-x:auto;justify-content:space-around;
   scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
 #mobileNav::-webkit-scrollbar{height:0}
-.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-width:52px;border-radius:10px;transition:all .2s;flex-shrink:0;scroll-snap-align:start}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-width:52px;border-radius:10px;transition:all .2s;flex-shrink:0;scroll-snap-align:start}
 .mnav-btn .mnav-icon{font-size:20px;line-height:1}
 .mnav-btn.active{color:var(--accent);background:rgba(59,130,246,.08)}
 .mnav-btn .alert-dot{width:6px;height:6px;background:var(--red);border-radius:50%;position:absolute;top:4px;right:8px;animation:pulse 1.5s infinite}
@@ -345,7 +354,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .hdr-meta-overflow-hide{display:none}
   #hdrOverflow{display:block}
   .logo-title{font-size:16px}
-  .logo-label{font-size:9px}
+  .logo-label{font-size:10px}
 
   /* KPIs */
   .kpi-val{font-size:20px}
@@ -371,7 +380,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .cierre-container{padding:0}
   .cierre-header{border-radius:12px;padding:16px}
   .cierre-input{font-size:16px;padding:12px 14px} /* prevent iOS zoom + bigger tap target */
-  #setupModal>div>div{padding:20px 16px!important;border-radius:16px!important}
+  #setupModal .setup-card{padding:20px 16px!important;border-radius:16px!important}
 
   /* Edit modal */
   .edit-container{padding:0 4px}
@@ -401,7 +410,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
 /* ══ SMALL PHONES ≤375px ══ */
 @media(max-width:375px){
-  .mnav-btn{min-width:44px;padding:6px 6px;font-size:8px}
+  .mnav-btn{min-width:44px;padding:6px 6px;font-size:9px}
   .mnav-btn .mnav-icon{font-size:18px}
   .card{padding:12px}
   .kpi-val{font-size:18px}
@@ -436,7 +445,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 /* ══ SWIPE INDICATOR (mobile) ══ */
 .swipe-hint{display:none}
 @media(max-width:640px){
-  .swipe-hint{display:block;text-align:center;font-size:10px;color:var(--muted);padding:6px 0 2px;letter-spacing:.06em}
+  .swipe-hint{display:block;text-align:center;font-size:11px;color:var(--muted);padding:6px 0 2px;letter-spacing:.06em}
 }
 
 /* ══ EDIT MODAL MOBILE — scrollable tabs ══ */
@@ -449,7 +458,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   /* Edit tables - show as stacked cards on mobile */
   .edit-table-wrap{border-radius:10px;overflow-x:auto}
   .edit-table{font-size:12px}
-  .edit-table th{font-size:9px;padding:6px 8px}
+  .edit-table th{font-size:10px;padding:6px 8px}
   .edit-table td{padding:4px 6px}
   .tbl-input{min-width:70px!important;font-size:13px!important}
 }
@@ -713,45 +722,45 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="meta-item"><div class="meta-label" data-i18n="hdr_ingrd">Ingreso RD$</div><div class="meta-val" style="color:var(--green)" id="hIngRD">—</div></div>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="openCierre()" data-i18n="closemonth">🗓 Cerrar Mes</button>
       <button class="hdr-btn edit hdr-meta-overflow-hide" onclick="openEditModal()" data-i18n="edit">✏️ Editar</button>
-      <span id="dbSyncStatus" style="display:none;font-size:11px;color:var(--green);font-weight:700;align-items:center;gap:4px">💾 Guardado</span>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleTheme()" id="themeBtn" title="Modo claro/oscuro">☀️</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleLang()" id="langBtn" title="Switch language">🇺🇸 EN</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="exportSnapshot()" title="Exportar snapshot PDF">📸</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="resetLoader()">↩</button>
-      <button class="hdr-btn hdr-meta-overflow-hide" onclick="hardResetCache()" title="Limpiar caché y recargar" style="font-size:15px">🔄</button>
+      <span id="dbSyncStatus" role="status" aria-live="polite" style="display:none;font-size:11px;color:var(--green);font-weight:700;align-items:center;gap:4px">💾 Guardado</span>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleTheme()" id="themeBtn" title="Modo claro/oscuro" aria-label="Modo claro/oscuro">☀️</button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleLang()" id="langBtn" title="Switch language" aria-label="Switch language">🇺🇸 EN</button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="exportSnapshot()" title="Exportar snapshot PDF" aria-label="Exportar snapshot PDF">📸</button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="resetLoader()" aria-label="Cambiar archivo" title="Cambiar archivo">↩</button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="hardResetCache()" title="Limpiar caché y recargar" aria-label="Limpiar caché y recargar" style="font-size:15px">🔄</button>
       <!-- Mobile overflow menu -->
       <div id="hdrOverflow">
-        <button class="hdr-btn" onclick="toggleOverflow()" id="overflowBtn" title="Más opciones">⋯</button>
-        <div id="hdrOverflowMenu">
-          <button class="overflow-item" onclick="openCierre();closeOverflow()" data-i18n="closemonth">🗓 Cerrar Mes</button>
-          <button class="overflow-item" onclick="openEditModal();closeOverflow()" data-i18n="editdata">✏️ Editar datos</button>
-          <button class="overflow-item" onclick="toggleTheme();closeOverflow()" id="themeBtnMobile">☀️ <span data-i18n="changetheme">Cambiar tema</span></button>
-          <button class="overflow-item" onclick="toggleLang();closeOverflow()" id="langBtnMobile">🇺🇸 <span id="langBtnMobileLabel">Switch to English</span></button>
-          <button class="overflow-item" onclick="exportSnapshot();closeOverflow()" data-i18n="exportpdf">📸 Exportar PDF</button>
-          <button class="overflow-item" onclick="resetLoader();closeOverflow()" data-i18n="changefile">↩ Cambiar archivo</button>
-          <button class="overflow-item" onclick="hardResetCache();closeOverflow()" data-i18n="clearcache">🔄 Limpiar caché</button>
+        <button class="hdr-btn" onclick="toggleOverflow()" id="overflowBtn" title="Más opciones" aria-label="Más opciones" aria-haspopup="menu" aria-expanded="false">⋯</button>
+        <div id="hdrOverflowMenu" role="menu" aria-label="Más opciones">
+          <button class="overflow-item" role="menuitem" onclick="openCierre();closeOverflow()" data-i18n="closemonth">🗓 Cerrar Mes</button>
+          <button class="overflow-item" role="menuitem" onclick="openEditModal();closeOverflow()" data-i18n="editdata">✏️ Editar datos</button>
+          <button class="overflow-item" role="menuitem" onclick="toggleTheme();closeOverflow()" id="themeBtnMobile">☀️ <span data-i18n="changetheme">Cambiar tema</span></button>
+          <button class="overflow-item" role="menuitem" onclick="toggleLang();closeOverflow()" id="langBtnMobile">🇺🇸 <span id="langBtnMobileLabel">Switch to English</span></button>
+          <button class="overflow-item" role="menuitem" onclick="exportSnapshot();closeOverflow()" data-i18n="exportpdf">📸 Exportar PDF</button>
+          <button class="overflow-item" role="menuitem" onclick="resetLoader();closeOverflow()" data-i18n="changefile">↩ Cambiar archivo</button>
+          <button class="overflow-item" role="menuitem" onclick="hardResetCache();closeOverflow()" data-i18n="clearcache">🔄 Limpiar caché</button>
         </div>
       </div>
     </div>
   </header>
 
-  <div id="groupToggle">
-    <button class="group-pill active" id="pillOps" onclick="switchGroup('ops')" data-i18n="group_ops">Operaciones</button>
-    <button class="group-pill" id="pillStrat" onclick="switchGroup('strat')" data-i18n="group_strat">Estrategia</button>
+  <div id="groupToggle" role="tablist" aria-label="Grupo de pestañas">
+    <button class="group-pill active" id="pillOps" role="tab" aria-selected="true" onclick="switchGroup('ops')" data-i18n="group_ops">Operaciones</button>
+    <button class="group-pill" id="pillStrat" role="tab" aria-selected="false" onclick="switchGroup('strat')" data-i18n="group_strat">Estrategia</button>
   </div>
-  <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('resumen',this)" data-group="ops" data-i18n="tab_resumen">📊 Resumen</button>
-    <button class="tab-btn" onclick="showTab('alertas',this)" id="tabAlertas" data-group="ops" data-i18n="tab_alertas">🔔 Alertas & Pagos</button>
-    <button class="tab-btn" onclick="showTab('registro',this)" data-group="ops" data-i18n="tab_registro">🧾 Registro</button>
-    <button class="tab-btn" onclick="showTab('presupuesto',this)" data-group="ops" data-i18n="tab_presupuesto">📋 Presupuesto</button>
-    <button class="tab-btn" onclick="showTab('gastos',this)" data-group="ops" data-i18n="tab_gastos">💸 Gastos</button>
-    <button class="tab-btn" onclick="showTab('fornow',this)" data-group="ops" data-i18n="tab_fornow">💳 Fondos</button>
-    <button class="tab-btn" onclick="showTab('emergency',this)" data-group="strat" data-i18n="tab_emergency" style="display:none">🛡 Emergencias</button>
-    <button class="tab-btn" onclick="showTab('deudas',this)" data-group="strat" data-i18n="tab_deudas" style="display:none">🏦 Deudas</button>
-    <button class="tab-btn" onclick="showTab('proyector',this)" data-group="strat" data-i18n="tab_proyector" style="display:none">🎯 Proyector</button>
-    <button class="tab-btn" onclick="showTab('metas',this)" data-group="strat" data-i18n="tab_metas" style="display:none">🏆 Metas</button>
-    <button class="tab-btn" onclick="showTab('analisis',this)" data-group="strat" data-i18n="tab_analisis" style="display:none">📈 Análisis</button>
-    <button class="tab-btn" onclick="showTab('historial',this)" data-group="strat" data-i18n="tab_historial" style="display:none">📅 Historial</button>
+  <div class="tabs" role="tablist" aria-label="Secciones del dashboard">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-resumen" onclick="showTab('resumen',this)" data-group="ops" data-i18n="tab_resumen">📊 Resumen</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-alertas" onclick="showTab('alertas',this)" id="tabAlertas" data-group="ops" data-i18n="tab_alertas">🔔 Alertas & Pagos</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-registro" onclick="showTab('registro',this)" data-group="ops" data-i18n="tab_registro">🧾 Registro</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-presupuesto" onclick="showTab('presupuesto',this)" data-group="ops" data-i18n="tab_presupuesto">📋 Presupuesto</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-gastos" onclick="showTab('gastos',this)" data-group="ops" data-i18n="tab_gastos">💸 Gastos</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-fornow" onclick="showTab('fornow',this)" data-group="ops" data-i18n="tab_fornow">💳 Fondos</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-emergency" onclick="showTab('emergency',this)" data-group="strat" data-i18n="tab_emergency" style="display:none">🛡 Emergencias</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-deudas" onclick="showTab('deudas',this)" data-group="strat" data-i18n="tab_deudas" style="display:none">🏦 Deudas</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-proyector" onclick="showTab('proyector',this)" data-group="strat" data-i18n="tab_proyector" style="display:none">🎯 Proyector</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-metas" onclick="showTab('metas',this)" data-group="strat" data-i18n="tab_metas" style="display:none">🏆 Metas</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-analisis" onclick="showTab('analisis',this)" data-group="strat" data-i18n="tab_analisis" style="display:none">📈 Análisis</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-historial" onclick="showTab('historial',this)" data-group="strat" data-i18n="tab_historial" style="display:none">📅 Historial</button>
   </div>
 
   <!-- Mobile bottom navigation -->
@@ -771,8 +780,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </nav>
 
   <!-- RESUMEN -->
-  <div id="tab-resumen" class="panel active">
-    <div class="grid g4" style="margin-bottom:16px" id="kpiRow"></div>
+  <div id="tab-resumen" class="panel active" role="tabpanel">
+    <div class="grid g4" style="margin-bottom:16px" id="kpiRow" aria-live="polite" aria-atomic="false"></div>
     <div id="summaryExtras" style="margin-bottom:16px"></div>
     <div class="grid g13" style="margin-bottom:16px">
       <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;min-width:0" id="scoreCard"></div>
@@ -787,7 +796,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- ALERTAS & PAGOS (merged) -->
-  <div id="tab-alertas" class="panel">
+  <div id="tab-alertas" class="panel" role="tabpanel">
     <div class="card" style="margin-bottom:16px" id="checklistProgress"></div>
     <div class="card" style="margin-bottom:16px" id="paymentCalendar"></div>
     <div class="grid g2" style="margin-bottom:16px">
@@ -803,7 +812,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- GASTOS -->
-  <div id="tab-gastos" class="panel">
+  <div id="tab-gastos" class="panel" role="tabpanel">
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:18px">
         <div class="card-title" style="margin:0" data-i18n="gastostbl_title">Gastos & Deudas Mensuales</div>
@@ -821,7 +830,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- REGISTRO DE GASTOS -->
-  <div id="tab-registro" class="panel">
+  <div id="tab-registro" class="panel" role="tabpanel">
     <div id="registroKpis" class="grid g3" style="margin-bottom:16px"></div>
     <div id="regTrendCard" class="card" style="margin-bottom:16px;display:none"></div>
     <div class="card" style="margin-bottom:16px">
@@ -848,7 +857,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- PRESUPUESTO (Forward Budget) -->
-  <div id="tab-presupuesto" class="panel">
+  <div id="tab-presupuesto" class="panel" role="tabpanel">
     <div id="presKpis" class="grid g4" style="margin-bottom:16px"></div>
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
@@ -871,14 +880,14 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   <!-- (checklist merged into tab-alertas above) -->
 
   <!-- DEUDAS -->
-  <div id="tab-deudas" class="panel">
+  <div id="tab-deudas" class="panel" role="tabpanel">
     <div class="grid g4" style="margin-bottom:20px" id="deudaKpis"></div>
     <div id="deudaCards"></div>
     <div class="card"><div class="card-title" data-i18n="panel_deudas_dist">Distribución de Deudas</div><div class="chart-wrap"><canvas id="deudaPie"></canvas></div></div>
   </div>
 
   <!-- PROYECTOR DE DEUDAS -->
-  <div id="tab-proyector" class="panel">
+  <div id="tab-proyector" class="panel" role="tabpanel">
     <div class="card" style="margin-bottom:16px" id="proyectorConfig"></div>
 
     <!-- Committed Funds Simulation -->
@@ -906,7 +915,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- EMERGENCY -->
-  <div id="tab-emergency" class="panel">
+  <div id="tab-emergency" class="panel" role="tabpanel">
     <div class="grid g4" style="margin-bottom:16px" id="efKpis"></div>
     <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_progress">Fondos de Emergencia · Progreso</div><div id="efFunds"></div></div>
     <div class="grid g2" style="margin-bottom:16px">
@@ -917,7 +926,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- FOR NOW -->
-  <div id="tab-fornow" class="panel">
+  <div id="tab-fornow" class="panel" role="tabpanel">
     <div class="grid g4" style="margin-bottom:16px" id="forNowKpis"></div>
     <div class="card" id="forNowDetail"></div>
     <div class="card" style="margin-top:16px;margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_cashflow">Cashflow Mensual Detallado</div><div id="cfRows"></div></div>
@@ -925,7 +934,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- HISTORIAL -->
-  <div id="tab-historial" class="panel">
+  <div id="tab-historial" class="panel" role="tabpanel">
     <div class="grid g4" style="margin-bottom:16px" id="histKpis"></div>
     <div class="card" style="margin-bottom:16px">
       <div class="card-title" data-i18n="panel_hist_chart">Evolución Net Worth & Deudas</div>
@@ -955,7 +964,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- METAS DE AHORRO (Feature 1) -->
-  <div id="tab-metas" class="panel">
+  <div id="tab-metas" class="panel" role="tabpanel">
     <div class="grid g3" style="margin-bottom:16px" id="metasKpis"></div>
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px">
@@ -971,7 +980,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 
   <!-- ANÁLISIS: Budget vs Actual + Debt Payoff Dates (Features 2 & 3) -->
-  <div id="tab-analisis" class="panel">
+  <div id="tab-analisis" class="panel" role="tabpanel">
     <!-- Analysis Summary -->
     <div class="card" style="margin-bottom:16px" id="analisisSummary"></div>
     <!-- Cash Flow Waterfall -->
@@ -996,7 +1005,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 <!-- ══ SETUP WIZARD (Start from Scratch) ══ -->
 <div id="setupModal" style="position:fixed;inset:0;z-index:1100;background:rgba(6,9,18,.96);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px;align-items:flex-start;justify-content:center">
   <div style="max-width:560px;width:100%;margin:auto">
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px">
+    <div class="setup-card" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px">
 
       <!-- Header -->
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
@@ -2903,7 +2912,7 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
   const tabAl=document.getElementById('tabAlertas');
   const existDot=tabAl.querySelector('.alert-dot');
   if(existDot)existDot.remove();
-  if(urgentCount>0){const d=document.createElement('span');d.className='alert-dot';tabAl.appendChild(d);}
+  if(urgentCount>0){const d=document.createElement('span');d.className='alert-dot';d.setAttribute('role','status');d.setAttribute('aria-label',_lang==='en'?'Urgent alerts':'Alertas urgentes');tabAl.appendChild(d);}
   const gpct=ingreso>0?gasto/ingreso:1;
   const agHtml=[];
   if(gpct>1)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">🔴</div><div class="alert-text"><div class="alert-title">${t('alert_overspend_title')}</div><div class="alert-sub">${t('alert_overspend_sub').replace('%',Math.round((gpct-1)*100)+'%')}</div></div></div>`);
@@ -5085,6 +5094,7 @@ function cierreNav(dir){
         presMes.forEach(p=>{_editData.presupuesto.push({categoria:p.categoria,presupuestado:p.presupuestado,mes:_editData.config.mes,anio:_editData.config.anio});});
       }
       _pendingSave=false;
+      if(navigator.vibrate)navigator.vibrate([20,50,20,50,30]);
       // Fix 3.5: Post-close summary — show key deltas before redirecting
       const prevHist=_editData.historial.length>1?_editData.historial[1]:null;
       const saveRate=ingreso>0?Math.round(ahorro/ingreso*100):0;
@@ -5130,8 +5140,9 @@ let _activeGroup='ops';
 
 function switchGroup(group){
   _activeGroup=group;
-  document.getElementById('pillOps').classList.toggle('active',group==='ops');
-  document.getElementById('pillStrat').classList.toggle('active',group==='strat');
+  const pillOps=document.getElementById('pillOps'),pillStrat=document.getElementById('pillStrat');
+  pillOps.classList.toggle('active',group==='ops');pillOps.setAttribute('aria-selected',String(group==='ops'));
+  pillStrat.classList.toggle('active',group==='strat');pillStrat.setAttribute('aria-selected',String(group==='strat'));
   document.querySelectorAll('.tab-btn[data-group]').forEach(btn=>{btn.style.display=btn.dataset.group===group?'':'none';});
   document.querySelectorAll('.mnav-btn[data-group]').forEach(btn=>{btn.style.display=btn.dataset.group===group?'':'none';});
   const activePanel=document.querySelector('.panel.active');
@@ -5161,9 +5172,9 @@ function showTab(id,btn){
     }
   }
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false');});
   const p=document.getElementById('tab-'+id);if(p)p.classList.add('active');
-  if(btn)btn.classList.add('active');
+  if(btn){btn.classList.add('active');btn.setAttribute('aria-selected','true');}
   if(id==='proyector')updateProyector();
 }
 
@@ -5219,17 +5230,19 @@ function mobileTab(id,btn){
   if(tabAlMobile&&tabAlDesktop){
     const dot=tabAlDesktop.querySelector('.alert-dot');
     tabAlMobile.querySelector('.alert-dot')?.remove();
-    if(dot){const d=document.createElement('span');d.className='alert-dot';tabAlMobile.appendChild(d);}
+    if(dot){const d=document.createElement('span');d.className='alert-dot';d.setAttribute('role','status');d.setAttribute('aria-label',_lang==='en'?'Urgent alerts':'Alertas urgentes');tabAlMobile.appendChild(d);}
   }
 }
 
 // Overflow menu
 function toggleOverflow(){
   const m=document.getElementById('hdrOverflowMenu');
-  m.classList.toggle('open');
+  const open=m.classList.toggle('open');
+  document.getElementById('overflowBtn')?.setAttribute('aria-expanded',String(open));
 }
 function closeOverflow(){
   document.getElementById('hdrOverflowMenu')?.classList.remove('open');
+  document.getElementById('overflowBtn')?.setAttribute('aria-expanded','false');
 }
 // Close overflow on outside click
 document.addEventListener('click',e=>{
@@ -5455,7 +5468,7 @@ function buildEditForms(){
 }
 
 function deleteGastoRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
-function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} ${fmtC(toDisplay(g.balance))}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);g.balance=0;g.adeudado=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();showToast(t('dcard_liquidar_toast'),'var(--green)');}
+function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confirm(`${t('dcard_liquidar_confirm')} ${fmtC(toDisplay(g.balance))}\n\n${t('dcard_liquidar_confirm2')}`))return;_editData.config.liquidadoAcum=(_editData.config.liquidadoAcum||0)+Math.max(g.originalRD||0,g.balance||0);g.balance=0;g.adeudado=0;g.pagadoMes=true;g.pagado=0;buildDashboard({..._editData,filename:_editData.filename});autoSave();if(navigator.vibrate)navigator.vibrate([15,40,15,40,20]);showToast(t('dcard_liquidar_toast'),'var(--green)');}
 function deleteFornowRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
