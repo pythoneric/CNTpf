@@ -397,3 +397,195 @@ test.describe('#17 Setup modal uses .setup-card class', () => {
     expect(hasFragileSelector).toBe(false);
   });
 });
+
+// ───────────────────────────────────────────────────────────────────────────
+// #5 — Magic mobile-chrome padding moved to a CSS custom property
+// ───────────────────────────────────────────────────────────────────────────
+test.describe('#5 Mobile chrome padding uses CSS variable', () => {
+  test('--mobile-chrome-h is declared on :root', async ({ page }) => {
+    await loadApp(page);
+    const val = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--mobile-chrome-h').trim()
+    );
+    expect(val).toBe('120px');
+  });
+
+  test('mobile .panel padding-bottom references the variable (not a hard-coded px)', async ({ page }) => {
+    await loadApp(page);
+    const source = await page.evaluate(() => fetch('/cnt.html').then(r => r.text()));
+    // The rule should reference var(--mobile-chrome-h), not 120px directly
+    expect(source).toMatch(/padding-bottom:calc\(var\(--mobile-chrome-h\)/);
+    expect(source).not.toMatch(/padding-bottom:calc\(120px \+ env/);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// #11 — Z-index scale as CSS custom properties
+// ───────────────────────────────────────────────────────────────────────────
+test.describe('#11 Z-index scale uses CSS variables', () => {
+  test('all named z-indexes resolve to numeric values in ascending layer order', async ({ page }) => {
+    await loadApp(page);
+    const scale = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement);
+      const names = ['--z-header', '--z-nav', '--z-group-toggle', '--z-pwa-banner',
+                     '--z-overflow', '--z-edit-modal', '--z-cierre-modal', '--z-setup-modal'];
+      return names.map(n => ({ n, v: parseInt(root.getPropertyValue(n).trim(), 10) }));
+    });
+    // All resolved
+    for (const { n, v } of scale) expect(v, `${n} should be a number`).toBeGreaterThan(0);
+    // Ascending order header < nav < banner < overflow < edit < cierre < setup
+    const values = scale.map(s => s.v);
+    const sorted = [...values].sort((a, b) => a - b);
+    expect(values).toEqual(sorted);
+  });
+
+  test('core modals use the z-index variables (not literals)', async ({ page }) => {
+    await loadApp(page);
+    const source = await page.evaluate(() => fetch('/cnt.html').then(r => r.text()));
+    // The CSS for #editModal and #cierreModal should use var(--z-...)
+    expect(source).toMatch(/#editModal\{[^}]*z-index:var\(--z-edit-modal\)/);
+    expect(source).toMatch(/#cierreModal\{[^}]*z-index:var\(--z-cierre-modal\)/);
+    expect(source).toMatch(/#mobileNav\{[^}]*z-index:var\(--z-nav\)/);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// #13 — Chart heights use fixed breakpoints, not vw
+// ───────────────────────────────────────────────────────────────────────────
+test.describe('#13 Chart heights — no vw', () => {
+  test('.chart-wrap stylesheet rule contains no vw unit', async ({ page }) => {
+    await loadApp(page);
+    const source = await page.evaluate(() => fetch('/cnt.html').then(r => r.text()));
+    // Extract the .chart-wrap{...} block; assert it contains a px height but no vw
+    const chartWrap = source.match(/\.chart-wrap\{[^}]+\}/);
+    expect(chartWrap).not.toBeNull();
+    expect(chartWrap[0]).not.toMatch(/vw/);
+    expect(chartWrap[0]).toMatch(/\d+px/);
+  });
+
+  test('chart container renders with a concrete height on mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loadApp(page);
+    const h = await page.evaluate(() => {
+      const el = document.querySelector('.chart-wrap');
+      return el ? el.getBoundingClientRect().height : 0;
+    });
+    expect(h).toBeGreaterThan(150);
+    expect(h).toBeLessThan(260);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// #10 — Mobile bottom nav: icon-only on narrow screens
+// ───────────────────────────────────────────────────────────────────────────
+test.describe('#10 Compact bottom nav', () => {
+  test('≤400px viewport: mnav text labels are visually hidden (sr-only)', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 360, height: 800 } });
+    const page = await context.newPage();
+    await loadApp(page);
+    // Find a visible .mnav-btn and its label span (not mnav-icon)
+    const labelGeom = await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('.mnav-btn')).find(b => b.offsetParent !== null);
+      if (!btn) return null;
+      const label = btn.querySelector('span:not(.mnav-icon)');
+      if (!label) return null;
+      const rect = label.getBoundingClientRect();
+      const cs = getComputedStyle(label);
+      return { w: rect.width, h: rect.height, position: cs.position };
+    });
+    expect(labelGeom, 'expected to find a .mnav-btn with a label span').not.toBeNull();
+    // sr-only pattern clips to 1px × 1px with position:absolute
+    expect(labelGeom.w).toBeLessThanOrEqual(1.5);
+    expect(labelGeom.h).toBeLessThanOrEqual(1.5);
+    expect(labelGeom.position).toBe('absolute');
+    await context.close();
+  });
+
+  test('>400px viewport: labels visible at normal size', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 480, height: 800 } });
+    const page = await context.newPage();
+    await loadApp(page);
+    const labelH = await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('.mnav-btn')).find(b => b.offsetParent !== null);
+      if (!btn) return 0;
+      const label = btn.querySelector('span:not(.mnav-icon)');
+      return label ? label.getBoundingClientRect().height : 0;
+    });
+    expect(labelH).toBeGreaterThan(5);
+    await context.close();
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// #12 — Hide-on-scroll header (mobile only)
+// ───────────────────────────────────────────────────────────────────────────
+test.describe('#12 Hide-on-scroll header', () => {
+  test('mobile: scroll down past threshold adds .hidden class to header', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 700 } });
+    const page = await context.newPage();
+    await loadApp(page);
+    // Trigger a scroll event with window.scrollY > threshold and a downward delta
+    await page.evaluate(() => {
+      // Ensure panel has enough content to be scrollable
+      document.body.style.minHeight = '3000px';
+      window.scrollTo(0, 200);
+      window.dispatchEvent(new Event('scroll'));
+    });
+    await page.waitForTimeout(50);
+    await page.evaluate(() => { window.scrollTo(0, 400); window.dispatchEvent(new Event('scroll')); });
+    await page.waitForTimeout(50);
+    const hidden = await page.evaluate(() => document.querySelector('header').classList.contains('hidden'));
+    expect(hidden).toBe(true);
+    await context.close();
+  });
+
+  test('mobile: scroll up reveals the header', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 700 } });
+    const page = await context.newPage();
+    await loadApp(page);
+    await page.evaluate(() => {
+      document.body.style.minHeight = '3000px';
+      window.scrollTo(0, 500);
+      window.dispatchEvent(new Event('scroll'));
+    });
+    await page.waitForTimeout(50);
+    await page.evaluate(() => { window.scrollTo(0, 700); window.dispatchEvent(new Event('scroll')); });
+    await page.waitForTimeout(50);
+    await page.evaluate(() => { window.scrollTo(0, 600); window.dispatchEvent(new Event('scroll')); });
+    await page.waitForTimeout(50);
+    const hidden = await page.evaluate(() => document.querySelector('header').classList.contains('hidden'));
+    expect(hidden).toBe(false);
+    await context.close();
+  });
+
+  test('desktop (>640px): header never gets .hidden class on scroll', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await loadApp(page);
+    await page.evaluate(() => {
+      document.body.style.minHeight = '3000px';
+      window.scrollTo(0, 500);
+      window.dispatchEvent(new Event('scroll'));
+      window.scrollTo(0, 1000);
+      window.dispatchEvent(new Event('scroll'));
+    });
+    await page.waitForTimeout(100);
+    const hidden = await page.evaluate(() => document.querySelector('header').classList.contains('hidden'));
+    expect(hidden).toBe(false);
+  });
+
+  test('open modal suppresses hide-on-scroll', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 700 } });
+    const page = await context.newPage();
+    await loadApp(page);
+    await page.evaluate(() => window.openEditModal());
+    await page.evaluate(() => {
+      document.body.style.minHeight = '3000px';
+      window.scrollTo(0, 400);
+      window.dispatchEvent(new Event('scroll'));
+    });
+    await page.waitForTimeout(50);
+    const hidden = await page.evaluate(() => document.querySelector('header').classList.contains('hidden'));
+    expect(hidden).toBe(false);
+    await context.close();
+  });
+});

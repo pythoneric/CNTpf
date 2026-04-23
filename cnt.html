@@ -25,6 +25,18 @@
   --green:#22d3a0;--red:#f4606a;--yellow:#f5c842;--purple:#a78bfa;--orange:#fb923c;
   --font:'Syne',sans-serif;--mono:'JetBrains Mono',monospace;
   --radius:16px;--shadow:0 4px 24px rgba(0,0,0,.4);
+  /* Mobile chrome height (bottom nav 60 + group toggle 40 + breathing room 20) */
+  --mobile-chrome-h:120px;
+  /* Z-index scale — keeps overlays from fighting each other */
+  --z-header:100;
+  --z-nav:200;
+  --z-group-toggle:201;
+  --z-pwa-banner:250;
+  --z-overflow:300;
+  --z-edit-modal:500;
+  --z-cierre-modal:600;
+  --z-toast:900;
+  --z-setup-modal:1100;
 }
 body.light{
   --bg:#f0f4f8;--surface:#ffffff;--surface2:#e8edf5;--border:#d0d9e8;
@@ -40,7 +52,7 @@ body::after{content:'';position:fixed;top:-300px;right:-200px;width:700px;height
 .z1{position:relative;z-index:1}
 
 /* ══ LOADER ══ */
-#loaderScreen{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:12px 24px;overflow-y:auto}
+#loaderScreen{position:fixed;inset:0;z-index:var(--z-setup-modal);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:12px 24px;overflow-y:auto}
 .loader-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 20px var(--accent),0 0 40px rgba(59,130,246,.3);animation:pulse 2.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.85)}}
 .loader-logo{display:flex;align-items:center;gap:14px;width:100%;max-width:440px}
@@ -62,7 +74,8 @@ body::after{content:'';position:fixed;top:-300px;right:-200px;width:700px;height
 
 /* ══ DASHBOARD ══ */
 #dashApp{display:none}
-header{background:linear-gradient(180deg,var(--surface) 0%,rgba(6,9,18,0) 100%);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px)}
+header{background:linear-gradient(180deg,var(--surface) 0%,rgba(6,9,18,0) 100%);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:var(--z-header);backdrop-filter:blur(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+header.hidden{transform:translateY(-100%)}
 body.light header{background:linear-gradient(180deg,var(--surface) 0%,transparent 100%)}
 .logo{display:flex;align-items:center;gap:12px}
 .logo-dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 16px var(--accent);animation:pulse 2.5s ease-in-out infinite}
@@ -180,7 +193,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .checklist-pct{font-family:var(--mono);font-size:28px;font-weight:800;color:var(--accent)}
 
 /* ══ CIERRE DE MES (wizard) ══ */
-#cierreModal{position:fixed;inset:0;z-index:600;background:rgba(6,9,18,.94);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px}
+#cierreModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.94);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px}
 #cierreModal.open{display:flex;align-items:flex-start;justify-content:center}
 .cierre-container{max-width:620px;width:100%;margin:auto}
 .cierre-header{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin-bottom:20px}
@@ -198,7 +211,7 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .cierre-nav{display:flex;gap:10px;justify-content:space-between;margin-top:20px}
 
 /* ══ EDIT MODAL ══ */
-#editModal{position:fixed;inset:0;z-index:500;background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:24px}
+#editModal{position:fixed;inset:0;z-index:var(--z-edit-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:24px}
 #editModal.open{display:block}
 .edit-container{max-width:1100px;margin:0 auto}
 .edit-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:16px}
@@ -249,9 +262,10 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
-/* ══ CHART HEIGHTS — responsive ══ */
-.chart-wrap{position:relative;height:clamp(160px,28vw,260px)}
+/* ══ CHART HEIGHTS — explicit breakpoints (vw jitters on iOS URL-bar toggle) ══ */
+.chart-wrap{position:relative;height:220px}
 @media(max-width:640px){.chart-wrap{height:200px}}
+@media(min-width:1024px){.chart-wrap{height:260px}}
 @media(min-width:1280px){.chart-wrap{height:300px}}
 
 /* ══ GPU HINTS — smooth animations on mobile ══ */
@@ -294,7 +308,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 .group-pill:hover:not(.active){border-color:var(--accent);color:var(--accent)}
 
 /* ══ MOBILE NAV BAR ══ */
-#mobileNav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
+#mobileNav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:var(--z-nav);
   background:var(--surface);border-top:1px solid var(--border);
   padding:8px max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
@@ -309,7 +323,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
 /* ══ MOBILE HEADER OVERFLOW MENU ══ */
 #hdrOverflow{display:none;position:relative}
-#hdrOverflowMenu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:8px;min-width:180px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.4);flex-direction:column;gap:4px}
+#hdrOverflowMenu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:8px;min-width:180px;z-index:var(--z-overflow);box-shadow:0 8px 32px rgba(0,0,0,.4);flex-direction:column;gap:4px}
 #hdrOverflowMenu.open{display:flex}
 .overflow-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:none;background:transparent;color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;width:100%;text-align:left;transition:background .15s}
 .overflow-item:hover{background:var(--surface2)}
@@ -344,10 +358,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 @media(max-width:640px){
   /* Layout */
   header{padding:10px 16px;gap:8px}
-  .panel{padding:14px 16px;padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+  .panel{padding:14px 16px;padding-bottom:calc(var(--mobile-chrome-h) + env(safe-area-inset-bottom))}
   .tabs{display:none}/* replaced by bottom nav */
   #mobileNav{display:flex}
-  #groupToggle{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom));left:0;right:0;z-index:201;padding:6px 16px;background:var(--surface);border-top:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+  #groupToggle{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom));left:0;right:0;z-index:var(--z-group-toggle);padding:6px 16px;background:var(--surface);border-top:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
   .group-pill{font-size:11px;padding:6px 16px}
 
   /* Grids → single column */
@@ -409,10 +423,15 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .lcard{padding:20px 16px}
 }
 
+/* ══ COMPACT PHONE NAV ≤400px — icon-only (keep labels visible to AT via sr-only) ══ */
+@media(max-width:400px){
+  .mnav-btn span:not(.mnav-icon){position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .mnav-btn{min-width:44px;padding:8px 6px}
+  .mnav-btn .mnav-icon{font-size:22px}
+}
+
 /* ══ SMALL PHONES ≤375px ══ */
 @media(max-width:375px){
-  .mnav-btn{min-width:44px;padding:6px 6px;font-size:9px}
-  .mnav-btn .mnav-icon{font-size:18px}
   .card{padding:12px}
   .kpi-val{font-size:18px}
   .cierre-header{padding:12px}
@@ -572,7 +591,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
 /* ══ PWA INSTALL BANNER ══ */
 #pwaInstallBanner{
-  position:fixed;bottom:0;left:0;right:0;z-index:250;
+  position:fixed;bottom:0;left:0;right:0;z-index:var(--z-pwa-banner);
   background:var(--surface);border-top:1px solid var(--border);
   padding:14px max(20px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
@@ -1005,7 +1024,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 </div>
 
 <!-- ══ SETUP WIZARD (Start from Scratch) ══ -->
-<div id="setupModal" style="position:fixed;inset:0;z-index:1100;background:rgba(6,9,18,.96);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px;align-items:flex-start;justify-content:center">
+<div id="setupModal" style="position:fixed;inset:0;z-index:var(--z-setup-modal);background:rgba(6,9,18,.96);backdrop-filter:blur(16px);display:none;overflow-y:auto;padding:24px;align-items:flex-start;justify-content:center">
   <div style="max-width:560px;width:100%;margin:auto">
     <div class="setup-card" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px">
 
@@ -2370,6 +2389,37 @@ window.addEventListener('load',()=>{
     const nextId=TAB_ORDER[nextIdx];
     const mBtn=document.querySelector(`.mnav-btn[onclick*="'${nextId}'"]`);
     mobileTab(nextId,mBtn);
+  },{passive:true});
+})();
+
+// ══════════════════════════════════
+// HIDE-ON-SCROLL HEADER (mobile only)
+// ══════════════════════════════════
+// Reclaims ~50px of vertical space on small screens by sliding the sticky
+// header up on scroll-down and instantly revealing it on scroll-up.
+// Only active below 640px; respects prefers-reduced-motion.
+(()=>{
+  const HIDE_AFTER=100;    // only start hiding after 100px of scroll
+  const DOWN_DELTA=20;     // ignore jitter smaller than this on scroll-down
+  let _lastY=0,_ticking=false;
+  const reducedMotion=window.matchMedia?.('(prefers-reduced-motion:reduce)')?.matches;
+  window.addEventListener('scroll',()=>{
+    if(_ticking)return;
+    if(reducedMotion||window.innerWidth>640)return;
+    if(document.getElementById('editModal')?.classList.contains('open'))return;
+    if(document.getElementById('cierreModal')?.classList.contains('open'))return;
+    _ticking=true;
+    requestAnimationFrame(()=>{
+      const y=window.scrollY||window.pageYOffset||0;
+      const hdr=document.querySelector('header');
+      if(hdr){
+        if(y<HIDE_AFTER){hdr.classList.remove('hidden');}
+        else if(y>_lastY+DOWN_DELTA){hdr.classList.add('hidden');}
+        else if(y<_lastY){hdr.classList.remove('hidden');}
+      }
+      _lastY=y;
+      _ticking=false;
+    });
   },{passive:true});
 })();
 
