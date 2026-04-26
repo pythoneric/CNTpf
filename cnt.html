@@ -322,9 +322,12 @@ header{will-change:auto}
   #quickPayFab,#quickPayFab:hover,#quickPayFab:active{transition:none;transform:none}
 }
 
-/* ══ MI SALDO — Quick-Pay modal ══ */
-#quickPayModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
-#quickPayModal.open{display:flex}
+/* ══ MI SALDO — Quick-Pay modal + Payment-method prompt ══ */
+#quickPayModal,#paymentMethodModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#quickPayModal.open,#paymentMethodModal.open{display:flex}
+.paymethod-opt:hover{border-color:var(--accent)!important;background:rgba(59,130,246,.04)}
+.paymethod-opt input[type="radio"]:checked~div{color:var(--accent)}
+.paymethod-opt:has(input[type="radio"]:checked){border-color:var(--accent);background:rgba(59,130,246,.06)}
 .qpay-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:440px;width:100%;padding:24px;-webkit-overflow-scrolling:touch}
 .qpay-title{font-size:18px;font-weight:800;margin-bottom:4px}
 .qpay-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
@@ -1136,6 +1139,26 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
 <!-- ══ CIERRE DE MES WIZARD ══ -->
 <!-- ══ MI SALDO — First-use setup modal ══ -->
+<!-- ══ MI SALDO — Payment-method prompt (interactive: opens when user marks a gasto paid) ══ -->
+<div id="paymentMethodModal" role="dialog" aria-modal="true" aria-labelledby="paymentMethodTitle">
+  <div class="qpay-card">
+    <h2 id="paymentMethodTitle" class="qpay-title" data-i18n="paymethod_title">¿Cómo pagaste?</h2>
+    <div id="paymentMethodSub" class="qpay-sub">—</div>
+    <div class="qpay-field">
+      <label data-i18n="paymethod_label">Método de pago</label>
+      <div id="paymentMethodOptions" role="radiogroup" aria-labelledby="paymentMethodTitle" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    <div class="qpay-field" id="paymentMethodCardWrap" style="display:none">
+      <label for="paymentMethodCardSel" data-i18n="paymethod_card_label">Tarjeta</label>
+      <select class="cierre-input" id="paymentMethodCardSel"></select>
+    </div>
+    <div class="qpay-actions">
+      <button type="button" class="btn btn-ghost" onclick="cancelPaymentPrompt()" data-i18n="paymethod_cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="confirmPaymentPrompt()" data-i18n="paymethod_confirm">Marcar pagado</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MI SALDO — Quick-Pay floating button + modal (batch 5) ══ -->
 <button id="quickPayFab" type="button" onclick="openQuickPay()" aria-label="Pago rápido" title="Pago rápido">+</button>
 
@@ -1417,10 +1440,39 @@ function applyGastoDebit(gasto){
   const amt=txAmountInCuenta(gasto.adeudado||0,cuenta);
   cuenta.saldo=(cuenta.saldo||0)-amt;
   gasto.pagadoApplied=true;
+  gasto.pagadoMethod='efectivo';
   gasto.pagadoCuentaId=cuenta.id;
   // Pin the amount actually debited so an edit to `adeudado` later doesn't
   // cause a stale refund (Bug #1 from batch-3 audit).
   gasto.pagadoAppliedAmt=amt;
+  return true;
+}
+
+// Charge a paid gasto to a credit-card debt (gasto-as-card). Increments the
+// card's `balance` by the gasto's adeudado, marking the gasto applied with
+// pagadoMethod='tarjeta' so the reverse on uncheck knows where to send the
+// refund.
+function applyGastoCardCharge(gasto,cardIdx){
+  if(!gasto||gasto.pagadoApplied)return false;
+  const card=_editData.gastos?.[cardIdx];
+  if(!card||card===gasto)return false;
+  const amt=gasto.adeudado||0;
+  if(amt<=0)return false;
+  card.balance=(card.balance||0)+amt;
+  gasto.pagadoApplied=true;
+  gasto.pagadoMethod='tarjeta';
+  gasto.pagadoTarjetaIdx=cardIdx;
+  gasto.pagadoAppliedAmt=amt; // already in RD$, cards live in same scale
+  return true;
+}
+
+// "Transferencia" — no balance change, but record the method so reverse is a
+// clean no-op flag-clear. Useful for audit + UX (badge can show the method).
+function applyGastoTransferencia(gasto){
+  if(!gasto||gasto.pagadoApplied)return false;
+  gasto.pagadoApplied=true;
+  gasto.pagadoMethod='transferencia';
+  gasto.pagadoAppliedAmt=0;
   return true;
 }
 // Synthetic income deposits live in `transacciones[]` with categoria='ingreso'
@@ -1470,23 +1522,36 @@ function depositIncomeToWallet(){
   return true;
 }
 
+// Method-aware reversal: dispatches based on `pagadoMethod` recorded by the
+// matching apply* helper. Falls back to legacy cash path for older data
+// that doesn't have pagadoMethod set (pre-payment-prompt feature).
 function reverseGastoDebit(gasto){
   if(!gasto||!gasto.pagadoApplied)return false;
-  const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===gasto.pagadoCuentaId);
-  if(cuenta){
-    // Refund the exact amount we debited (or fall back to the cuenta-converted
-    // adeudado for legacy / hand-edited records lacking pagadoAppliedAmt).
-    const amt=(typeof gasto.pagadoAppliedAmt==='number')?gasto.pagadoAppliedAmt:txAmountInCuenta(gasto.adeudado||0,cuenta);
-    cuenta.saldo=(cuenta.saldo||0)+amt;
-  }
-  // Always clear the flags. If the cuenta is gone (deleted by the user),
-  // the receivable can never be recovered — clearing the flag is the right
-  // thing so a subsequent re-check can re-apply against a new default
-  // (Bug #2 from batch-3 audit: orphan flags blocked all future toggles).
+  const method=gasto.pagadoMethod||'efectivo'; // legacy default
+  let touched=false;
+  if(method==='efectivo'){
+    const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===gasto.pagadoCuentaId);
+    if(cuenta){
+      const amt=(typeof gasto.pagadoAppliedAmt==='number')?gasto.pagadoAppliedAmt:txAmountInCuenta(gasto.adeudado||0,cuenta);
+      cuenta.saldo=(cuenta.saldo||0)+amt;
+      touched=true;
+    }
+  } else if(method==='tarjeta'){
+    const card=_editData.gastos?.[gasto.pagadoTarjetaIdx];
+    if(card){
+      const amt=(typeof gasto.pagadoAppliedAmt==='number')?gasto.pagadoAppliedAmt:(gasto.adeudado||0);
+      card.balance=Math.max(0,(card.balance||0)-amt);
+      touched=true;
+    }
+  } // transferencia → just clear flags
+  // Always clear flags so an orphan target (deleted cuenta / card) doesn't
+  // jam the gasto in a stuck "applied" state.
   gasto.pagadoApplied=false;
+  delete gasto.pagadoMethod;
   delete gasto.pagadoCuentaId;
+  delete gasto.pagadoTarjetaIdx;
   delete gasto.pagadoAppliedAmt;
-  return !!cuenta;
+  return touched||method==='transferencia';
 }
 
 // Format a saldo for the chip / card. The chip lives in the dashboard so
@@ -1551,6 +1616,79 @@ function renderQuickPayFab(){
   const label=t('qpay_fab_aria');
   fab.setAttribute('aria-label',label);
   fab.setAttribute('title',label);
+}
+
+// PAYMENT-METHOD PROMPT (gasto checklist toggle → "how did you pay?")
+let _payPromptIdx=-1;
+function openPaymentPrompt(idx){
+  const g=_editData.gastos?.[idx];if(!g)return;
+  _payPromptIdx=idx;
+  const m=document.getElementById('paymentMethodModal');if(!m)return;
+  // Headline + amount preview
+  const sub=document.getElementById('paymentMethodSub');
+  if(sub)sub.textContent=`${g.nombre} · ${fmtC(toDisplay(g.adeudado||0))}`;
+  // Build the radio options. Hide Efectivo if no wallet (user can still pick
+  // Tarjeta or Transferencia). Hide Tarjeta if no credit cards exist.
+  const wrap=document.getElementById('paymentMethodOptions');
+  const cards=(_editData.gastos||[]).map((c,i)=>({c,i})).filter(({c,i})=>c.tipo==='Tarjeta'&&i!==idx);
+  const hasWallet=!!getDefaultCashAccount();
+  const opts=[];
+  if(hasWallet)opts.push({v:'efectivo',l:t('paymethod_efectivo'),sub:t('paymethod_efectivo_sub')});
+  if(cards.length>0)opts.push({v:'tarjeta',l:t('paymethod_tarjeta'),sub:t('paymethod_tarjeta_sub')});
+  opts.push({v:'transferencia',l:t('paymethod_transferencia'),sub:t('paymethod_transferencia_sub')});
+  // Pre-select the gasto's `metodo` if set; otherwise default to first option
+  const preset=opts.find(o=>o.v===g.metodo)?g.metodo:(opts[0]?.v||'transferencia');
+  wrap.innerHTML=opts.map(o=>`
+    <label class="paymethod-opt" style="display:flex;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;align-items:flex-start">
+      <input type="radio" name="paymethod" value="${o.v}" ${o.v===preset?'checked':''} style="margin-top:3px" onchange="onPaymentMethodChange(this.value)">
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px">${escH(o.l)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${escH(o.sub)}</div>
+      </div>
+    </label>
+  `).join('');
+  // Card dropdown — hidden unless 'tarjeta' is the active radio
+  const cardSel=document.getElementById('paymentMethodCardSel');
+  if(cardSel){
+    cardSel.innerHTML=cards.map(({c,i})=>`<option value="${i}">${escH(c.nombre)} (${fmtC(toDisplay(c.balance||0))})</option>`).join('');
+  }
+  onPaymentMethodChange(preset);
+  m.classList.add('open');
+  setTimeout(()=>m.querySelector('input[type="radio"]:checked')?.focus(),50);
+}
+function onPaymentMethodChange(method){
+  const w=document.getElementById('paymentMethodCardWrap');
+  if(w)w.style.display=method==='tarjeta'?'block':'none';
+}
+function cancelPaymentPrompt(){
+  document.getElementById('paymentMethodModal')?.classList.remove('open');
+  _payPromptIdx=-1;
+}
+function confirmPaymentPrompt(){
+  if(_payPromptIdx<0)return;
+  const g=_editData.gastos?.[_payPromptIdx];if(!g){cancelPaymentPrompt();return;}
+  const checked=document.querySelector('#paymentMethodOptions input[name="paymethod"]:checked');
+  const method=checked?.value||'transferencia';
+  // Mark paid first so the apply* helpers see a consistent state
+  g.pagadoMes=true;
+  if(g.adeudado>0)g.pagado=g.adeudado;
+  if(method==='efectivo'){
+    // Override the gasto's static `metodo` so applyGastoDebit's gate passes
+    g.metodo='efectivo';
+    applyGastoDebit(g);
+  } else if(method==='tarjeta'){
+    const sel=document.getElementById('paymentMethodCardSel');
+    const cardIdx=parseInt(sel?.value,10);
+    if(!isNaN(cardIdx))applyGastoCardCharge(g,cardIdx);
+  } else {
+    applyGastoTransferencia(g);
+  }
+  document.getElementById('paymentMethodModal')?.classList.remove('open');
+  _payPromptIdx=-1;
+  _pendingSave=true;
+  autoSave();
+  if(navigator.vibrate)navigator.vibrate([10,30,10]);
+  buildDashboard({..._editData});
 }
 
 // QUICK-PAY MODAL
@@ -2077,6 +2215,18 @@ const LANG = {
     qpay_err_amount:'Ingresa un monto mayor a 0',
     qpay_toast_cash:'Pago registrado · Mi Saldo {n}',
     qpay_toast_other:'Pago registrado',
+    // Payment-method prompt (interactive: toggleCheck → "how did you pay?")
+    paymethod_title:'¿Cómo pagaste?',
+    paymethod_label:'Método de pago',
+    paymethod_card_label:'Tarjeta',
+    paymethod_efectivo:'Efectivo',
+    paymethod_efectivo_sub:'Descontar de Mi Saldo',
+    paymethod_tarjeta:'Tarjeta de crédito',
+    paymethod_tarjeta_sub:'Sumar al balance de la tarjeta',
+    paymethod_transferencia:'Transferencia',
+    paymethod_transferencia_sub:'Solo marcar como pagado',
+    paymethod_confirm:'Marcar pagado',
+    paymethod_cancel:'Cancelar',
     // Mi Saldo widget + Resumen card
     wallet_balance:'Disponible',
     wallet_movements:'Últimos movimientos',
@@ -2544,6 +2694,18 @@ const LANG = {
     qpay_err_amount:'Enter an amount greater than 0',
     qpay_toast_cash:'Payment recorded · My Balance {n}',
     qpay_toast_other:'Payment recorded',
+    // Payment-method prompt (interactive: toggleCheck → "how did you pay?")
+    paymethod_title:'How did you pay?',
+    paymethod_label:'Payment method',
+    paymethod_card_label:'Credit card',
+    paymethod_efectivo:'Cash',
+    paymethod_efectivo_sub:'Deduct from My Balance',
+    paymethod_tarjeta:'Credit card',
+    paymethod_tarjeta_sub:'Add to the card’s balance',
+    paymethod_transferencia:'Bank transfer',
+    paymethod_transferencia_sub:'Just mark as paid',
+    paymethod_confirm:'Mark as paid',
+    paymethod_cancel:'Cancel',
     // My Balance widget + Resumen card
     wallet_balance:'Available',
     wallet_movements:'Recent activity',
@@ -3915,19 +4077,37 @@ function buildChecklist(gastos){
 function toggleCheck(idx){
   if(idx<0||idx>=_editData.gastos.length)return;
   const g=_editData.gastos[idx];
-  g.pagadoMes=!g.pagadoMes;
-  // Sync pagado amount: marking as done sets full adeudado; unmarking clears if auto-set
-  if(g.pagadoMes&&g.adeudado>0) g.pagado=g.adeudado;
-  else if(!g.pagadoMes&&g.pagado===g.adeudado) g.pagado=0;
-  // Wallet auto-debit / restore for cash-paid gastos. Idempotent via
-  // pagadoApplied flag — repeated checks within the same paid state are no-ops.
-  if(g.pagadoMes)applyGastoDebit(g);
-  else reverseGastoDebit(g);
-  _pendingSave=true;
-  autoSave();
-  // Haptic feedback on mobile
-  if(navigator.vibrate) navigator.vibrate(g.pagadoMes?[10,30,10]:30);
-  buildDashboard({..._editData});
+  // Going paid → unpaid: reverse whatever method was applied, clear flags
+  if(g.pagadoMes){
+    g.pagadoMes=false;
+    if(g.pagado===g.adeudado) g.pagado=0;
+    reverseGastoDebit(g);
+    _pendingSave=true;
+    autoSave();
+    if(navigator.vibrate) navigator.vibrate(30);
+    buildDashboard({..._editData});
+    return;
+  }
+  // Going unpaid → paid. The decision tree:
+  //   - g.metodo='efectivo'   → auto-debit Mi Saldo (preset, no prompt)
+  //   - g.metodo='transferencia' → just mark paid (preset, no prompt)
+  //   - g.metodo='tarjeta'    → still prompt (need to ask which card)
+  //   - g.metodo=''           → prompt (user's "balance doesn't go down" path)
+  if(g.metodo==='efectivo'||g.metodo==='transferencia'){
+    g.pagadoMes=true;
+    if(g.adeudado>0)g.pagado=g.adeudado;
+    if(g.metodo==='efectivo')applyGastoDebit(g);
+    else applyGastoTransferencia(g);
+    _pendingSave=true;
+    autoSave();
+    if(navigator.vibrate) navigator.vibrate([10,30,10]);
+    buildDashboard({..._editData});
+    return;
+  }
+  // Empty or 'tarjeta' metodo → open the payment-method prompt. The prompt's
+  // confirm handler does the mark + apply, so cancelling leaves the gasto
+  // unpaid (no half-state).
+  openPaymentPrompt(idx);
 }
 
 
@@ -6155,12 +6335,13 @@ document.addEventListener('keydown',e=>{
     else if(document.getElementById('cierreModal')?.classList.contains('open'))closeCierre();
     else if(document.getElementById('walletSetupModal')?.classList.contains('open'))cancelWalletSetup();
     else if(document.getElementById('quickPayModal')?.classList.contains('open'))closeQuickPay();
+    else if(document.getElementById('paymentMethodModal')?.classList.contains('open'))cancelPaymentPrompt();
   }
 });
 // Close modals on backdrop tap (mobile-friendly: tap outside the modal body to dismiss).
 // Setup wizard is intentionally excluded — losing multi-step onboarding progress on an
 // accidental tap would be worse than forcing the user to complete or refresh.
-['editModal','cierreModal','walletSetupModal','quickPayModal'].forEach(id=>{
+['editModal','cierreModal','walletSetupModal','quickPayModal','paymentMethodModal'].forEach(id=>{
   const m=document.getElementById(id);
   if(!m)return;
   m.addEventListener('click',e=>{
@@ -6168,7 +6349,8 @@ document.addEventListener('keydown',e=>{
     if(id==='editModal')closeEditModal();
     else if(id==='cierreModal')closeCierre();
     else if(id==='walletSetupModal')cancelWalletSetup();
-    else closeQuickPay();
+    else if(id==='quickPayModal')closeQuickPay();
+    else cancelPaymentPrompt();
   });
 });
 
@@ -6182,6 +6364,12 @@ let _balanceSnapshot=[];
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
 window._testSetupGoToStep=function(stepIdx){_setupStep=stepIdx;renderSetup();};
+// Tests that exercise the toggle/apply cycle without going through the
+// payment-method prompt: temporarily set g.metodo to drive the bypass path.
+window._testToggleWithMethod=function(idx,method){
+  const g=_editData.gastos?.[idx];if(!g)return;
+  g.metodo=method;toggleCheck(idx);
+};
 window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
 window.CUENTA_TIPOS=CUENTA_TIPOS;
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;autoSave();}

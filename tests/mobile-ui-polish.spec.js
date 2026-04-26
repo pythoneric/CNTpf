@@ -352,7 +352,9 @@ test.describe('#16 Haptic feedback', () => {
       window.__vibrateCalls = [];
       navigator.vibrate = (p) => { window.__vibrateCalls.push(p); return true; };
     });
-    await page.evaluate(() => window.toggleCheck(0));
+    // Bypass the payment-method prompt via _testToggleWithMethod so this test
+    // exercises the auto-apply path (which fires the haptic).
+    await page.evaluate(() => window._testToggleWithMethod(0, 'transferencia'));
     const calls = await page.evaluate(() => window.__vibrateCalls);
     expect(calls.length).toBeGreaterThanOrEqual(1);
   });

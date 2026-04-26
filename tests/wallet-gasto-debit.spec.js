@@ -207,7 +207,18 @@ test.describe('onGastoMetodoChange — reverse on demote, re-apply on promote', 
 
   test('changing a paid tarjeta gasto → efectivo applies the debit', async ({ page }) => {
     await loadAppDefault(page);
-    await page.evaluate(() => window.toggleCheck(1)); // tarjeta gasto, no debit
+    // Set up the gasto as paid via tarjeta directly. The toggle path now opens
+    // the payment-method prompt; this test is specifically about the
+    // method-switch reverse+reapply flow, so we pre-stage the state.
+    await page.evaluate(() => {
+      const g = _editData.gastos[1]; // tarjeta gasto, adeudado 1500
+      g.pagadoMes = true;
+      g.pagado = g.adeudado;
+      // Mark as paid via tarjeta (no card to charge in this seed → use the
+      // transferencia branch which leaves the gasto paid+applied with no
+      // wallet/card mutations, equivalent to the old "tarjeta did nothing").
+      window.applyGastoTransferencia(g);
+    });
     const sel = await buildMetodoSelect(page, 'efectivo');
     await page.evaluate(({ s }) => window.onGastoMetodoChange(1, s), { s: sel });
     const saldo = await page.evaluate(() =>
