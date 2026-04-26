@@ -350,3 +350,108 @@ test.describe('Wallet UI i18n', () => {
     expect(labels.mov).toMatch(/activity/i);
   });
 });
+
+// ───────────────────────────────────────────────────────────────────
+// 8. Audit follow-ups — flows surfaced by self-review
+// ───────────────────────────────────────────────────────────────────
+test.describe('Wallet — audit follow-ups', () => {
+  test('deleting the default cash cuenta via Edit modal clears the pointer', async ({ page }) => {
+    await loadAppDefault(page);
+    // The wallet was set up at load time; confirm the pointer is set
+    const before = await page.evaluate(() => _editData.config.defaultCashAccountId);
+    expect(before).toBeTruthy();
+    // Open the edit modal, navigate to Fondos tab, delete the cash row
+    await page.evaluate(() => window.openEditModal());
+    await page.evaluate(() => window.showEditTab && window.showEditTab('fornow', document.querySelector('.edit-tab[onclick*=fornow]')));
+    await page.waitForSelector('#fornowEditBody tr', { state: 'attached' });
+    // Delete row 1 (the cash cuenta is index 1 in our seed)
+    await page.evaluate(() => window.deleteFornowRow(1));
+    // Apply changes (closes modal + rebuilds dashboard, which runs the migration cleanup)
+    await page.evaluate(() => window.applyChanges());
+    const after = await page.evaluate(() => _editData.config.defaultCashAccountId);
+    expect(after).toBe(null);
+    // Chip should be hidden again
+    const display = await page.evaluate(() => getComputedStyle(document.getElementById('walletChip')).display);
+    expect(display).toBe('none');
+  });
+
+  test('manually editing cuenta saldo + applyChanges updates the chip', async ({ page }) => {
+    await loadAppDefault(page);
+    await page.evaluate(() => window.openEditModal());
+    await page.evaluate(() => window.showEditTab && window.showEditTab('fornow', document.querySelector('.edit-tab[onclick*=fornow]')));
+    await page.waitForSelector('#fornowEditBody tr', { state: 'attached' });
+    // Mutate the underlying data the same way the saldo input would, then apply
+    await page.evaluate(() => {
+      _editData.forNow.cuentas[1].saldo = 9999;
+      window.applyChanges();
+    });
+    const val = await page.locator('#walletChipVal').textContent();
+    expect(val).toMatch(/9[,.]?999/);
+  });
+
+  test('switching the wallet cuenta moneda preserves the default pointer', async ({ page }) => {
+    await loadAppDefault(page);
+    // Promote wallet from RD to USD via the same code path the user clicks
+    await page.evaluate(() => {
+      const idx = _editData.forNow.cuentas.findIndex(c => c.id === _editData.config.defaultCashAccountId);
+      _editData.forNow.cuentas[idx].moneda = 'USD';
+      // Run buildDashboard (chip should follow)
+      window.buildDashboard({ ..._editData });
+    });
+    const result = await page.evaluate(() => ({
+      pointer: _editData.config.defaultCashAccountId,
+      moneda: _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).moneda,
+    }));
+    expect(result.pointer).toBeTruthy();
+    expect(result.moneda).toBe('USD');
+  });
+
+  test('"View all" link appears when there are movements and routes to Registro', async ({ page }) => {
+    await loadAppDefault(page);
+    await page.evaluate(() => {
+      const tx = { fecha: '2026-03-10', monto: 800, categoria: 'comida', nota: 'Almuerzo', metodo: 'efectivo', mes: 'Marzo', anio: 2026 };
+      window.applyCashDebit(tx);
+      _editData.transacciones.push(tx);
+      window.buildDashboard({ ..._editData });
+    });
+    const link = page.locator('#walletCard .wallet-view-all');
+    await expect(link).toBeVisible();
+    await link.click();
+    // Registro panel should be the active one now
+    const activeId = await page.evaluate(() => document.querySelector('.panel.active')?.id);
+    expect(activeId).toBe('tab-registro');
+  });
+
+  test('"View all" link is hidden when there are no movements', async ({ page }) => {
+    await loadAppDefault(page);
+    const count = await page.locator('#walletCard .wallet-view-all').count();
+    expect(count).toBe(0);
+  });
+
+  test('legacy transacciones (no applied flag) do not retroactively debit', async ({ page }) => {
+    page.on('dialog', d => d.accept());
+    await page.goto('/cnt.html');
+    await page.waitForFunction(() => typeof window._testLoadData === 'function');
+    // Simulate a v3 payload: cash tx already exists, but no applied/cuentaId.
+    // The user's existing saldo already reflects this spending mentally —
+    // we MUST NOT subtract it again.
+    const saldoAfter = await page.evaluate(() => {
+      const data = window.defaultEditData();
+      data.config.tasa = 60;
+      data.config.mes = 'Marzo';
+      data.config.anio = 2026;
+      const cashId = 'cnt_cash_legacy';
+      data.forNow.cuentas = [
+        { id: cashId, nombre: 'Efectivo', moneda: 'RD', saldo: 5000, tipo: 'cash', comp: 0, disp: 5000 },
+      ];
+      data.config.defaultCashAccountId = cashId;
+      // A pre-existing cash tx with no applied flag (v3 shape)
+      data.transacciones = [
+        { fecha: '2026-03-01', monto: 1500, categoria: 'comida', metodo: 'efectivo', mes: 'Marzo', anio: 2026 },
+      ];
+      window._testLoadData(data);
+      return _editData.forNow.cuentas[0].saldo;
+    });
+    expect(saldoAfter).toBe(5000); // unchanged
+  });
+});

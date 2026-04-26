@@ -299,6 +299,8 @@ header{will-change:auto}
 .wallet-empty-state{padding:8px 0;color:var(--muted);font-size:13px;text-align:center}
 .wallet-cta{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:99px;font-family:var(--font);font-weight:700;font-size:13px;cursor:pointer;min-height:40px}
 .wallet-cta:hover{opacity:.92;transform:translateY(-1px)}
+.wallet-view-all{background:none;border:none;color:var(--accent);font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;padding:2px 4px;text-transform:uppercase;letter-spacing:.06em}
+.wallet-view-all:hover{text-decoration:underline}
 @media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
 
 /* ══ MI SALDO — first-use setup modal ══ */
@@ -1373,8 +1375,16 @@ function renderWalletChip(){
 // card; if not, open the first-use setup modal.
 function onWalletChipClick(){
   if(!getDefaultCashAccount()){promptFirstCashSetup(null);return;}
-  showTab('resumen',document.querySelector('.tab-btn[onclick*="\'resumen\'"]'));
+  // showTab refetches the desktop tab btn when null, so this works on mobile
+  // (where desktop tab is display:none) too. Keep the mobile bottom nav in sync.
+  showTab('resumen',null);
+  if(typeof syncMobileNav==='function')syncMobileNav('resumen');
   setTimeout(()=>{const card=document.getElementById('walletCard');if(card)card.scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+// Jump from the Resumen wallet card "View all" link to the full Registro tab.
+function walletViewAllMovements(){
+  showTab('registro',null);
+  if(typeof syncMobileNav==='function')syncMobileNav('registro');
 }
 
 // Find the most recent N transactions that affected the default cash account.
@@ -1429,7 +1439,10 @@ function renderWalletCard(){
       </div>
     </div>
     <div class="wallet-movements">
-      <div class="wallet-card-label" style="margin-bottom:6px">${escH(t('wallet_movements'))}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px">
+        <div class="wallet-card-label">${escH(t('wallet_movements'))}</div>
+        ${movs.length>0?`<button type="button" class="wallet-view-all" onclick="walletViewAllMovements()">${escH(t('wallet_view_all'))} →</button>`:''}
+      </div>
       ${movsHtml}
     </div>
   </div>`;
