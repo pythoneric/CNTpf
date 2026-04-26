@@ -102,12 +102,12 @@ test.describe('Edit Modal - i18n', () => {
     await expect(config).toContainText('Exchange Rate (RD$/USD)');
     await expect(config).toContainText('Current Month');
     await expect(config).toContainText('Current Year');
-    await expect(config).toContainText('Monthly Income (USD)');
+    await expect(config).toContainText('Income per pay (USD)');
     await expect(config).toContainText('Payment alert days');
 
     // Notes should be English
     await expect(config).toContainText('Update monthly');
-    await expect(config).toContainText('In dollars');
+    await expect(config).toContainText('per-period paycheck');
   });
 
   test('config section field labels show Spanish when language is Spanish', async ({ page }) => {
@@ -119,7 +119,7 @@ test.describe('Edit Modal - i18n', () => {
     await expect(config).toContainText('Tasa Dólar (RD$/USD)');
     await expect(config).toContainText('Mes Actual');
     await expect(config).toContainText('Año Actual');
-    await expect(config).toContainText('Ingreso Mensual (USD)');
+    await expect(config).toContainText('Ingreso por pago (USD)');
     await expect(config).toContainText('Días alerta vencimiento');
   });
 

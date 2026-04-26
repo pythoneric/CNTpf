@@ -13,7 +13,27 @@
       "Bash(node -e \":*)",
       "Bash(npm install *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Read(//home/qwerty/.local/share/gh-tmp/**)",
+      "Bash(curl -sL \"https://api.github.com/repos/cli/cli/releases/latest\")",
+      "Bash(curl -sLO \"https://github.com/cli/cli/releases/download/v2.91.0/gh_2.91.0_linux_amd64.tar.gz\")",
+      "Bash(tar -xzf gh_2.91.0_linux_amd64.tar.gz)",
+      "Bash(cp gh_2.91.0_linux_amd64/bin/gh ~/.local/bin/gh)",
+      "Bash(chmod +x ~/.local/bin/gh)",
+      "Bash(rm -rf ~/.local/share/gh-tmp)",
+      "Bash(~/.local/bin/gh auth *)",
+      "Bash(env)",
+      "Read(//home/qwerty/.config/**)",
+      "Bash('~/.local/bin/gh' pr create --base main --head feat/mobile-ui-polish --title 'Mobile UI pass: a11y, SVG icons, stat-pill classes, scroll-away header' --body ' *)",
+      "Bash(~/.local/bin/gh api *)",
+      "Bash(git fetch *)",
+      "Bash(~/.local/bin/gh pr *)",
+      "Bash(git stash *)",
+      "Bash(git pull *)",
+      "Bash(git ls-remote *)",
+      "Bash(git push *)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(node -e \"const fs=require\\('fs'\\);const src=fs.readFileSync\\('/home/qwerty/Repos/CNTpf/cnt.html','utf8'\\);const m=src.match\\(/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/\\);if\\(!m\\){console.error\\('no script block'\\);process.exit\\(1\\)}new Function\\(m[1]\\);console.log\\('script parses OK'\\)\")"
     ]
   }
 }
