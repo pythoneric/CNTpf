@@ -382,3 +382,108 @@ test.describe('Batch 3 i18n keys', () => {
     expect(keys.eth).toBe('Method');
   });
 });
+
+// ───────────────────────────────────────────────────────────────────
+// 10. Audit follow-ups — surface the bugs found by self-review
+// ───────────────────────────────────────────────────────────────────
+test.describe('Wallet gasto — audit follow-ups', () => {
+  test('Bug #1: editing adeudado after apply, then uncheck — refunds ORIGINAL amount', async ({ page }) => {
+    await loadAppDefault(page);
+    // Pay (debits 2500 of 10000 wallet → 7500)
+    await page.evaluate(() => window.toggleCheck(0));
+    let saldo = await page.evaluate(() =>
+      _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
+    );
+    expect(saldo).toBe(7500);
+    // Inflate adeudado AFTER the debit (simulating a user editing the gasto)
+    await page.evaluate(() => { _editData.gastos[0].adeudado = 5000; });
+    // Uncheck — must refund the originally-applied 2500, NOT the new 5000
+    await page.evaluate(() => window.toggleCheck(0));
+    saldo = await page.evaluate(() =>
+      _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
+    );
+    expect(saldo).toBe(10000); // back to start, not 12500
+  });
+
+  test('pagadoAppliedAmt is stored on apply and cleared on reverse', async ({ page }) => {
+    await loadAppDefault(page);
+    await page.evaluate(() => window.toggleCheck(0));
+    let stored = await page.evaluate(() => _editData.gastos[0].pagadoAppliedAmt);
+    expect(stored).toBe(2500);
+    await page.evaluate(() => window.toggleCheck(0));
+    stored = await page.evaluate(() => _editData.gastos[0].pagadoAppliedAmt);
+    expect(stored).toBeUndefined();
+  });
+
+  test('Bug #2: deleting wallet cuenta then unchecking clears the orphan flag', async ({ page }) => {
+    await loadAppDefault(page);
+    // Pay the cash gasto
+    await page.evaluate(() => window.toggleCheck(0));
+    expect(await page.evaluate(() => _editData.gastos[0].pagadoApplied)).toBe(true);
+    // Nuke the wallet cuenta out from under it
+    await page.evaluate(() => {
+      const id = _editData.config.defaultCashAccountId;
+      _editData.forNow.cuentas = _editData.forNow.cuentas.filter(c => c.id !== id);
+      _editData.config.defaultCashAccountId = null;
+    });
+    // Unchecking now must NOT leave pagadoApplied=true forever — flag clears
+    // even though the cuenta is gone (no refund is possible, but state stays clean).
+    await page.evaluate(() => window.toggleCheck(0));
+    const result = await page.evaluate(() => ({
+      paid: _editData.gastos[0].pagadoMes,
+      applied: !!_editData.gastos[0].pagadoApplied,
+      cuentaId: _editData.gastos[0].pagadoCuentaId,
+      amt: _editData.gastos[0].pagadoAppliedAmt,
+    }));
+    expect(result.paid).toBe(false);
+    expect(result.applied).toBe(false);
+    expect(result.cuentaId).toBeUndefined();
+    expect(result.amt).toBeUndefined();
+  });
+
+  test('markAllChecklist applies wallet debits for cash gastos', async ({ page }) => {
+    await loadAppDefault(page);
+    await page.evaluate(() => window.markAllChecklist());
+    const result = await page.evaluate(() => {
+      const cash = _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId);
+      return { saldo: cash.saldo, applied: _editData.gastos.map(g => !!g.pagadoApplied) };
+    });
+    // Only the first gasto (cash) should debit; second is tarjeta
+    expect(result.saldo).toBe(7500);
+    expect(result.applied).toEqual([true, false]);
+  });
+
+  test('legacy gasto (no metodo, pagadoMes=true) loads without retroactive debit', async ({ page }) => {
+    page.on('dialog', d => d.accept());
+    await page.goto('/cnt.html');
+    await page.waitForFunction(() => typeof window._testLoadData === 'function');
+    const saldoAfter = await page.evaluate(() => {
+      const data = window.defaultEditData();
+      data.config.tasa = 60;
+      data.config.mes = 'Marzo';
+      data.config.anio = 2026;
+      const cashId = 'cnt_cash_legacy_g';
+      data.forNow.cuentas = [{ id: cashId, nombre: 'Efectivo', moneda: 'RD', saldo: 5000, tipo: 'cash', comp: 0, disp: 5000 }];
+      data.config.defaultCashAccountId = cashId;
+      // Pre-batch-3 gasto: pagadoMes=true, no metodo, no pagadoApplied
+      data.gastos = [
+        { nombre: 'Internet legacy', tipo: 'Servicio', pagado: 1500, adeudado: 1500, dia: 5, tasa: 0, balance: 0, originalRD: 0, originalUSD: 0, fechaLimite: null, notas: '', pagadoMes: true },
+      ];
+      window._testLoadData(data);
+      return _editData.forNow.cuentas[0].saldo;
+    });
+    expect(saldoAfter).toBe(5000); // unchanged — no retroactive debit
+  });
+
+  test('demo RD$ ships with at least one cash-paid gasto for discoverability', async ({ page }) => {
+    page.on('dialog', d => d.accept());
+    await page.goto('/cnt.html');
+    await page.waitForFunction(() => typeof window.loadDemo === 'function');
+    await page.evaluate(() => window.loadDemo('RD'));
+    await page.waitForSelector('#dashApp', { state: 'visible' });
+    const cashGastoCount = await page.evaluate(() =>
+      (_editData.gastos || []).filter(g => g.metodo === 'efectivo').length
+    );
+    expect(cashGastoCount).toBeGreaterThanOrEqual(1);
+  });
+});
