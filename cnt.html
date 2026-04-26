@@ -302,6 +302,10 @@ header{will-change:auto}
 .wallet-view-all{background:none;border:none;color:var(--accent);font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;padding:2px 4px;text-transform:uppercase;letter-spacing:.06em}
 .wallet-view-all:hover{text-decoration:underline}
 .cash-badge{display:inline-block;font-size:11px;margin-left:4px;vertical-align:1px;opacity:.85;cursor:help}
+.wallet-income-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:linear-gradient(135deg,#22d3a0,#06b6d4);color:#052e16;border:none;border-radius:99px;font-family:var(--font);font-weight:700;font-size:13px;cursor:pointer;min-height:38px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wallet-income-btn:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 4px 14px rgba(34,211,160,.28)}
+.wallet-income-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.wallet-income-done{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(34,211,160,.18);border:1px solid rgba(34,211,160,.4);border-radius:99px;color:var(--green);font-family:var(--font);font-weight:700;font-size:12px}
 @media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
 
 /* ══ MI SALDO — first-use setup modal ══ */
@@ -1356,6 +1360,46 @@ function applyGastoDebit(gasto){
   gasto.pagadoAppliedAmt=amt;
   return true;
 }
+// Deposit the user's monthly income to the wallet. Idempotent per (mes, anio):
+// only one income tx per month is allowed. Records as a synthetic transacción
+// with negative monto (credit semantic) so the existing tx-delete flow correctly
+// un-credits via reverseCashDebit (which adds tx.monto, and adding a negative
+// subtracts — exactly the right reversal for an income credit).
+function findIncomeTxThisMonth(){
+  const cfg=_editData?.config;if(!cfg)return null;
+  const cuenta=getDefaultCashAccount();if(!cuenta)return null;
+  return (_editData.transacciones||[]).find(tx=>
+    tx.categoria==='ingreso'&&tx.mes===cfg.mes&&tx.anio===cfg.anio&&tx.applied&&tx.cuentaId===cuenta.id
+  )||null;
+}
+function depositIncomeToWallet(){
+  // No wallet yet → open setup; user can re-click after configuring.
+  if(!getDefaultCashAccount()){promptFirstCashSetup(null);return false;}
+  const cuenta=getDefaultCashAccount();
+  const cfg=_editData.config;
+  const monthlyRD=monthlyIncomeRD(cfg);
+  if(monthlyRD<=0){showToast(t('wallet_income_zero'),'var(--yellow)');return false;}
+  if(findIncomeTxThisMonth()){showToast(t('wallet_income_already'),'var(--yellow)');return false;}
+  const amt=txAmountInCuenta(monthlyRD,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)+amt;
+  if(!_editData.transacciones)_editData.transacciones=[];
+  _editData.transacciones.push({
+    fecha:new Date().toISOString().slice(0,10),
+    monto:-monthlyRD, // negative monto = credit semantic (movements list renders as +)
+    categoria:'ingreso',
+    metodo:'transferencia', // not 'efectivo' so applyCashDebit short-circuits
+    nota:t('wallet_income_note'),
+    gastoIdx:-1,
+    mes:cfg.mes,anio:cfg.anio,
+    applied:true,cuentaId:cuenta.id,
+  });
+  if(navigator.vibrate)navigator.vibrate([15,40,15,40,30]);
+  saveToDB();
+  buildDashboard({..._editData});
+  showToast(t('wallet_income_toast').replace('{n}',fmtC(amt)),'var(--green)');
+  return true;
+}
+
 function reverseGastoDebit(gasto){
   if(!gasto||!gasto.pagadoApplied)return false;
   const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===gasto.pagadoCuentaId);
@@ -1468,12 +1512,27 @@ function renderWalletCard(){
           <div class="wallet-mov-amt ${cls}">${sign}${escH(fmtC(toDisplay(Math.abs(tx.monto||0))))}</div>
         </div>`;
       }).join('');
+  // Income deposit affordance: button if not yet deposited this month, else
+  // a green "received" indicator. Hidden entirely if the user hasn't set an
+  // income (monthlyIncomeRD <= 0) — there's nothing to credit.
+  const monthlyRD=monthlyIncomeRD();
+  const incomeAlready=findIncomeTxThisMonth();
+  let incomeBtnHtml='';
+  if(monthlyRD>0){
+    if(incomeAlready){
+      incomeBtnHtml=`<div class="wallet-income-done" aria-live="polite">✓ ${escH(t('wallet_income_received_this_month'))}</div>`;
+    } else {
+      const labelAmt=fmtC(txAmountInCuenta(monthlyRD,cuenta));
+      incomeBtnHtml=`<button type="button" class="wallet-income-btn" onclick="depositIncomeToWallet()">+ ${escH(t('wallet_income_button'))} · ${escH(labelAmt)}</button>`;
+    }
+  }
   wrap.innerHTML=`<div class="wallet-card" role="region" aria-label="${escH(t('wallet_label'))}">
     <div class="wallet-card-row">
       <div>
         <div class="wallet-card-label">${escH(t('wallet_label'))} · ${escH(cuenta.nombre)}</div>
         <div class="wallet-card-balance">${escH(formatWalletAmount(cuenta.saldo,cuenta.moneda))}</div>
       </div>
+      ${incomeBtnHtml}
     </div>
     <div class="wallet-movements">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px">
@@ -1850,6 +1909,13 @@ const LANG = {
     gasto_metodo_none:'Sin auto-débito',
     gasto_paid_with_cash:'Se paga en efectivo · descuenta de Mi Saldo',
     eth_metodo:'Método',
+    // Income deposit (batch 4)
+    wallet_income_button:'Recibí mi pago',
+    wallet_income_received_this_month:'Pago recibido este mes',
+    wallet_income_note:'Pago mensual',
+    wallet_income_already:'Ya registraste tu pago este mes',
+    wallet_income_zero:'Define tu ingreso primero (Editar > Configuración)',
+    wallet_income_toast:'Mi Saldo +{n}',
     // Mi Saldo widget + Resumen card
     wallet_balance:'Disponible',
     wallet_movements:'Últimos movimientos',
@@ -2296,6 +2362,13 @@ const LANG = {
     gasto_metodo_none:'No auto-debit',
     gasto_paid_with_cash:'Paid in cash · deducts from My Balance',
     eth_metodo:'Method',
+    // Income deposit (batch 4)
+    wallet_income_button:'I got paid',
+    wallet_income_received_this_month:'Income received this month',
+    wallet_income_note:'Monthly income',
+    wallet_income_already:'You already recorded this month’s pay',
+    wallet_income_zero:'Set your income first (Edit > Settings)',
+    wallet_income_toast:'My Balance +{n}',
     // My Balance widget + Resumen card
     wallet_balance:'Available',
     wallet_movements:'Recent activity',
