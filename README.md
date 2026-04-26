@@ -44,7 +44,7 @@ Si es tu primera vez o no tienes un archivo Excel previo, elige **"Empezar desde
 
 | Paso | Que configuras |
 |------|----------------|
-| 1 | Moneda principal (USD o RD$), mes, ano, tasa dolar, ingreso mensual, dias de alerta |
+| 1 | Moneda principal (USD o RD$), mes, ano, tasa dolar, **frecuencia de pago** (mensual / cada 2 semanas / semanal), ingreso por pago, dias de alerta |
 | 2 | Cuentas disponibles (corriente, ahorro, cash...) con sus saldos y moneda (RD$/USD) |
 | 3 | Gastos fijos, deudas y cuotas mensuales con tipo, tasa y balance |
 | 4 | Fondos de emergencia con balance actual, meta minima y moneda |
@@ -105,6 +105,7 @@ El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un contr
 - **Salud financiera** -- Puntaje de 0-100 con calificacion (Excelente/Bueno/Regular/Critico) basado en ratio de gastos, DTI, fondo de emergencia y tendencia de net worth
 - **Distribucion de flujo de caja** -- Barra visual de gastos vs sobrante con metricas de retiro USD, tasa, ahorros y compromisos
 - **Moneda dual** -- Soporte completo para USD y RD$ como moneda principal. Selector en el asistente de configuracion y en Editar > Configuracion. Todos los montos, graficos y KPIs se adaptan automaticamente. Internamente los datos se almacenan en RD$ y se convierten al vuelo para usuarios USD
+- **Frecuencia de pago** -- Selecciona como te pagan: mensual, cada 2 semanas (quincenal) o semanal. Ingresa el monto que recibes por pago y el dashboard calcula automaticamente el equivalente mensual (× 26/12 quincenal, × 52/12 semanal) para todos los KPIs (DTI, tasa de ahorro, presupuesto, salud financiera). Editable desde el asistente o desde Editar > Configuracion
 - **Hitos de net worth** -- Celebraciones automaticas al alcanzar net worth positivo, libre de deudas, RD$100K, RD$500K y RD$1M
 
 ### Alertas & Pagos (tab unificado)
@@ -254,8 +255,8 @@ El respaldo se exporta como un archivo `.json` con esta estructura:
 
 ```json
 {
-  "_meta": { "version": 2, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
-  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5, "monedaPrincipal": "RD" },
+  "_meta": { "version": 3, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
+  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5, "monedaPrincipal": "RD", "payFrequency": "mensual" },
   "gastos": [...],
   "forNow": { "cuentas": [...], "fecha": "...", "total": 0 },
   "emerg": { "fondos": [...], "cashflow": {...} },
@@ -290,8 +291,10 @@ El archivo Excel tiene hasta **9 hojas**. La importacion desde Excel sigue siend
 | Tasa Dolar | `58` |
 | Mes Actual | `Marzo` |
 | Ano | `2026` |
-| Ingreso Mensual | `3000` (en USD) |
+| Ingreso Mensual | `3000` (en USD, **por pago** desde v3 — multiplicado por la frecuencia) |
 | Dias alerta | `5` |
+
+> **Nota:** desde v3 del JSON, `config.payFrequency` indica como se interpreta `ingresoUSD`: `"mensual"` (default · multiplicador 1), `"quincenal"` (× 26/12) o `"semanal"` (× 52/12). El campo `ingresoRD` siempre es el equivalente mensual ya multiplicado.
 
 ### Hoja Esenciales -- columnas (indice 0-11)
 

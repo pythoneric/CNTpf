@@ -1192,6 +1192,25 @@ function toDisplay(n){try{if(!_editData?.config)return n;return _editData.config
 function fromDisplay(n){try{if(!_editData?.config)return n;return _editData.config.monedaPrincipal==='USD'?n*(_editData.config.tasa||60):n;}catch(e){return n;}}
 
 // ══════════════════════════════════
+// PAY FREQUENCY — user gets paid weekly / biweekly / monthly
+// ══════════════════════════════════
+// `config.ingresoUSD` is the per-period paycheck amount.
+// `config.payFrequency` is one of 'mensual' | 'quincenal' | 'semanal'.
+// Multipliers convert per-period → monthly aggregate for KPI math.
+const _PAY_MULT={mensual:1,quincenal:26/12,semanal:52/12};
+function payMult(freq){return _PAY_MULT[freq]||1;}
+function monthlyIncomeUSD(cfg){
+  cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
+  if(!cfg)return 0;
+  return (cfg.ingresoUSD||0)*payMult(cfg.payFrequency||'mensual');
+}
+function monthlyIncomeRD(cfg){
+  cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
+  if(!cfg)return 0;
+  return monthlyIncomeUSD(cfg)*(cfg.tasa||60);
+}
+
+// ══════════════════════════════════
 // ICONS — lucide-inspired inline SVG for platform-consistent rendering
 // ══════════════════════════════════
 // Emojis used as icon-only buttons render differently on iOS / Android / Windows
@@ -1435,7 +1454,7 @@ const LANG = {
     cierre_title:'🗓 CIERRE DE MES',
     cierre_step1_title:'Paso 1 · Tasa Dólar', cierre_step1_sub:'Actualiza la tasa del dólar para este mes',
     cierre_step2_title:'Paso 2 · Mes y Año', cierre_step2_sub:'Confirma el período que estás cerrando',
-    cierre_step3_title:'Paso 3 · Ingreso USD', cierre_step3_sub:'¿Cuánto ingresaste este mes en dólares?',
+    cierre_step3_title:'Paso 3 · Ingreso USD', cierre_step3_sub:'¿Cuánto recibiste por pago este mes (USD)?',
     cierre_step4_title:'Paso 4 · Gasto Real del Mes', cierre_step4_sub:'¿Cuánto gastaste en total este mes? ({cs})',
     cierre_step5_title:'Paso 5 · Saldos de Cuentas', cierre_step5_sub:'Actualiza los saldos actuales de tus cuentas',
     cierre_step6_title:'Paso 6 · Ahorros', cierre_step6_sub:'Registra tus ahorros del mes',
@@ -1480,8 +1499,15 @@ const LANG = {
     ecfg_tasa:'Tasa Dólar (RD$/USD)', ecfg_tasa_note:'Actualizar mensualmente',
     ecfg_mes:'Mes Actual', ecfg_mes_note:'Nombre del mes',
     ecfg_anio:'Año Actual', ecfg_anio_note:'',
-    ecfg_ingreso:'Ingreso Mensual (USD)', ecfg_ingreso_note:'En dólares — se sincroniza con RD$',
-    ecfg_ingresoRD:'Ingreso Mensual (RD$)', ecfg_ingresoRD_note:'En pesos — se sincroniza con USD',
+    ecfg_ingreso:'Ingreso por pago (USD)', ecfg_ingreso_note:'Tu paga por período (no el total mensual)',
+    ecfg_ingresoRD:'Ingreso mensual equivalente (RD$)', ecfg_ingresoRD_note:'Calculado automáticamente · ingreso por pago × frecuencia',
+    ecfg_payfreq:'Frecuencia de pago',
+    payfreq_label:'¿Con qué frecuencia te pagan?',
+    payfreq_mensual:'Mensual',
+    payfreq_quincenal:'Cada 2 semanas',
+    payfreq_semanal:'Semanal',
+    payfreq_per_period:'por pago',
+    payfreq_monthly_equiv:'≈ {n} al mes',
     ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Rango: 1–30 días',
     // Cashflow field labels
     ecf_ingreso:'Ingreso Mensual ({cs})', ecf_gasto:'Gasto Mensual Total',
@@ -1516,7 +1542,7 @@ const LANG = {
     // Setup wizard
     setup_title:'Configuración inicial', setup_sub:'Completa estos pasos para generar tu dashboard',
     setup_prev:'← Anterior', setup_next:'Siguiente →', setup_create:'✓ Crear dashboard',
-    setup_step1_title:'Paso 1 · Parámetros básicos', setup_step1_sub:'Define el período y tu ingreso mensual',
+    setup_step1_title:'Paso 1 · Parámetros básicos', setup_step1_sub:'Define el período y tu ingreso',
     setup_step2_title:'Paso 2 · Cuentas disponibles', setup_step2_sub:'¿En qué cuentas tienes dinero ahora mismo?',
     setup_step3_title:'Paso 3 · Gastos & compromisos', setup_step3_sub:'Agrega tus gastos fijos, deudas y cuotas mensuales',
     setup_step4_title:'Paso 4 · Fondos de emergencia', setup_step4_sub:'Configura tus fondos de emergencia',
@@ -1844,7 +1870,7 @@ const LANG = {
     cierre_title:'🗓 MONTH CLOSE',
     cierre_step1_title:'Step 1 · USD Rate', cierre_step1_sub:'Update the dollar rate for this month',
     cierre_step2_title:'Step 2 · Month & Year', cierre_step2_sub:'Confirm the period you are closing',
-    cierre_step3_title:'Step 3 · USD Income', cierre_step3_sub:'How much did you earn this month in dollars?',
+    cierre_step3_title:'Step 3 · USD Income', cierre_step3_sub:'How much per pay this month (USD)?',
     cierre_step4_title:'Step 4 · Actual Monthly Expenses', cierre_step4_sub:'How much did you spend in total this month? ({cs})',
     cierre_step5_title:'Step 5 · Account Balances', cierre_step5_sub:'Update your current account balances',
     cierre_step6_title:'Step 6 · Savings', cierre_step6_sub:'Record your savings for the month',
@@ -1889,8 +1915,15 @@ const LANG = {
     ecfg_tasa:'Exchange Rate (RD$/USD)', ecfg_tasa_note:'Update monthly',
     ecfg_mes:'Current Month', ecfg_mes_note:'Month name',
     ecfg_anio:'Current Year', ecfg_anio_note:'',
-    ecfg_ingreso:'Monthly Income (USD)', ecfg_ingreso_note:'In dollars — syncs with RD$',
-    ecfg_ingresoRD:'Monthly Income (RD$)', ecfg_ingresoRD_note:'In pesos — syncs with USD',
+    ecfg_ingreso:'Income per pay (USD)', ecfg_ingreso_note:'Your per-period paycheck (not monthly total)',
+    ecfg_ingresoRD:'Monthly equivalent (RD$)', ecfg_ingresoRD_note:'Auto-calculated · per-pay amount × frequency',
+    ecfg_payfreq:'Pay frequency',
+    payfreq_label:'How often are you paid?',
+    payfreq_mensual:'Monthly',
+    payfreq_quincenal:'Every 2 weeks',
+    payfreq_semanal:'Weekly',
+    payfreq_per_period:'per pay',
+    payfreq_monthly_equiv:'≈ {n} monthly',
     ecfg_dias:'Payment alert days', ecfg_dias_note:'Range: 1–30 days',
     // Cashflow field labels
     ecf_ingreso:'Monthly Income ({cs})', ecf_gasto:'Total Monthly Expenses',
@@ -1925,7 +1958,7 @@ const LANG = {
     // Setup wizard
     setup_title:'Initial Setup', setup_sub:'Complete these steps to generate your dashboard',
     setup_prev:'← Previous', setup_next:'Next →', setup_create:'✓ Create dashboard',
-    setup_step1_title:'Step 1 · Basic parameters', setup_step1_sub:'Set the period and your monthly income',
+    setup_step1_title:'Step 1 · Basic parameters', setup_step1_sub:'Set the period and your income',
     setup_step2_title:'Step 2 · Available accounts', setup_step2_sub:'Which accounts do you have money in right now?',
     setup_step3_title:'Step 3 · Expenses & commitments', setup_step3_sub:'Add your fixed expenses, debts and monthly payments',
     setup_step4_title:'Step 4 · Emergency funds', setup_step4_sub:'Set up your emergency funds',
@@ -2432,7 +2465,7 @@ function defaultEditData(){
   const now=new Date();
   const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   return{
-    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD'},
+    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD',payFrequency:'mensual'},
     gastos:[],
     forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
     emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,ahorros:0,balanceAhorros:0}},
@@ -2527,7 +2560,18 @@ const _setupSteps=[
         <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
       </div>
       <div style="margin-top:14px">
-        <label class="cierre-label">Ingreso mensual</label>
+        <label class="cierre-label">${t('payfreq_label')}</label>
+        <div class="sw-payfreq-row" role="radiogroup" aria-label="${t('ecfg_payfreq')}" style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
+          ${['mensual','quincenal','semanal'].map(f=>`
+            <button type="button" data-payfreq="${f}" role="radio"
+              aria-checked="${(_editData.config.payFrequency||'mensual')===f?'true':'false'}"
+              onclick="swSetPayFrequency('${f}')"
+              style="flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;${(_editData.config.payFrequency||'mensual')===f?'background:var(--accent);color:#fff':'background:var(--surface2);color:var(--muted)'}">
+              ${t('payfreq_'+f)}
+            </button>
+          `).join('')}
+        </div>
+        <label class="cierre-label" id="sw-ingreso-label">${t('ecfg_ingreso')}</label>
         <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px">
           <button type="button" id="sw-ing-usd-btn"
             onclick="swSetIngresoCurrency('USD')"
@@ -2559,13 +2603,15 @@ const _setupSteps=[
       _editData.config.diasAlerta=parseInt(document.getElementById('sw-alerta').value)||5;
       const rawVal=pf(document.getElementById('sw-ingreso').value);
       const currency=document.getElementById('sw-ing-rd-btn')?.style.background==='var(--accent)'?'RD':'USD';
+      // ingresoUSD is the per-period paycheck. ingresoRD stores the monthly
+      // aggregate (per-period × payFrequency multiplier × tasa).
       if(currency==='RD'){
-        _editData.config.ingresoRD=rawVal;
-        _editData.config.ingresoUSD=_editData.config.tasa>0?rawVal/_editData.config.tasa:0;
+        const perPayRD=rawVal;
+        _editData.config.ingresoUSD=_editData.config.tasa>0?perPayRD/_editData.config.tasa:0;
       } else {
         _editData.config.ingresoUSD=rawVal;
-        _editData.config.ingresoRD=rawVal*_editData.config.tasa;
       }
+      _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
       _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
       _editData.emerg.cashflow.tasa=_editData.config.tasa;
     }
@@ -2743,6 +2789,18 @@ function swSetIngresoCurrency(currency){
   swUpdateIngresoPreview();
 }
 
+function swSetPayFrequency(freq){
+  if(!_editData.config)return;
+  _editData.config.payFrequency=freq;
+  document.querySelectorAll('.sw-payfreq-row [data-payfreq]').forEach(b=>{
+    const active=b.dataset.payfreq===freq;
+    b.style.background=active?'var(--accent)':'var(--surface2)';
+    b.style.color=active?'#fff':'var(--muted)';
+    b.setAttribute('aria-checked',String(active));
+  });
+  swUpdateIngresoPreview();
+}
+
 function swUpdateIngresoPreview(){
   const preview=document.getElementById('sw-ingreso-preview');
   const input=document.getElementById('sw-ingreso');
@@ -2751,14 +2809,17 @@ function swUpdateIngresoPreview(){
   const tasa=pf(document.getElementById('sw-tasa')?.value)||60;
   const val=pf(input.value);
   const isRD=rdBtn.style.background==='var(--accent)';
+  const freq=_editData?.config?.payFrequency||'mensual';
   if(!val){preview.style.display='none';return;}
   preview.style.display='block';
-  if(isRD){
-    const usd=tasa>0?val/tasa:0;
-    preview.textContent=`≈ ${fmtUSD(Math.round(usd*100)/100)} USD (a tasa RD$ ${tasa})`;
-  } else {
-    preview.textContent=`≈ ${fmtC(Math.round(val*tasa))} (a tasa RD$ ${tasa})`;
-  }
+  // Live conversion to the OTHER currency (existing behavior)
+  const conv=isRD?`≈ ${fmtUSD(Math.round((tasa>0?val/tasa:0)*100)/100)} USD`:`≈ ${fmtC(Math.round(val*tasa))}`;
+  // When pay frequency ≠ mensual, also show the monthly equivalent in the user's primary currency
+  const mult=payMult(freq);
+  const monthlyLine=freq!=='mensual'
+    ? ` · ${t('payfreq_monthly_equiv').replace('{n}',isRD?fmtC(Math.round(val*mult)):fmtUSD(Math.round(val*mult*100)/100)+' USD')}`
+    : '';
+  preview.textContent=`${conv} (a tasa RD$ ${tasa})${monthlyLine}`;
 }
 
 function renderSetup(){
@@ -2843,14 +2904,14 @@ async function hardResetCache(){
     if(btn){btn.style.opacity='';btn.style.pointerEvents='';}
   }
 }
-const _DEMO_DATA_RD={"config":{"tasa":61.5,"mes":"Mayo","anio":2026,"ingresoUSD":3800,"diasAlerta":7,"ingresoRD":233700,"monedaPrincipal":"RD"},"gastos":[{"nombre":"Hipoteca Apt. Naco","tipo":"Vivienda","pagado":52000,"adeudado":52000,"dia":5,"tasa":11.5,"balance":4185000,"originalRD":5500000,"originalUSD":89430,"tasaCreacion":54.5,"fechaLimite":"2041-03-05","notas":"Banco BHD · cuota fija 15 años","pagadoMes":true},{"nombre":"Mantenimiento Condo","tipo":"Vivienda","pagado":4500,"adeudado":4500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Incluye agua y basura","pagadoMes":true},{"nombre":"Préstamo Kia Sportage","tipo":"Préstamo","pagado":0,"adeudado":18500,"dia":15,"tasa":18,"balance":682400,"originalRD":950000,"originalUSD":15447,"tasaCreacion":57.2,"fechaLimite":"2028-09-15","notas":"Banreservas · 5 años","pagadoMes":false},{"nombre":"Visa Oro BPD","tipo":"Tarjeta","pagado":8000,"adeudado":12500,"dia":20,"tasa":60,"balance":145200,"originalRD":145200,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Pago mínimo no cubre intereses","pagadoMes":false},{"nombre":"Mastercard Banreservas","tipo":"Tarjeta","pagado":5000,"adeudado":6800,"dia":25,"tasa":45,"balance":38400,"originalRD":52000,"originalUSD":0,"tasaCreacion":60.5,"fechaLimite":"—","notas":"Consolidar con Visa","pagadoMes":false},{"nombre":"Edenorte (Electricidad)","tipo":"Servicio","pagado":4850,"adeudado":4850,"dia":10,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Promedio últimos 3 meses","pagadoMes":true},{"nombre":"Claro Triple Play","tipo":"Servicio","pagado":3200,"adeudado":3200,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Internet 200Mbps + TV + tel","pagadoMes":true},{"nombre":"Altice Móvil","tipo":"Servicio","pagado":1890,"adeudado":1890,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar 3 líneas","pagadoMes":true},{"nombre":"ARS Humano (Salud)","tipo":"Seguro","pagado":7200,"adeudado":7200,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar complementario","pagadoMes":true},{"nombre":"Supermercado Nacional","tipo":"Variable","pagado":0,"adeudado":22000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Estimado semanal ~RD$5,500","pagadoMes":false},{"nombre":"Gasolina / Transporte","tipo":"Variable","pagado":0,"adeudado":8500,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 tanques al mes","pagadoMes":false},{"nombre":"Gimnasio Body Shop","tipo":"Variable","pagado":2800,"adeudado":2800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Membresía mensual","pagadoMes":true},{"nombre":"Netflix + Disney+","tipo":"Servicio","pagado":1480,"adeudado":1480,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan estándar ambos","pagadoMes":true},{"nombre":"Inglés hija (APEC)","tipo":"Educación","pagado":6500,"adeudado":6500,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Curso trimestral · cuota mensual","pagadoMes":true},{"nombre":"Apoyo a mamá","tipo":"Familiar","pagado":0,"adeudado":8000,"dia":28,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Transferencia mensual fija","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Cuenta Corriente BPD","moneda":"RD","saldo":28450,"comp":0,"disp":0},{"nombre":"Cuenta de Ahorros Banreservas","moneda":"RD","saldo":142300,"comp":0,"disp":0},{"nombre":"Cuenta USD Popular","moneda":"USD","saldo":1840,"comp":0,"disp":0},{"nombre":"Cash en mano","moneda":"RD","saldo":8200,"comp":0,"disp":0},{"nombre":"Inversión corto plazo","moneda":"RD","saldo":75000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":367110,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"Fondo 3 Meses Gastos","moneda":"RD","balance":180000,"meta":234000},{"fondo":"Fondo Auto","moneda":"RD","balance":45000,"meta":80000},{"fondo":"Fondo Médico","moneda":"RD","balance":80000,"meta":80000},{"fondo":"Fondo Hogar","moneda":"RD","balance":22000,"meta":60000},{"fondo":"Fondo Educación Hija","moneda":"USD","balance":500,"meta":2000}],"cashflow":{"ingreso":233700,"gasto":160720,"tasa":61.5,"retirarUSD":2613.33,"ahorros":12000,"balanceAhorros":187500}},"historial":[{"mes":"Mayo","anio":2026,"ingresos":233700,"gasto":160720,"ahorro":72980,"tasaAhorro":0.312280701754386,"deudas":5051000,"emergencia":357750,"netWorth":-2831050,"tasa":61.5,"notas":"Mejor mes del año — pagué extra a Visa"},{"mes":"Abril","anio":2026,"ingresos":232180,"gasto":168400,"ahorro":63780,"tasaAhorro":0.27470066327849085,"deudas":5108000,"emergencia":342000,"netWorth":-2915820,"tasa":61,"notas":"Bono de Semana Santa ayudó"},{"mes":"Marzo","anio":2026,"ingresos":230660,"gasto":172300,"ahorro":58360,"tasaAhorro":0.2530130928639556,"deudas":5165000,"emergencia":325000,"netWorth":-3012700,"tasa":60.7,"notas":"Pagué cuota extra auto"},{"mes":"Febrero","anio":2026,"ingresos":229140,"gasto":165800,"ahorro":63340,"tasaAhorro":0.2764248930784673,"deudas":5225000,"emergencia":308000,"netWorth":-3098660,"tasa":60.3,"notas":""},{"mes":"Enero","anio":2026,"ingresos":228380,"gasto":170200,"ahorro":58180,"tasaAhorro":0.25475085384009105,"deudas":5290000,"emergencia":292000,"netWorth":-3186820,"tasa":60.1,"notas":"Gastos de Reyes subieron Variable"},{"mes":"Diciembre","anio":2025,"ingresos":235600,"gasto":195300,"ahorro":40300,"tasaAhorro":0.17105263157894737,"deudas":5358000,"emergencia":275000,"netWorth":-3285000,"tasa":62,"notas":"Navidad — gastos extras fuertes"},{"mes":"Noviembre","anio":2025,"ingresos":228000,"gasto":162400,"ahorro":65600,"tasaAhorro":0.28771929824561404,"deudas":5420000,"emergencia":260000,"netWorth":-3372000,"tasa":60,"notas":"Mes disciplinado"},{"mes":"Octubre","anio":2025,"ingresos":226480,"gasto":168700,"ahorro":57780,"tasaAhorro":0.25512186506534795,"deudas":5488000,"emergencia":244000,"netWorth":-3460800,"tasa":59.6,"notas":""},{"mes":"Septiembre","anio":2025,"ingresos":224200,"gasto":164300,"ahorro":59900,"tasaAhorro":0.2671721677074041,"deudas":5542000,"emergencia":228000,"netWorth":-3542000,"tasa":59,"notas":""},{"mes":"Agosto","anio":2025,"ingresos":224200,"gasto":218500,"ahorro":-5700,"tasaAhorro":-0.025423728813559324,"deudas":5598000,"emergencia":212000,"netWorth":-3628500,"tasa":59,"notas":"⚠ Mes malo — reparación auto RD$48K + urgencia médica"},{"mes":"Julio","anio":2025,"ingresos":222680,"gasto":165200,"ahorro":57480,"tasaAhorro":0.2581282557930663,"deudas":5580000,"emergencia":198000,"netWorth":-3611680,"tasa":58.6,"notas":"Buen mes — regresé a la disciplina"},{"mes":"Junio","anio":2025,"ingresos":222680,"gasto":170800,"ahorro":51880,"tasaAhorro":0.23298006107418717,"deudas":5645000,"emergencia":182000,"netWorth":-3698320,"tasa":58.6,"notas":""},{"mes":"Mayo","anio":2025,"ingresos":221920,"gasto":168400,"ahorro":53520,"tasaAhorro":0.24116798846431145,"deudas":5710000,"emergencia":168000,"netWorth":-3782080,"tasa":58.4,"notas":""},{"mes":"Abril","anio":2025,"ingresos":221160,"gasto":172600,"ahorro":48560,"tasaAhorro":0.21956954241273285,"deudas":5762000,"emergencia":155000,"netWorth":-3856240,"tasa":58.2,"notas":""},{"mes":"Marzo","anio":2025,"ingresos":220400,"gasto":175200,"ahorro":45200,"tasaAhorro":0.20508166969147004,"deudas":5820000,"emergencia":140000,"netWorth":-3935800,"tasa":58,"notas":"Empecé fondo educación hija"},{"mes":"Febrero","anio":2025,"ingresos":219640,"gasto":178500,"ahorro":41140,"tasaAhorro":0.1873065015479876,"deudas":5785000,"emergencia":125000,"netWorth":-3918860,"tasa":57.8,"notas":""},{"mes":"Enero","anio":2025,"ingresos":218880,"gasto":182300,"ahorro":36580,"tasaAhorro":0.1671235380116959,"deudas":5810000,"emergencia":108000,"netWorth":-3964120,"tasa":57.6,"notas":"Resolución: pagar deudas agresivamente"},{"mes":"Diciembre","anio":2024,"ingresos":222300,"gasto":210800,"ahorro":11500,"tasaAhorro":0.051731893837157,"deudas":5850000,"emergencia":92000,"netWorth":-4035700,"tasa":58.5,"notas":"Navidad — gastos altos pero controlados"}],"metas":[{"name":"Vacaciones Cancún","goal":85000,"saved":52000,"monthly":8500},{"name":"Laptop nueva","goal":45000,"saved":45000,"monthly":0},{"name":"Fondo universidad hija","goal":500000,"saved":38000,"monthly":5000},{"name":"Remodelación cocina","goal":120000,"saved":18500,"monthly":6000},{"name":"Fondo retiro anticipado","goal":2000000,"saved":95000,"monthly":12000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo.json"};
-const _DEMO_DATA_USD={"config":{"tasa":60,"mes":"May","anio":2026,"ingresoUSD":6500,"diasAlerta":7,"ingresoRD":390000,"monedaPrincipal":"USD"},"gastos":[{"nombre":"Mortgage (Wells Fargo)","tipo":"Vivienda","pagado":111000,"adeudado":111000,"dia":1,"tasa":6.5,"balance":17100000,"originalRD":17100000,"originalUSD":285000,"tasaCreacion":60,"fechaLimite":"2054-01-01","notas":"30yr fixed · escrow included","pagadoMes":true},{"nombre":"Car Loan (Toyota)","tipo":"Préstamo","pagado":0,"adeudado":27000,"dia":15,"tasa":5.9,"balance":1080000,"originalRD":1680000,"originalUSD":28000,"tasaCreacion":60,"fechaLimite":"2029-06-15","notas":"5yr auto loan","pagadoMes":false},{"nombre":"Student Loan (Navient)","tipo":"Préstamo","pagado":21000,"adeudado":21000,"dia":20,"tasa":4.5,"balance":1680000,"originalRD":2700000,"originalUSD":45000,"tasaCreacion":60,"fechaLimite":"2034-09-20","notas":"Federal · 10yr standard","pagadoMes":true},{"nombre":"Visa (Chase)","tipo":"Tarjeta","pagado":12000,"adeudado":12000,"dia":25,"tasa":24.99,"balance":252000,"originalRD":252000,"originalUSD":4200,"tasaCreacion":60,"fechaLimite":"—","notas":"Minimum doesn't cover interest","pagadoMes":false},{"nombre":"Amex Blue Cash","tipo":"Tarjeta","pagado":0,"adeudado":9000,"dia":10,"tasa":21.99,"balance":108000,"originalRD":108000,"originalUSD":1800,"tasaCreacion":60,"fechaLimite":"—","notas":"Consolidate with Visa","pagadoMes":false},{"nombre":"Electric (Duke Energy)","tipo":"Servicio","pagado":9900,"adeudado":9900,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Average last 3 months","pagadoMes":true},{"nombre":"Internet (Xfinity)","tipo":"Servicio","pagado":4800,"adeudado":4800,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"300 Mbps plan","pagadoMes":true},{"nombre":"Cell Phone (T-Mobile)","tipo":"Servicio","pagado":8400,"adeudado":8400,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Family plan · 4 lines","pagadoMes":true},{"nombre":"Health Insurance","tipo":"Seguro","pagado":22800,"adeudado":22800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Employer + employee portion","pagadoMes":true},{"nombre":"Car Insurance (Geico)","tipo":"Seguro","pagado":9900,"adeudado":9900,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full coverage · 2 vehicles","pagadoMes":true},{"nombre":"Groceries (Costco/Walmart)","tipo":"Variable","pagado":0,"adeudado":39000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Weekly ~$160","pagadoMes":false},{"nombre":"Gas / Transport","tipo":"Variable","pagado":0,"adeudado":12000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 fill-ups per month","pagadoMes":false},{"nombre":"Gym (Planet Fitness)","tipo":"Variable","pagado":1500,"adeudado":1500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Monthly membership","pagadoMes":true},{"nombre":"Streaming (Netflix+Spotify+YT)","tipo":"Servicio","pagado":2520,"adeudado":2520,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Standard plans all three","pagadoMes":true},{"nombre":"Daycare / Childcare","tipo":"Educación","pagado":0,"adeudado":51000,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full-time daycare","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Checking (Chase)","moneda":"USD","saldo":3200,"comp":0,"disp":0},{"nombre":"Savings (Marcus)","moneda":"USD","saldo":8500,"comp":0,"disp":0},{"nombre":"Emergency Savings (Ally)","moneda":"USD","saldo":12000,"comp":0,"disp":0},{"nombre":"Cash","moneda":"USD","saldo":150,"comp":0,"disp":0},{"nombre":"Brokerage (Fidelity)","moneda":"USD","saldo":15000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":2331000,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"3-Month Expenses Fund","moneda":"USD","balance":12000,"meta":18000},{"fondo":"Car Repair Fund","moneda":"USD","balance":1500,"meta":3000},{"fondo":"Medical Fund","moneda":"USD","balance":2000,"meta":5000},{"fondo":"Home Repair Fund","moneda":"USD","balance":800,"meta":5000},{"fondo":"Kid's College 529","moneda":"USD","balance":4500,"meta":50000}],"cashflow":{"ingreso":390000,"gasto":341820,"tasa":60,"retirarUSD":0,"ahorros":24000,"balanceAhorros":510000}},"historial":[{"mes":"May","anio":2026,"ingresos":390000,"gasto":341820,"ahorro":48180,"tasaAhorro":0.1235,"deudas":20220000,"emergencia":1248000,"netWorth":-15558000,"tasa":60,"notas":"Best month — extra payment on Visa"},{"mes":"April","anio":2026,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":20370000,"emergencia":1188000,"netWorth":-15732000,"tasa":60,"notas":"Tax refund helped savings"},{"mes":"March","anio":2026,"ingresos":390000,"gasto":355200,"ahorro":34800,"tasaAhorro":0.0892,"deudas":20520000,"emergencia":1110000,"netWorth":-15990000,"tasa":60,"notas":"Paid extra on car loan"},{"mes":"February","anio":2026,"ingresos":390000,"gasto":346800,"ahorro":43200,"tasaAhorro":0.1108,"deudas":20670000,"emergencia":1032000,"netWorth":-16278000,"tasa":60,"notas":""},{"mes":"January","anio":2026,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":20820000,"emergencia":960000,"netWorth":-16500000,"tasa":60,"notas":"Post-holiday spending catch-up"},{"mes":"December","anio":2025,"ingresos":390000,"gasto":432000,"ahorro":-42000,"tasaAhorro":-0.1077,"deudas":20970000,"emergencia":912000,"netWorth":-16728000,"tasa":60,"notas":"Holiday spending high — gifts + travel"},{"mes":"November","anio":2025,"ingresos":390000,"gasto":339000,"ahorro":51000,"tasaAhorro":0.1308,"deudas":21090000,"emergencia":888000,"netWorth":-16872000,"tasa":60,"notas":"Disciplined month — Black Friday avoided"},{"mes":"October","anio":2025,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":21228000,"emergencia":840000,"netWorth":-17118000,"tasa":60,"notas":""},{"mes":"September","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21360000,"emergencia":792000,"netWorth":-17388000,"tasa":60,"notas":"Back to school supplies"},{"mes":"August","anio":2025,"ingresos":390000,"gasto":426000,"ahorro":-36000,"tasaAhorro":-0.0923,"deudas":21492000,"emergencia":750000,"netWorth":-17592000,"tasa":60,"notas":"⚠ Bad month — AC repair $1,200 + summer daycare costs up"},{"mes":"July","anio":2025,"ingresos":390000,"gasto":340800,"ahorro":49200,"tasaAhorro":0.1262,"deudas":21600000,"emergencia":708000,"netWorth":-17748000,"tasa":60,"notas":"Good month — got back on track"},{"mes":"June","anio":2025,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":21732000,"emergencia":660000,"netWorth":-18012000,"tasa":60,"notas":""},{"mes":"May","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21870000,"emergencia":612000,"netWorth":-18258000,"tasa":60,"notas":""},{"mes":"April","anio":2025,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22008000,"emergencia":570000,"netWorth":-18498000,"tasa":60,"notas":""},{"mes":"March","anio":2025,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":22140000,"emergencia":528000,"netWorth":-18732000,"tasa":60,"notas":"Started kid college 529 contributions"},{"mes":"February","anio":2025,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":22272000,"emergencia":480000,"netWorth":-18972000,"tasa":60,"notas":""},{"mes":"January","anio":2025,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":22410000,"emergencia":432000,"netWorth":-19218000,"tasa":60,"notas":"Resolution: pay debts aggressively"},{"mes":"December","anio":2024,"ingresos":390000,"gasto":450000,"ahorro":-60000,"tasaAhorro":-0.1538,"deudas":22500000,"emergencia":390000,"netWorth":-19440000,"tasa":60,"notas":"Holiday spending — high but manageable"}],"metas":[{"name":"Family Vacation (Hawaii)","goal":300000,"saved":168000,"monthly":24000},{"name":"New Laptop","goal":90000,"saved":90000,"monthly":0},{"name":"Kid's College Fund","goal":3000000,"saved":270000,"monthly":18000},{"name":"Kitchen Renovation","goal":900000,"saved":192000,"monthly":15000},{"name":"Early Retirement Fund","goal":30000000,"saved":900000,"monthly":30000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo_usd.json"};
+const _DEMO_DATA_RD={"config":{"tasa":61.5,"mes":"Mayo","anio":2026,"ingresoUSD":3800,"diasAlerta":7,"ingresoRD":233700,"monedaPrincipal":"RD","payFrequency":"mensual"},"gastos":[{"nombre":"Hipoteca Apt. Naco","tipo":"Vivienda","pagado":52000,"adeudado":52000,"dia":5,"tasa":11.5,"balance":4185000,"originalRD":5500000,"originalUSD":89430,"tasaCreacion":54.5,"fechaLimite":"2041-03-05","notas":"Banco BHD · cuota fija 15 años","pagadoMes":true},{"nombre":"Mantenimiento Condo","tipo":"Vivienda","pagado":4500,"adeudado":4500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Incluye agua y basura","pagadoMes":true},{"nombre":"Préstamo Kia Sportage","tipo":"Préstamo","pagado":0,"adeudado":18500,"dia":15,"tasa":18,"balance":682400,"originalRD":950000,"originalUSD":15447,"tasaCreacion":57.2,"fechaLimite":"2028-09-15","notas":"Banreservas · 5 años","pagadoMes":false},{"nombre":"Visa Oro BPD","tipo":"Tarjeta","pagado":8000,"adeudado":12500,"dia":20,"tasa":60,"balance":145200,"originalRD":145200,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Pago mínimo no cubre intereses","pagadoMes":false},{"nombre":"Mastercard Banreservas","tipo":"Tarjeta","pagado":5000,"adeudado":6800,"dia":25,"tasa":45,"balance":38400,"originalRD":52000,"originalUSD":0,"tasaCreacion":60.5,"fechaLimite":"—","notas":"Consolidar con Visa","pagadoMes":false},{"nombre":"Edenorte (Electricidad)","tipo":"Servicio","pagado":4850,"adeudado":4850,"dia":10,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Promedio últimos 3 meses","pagadoMes":true},{"nombre":"Claro Triple Play","tipo":"Servicio","pagado":3200,"adeudado":3200,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Internet 200Mbps + TV + tel","pagadoMes":true},{"nombre":"Altice Móvil","tipo":"Servicio","pagado":1890,"adeudado":1890,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar 3 líneas","pagadoMes":true},{"nombre":"ARS Humano (Salud)","tipo":"Seguro","pagado":7200,"adeudado":7200,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar complementario","pagadoMes":true},{"nombre":"Supermercado Nacional","tipo":"Variable","pagado":0,"adeudado":22000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Estimado semanal ~RD$5,500","pagadoMes":false},{"nombre":"Gasolina / Transporte","tipo":"Variable","pagado":0,"adeudado":8500,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 tanques al mes","pagadoMes":false},{"nombre":"Gimnasio Body Shop","tipo":"Variable","pagado":2800,"adeudado":2800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Membresía mensual","pagadoMes":true},{"nombre":"Netflix + Disney+","tipo":"Servicio","pagado":1480,"adeudado":1480,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan estándar ambos","pagadoMes":true},{"nombre":"Inglés hija (APEC)","tipo":"Educación","pagado":6500,"adeudado":6500,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Curso trimestral · cuota mensual","pagadoMes":true},{"nombre":"Apoyo a mamá","tipo":"Familiar","pagado":0,"adeudado":8000,"dia":28,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Transferencia mensual fija","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Cuenta Corriente BPD","moneda":"RD","saldo":28450,"comp":0,"disp":0},{"nombre":"Cuenta de Ahorros Banreservas","moneda":"RD","saldo":142300,"comp":0,"disp":0},{"nombre":"Cuenta USD Popular","moneda":"USD","saldo":1840,"comp":0,"disp":0},{"nombre":"Cash en mano","moneda":"RD","saldo":8200,"comp":0,"disp":0},{"nombre":"Inversión corto plazo","moneda":"RD","saldo":75000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":367110,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"Fondo 3 Meses Gastos","moneda":"RD","balance":180000,"meta":234000},{"fondo":"Fondo Auto","moneda":"RD","balance":45000,"meta":80000},{"fondo":"Fondo Médico","moneda":"RD","balance":80000,"meta":80000},{"fondo":"Fondo Hogar","moneda":"RD","balance":22000,"meta":60000},{"fondo":"Fondo Educación Hija","moneda":"USD","balance":500,"meta":2000}],"cashflow":{"ingreso":233700,"gasto":160720,"tasa":61.5,"retirarUSD":2613.33,"ahorros":12000,"balanceAhorros":187500}},"historial":[{"mes":"Mayo","anio":2026,"ingresos":233700,"gasto":160720,"ahorro":72980,"tasaAhorro":0.312280701754386,"deudas":5051000,"emergencia":357750,"netWorth":-2831050,"tasa":61.5,"notas":"Mejor mes del año — pagué extra a Visa"},{"mes":"Abril","anio":2026,"ingresos":232180,"gasto":168400,"ahorro":63780,"tasaAhorro":0.27470066327849085,"deudas":5108000,"emergencia":342000,"netWorth":-2915820,"tasa":61,"notas":"Bono de Semana Santa ayudó"},{"mes":"Marzo","anio":2026,"ingresos":230660,"gasto":172300,"ahorro":58360,"tasaAhorro":0.2530130928639556,"deudas":5165000,"emergencia":325000,"netWorth":-3012700,"tasa":60.7,"notas":"Pagué cuota extra auto"},{"mes":"Febrero","anio":2026,"ingresos":229140,"gasto":165800,"ahorro":63340,"tasaAhorro":0.2764248930784673,"deudas":5225000,"emergencia":308000,"netWorth":-3098660,"tasa":60.3,"notas":""},{"mes":"Enero","anio":2026,"ingresos":228380,"gasto":170200,"ahorro":58180,"tasaAhorro":0.25475085384009105,"deudas":5290000,"emergencia":292000,"netWorth":-3186820,"tasa":60.1,"notas":"Gastos de Reyes subieron Variable"},{"mes":"Diciembre","anio":2025,"ingresos":235600,"gasto":195300,"ahorro":40300,"tasaAhorro":0.17105263157894737,"deudas":5358000,"emergencia":275000,"netWorth":-3285000,"tasa":62,"notas":"Navidad — gastos extras fuertes"},{"mes":"Noviembre","anio":2025,"ingresos":228000,"gasto":162400,"ahorro":65600,"tasaAhorro":0.28771929824561404,"deudas":5420000,"emergencia":260000,"netWorth":-3372000,"tasa":60,"notas":"Mes disciplinado"},{"mes":"Octubre","anio":2025,"ingresos":226480,"gasto":168700,"ahorro":57780,"tasaAhorro":0.25512186506534795,"deudas":5488000,"emergencia":244000,"netWorth":-3460800,"tasa":59.6,"notas":""},{"mes":"Septiembre","anio":2025,"ingresos":224200,"gasto":164300,"ahorro":59900,"tasaAhorro":0.2671721677074041,"deudas":5542000,"emergencia":228000,"netWorth":-3542000,"tasa":59,"notas":""},{"mes":"Agosto","anio":2025,"ingresos":224200,"gasto":218500,"ahorro":-5700,"tasaAhorro":-0.025423728813559324,"deudas":5598000,"emergencia":212000,"netWorth":-3628500,"tasa":59,"notas":"⚠ Mes malo — reparación auto RD$48K + urgencia médica"},{"mes":"Julio","anio":2025,"ingresos":222680,"gasto":165200,"ahorro":57480,"tasaAhorro":0.2581282557930663,"deudas":5580000,"emergencia":198000,"netWorth":-3611680,"tasa":58.6,"notas":"Buen mes — regresé a la disciplina"},{"mes":"Junio","anio":2025,"ingresos":222680,"gasto":170800,"ahorro":51880,"tasaAhorro":0.23298006107418717,"deudas":5645000,"emergencia":182000,"netWorth":-3698320,"tasa":58.6,"notas":""},{"mes":"Mayo","anio":2025,"ingresos":221920,"gasto":168400,"ahorro":53520,"tasaAhorro":0.24116798846431145,"deudas":5710000,"emergencia":168000,"netWorth":-3782080,"tasa":58.4,"notas":""},{"mes":"Abril","anio":2025,"ingresos":221160,"gasto":172600,"ahorro":48560,"tasaAhorro":0.21956954241273285,"deudas":5762000,"emergencia":155000,"netWorth":-3856240,"tasa":58.2,"notas":""},{"mes":"Marzo","anio":2025,"ingresos":220400,"gasto":175200,"ahorro":45200,"tasaAhorro":0.20508166969147004,"deudas":5820000,"emergencia":140000,"netWorth":-3935800,"tasa":58,"notas":"Empecé fondo educación hija"},{"mes":"Febrero","anio":2025,"ingresos":219640,"gasto":178500,"ahorro":41140,"tasaAhorro":0.1873065015479876,"deudas":5785000,"emergencia":125000,"netWorth":-3918860,"tasa":57.8,"notas":""},{"mes":"Enero","anio":2025,"ingresos":218880,"gasto":182300,"ahorro":36580,"tasaAhorro":0.1671235380116959,"deudas":5810000,"emergencia":108000,"netWorth":-3964120,"tasa":57.6,"notas":"Resolución: pagar deudas agresivamente"},{"mes":"Diciembre","anio":2024,"ingresos":222300,"gasto":210800,"ahorro":11500,"tasaAhorro":0.051731893837157,"deudas":5850000,"emergencia":92000,"netWorth":-4035700,"tasa":58.5,"notas":"Navidad — gastos altos pero controlados"}],"metas":[{"name":"Vacaciones Cancún","goal":85000,"saved":52000,"monthly":8500},{"name":"Laptop nueva","goal":45000,"saved":45000,"monthly":0},{"name":"Fondo universidad hija","goal":500000,"saved":38000,"monthly":5000},{"name":"Remodelación cocina","goal":120000,"saved":18500,"monthly":6000},{"name":"Fondo retiro anticipado","goal":2000000,"saved":95000,"monthly":12000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo.json"};
+const _DEMO_DATA_USD={"config":{"tasa":60,"mes":"May","anio":2026,"ingresoUSD":6500,"diasAlerta":7,"ingresoRD":390000,"monedaPrincipal":"USD","payFrequency":"mensual"},"gastos":[{"nombre":"Mortgage (Wells Fargo)","tipo":"Vivienda","pagado":111000,"adeudado":111000,"dia":1,"tasa":6.5,"balance":17100000,"originalRD":17100000,"originalUSD":285000,"tasaCreacion":60,"fechaLimite":"2054-01-01","notas":"30yr fixed · escrow included","pagadoMes":true},{"nombre":"Car Loan (Toyota)","tipo":"Préstamo","pagado":0,"adeudado":27000,"dia":15,"tasa":5.9,"balance":1080000,"originalRD":1680000,"originalUSD":28000,"tasaCreacion":60,"fechaLimite":"2029-06-15","notas":"5yr auto loan","pagadoMes":false},{"nombre":"Student Loan (Navient)","tipo":"Préstamo","pagado":21000,"adeudado":21000,"dia":20,"tasa":4.5,"balance":1680000,"originalRD":2700000,"originalUSD":45000,"tasaCreacion":60,"fechaLimite":"2034-09-20","notas":"Federal · 10yr standard","pagadoMes":true},{"nombre":"Visa (Chase)","tipo":"Tarjeta","pagado":12000,"adeudado":12000,"dia":25,"tasa":24.99,"balance":252000,"originalRD":252000,"originalUSD":4200,"tasaCreacion":60,"fechaLimite":"—","notas":"Minimum doesn't cover interest","pagadoMes":false},{"nombre":"Amex Blue Cash","tipo":"Tarjeta","pagado":0,"adeudado":9000,"dia":10,"tasa":21.99,"balance":108000,"originalRD":108000,"originalUSD":1800,"tasaCreacion":60,"fechaLimite":"—","notas":"Consolidate with Visa","pagadoMes":false},{"nombre":"Electric (Duke Energy)","tipo":"Servicio","pagado":9900,"adeudado":9900,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Average last 3 months","pagadoMes":true},{"nombre":"Internet (Xfinity)","tipo":"Servicio","pagado":4800,"adeudado":4800,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"300 Mbps plan","pagadoMes":true},{"nombre":"Cell Phone (T-Mobile)","tipo":"Servicio","pagado":8400,"adeudado":8400,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Family plan · 4 lines","pagadoMes":true},{"nombre":"Health Insurance","tipo":"Seguro","pagado":22800,"adeudado":22800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Employer + employee portion","pagadoMes":true},{"nombre":"Car Insurance (Geico)","tipo":"Seguro","pagado":9900,"adeudado":9900,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full coverage · 2 vehicles","pagadoMes":true},{"nombre":"Groceries (Costco/Walmart)","tipo":"Variable","pagado":0,"adeudado":39000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Weekly ~$160","pagadoMes":false},{"nombre":"Gas / Transport","tipo":"Variable","pagado":0,"adeudado":12000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 fill-ups per month","pagadoMes":false},{"nombre":"Gym (Planet Fitness)","tipo":"Variable","pagado":1500,"adeudado":1500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Monthly membership","pagadoMes":true},{"nombre":"Streaming (Netflix+Spotify+YT)","tipo":"Servicio","pagado":2520,"adeudado":2520,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Standard plans all three","pagadoMes":true},{"nombre":"Daycare / Childcare","tipo":"Educación","pagado":0,"adeudado":51000,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full-time daycare","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Checking (Chase)","moneda":"USD","saldo":3200,"comp":0,"disp":0},{"nombre":"Savings (Marcus)","moneda":"USD","saldo":8500,"comp":0,"disp":0},{"nombre":"Emergency Savings (Ally)","moneda":"USD","saldo":12000,"comp":0,"disp":0},{"nombre":"Cash","moneda":"USD","saldo":150,"comp":0,"disp":0},{"nombre":"Brokerage (Fidelity)","moneda":"USD","saldo":15000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":2331000,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"3-Month Expenses Fund","moneda":"USD","balance":12000,"meta":18000},{"fondo":"Car Repair Fund","moneda":"USD","balance":1500,"meta":3000},{"fondo":"Medical Fund","moneda":"USD","balance":2000,"meta":5000},{"fondo":"Home Repair Fund","moneda":"USD","balance":800,"meta":5000},{"fondo":"Kid's College 529","moneda":"USD","balance":4500,"meta":50000}],"cashflow":{"ingreso":390000,"gasto":341820,"tasa":60,"retirarUSD":0,"ahorros":24000,"balanceAhorros":510000}},"historial":[{"mes":"May","anio":2026,"ingresos":390000,"gasto":341820,"ahorro":48180,"tasaAhorro":0.1235,"deudas":20220000,"emergencia":1248000,"netWorth":-15558000,"tasa":60,"notas":"Best month — extra payment on Visa"},{"mes":"April","anio":2026,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":20370000,"emergencia":1188000,"netWorth":-15732000,"tasa":60,"notas":"Tax refund helped savings"},{"mes":"March","anio":2026,"ingresos":390000,"gasto":355200,"ahorro":34800,"tasaAhorro":0.0892,"deudas":20520000,"emergencia":1110000,"netWorth":-15990000,"tasa":60,"notas":"Paid extra on car loan"},{"mes":"February","anio":2026,"ingresos":390000,"gasto":346800,"ahorro":43200,"tasaAhorro":0.1108,"deudas":20670000,"emergencia":1032000,"netWorth":-16278000,"tasa":60,"notas":""},{"mes":"January","anio":2026,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":20820000,"emergencia":960000,"netWorth":-16500000,"tasa":60,"notas":"Post-holiday spending catch-up"},{"mes":"December","anio":2025,"ingresos":390000,"gasto":432000,"ahorro":-42000,"tasaAhorro":-0.1077,"deudas":20970000,"emergencia":912000,"netWorth":-16728000,"tasa":60,"notas":"Holiday spending high — gifts + travel"},{"mes":"November","anio":2025,"ingresos":390000,"gasto":339000,"ahorro":51000,"tasaAhorro":0.1308,"deudas":21090000,"emergencia":888000,"netWorth":-16872000,"tasa":60,"notas":"Disciplined month — Black Friday avoided"},{"mes":"October","anio":2025,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":21228000,"emergencia":840000,"netWorth":-17118000,"tasa":60,"notas":""},{"mes":"September","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21360000,"emergencia":792000,"netWorth":-17388000,"tasa":60,"notas":"Back to school supplies"},{"mes":"August","anio":2025,"ingresos":390000,"gasto":426000,"ahorro":-36000,"tasaAhorro":-0.0923,"deudas":21492000,"emergencia":750000,"netWorth":-17592000,"tasa":60,"notas":"⚠ Bad month — AC repair $1,200 + summer daycare costs up"},{"mes":"July","anio":2025,"ingresos":390000,"gasto":340800,"ahorro":49200,"tasaAhorro":0.1262,"deudas":21600000,"emergencia":708000,"netWorth":-17748000,"tasa":60,"notas":"Good month — got back on track"},{"mes":"June","anio":2025,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":21732000,"emergencia":660000,"netWorth":-18012000,"tasa":60,"notas":""},{"mes":"May","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21870000,"emergencia":612000,"netWorth":-18258000,"tasa":60,"notas":""},{"mes":"April","anio":2025,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22008000,"emergencia":570000,"netWorth":-18498000,"tasa":60,"notas":""},{"mes":"March","anio":2025,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":22140000,"emergencia":528000,"netWorth":-18732000,"tasa":60,"notas":"Started kid college 529 contributions"},{"mes":"February","anio":2025,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":22272000,"emergencia":480000,"netWorth":-18972000,"tasa":60,"notas":""},{"mes":"January","anio":2025,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":22410000,"emergencia":432000,"netWorth":-19218000,"tasa":60,"notas":"Resolution: pay debts aggressively"},{"mes":"December","anio":2024,"ingresos":390000,"gasto":450000,"ahorro":-60000,"tasaAhorro":-0.1538,"deudas":22500000,"emergencia":390000,"netWorth":-19440000,"tasa":60,"notas":"Holiday spending — high but manageable"}],"metas":[{"name":"Family Vacation (Hawaii)","goal":300000,"saved":168000,"monthly":24000},{"name":"New Laptop","goal":90000,"saved":90000,"monthly":0},{"name":"Kid's College Fund","goal":3000000,"saved":270000,"monthly":18000},{"name":"Kitchen Renovation","goal":900000,"saved":192000,"monthly":15000},{"name":"Early Retirement Fund","goal":30000000,"saved":900000,"monthly":30000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo_usd.json"};
 // ══════════════════════════════════
 // JSON EXPORT / IMPORT
 // ══════════════════════════════════
 function downloadJSON(){
   const data=JSON.parse(JSON.stringify(_editData));
-  data._meta={version:2,exportedAt:new Date().toISOString(),app:'CNTpf'};
+  data._meta={version:3,exportedAt:new Date().toISOString(),app:'CNTpf'};
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
@@ -2872,8 +2933,10 @@ function importJSON(file){
       if(missing.length){showError(`⚠ JSON inválido — faltan: ${missing.join(', ')}`);return;}
       delete data._meta;
       _editData=data;
-      _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
-      _editData.emerg.cashflow.ingreso=_editData.config.ingresoUSD*_editData.config.tasa;
+      // Migration: v1/v2 had no payFrequency — pre-feature data is monthly by definition
+      if(!_editData.config.payFrequency)_editData.config.payFrequency='mensual';
+      _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
+      _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
       if(!_editData.config.monedaPrincipal)_editData.config.monedaPrincipal='RD';
       if(!_editData.metas)_editData.metas=[];
       if(!_editData.transacciones)_editData.transacciones=[];
@@ -2897,11 +2960,8 @@ async function loadDemo(currency){
     const src=currency==='USD'?_DEMO_DATA_USD:_DEMO_DATA_RD;
     if(typeof src!=='object')throw new Error('no demo');
     _editData=JSON.parse(JSON.stringify(src));
-    if(_editData.config.monedaPrincipal==='USD'){
-      _editData.config.ingresoRD=_editData.config.ingresoUSD*(_editData.config.tasa||1);
-    } else {
-      _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
-    }
+    if(!_editData.config.payFrequency)_editData.config.payFrequency='mensual';
+    _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
     _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
     buildDashboard(_editData);
     applyI18n();
@@ -3091,7 +3151,7 @@ function buildChecklist(gastos){
     ${_pendingSave?`<div style="font-size:11px;color:var(--yellow);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.08);border-radius:8px;border:1px solid rgba(245,200,66,.2)">${t('chk_unsaved')}</div>`:''}`;
 
   const cfg=_editData.config||{};
-  const ingreso=cfg.ingresoUSD>0&&cfg.tasa>0?(cfg.ingresoUSD*cfg.tasa):(cfg.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
+  const ingreso=cfg.ingresoUSD>0&&cfg.tasa>0?monthlyIncomeRD(cfg):(cfg.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
   const mkRow=(g,isDone)=>{
     const pct=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
     const intMes=g.balance>0&&g.tasa>0?Math.round(g.balance*(g.tasa/100/12)):0;
@@ -3391,7 +3451,7 @@ function togglePresForm(){
 function buildPresupuesto(presupuesto,transacciones,config){
   const pres=(presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio);
   const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
-  const ingreso=config.ingresoRD||(config.ingresoUSD*config.tasa)||0;
+  const ingreso=config.ingresoRD||monthlyIncomeRD(config)||0;
   const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
   const disponible=ingreso-totalAdeudado;
   const recs=_editData.recurrentes||[];
@@ -3497,7 +3557,7 @@ function buildPresupuesto(presupuesto,transacciones,config){
 }
 
 function updatePresUnalloc(){
-  const ingreso=(_editData.config.ingresoRD||(_editData.config.ingresoUSD*_editData.config.tasa))||0;
+  const ingreso=(_editData.config.ingresoRD||monthlyIncomeRD(_editData.config))||0;
   const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
   const disponible=ingreso-totalAdeudado;
   let total=0;
@@ -3980,8 +4040,10 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const totalBalance=gastos.reduce((a,g)=>a+g.balance,0);
   // Fix: when originalRD=0 but balance>0, use balance as fallback so "Pagado" and "Avance" are not negative
   const totalOriginal=gastos.reduce((a,g)=>a+Math.max(g.originalRD||0, g.balance||0),0)+(config.liquidadoAcum||0);
-  // Bug 1 fix: single source of truth — always ingresoUSD × tasa; stale cf.ingreso only as absolute last resort
-  const ingreso=config.ingresoUSD>0&&config.tasa>0?(config.ingresoUSD*config.tasa):(config.ingresoRD||cf.ingreso||0);
+  // Single source of truth: monthlyIncomeRD applies the payFrequency multiplier
+  // (per-period × {mensual:1, quincenal:26/12, semanal:52/12}). Stale cf.ingreso
+  // is only used as an absolute fallback for legacy records.
+  const ingreso=config.ingresoUSD>0&&config.tasa>0?monthlyIncomeRD(config):(config.ingresoRD||cf.ingreso||0);
   // Include tracked spending from Registro (transacciones) in total expenses
   const txGasto=(_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio).reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
   const gasto=(totalAdeudado||cf.gasto)+txGasto;
@@ -4014,8 +4076,11 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   // Header
   document.getElementById('headerTitle').textContent=`${config.mes} ${config.anio}`;
   document.getElementById('hTasa').textContent='RD$'+config.tasa;
+  // Header shows per-period figure (what the user actually receives each pay).
+  // The monthly equivalent (×payFrequency multiplier) is the headline RD$ value
+  // — that's what KPIs and budgets track.
   document.getElementById('hIngUSD').textContent=fmtUSD(config.ingresoUSD);
-  document.getElementById('hIngRD').textContent='RD$'+fmt(config.ingresoUSD*config.tasa);
+  document.getElementById('hIngRD').textContent='RD$'+fmt(monthlyIncomeRD(config));
 
   // ── KPIs ── (with month-over-month delta arrows)
   const prevH=historial&&historial.length>0?historial[0]:null;
@@ -4031,7 +4096,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const efMoC=efMo>=6?'var(--green)':efMo>=3?'var(--yellow)':'var(--red)';
   const efMoB=efMo>=3?'rgba(34,211,160,.12)':'rgba(244,96,106,.12)';
   document.getElementById('kpiRow').innerHTML=[
-    {l:t('kpi_income'),v:`${fmtC(ingreso)}${mkDelta(ingreso,prevH?.ingresos,true)}`,s:`≈ ${fmtUSD(config.ingresoUSD)} · Tasa RD$${config.tasa}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
+    {l:t('kpi_income'),v:`${fmtC(ingreso)}${mkDelta(ingreso,prevH?.ingresos,true)}`,s:(config.payFrequency&&config.payFrequency!=='mensual')?`${fmtUSD(config.ingresoUSD)} ${t('payfreq_per_period')} · ${t('payfreq_'+config.payFrequency)} · Tasa RD$${config.tasa}`:`≈ ${fmtUSD(config.ingresoUSD)} · Tasa RD$${config.tasa}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
     {l:t('kpi_expenses'),v:`${fmtC(gasto)}${mkDelta(gasto,prevH?.gasto,false)}`,s:`${gastoPct}% ${t('kpi_exp_ofincome')} · ${t('kpi_exp_interest')}: ${fmtC(Math.round(interesMensual))}/${t('kpi_exp_month')}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
     {l:t('kpi_surplus'),v:`${fmtC(resta)}${mkDelta(resta,prevH?prevH.ingresos-prevH.gasto:null,true)}`,s:resta>=0?(ingreso>0?`${Math.round(resta/ingreso*100)}% ${t('kpi_surplus_pct')}`:t('kpi_surplus_pct')):t('kpi_deficit'),c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
     {l:t('kpi_networth'),v:`${netWorth<0?'('+currencySymbol()+fmt(Math.abs(netWorth))+')':fmtC(netWorth)}${mkDelta(netWorth,prevH?.netWorth,true)}`,s:t('kpi_savings_ef'),c:netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
@@ -4707,7 +4772,7 @@ function buildSavingsGoals(){
   if(!_editData.metas)_editData.metas=[];
   const metas=_editData.metas;
   const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0
-    ?(_editData.config.ingresoUSD*_editData.config.tasa)
+    ?monthlyIncomeRD(_editData.config)
     :(_editData.config.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
   const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeudado||0),0);
   const surplus=ingreso-gasto;
@@ -5057,7 +5122,7 @@ let _cierreNextMes='',_cierreNextAnio=0;
 const _cierreSteps=[
   {titleKey:'cierre_step1_title',subKey:'cierre_step1_sub',fields:[{id:'cw-tasa',label:'Tasa Dólar (RD$/USD)',type:'number',key:'tasa',step:'0.01'}]},
   {titleKey:'cierre_step2_title',subKey:'cierre_step2_sub',fields:[{id:'cw-mes',label:'Mes',type:'text',key:'mes'},{id:'cw-anio',label:'Año',type:'number',key:'anio'}]},
-  {titleKey:'cierre_step3_title',subKey:'cierre_step3_sub',fields:[{id:'cw-ingreso',label:'Ingreso Mensual (USD)',type:'number',key:'ingresoUSD',step:'1'}]},
+  {titleKey:'cierre_step3_title',subKey:'cierre_step3_sub',fields:[{id:'cw-ingreso',label:'Ingreso por pago (USD)',type:'number',key:'ingresoUSD',step:'1'}]},
   {titleKey:'cierre_step4_title',subKey:'cierre_step4_sub',fields:[{id:'cw-gasto',label:'Gasto Total del Mes ('+currencySymbol()+')',type:'number',key:'gasto',step:'any'}]},
   {titleKey:'cierre_step5_title',subKey:'cierre_step5_sub',fields:[]},
   {titleKey:'cierre_step6_title',subKey:'cierre_step6_sub',fields:[{id:'cw-ahorros',label:'Ahorros este mes ('+currencySymbol()+')',type:'number',key:'ahorros'},{id:'cw-balAh',label:'Balance total de ahorros ('+currencySymbol()+') — sugerido: balance anterior + este mes',type:'number',key:'balanceAhorros'}]},
@@ -5087,7 +5152,7 @@ function renderCierre(){
   } else if(_cierreStep===6){
     // Bug 3 fix: use same income formula as calcDerivedMetrics — never stale config.ingresoRD
     const cf=_editData.emerg.cashflow;
-    const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?(_editData.config.ingresoUSD*_editData.config.tasa):(_editData.config.ingresoRD||cf.ingreso||0);
+    const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?monthlyIncomeRD(_editData.config):(_editData.config.ingresoRD||cf.ingreso||0);
     const gasto=cf.gasto||0;
     const resta=ingreso-gasto;
     const tbl=`<div style="background:var(--surface2);border-radius:12px;padding:16px">
@@ -5135,9 +5200,9 @@ function renderCierre(){
 function cierreNav(dir){
   if(dir===1){
     const s=_cierreSteps[_cierreStep];
-    if(_cierreStep===0){_editData.config.tasa=pf(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
+    if(_cierreStep===0){_editData.config.tasa=pf(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     else if(_cierreStep===1){_editData.config.mes=document.getElementById('cw-mes')?.value||_editData.config.mes;_editData.config.anio=parseInt(document.getElementById('cw-anio')?.value)||_editData.config.anio;}
-    else if(_cierreStep===2){_editData.config.ingresoUSD=pf(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
+    else if(_cierreStep===2){_editData.config.ingresoUSD=pf(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     // Fix #2: step 3 = gasto real
     else if(_cierreStep===3){const g=pf(document.getElementById('cw-gasto')?.value);if(g>0)_editData.emerg.cashflow.gasto=g;}
     else if(_cierreStep===4){
@@ -5159,7 +5224,7 @@ function cierreNav(dir){
       // Confirm: add to historial, then update config to next month
       // Bug 3 fix: same income formula as calcDerivedMetrics, and sync both income fields before saving
       const cf=_editData.emerg.cashflow;
-      const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?(_editData.config.ingresoUSD*_editData.config.tasa):(_editData.config.ingresoRD||cf.ingreso||0);
+      const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?monthlyIncomeRD(_editData.config):(_editData.config.ingresoRD||cf.ingreso||0);
       _editData.config.ingresoRD=ingreso;
       cf.ingreso=ingreso;
       const gasto=cf.gasto||_editData.gastos.reduce((a,g)=>a+g.pagado,0);
@@ -5369,6 +5434,7 @@ let _changesCount=0;
 let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
+window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
 window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;autoSave();}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
@@ -5392,11 +5458,12 @@ const TIPOS=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro'
 function syncConfigField(key,el){
   const v=el.value;
   switch(key){
-    case 'tasa':_editData.config.tasa=Math.max(1,pf(v)||60);_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl=document.getElementById('cfg-ingresoRD');if(rdEl)rdEl.value=Math.round(_editData.config.ingresoRD);const wn=document.getElementById('tasa-warn');if(wn)wn.style.display=_editData.config.tasa===60?'block':'none';break;
+    case 'tasa':{_editData.config.tasa=Math.max(1,pf(v)||60);_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl=document.getElementById('cfg-ingresoRD');if(rdEl)rdEl.value=Math.round(_editData.config.ingresoRD);const wn=document.getElementById('tasa-warn');if(wn)wn.style.display=_editData.config.tasa===60?'block':'none';}break;
     case 'mes':_editData.config.mes=v||'—';break;
     case 'anio':_editData.config.anio=parseInt(v)||2026;break;
-    case 'ingresoUSD':_editData.config.ingresoUSD=Math.max(0,pf(v));_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl2=document.getElementById('cfg-ingresoRD');if(rdEl2)rdEl2.value=Math.round(_editData.config.ingresoRD);break;
-    case 'ingresoRD':_editData.config.ingresoRD=Math.max(0,pf(v));_editData.config.ingresoUSD=_editData.config.tasa>0?Math.round(_editData.config.ingresoRD/_editData.config.tasa*100)/100:0;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const usdEl=document.getElementById('cfg-ingreso');if(usdEl)usdEl.value=_editData.config.ingresoUSD;break;
+    case 'payFrequency':{const f=['mensual','quincenal','semanal'].includes(v)?v:'mensual';_editData.config.payFrequency=f;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdElPF=document.getElementById('cfg-ingresoRD');if(rdElPF)rdElPF.value=Math.round(_editData.config.ingresoRD);}break;
+    case 'ingresoUSD':{_editData.config.ingresoUSD=Math.max(0,pf(v));_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl2=document.getElementById('cfg-ingresoRD');if(rdEl2)rdEl2.value=Math.round(_editData.config.ingresoRD);}break;
+    case 'ingresoRD':{_editData.config.ingresoRD=Math.max(0,pf(v));const mult=payMult(_editData.config.payFrequency||'mensual');_editData.config.ingresoUSD=(_editData.config.tasa>0&&mult>0)?Math.round(_editData.config.ingresoRD/(_editData.config.tasa*mult)*100)/100:0;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const usdEl=document.getElementById('cfg-ingreso');if(usdEl)usdEl.value=_editData.config.ingresoUSD;}break;
     case 'diasAlerta':{const d=parseInt(v);_editData.config.diasAlerta=Math.min(30,Math.max(1,isNaN(d)?5:d));}break;
   }
   autoSave();
@@ -5435,12 +5502,14 @@ function buildEditForms(){
   const {config,gastos,forNow,emerg,historial}=_editData;
   // CONFIG — Fix #4: real-time sync to _editData; Fix #1: tasa warning; Fix #2: ingresoRD field
   const currencyFieldHtml=`<div class="field-group"><label class="field-label">${t('currency_primary')}</label><div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden"><button type="button" onclick="_editData.config.monedaPrincipal='USD';markChanged(this);buildEditForms();applyChanges()" style="flex:1;padding:8px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;${config.monedaPrincipal==='USD'?'background:var(--accent);color:#fff':'background:var(--surface2);color:var(--muted)'}">🇺🇸 USD</button><button type="button" onclick="_editData.config.monedaPrincipal='RD';markChanged(this);buildEditForms();applyChanges()" style="flex:1;padding:8px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;${config.monedaPrincipal==='RD'?'background:var(--accent);color:#fff':'background:var(--surface2);color:var(--muted)'}">🇩🇴 RD$</button></div><div class="field-note">${config.monedaPrincipal==='USD'?t('currency_note_usd'):t('currency_note_rd')}</div></div>`;
-  document.getElementById('configFields').innerHTML=currencyFieldHtml+[
+  const curFreq=config.payFrequency||'mensual';
+  const payFreqFieldHtml=`<div class="field-group"><label class="field-label">${t('ecfg_payfreq')}</label><select class="field-input" id="cfg-payFreq" onchange="markChanged(this);syncConfigField('payFrequency',this)">${['mensual','quincenal','semanal'].map(f=>`<option value="${f}" ${f===curFreq?'selected':''}>${t('payfreq_'+f)}</option>`).join('')}</select><div class="field-note">${t('payfreq_label')}</div></div>`;
+  document.getElementById('configFields').innerHTML=currencyFieldHtml+payFreqFieldHtml+[
     {id:'cfg-tasa',label:t('ecfg_tasa'),note:t('ecfg_tasa_note'),key:'tasa',val:config.tasa,min:1,extra:`<div id="tasa-warn" class="field-note" style="color:var(--yellow);display:${config.tasa===60?'block':'none'}">${t('edit_tasa_warn')}</div>`},
     {id:'cfg-mes',label:t('ecfg_mes'),note:t('ecfg_mes_note'),key:'mes',val:config.mes,type:'text'},
     {id:'cfg-anio',label:t('ecfg_anio'),note:t('ecfg_anio_note'),key:'anio',val:config.anio},
     {id:'cfg-ingreso',label:t('ecfg_ingreso'),note:t('ecfg_ingreso_note'),key:'ingresoUSD',val:config.ingresoUSD,min:0},
-    {id:'cfg-ingresoRD',label:t('ecfg_ingresoRD'),note:t('ecfg_ingresoRD_note'),key:'ingresoRD',val:Math.round(config.ingresoRD||config.ingresoUSD*(config.tasa||60)),min:0},
+    {id:'cfg-ingresoRD',label:t('ecfg_ingresoRD'),note:t('ecfg_ingresoRD_note'),key:'ingresoRD',val:Math.round(config.ingresoRD||monthlyIncomeRD(config)),min:0},
     {id:'cfg-diasAlerta',label:t('ecfg_dias'),note:t('ecfg_dias_note'),key:'diasAlerta',val:config.diasAlerta||5,min:1,max:30},
   ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="${f.key==='anio'||f.key==='diasAlerta'?'numeric':'decimal'}" value="${f.val}" oninput="markChanged(this);syncConfigField('${f.key}',this)"${f.min!=null?' min="'+f.min+'"':''}${f.max!=null?' max="'+f.max+'"':''}><div class="field-note">${f.note}</div>${f.extra||''}</div>`).join('');
   // ESENCIALES
@@ -5580,8 +5649,10 @@ function readConfigFromForm(){
   _editData.config.mes=document.getElementById('cfg-mes')?.value||'—';
   _editData.config.anio=parseInt(document.getElementById('cfg-anio')?.value)||2026;
   _editData.config.ingresoUSD=Math.max(0,pf(document.getElementById('cfg-ingreso')?.value));
+  const freqVal=document.getElementById('cfg-payFreq')?.value;
+  if(['mensual','quincenal','semanal'].includes(freqVal))_editData.config.payFrequency=freqVal;
   _editData.config.diasAlerta=Math.min(30,Math.max(1,parseInt(document.getElementById('cfg-diasAlerta')?.value)||5));
-  _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
+  _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
   _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
   _editData.forNow.fecha=document.getElementById('fornow-fecha')?.value||null;
   // Normalize tipo to match TIPOS list (Title Case)
