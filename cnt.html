@@ -2960,11 +2960,8 @@ async function loadDemo(currency){
     const src=currency==='USD'?_DEMO_DATA_USD:_DEMO_DATA_RD;
     if(typeof src!=='object')throw new Error('no demo');
     _editData=JSON.parse(JSON.stringify(src));
-    if(_editData.config.monedaPrincipal==='USD'){
-      _editData.config.ingresoRD=_editData.config.ingresoUSD*(_editData.config.tasa||1);
-    } else {
-      _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
-    }
+    if(!_editData.config.payFrequency)_editData.config.payFrequency='mensual';
+    _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
     _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
     buildDashboard(_editData);
     applyI18n();
@@ -3154,7 +3151,7 @@ function buildChecklist(gastos){
     ${_pendingSave?`<div style="font-size:11px;color:var(--yellow);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.08);border-radius:8px;border:1px solid rgba(245,200,66,.2)">${t('chk_unsaved')}</div>`:''}`;
 
   const cfg=_editData.config||{};
-  const ingreso=cfg.ingresoUSD>0&&cfg.tasa>0?(cfg.ingresoUSD*cfg.tasa):(cfg.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
+  const ingreso=cfg.ingresoUSD>0&&cfg.tasa>0?monthlyIncomeRD(cfg):(cfg.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
   const mkRow=(g,isDone)=>{
     const pct=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
     const intMes=g.balance>0&&g.tasa>0?Math.round(g.balance*(g.tasa/100/12)):0;
@@ -3454,7 +3451,7 @@ function togglePresForm(){
 function buildPresupuesto(presupuesto,transacciones,config){
   const pres=(presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio);
   const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
-  const ingreso=config.ingresoRD||(config.ingresoUSD*config.tasa)||0;
+  const ingreso=config.ingresoRD||monthlyIncomeRD(config)||0;
   const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
   const disponible=ingreso-totalAdeudado;
   const recs=_editData.recurrentes||[];
@@ -3560,7 +3557,7 @@ function buildPresupuesto(presupuesto,transacciones,config){
 }
 
 function updatePresUnalloc(){
-  const ingreso=(_editData.config.ingresoRD||(_editData.config.ingresoUSD*_editData.config.tasa))||0;
+  const ingreso=(_editData.config.ingresoRD||monthlyIncomeRD(_editData.config))||0;
   const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
   const disponible=ingreso-totalAdeudado;
   let total=0;
@@ -5203,7 +5200,7 @@ function renderCierre(){
 function cierreNav(dir){
   if(dir===1){
     const s=_cierreSteps[_cierreStep];
-    if(_cierreStep===0){_editData.config.tasa=pf(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
+    if(_cierreStep===0){_editData.config.tasa=pf(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     else if(_cierreStep===1){_editData.config.mes=document.getElementById('cw-mes')?.value||_editData.config.mes;_editData.config.anio=parseInt(document.getElementById('cw-anio')?.value)||_editData.config.anio;}
     else if(_cierreStep===2){_editData.config.ingresoUSD=pf(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     // Fix #2: step 3 = gasto real
@@ -5512,7 +5509,7 @@ function buildEditForms(){
     {id:'cfg-mes',label:t('ecfg_mes'),note:t('ecfg_mes_note'),key:'mes',val:config.mes,type:'text'},
     {id:'cfg-anio',label:t('ecfg_anio'),note:t('ecfg_anio_note'),key:'anio',val:config.anio},
     {id:'cfg-ingreso',label:t('ecfg_ingreso'),note:t('ecfg_ingreso_note'),key:'ingresoUSD',val:config.ingresoUSD,min:0},
-    {id:'cfg-ingresoRD',label:t('ecfg_ingresoRD'),note:t('ecfg_ingresoRD_note'),key:'ingresoRD',val:Math.round(config.ingresoRD||config.ingresoUSD*(config.tasa||60)),min:0},
+    {id:'cfg-ingresoRD',label:t('ecfg_ingresoRD'),note:t('ecfg_ingresoRD_note'),key:'ingresoRD',val:Math.round(config.ingresoRD||monthlyIncomeRD(config)),min:0},
     {id:'cfg-diasAlerta',label:t('ecfg_dias'),note:t('ecfg_dias_note'),key:'diasAlerta',val:config.diasAlerta||5,min:1,max:30},
   ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="${f.key==='anio'||f.key==='diasAlerta'?'numeric':'decimal'}" value="${f.val}" oninput="markChanged(this);syncConfigField('${f.key}',this)"${f.min!=null?' min="'+f.min+'"':''}${f.max!=null?' max="'+f.max+'"':''}><div class="field-note">${f.note}</div>${f.extra||''}</div>`).join('');
   // ESENCIALES
@@ -5652,8 +5649,10 @@ function readConfigFromForm(){
   _editData.config.mes=document.getElementById('cfg-mes')?.value||'—';
   _editData.config.anio=parseInt(document.getElementById('cfg-anio')?.value)||2026;
   _editData.config.ingresoUSD=Math.max(0,pf(document.getElementById('cfg-ingreso')?.value));
+  const freqVal=document.getElementById('cfg-payFreq')?.value;
+  if(['mensual','quincenal','semanal'].includes(freqVal))_editData.config.payFrequency=freqVal;
   _editData.config.diasAlerta=Math.min(30,Math.max(1,parseInt(document.getElementById('cfg-diasAlerta')?.value)||5));
-  _editData.config.ingresoRD=_editData.config.ingresoUSD*_editData.config.tasa;
+  _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
   _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
   _editData.forNow.fecha=document.getElementById('fornow-fecha')?.value||null;
   // Normalize tipo to match TIPOS list (Title Case)
