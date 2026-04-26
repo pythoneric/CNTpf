@@ -173,7 +173,7 @@ test.describe('Config field changes auto-save', () => {
 test.describe('Checklist actions auto-save', () => {
   test('toggleCheck persists pagadoMes to IndexedDB', async ({ page }) => {
     await loadApp(page);
-    await page.evaluate(() => toggleCheck(0));
+    await page.evaluate(() => window._testToggleWithMethod(0, 'transferencia'));
     await waitForAutoSave(page);
     const saved = await readDB(page);
     expect(saved.gastos[0].pagadoMes).toBe(true);
@@ -279,7 +279,7 @@ test.describe('Continue where I left off — full round-trip', () => {
     await loadApp(page);
 
     // Toggle first payment as paid
-    await page.evaluate(() => toggleCheck(0));
+    await page.evaluate(() => window._testToggleWithMethod(0, 'transferencia'));
     await waitForAutoSave(page);
 
     // Reload and continue
