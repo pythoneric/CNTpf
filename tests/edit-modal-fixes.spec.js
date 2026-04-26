@@ -373,7 +373,7 @@ test.describe('Fix #9 — Tipo dropdown', () => {
     await openEdit(page);
     await page.locator('.edit-tab', { hasText: /Gastos/ }).click();
 
-    const tipoSelect = page.locator('#esencialesEditBody tr').first().locator('select');
+    const tipoSelect = page.locator('#esencialesEditBody tr').first().locator('select[onchange*="].tipo"]');
     await expect(tipoSelect).toBeVisible();
 
     const options = await tipoSelect.locator('option').allTextContents();
@@ -388,10 +388,10 @@ test.describe('Fix #9 — Tipo dropdown', () => {
     await openEdit(page);
     await page.locator('.edit-tab', { hasText: /Gastos/ }).click();
 
-    const tipoVal = await page.locator('#esencialesEditBody tr').first().locator('select').inputValue();
+    const tipoVal = await page.locator('#esencialesEditBody tr').first().locator('select[onchange*="].tipo"]').inputValue();
     expect(tipoVal).toBe('Tarjeta');
 
-    const tipoVal2 = await page.locator('#esencialesEditBody tr').nth(1).locator('select').inputValue();
+    const tipoVal2 = await page.locator('#esencialesEditBody tr').nth(1).locator('select[onchange*="].tipo"]').inputValue();
     expect(tipoVal2).toBe('Fijo');
   });
 
@@ -400,7 +400,7 @@ test.describe('Fix #9 — Tipo dropdown', () => {
     await openEdit(page);
     await page.locator('.edit-tab', { hasText: /Gastos/ }).click();
 
-    const tipoSelect = page.locator('#esencialesEditBody tr').first().locator('select');
+    const tipoSelect = page.locator('#esencialesEditBody tr').first().locator('select[onchange*="].tipo"]');
     await tipoSelect.selectOption('Cuota');
 
     const tipo = await page.evaluate(() => _editData.gastos[0].tipo);

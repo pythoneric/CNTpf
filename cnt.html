@@ -301,6 +301,7 @@ header{will-change:auto}
 .wallet-cta:hover{opacity:.92;transform:translateY(-1px)}
 .wallet-view-all{background:none;border:none;color:var(--accent);font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;padding:2px 4px;text-transform:uppercase;letter-spacing:.06em}
 .wallet-view-all:hover{text-decoration:underline}
+.cash-badge{display:inline-block;font-size:11px;margin-left:4px;vertical-align:1px;opacity:.85;cursor:help}
 @media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
 
 /* ══ MI SALDO — first-use setup modal ══ */
@@ -1168,7 +1169,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr>
             <th data-i18n="eth_desc">Descripción</th><th data-i18n="eth_tipo">Tipo</th><th data-i18n="eth_pagado">Pagado (RD$)</th><th data-i18n="eth_adeudado">Cuota (RD$)</th>
-            <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_tasaCreacion">Tasa Creación</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_notas">Notas</th><th></th>
+            <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_tasaCreacion">Tasa Creación</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_metodo">Método</th><th data-i18n="eth_notas">Notas</th><th></th>
           </tr></thead><tbody id="esencialesEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addEsencialRow()" data-i18n="edit_add_row">+ Agregar fila</button>
@@ -1335,6 +1336,30 @@ function reverseCashDebit(tx){
   const amt=txAmountInCuenta(tx.monto||0,cuenta);
   cuenta.saldo=(cuenta.saldo||0)+amt;
   tx.applied=false;
+  return true;
+}
+
+// Same idempotent debit/restore for a gasto checklist item. The mechanism
+// is parallel to applyCashDebit but tracks state on the gasto itself
+// (`pagadoApplied` + `pagadoCuentaId`) so the monthly cycle of pagadoMes
+// flips can apply/restore independently from a tx ledger.
+function applyGastoDebit(gasto){
+  if(!gasto||gasto.pagadoApplied||gasto.metodo!=='efectivo')return false;
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta)return false;
+  const amt=txAmountInCuenta(gasto.adeudado||0,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)-amt;
+  gasto.pagadoApplied=true;
+  gasto.pagadoCuentaId=cuenta.id;
+  return true;
+}
+function reverseGastoDebit(gasto){
+  if(!gasto||!gasto.pagadoApplied||!gasto.pagadoCuentaId)return false;
+  const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===gasto.pagadoCuentaId);
+  if(!cuenta)return false;
+  const amt=txAmountInCuenta(gasto.adeudado||0,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)+amt;
+  gasto.pagadoApplied=false;
   return true;
 }
 
@@ -1808,6 +1833,11 @@ const LANG = {
     cuenta_tipo_banco:'Banco',
     cuenta_tipo_ahorro:'Ahorros',
     cuenta_tipo_inversion:'Inversión',
+    // Gasto cash-payment auto-debit (batch 3)
+    gasto_metodo_label:'Método de pago',
+    gasto_metodo_none:'Sin auto-débito',
+    gasto_paid_with_cash:'Se paga en efectivo · descuenta de Mi Saldo',
+    eth_metodo:'Método',
     // Mi Saldo widget + Resumen card
     wallet_balance:'Disponible',
     wallet_movements:'Últimos movimientos',
@@ -2249,6 +2279,11 @@ const LANG = {
     cuenta_tipo_banco:'Bank',
     cuenta_tipo_ahorro:'Savings',
     cuenta_tipo_inversion:'Investment',
+    // Gasto cash-payment auto-debit (batch 3)
+    gasto_metodo_label:'Payment method',
+    gasto_metodo_none:'No auto-debit',
+    gasto_paid_with_cash:'Paid in cash · deducts from My Balance',
+    eth_metodo:'Method',
     // My Balance widget + Resumen card
     wallet_balance:'Available',
     wallet_movements:'Recent activity',
@@ -2877,10 +2912,19 @@ function renderSwGasto(i,g){
       <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="text" inputmode="decimal" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
       <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="text" inputmode="decimal" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
     </div>
+    <div style="margin-top:8px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${escH(t('gasto_metodo_label')).toUpperCase()}</div>
+      <select class="cierre-input sw-g-metodo" style="font-size:13px;padding:7px 8px;cursor:pointer;width:100%">
+        <option value="" ${!g.metodo?'selected':''}>${escH(t('gasto_metodo_none'))}</option>
+        <option value="efectivo" ${g.metodo==='efectivo'?'selected':''}>${escH(t('reg_efectivo'))}</option>
+        <option value="tarjeta" ${g.metodo==='tarjeta'?'selected':''}>${escH(t('reg_tarjeta'))}</option>
+        <option value="transferencia" ${g.metodo==='transferencia'?'selected':''}>${escH(t('reg_transferencia'))}</option>
+      </select>
+    </div>
   </div>`;
 }
 function addSwGasto(){
-  document.getElementById('sw-gastos-list').insertAdjacentHTML('beforeend',renderSwGasto(Date.now(),{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0}));
+  document.getElementById('sw-gastos-list').insertAdjacentHTML('beforeend',renderSwGasto(Date.now(),{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0,metodo:''}));
 }
 function renderSwFondo(i,f){
   const mon=f.moneda||'RD';
@@ -3044,7 +3088,9 @@ const _setupSteps=[
         const tasa=pf(row.querySelector('.sw-g-tasa').value);
         const balance=pf(row.querySelector('.sw-g-balance').value);
         const tipo=row.querySelector('.sw-g-tipo').value;
-        _editData.gastos.push({nombre,tipo,pagado:0,adeudado,dia,tasa,balance,originalRD:balance||adeudado,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:null,notas:'',pagadoMes:false});
+        const metodoRaw=row.querySelector('.sw-g-metodo')?.value||'';
+        const metodo=['efectivo','tarjeta','transferencia'].includes(metodoRaw)?metodoRaw:'';
+        _editData.gastos.push({nombre,tipo,pagado:0,adeudado,dia,tasa,balance,originalRD:balance||adeudado,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:null,notas:'',pagadoMes:false,metodo});
       });
       const totalGasto=_editData.gastos.reduce((a,g)=>a+g.adeudado,0);
       _editData.emerg.cashflow.gasto=totalGasto;
@@ -3549,7 +3595,7 @@ function buildChecklist(gastos){
       ${isDone?'✓':''}
     </div>
     <div style="flex:1">
-      <div class="check-name">${escH(g.nombre)}</div>
+      <div class="check-name">${escH(g.nombre)}${g.metodo==='efectivo'?` <span class="cash-badge" title="${escH(t('gasto_paid_with_cash'))}" aria-label="${escH(t('gasto_paid_with_cash'))}">💵</span>`:''}</div>
       <div class="check-day">
         <span class="pill" style="background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'—')}</span>
         &nbsp;· ${t('chk_day')} <strong>${g.dia||'—'}</strong>
@@ -3612,6 +3658,10 @@ function toggleCheck(idx){
   // Sync pagado amount: marking as done sets full adeudado; unmarking clears if auto-set
   if(g.pagadoMes&&g.adeudado>0) g.pagado=g.adeudado;
   else if(!g.pagadoMes&&g.pagado===g.adeudado) g.pagado=0;
+  // Wallet auto-debit / restore for cash-paid gastos. Idempotent via
+  // pagadoApplied flag — repeated checks within the same paid state are no-ops.
+  if(g.pagadoMes)applyGastoDebit(g);
+  else reverseGastoDebit(g);
   _pendingSave=true;
   autoSave();
   // Haptic feedback on mobile
@@ -3635,6 +3685,9 @@ function resetChecklist(){
     if(g.adeudado>0){
       // Also reset pagado if it was auto-set by toggleCheck (pagado===adeudado)
       if(g.pagadoMes&&g.pagado===g.adeudado) g.pagado=0;
+      // Reset means "I haven't paid these yet" — restore any wallet debits
+      // that were applied during this cycle.
+      if(g.pagadoApplied)reverseGastoDebit(g);
       g.pagadoMes=false;
     }
   });
@@ -5649,8 +5702,11 @@ function cierreNav(dir){
       const nextAnio=parseInt(document.getElementById('cw-nextanio')?.value);
       if(nextMes)_editData.config.mes=nextMes;
       if(!isNaN(nextAnio))_editData.config.anio=nextAnio;
-      // Reset payment status for new month
-      _editData.gastos.forEach(g=>{g.pagadoMes=false;g.pagado=0;});
+      // Reset payment status for new month. Wallet debits applied this cycle
+      // are settled (the user's saldo already reflects the spend), so we just
+      // clear the bookkeeping flags — never call reverseGastoDebit here, that
+      // would re-credit money the user has actually spent.
+      _editData.gastos.forEach(g=>{g.pagadoMes=false;g.pagado=0;g.pagadoApplied=false;delete g.pagadoCuentaId;});
       // Budget carry-forward: copy current budget to next month if no budget exists yet
       if(presMes.length>0&&!(_editData.presupuesto||[]).some(p=>p.mes===_editData.config.mes&&p.anio===_editData.config.anio)){
         presMes.forEach(p=>{_editData.presupuesto.push({categoria:p.categoria,presupuestado:p.presupuestado,mes:_editData.config.mes,anio:_editData.config.anio});});
@@ -5914,6 +5970,17 @@ function onWalletDefaultChange(id){
   markChanged(document.body);
   buildEditForms();
 }
+function onGastoMetodoChange(i,sel){
+  const g=_editData.gastos?.[i];if(!g)return;
+  const nw=sel.value||''; // '' means "no auto-debit"
+  // If the gasto is currently paid AND its previous method was efectivo (so a
+  // wallet debit is in flight), reverse it before changing the method.
+  if(g.pagadoMes&&g.pagadoApplied)reverseGastoDebit(g);
+  g.metodo=nw;
+  // After updating the method, re-apply if still in the paid state and now efectivo
+  if(g.pagadoMes)applyGastoDebit(g);
+  markChanged(sel);
+}
 // Convert fondo balance/meta to base currency (RD$) — if moneda=USD, multiply by config.tasa
 function fondoToRD(f){const tasa=_editData.config.tasa||60;const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
 // Convert fondo to display currency
@@ -5956,6 +6023,12 @@ function buildEditForms(){
       <td><input class="tbl-input" id="origUSD-${i}" type="text" inputmode="decimal" min="0" value="${g.originalUSD||0}" oninput="markChanged(this);syncOriginal(${i},'originalUSD',this)" style="min-width:80px"></td>
       <td><input class="tbl-input" type="text" inputmode="decimal" value="${g.tasaCreacion||''}" readonly style="min-width:70px;opacity:.6;cursor:not-allowed"></td>
       <td><input class="tbl-input" type="date" value="${g.fechaLimite?String(g.fechaLimite).slice(0,10):''}" oninput="markChanged(this);_editData.gastos[${i}].fechaLimite=this.value" style="min-width:120px"></td>
+      <td><select class="tbl-input gasto-metodo" data-idx="${i}" onchange="onGastoMetodoChange(${i},this)" style="min-width:130px">
+        <option value="" ${!g.metodo?'selected':''}>${escH(t('gasto_metodo_none'))}</option>
+        <option value="efectivo" ${g.metodo==='efectivo'?'selected':''}>${escH(t('reg_efectivo'))}</option>
+        <option value="tarjeta" ${g.metodo==='tarjeta'?'selected':''}>${escH(t('reg_tarjeta'))}</option>
+        <option value="transferencia" ${g.metodo==='transferencia'?'selected':''}>${escH(t('reg_transferencia'))}</option>
+      </select></td>
       <td><input class="tbl-input" value="${escH(g.notas||'')}" oninput="markChanged(this);_editData.gastos[${i}].notas=this.value" style="min-width:120px"></td>
       <td><button class="row-del-btn" onclick="deleteGastoRow(${i})">✕</button></td>
     </tr>`;
