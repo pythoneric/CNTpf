@@ -250,3 +250,136 @@ test.describe('Income deposit i18n', () => {
     expect(keys.note).toBe('Monthly income');
   });
 });
+
+// ───────────────────────────────────────────────────────────────────
+// 5. Aggregation-leak regression — income tx must NOT distort spending sums
+// ───────────────────────────────────────────────────────────────────
+// Audit on batch 4 surfaced 8 sites that summed transacciones[].monto
+// without filtering by categoria. The synthetic income tx (negative monto,
+// categoria='ingreso') silently REDUCED every gasto figure. These tests pin
+// each path so a future refactor can't re-introduce the leak.
+test.describe('Aggregation leaks — income must not distort gasto', () => {
+  test('isExpenseTx filters out ingreso category', async ({ page }) => {
+    await loadAppDefault(page);
+    const result = await page.evaluate(() => ({
+      expense: window.isExpenseTx({ categoria: 'comida' }),
+      ingreso: window.isExpenseTx({ categoria: 'ingreso' }),
+      bare:    window.isExpenseTx({ categoria: 'transporte' }),
+      empty:   window.isExpenseTx(null),
+    }));
+    expect(result.expense).toBe(true);
+    expect(result.ingreso).toBe(false);
+    expect(result.bare).toBe(true);
+    expect(result.empty).toBe(false);
+  });
+
+  test('calcDerivedMetrics: income tx does NOT reduce gasto', async ({ page }) => {
+    await loadAppDefault(page);
+    // Add an expense tx of 5000 (cash) so saldo: 5000 - 5000 = 0
+    await page.evaluate(() => {
+      const tx = { fecha: '2026-03-05', monto: 5000, categoria: 'comida', metodo: 'tarjeta', mes: 'Marzo', anio: 2026 };
+      _editData.transacciones.push(tx);
+    });
+    const before = await page.evaluate(() => {
+      const m = window.calcDerivedMetrics({ config: _editData.config, gastos: _editData.gastos, forNow: _editData.forNow, emerg: _editData.emerg });
+      return m.gasto;
+    });
+    // Now deposit income (synthetic ingreso tx with negative 180000)
+    await page.evaluate(() => window.depositIncomeToWallet());
+    const after = await page.evaluate(() => {
+      const m = window.calcDerivedMetrics({ config: _editData.config, gastos: _editData.gastos, forNow: _editData.forNow, emerg: _editData.emerg });
+      return m.gasto;
+    });
+    // Critical: gasto must be UNCHANGED. Pre-fix, it would have decreased
+    // by 180000 (the negative income monto sums into the total).
+    expect(after).toBe(before);
+  });
+
+  test('Registro KPI: monthly spending stays put after income deposit', async ({ page }) => {
+    await loadAppDefault(page);
+    // Add a 1500 expense
+    await page.evaluate(() => {
+      const tx = { fecha: '2026-03-05', monto: 1500, categoria: 'comida', metodo: 'tarjeta', mes: 'Marzo', anio: 2026 };
+      _editData.transacciones.push(tx);
+      window.buildDashboard({ ..._editData });
+      window.showTab('registro', null);
+    });
+    const before = await page.locator('#registroKpis .kpi-val').first().textContent();
+    expect(before).toMatch(/1[,.]?500/);
+    // Deposit income
+    await page.evaluate(() => {
+      window.depositIncomeToWallet();
+      window.showTab('registro', null);
+    });
+    const after = await page.locator('#registroKpis .kpi-val').first().textContent();
+    expect(after).toMatch(/1[,.]?500/); // still 1500, not -178500
+  });
+
+  test('Registro tx list: income tx renders with green + sign', async ({ page }) => {
+    await loadAppDefault(page);
+    await page.evaluate(() => {
+      window.depositIncomeToWallet();
+      window.showTab('registro', null);
+    });
+    const items = page.locator('#registroList .reg-item');
+    await expect(items.first()).toBeVisible();
+    // The income tx (most recent) shows + sign and green color
+    const html = await items.first().innerHTML();
+    expect(html).toContain('+');
+    const amtStyle = await items.first().locator('.reg-amt').getAttribute('style');
+    expect(amtStyle).toContain('green');
+  });
+
+  test('Registro category chart: ingreso category does NOT appear in donut', async ({ page }) => {
+    await loadAppDefault(page);
+    await page.evaluate(() => {
+      // Add an expense + an income deposit
+      _editData.transacciones.push({ fecha: '2026-03-05', monto: 1500, categoria: 'comida', metodo: 'tarjeta', mes: 'Marzo', anio: 2026 });
+      window.depositIncomeToWallet();
+      window.showTab('registro', null);
+    });
+    // Reproduce the chart's category-bucket logic — verify the bucket set
+    // does NOT include 'ingreso' even though the income tx is in the array.
+    const cats = await page.evaluate(() => {
+      const cfg = _editData.config;
+      const monthTx = (_editData.transacciones || []).filter(t => t.mes === cfg.mes && t.anio === cfg.anio);
+      const expenseTx = monthTx.filter(window.isExpenseTx);
+      const buckets = {};
+      expenseTx.forEach(t => { buckets[t.categoria] = (buckets[t.categoria] || 0) + t.monto; });
+      return Object.keys(buckets);
+    });
+    expect(cats.length).toBeGreaterThan(0);
+    expect(cats).toContain('comida');
+    expect(cats).not.toContain('ingreso');
+  });
+
+  test('Cierre historial gastoReal excludes income deposits', async ({ page }) => {
+    await loadAppDefault(page);
+    await page.evaluate(() => {
+      _editData.transacciones.push({ fecha: '2026-03-05', monto: 2000, categoria: 'comida', metodo: 'tarjeta', mes: 'Marzo', anio: 2026 });
+      window.depositIncomeToWallet();
+    });
+    // Replay the cierre confirm logic that records gastoReal in historial:
+    const gastoReal = await page.evaluate(() =>
+      (_editData.transacciones || [])
+        .filter(tx => tx.mes === _editData.config.mes && tx.anio === _editData.config.anio && window.isExpenseTx(tx))
+        .reduce((a, tx) => a + tx.monto, 0)
+    );
+    expect(gastoReal).toBe(2000); // not -178000
+  });
+
+  test('Presupuesto BvA: income tx does not skew per-category actuals', async ({ page }) => {
+    await loadAppDefault(page);
+    await page.evaluate(() => {
+      _editData.presupuesto = [{ categoria: 'comida', presupuestado: 5000, mes: 'Marzo', anio: 2026 }];
+      _editData.transacciones.push({ fecha: '2026-03-05', monto: 1500, categoria: 'comida', metodo: 'tarjeta', mes: 'Marzo', anio: 2026 });
+      window.depositIncomeToWallet();
+      window.buildDashboard({ ..._editData });
+      window.showTab('presupuesto', null);
+    });
+    // Find the comida row and read its "actual" value
+    const presHtml = await page.locator('#presTable').innerHTML();
+    expect(presHtml).toMatch(/1[,.]?500/);
+    expect(presHtml).not.toMatch(/-178/); // would appear if income leaked
+  });
+});

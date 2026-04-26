@@ -1360,6 +1360,13 @@ function applyGastoDebit(gasto){
   gasto.pagadoAppliedAmt=amt;
   return true;
 }
+// Synthetic income deposits live in `transacciones[]` with categoria='ingreso'
+// and negative `monto` (credit semantic). Every site that sums transacciones
+// for SPENDING totals must filter through this helper, otherwise the income
+// tx silently subtracts from gasto, distorts category charts, and corrupts
+// historial entries on cierre.
+function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso';}
+
 // Deposit the user's monthly income to the wallet. Idempotent per (mes, anio):
 // only one income tx per month is allowed. Records as a synthetic transacción
 // with negative monto (credit semantic) so the existing tx-delete flow correctly
@@ -2037,6 +2044,7 @@ const LANG = {
     reg_cat_comida:'Comida', reg_cat_transporte:'Transporte', reg_cat_entretenimiento:'Entretenimiento',
     reg_cat_salud:'Salud', reg_cat_compras:'Compras', reg_cat_hogar:'Hogar',
     reg_cat_educacion:'Educación', reg_cat_personal:'Personal', reg_cat_otro:'Otro',
+    reg_cat_ingreso:'Ingreso',
     reg_chart_title:'Gasto por Categoría', reg_tracked:'Gasto registrado', reg_trend_title:'Tendencia de Gasto',
     edit_tab_transacciones:'🧾 Transacciones',
     // Feature 6 – Presupuesto (Forward Budget)
@@ -2490,6 +2498,7 @@ const LANG = {
     reg_cat_comida:'Food', reg_cat_transporte:'Transport', reg_cat_entretenimiento:'Entertainment',
     reg_cat_salud:'Health', reg_cat_compras:'Shopping', reg_cat_hogar:'Home',
     reg_cat_educacion:'Education', reg_cat_personal:'Personal', reg_cat_otro:'Other',
+    reg_cat_ingreso:'Income',
     reg_chart_title:'Spending by Category', reg_tracked:'Tracked spending', reg_trend_title:'Spending Trend',
     edit_tab_transacciones:'🧾 Transactions',
     // Feature 6 – Budget (Forward Budget)
@@ -3812,7 +3821,11 @@ function buildRegistro(transacciones,gastos,config){
   generateRecurring(config);
   transacciones=_editData.transacciones||transacciones;// refresh after generation
   const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
-  const total=tx.reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
+  // Spending totals must exclude income credits (synthetic deposits with
+  // categoria='ingreso' and negative monto would otherwise subtract from
+  // the displayed monthly spend).
+  const expenseTx=tx.filter(isExpenseTx);
+  const total=expenseTx.reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
 
   // Fix #5: use correct day count — for past months use total days, for current month use today's date
   const today=new Date();
@@ -3827,10 +3840,10 @@ function buildRegistro(transacciones,gastos,config){
   const totalBg=presBudget>0?(total>presBudget?'rgba(244,96,106,.12)':total>presBudget*0.8?'rgba(245,200,66,.12)':'rgba(34,211,160,.12)'):'rgba(59,130,246,.12)';
   const totalLabel=presBudget>0?`${t('reg_total_mes')} (${Math.round(total/presBudget*100)}%)`:t('reg_total_mes');
 
-  // KPIs
+  // KPIs (count + avg only count expense tx; income deposits aren't "transactions" the user spent)
   document.getElementById('registroKpis').innerHTML=[
     {l:totalLabel,v:`${fmtC(total)}`,c:totalColor,b:totalBg},
-    {l:t('reg_count'),v:tx.length,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
+    {l:t('reg_count'),v:expenseTx.length,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
     {l:t('reg_avg'),v:`${fmtC(Math.round(avg))}`,c:'var(--accent2)',b:'rgba(6,182,212,.12)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div></div>`).join('');
 
@@ -3894,8 +3907,8 @@ function buildRegistro(transacciones,gastos,config){
     [{v:'none',l:'rec_none'},{v:'diario',l:'rec_diario'},{v:'semanal',l:'rec_semanal'},{v:'quincenal',l:'rec_quincenal'},{v:'mensual',l:'rec_mensual'}].forEach(m=>{const o=document.createElement('option');o.value=m.v;o.textContent=t(m.l);recSel.appendChild(o);});
   }
 
-  // Category chart
-  const catTotals={};tx.forEach(t=>{catTotals[t.categoria]=(catTotals[t.categoria]||0)+t.monto;});
+  // Category chart — expense tx only (income would render a negative wedge)
+  const catTotals={};expenseTx.forEach(t=>{catTotals[t.categoria]=(catTotals[t.categoria]||0)+t.monto;});
   const cats=Object.keys(catTotals);
   if(charts.regCat)try{charts.regCat.destroy()}catch(e){}
   const ctx=document.getElementById('regCatChart');
@@ -3916,7 +3929,13 @@ function buildRegistro(transacciones,gastos,config){
       const dateStr=dateParts.length===3?`${dateParts[2]}/${dateParts[1]}`:`${tr.fecha}`;
       const metIcon=tr.metodo==='tarjeta'?'💳':tr.metodo==='transferencia'?'🏦':'💵';
       const recBadge=tr.recurrenteId?'<span style="font-size:9px;background:rgba(59,130,246,.15);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px">🔄</span>':'';
-      return`<div class="reg-item"><span class="reg-date">${dateStr}</span><div class="reg-desc">${escH(tr.nota||t('reg_cat_'+tr.categoria))} <span style="font-size:11px;color:var(--muted)">${metIcon}</span>${recBadge}</div><span class="reg-cat">${t('reg_cat_'+tr.categoria)}</span><span class="reg-amt">-${fmtC(toDisplay(tr.monto))}</span><button class="reg-del" onclick="deleteTransaccion(${idx})" title="Delete">✕</button></div>`;
+      // Income tx (negative monto + categoria='ingreso') renders as +green;
+      // expense tx renders as -red. The displayed value is always positive.
+      const isIncome=!isExpenseTx(tr);
+      const sign=isIncome?'+':'-';
+      const amtColor=isIncome?'var(--green)':'var(--red)';
+      const absMonto=Math.abs(tr.monto||0);
+      return`<div class="reg-item"><span class="reg-date">${dateStr}</span><div class="reg-desc">${escH(tr.nota||t('reg_cat_'+tr.categoria))} <span style="font-size:11px;color:var(--muted)">${metIcon}</span>${recBadge}</div><span class="reg-cat">${t('reg_cat_'+tr.categoria)}</span><span class="reg-amt" style="color:${amtColor}">${sign}${fmtC(toDisplay(absMonto))}</span><button class="reg-del" onclick="deleteTransaccion(${idx})" title="Delete">✕</button></div>`;
     }).join('');
   }
 
@@ -3987,7 +4006,9 @@ function togglePresForm(){
 
 function buildPresupuesto(presupuesto,transacciones,config){
   const pres=(presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio);
-  const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
+  // Budget-vs-actual is about SPENDING; income deposits must not skew the
+  // category aggregations.
+  const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio&&isExpenseTx(t));
   const ingreso=config.ingresoRD||monthlyIncomeRD(config)||0;
   const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
   const disponible=ingreso-totalAdeudado;
@@ -4585,7 +4606,9 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   // is only used as an absolute fallback for legacy records.
   const ingreso=config.ingresoUSD>0&&config.tasa>0?monthlyIncomeRD(config):(config.ingresoRD||cf.ingreso||0);
   // Include tracked spending from Registro (transacciones) in total expenses
-  const txGasto=(_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio).reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
+  // The global tx-gasto must filter out income deposits, otherwise a synthetic
+  // ingreso tx with negative monto silently DECREASES gasto across every KPI.
+  const txGasto=(_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio&&isExpenseTx(t)).reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
   const gasto=(totalAdeudado||cf.gasto)+txGasto;
   const resta=ingreso-gasto;
   const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
@@ -4660,7 +4683,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const mDone=metasAll.filter(m=>(m.saved||0)>=(m.goal||1)&&m.goal>0).length;
     const mPct=mGoal>0?Math.min(100,Math.round(mSaved/mGoal*100)):0;
     const pres=(_editData.presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio&&(p.presupuestado||0)>0);
-    const tx=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio);
+    const tx=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio&&isExpenseTx(x));
     const pBudget=pres.reduce((a,p)=>a+p.presupuestado,0);
     const budgetedCats=new Set(pres.map(p=>p.categoria));
     const pActual=tx.filter(x=>budgetedCats.has(x.categoria)).reduce((a,x)=>a+(parseFloat(x.monto)||0),0);
@@ -4955,7 +4978,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   setTimeout(()=>{
     // Fix #4: use allDeudas (balance > 0) not arbitrary > 100 threshold
     const allDeudas2=allDeudas;
-    const txGastoRaw=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio).reduce((a,x)=>a+(parseFloat(x.monto)||0),0);
+    const txGastoRaw=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio&&isExpenseTx(x)).reduce((a,x)=>a+(parseFloat(x.monto)||0),0);
     const pieLabels=[...Object.keys(tipoColors)];
     const pieData=Object.keys(tipoColors).map(ty=>gastos.filter(g=>g.tipo===ty).reduce((a,g)=>a+g.adeudado,0));
     const pieColors=Object.values(tipoColors).map(c=>c+'cc');
@@ -5226,7 +5249,7 @@ function buildCashflowWaterfall(ingreso,gastos,config,metas){
   const el=document.getElementById('cashflowWaterfall');
   if(!el||ingreso<=0){if(el)el.innerHTML='';return;}
   const obligations=toDisplay(gastos.reduce((a,g)=>a+(g.adeudado||0),0));
-  const txGasto=toDisplay((_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio).reduce((a,t)=>a+(parseFloat(t.monto)||0),0));
+  const txGasto=toDisplay((_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio&&isExpenseTx(t)).reduce((a,t)=>a+(parseFloat(t.monto)||0),0));
   const goalContrib=toDisplay((metas||[]).reduce((a,m)=>a+(m.monthly||0),0));
   const interest=toDisplay(gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0));
   const surplus=ingreso-obligations-txGasto-goalContrib;
@@ -5781,7 +5804,8 @@ function cierreNav(dir){
       const netWorth=fnTotalCierre+(cf.balanceAhorros||0)+efTotal-totalDeudas;
       const ahorro=ingreso-gasto;
       const tasaAhorro=ingreso>0?ahorro/ingreso:0;
-      const gastoReal=(_editData.transacciones||[]).filter(tx=>tx.mes===_editData.config.mes&&tx.anio===_editData.config.anio).reduce((a,tx)=>a+tx.monto,0);
+      // gastoReal must exclude income deposits — historial records spending only
+      const gastoReal=(_editData.transacciones||[]).filter(tx=>tx.mes===_editData.config.mes&&tx.anio===_editData.config.anio&&isExpenseTx(tx)).reduce((a,tx)=>a+tx.monto,0);
       const presMes=(_editData.presupuesto||[]).filter(p=>p.mes===_editData.config.mes&&p.anio===_editData.config.anio);
       const totalPresupuestado=presMes.reduce((a,p)=>a+p.presupuestado,0);
       _editData.historial.unshift({mes:_editData.config.mes,anio:_editData.config.anio,ingresos:ingreso,gasto,ahorro,tasaAhorro,deudas:totalDeudas,emergencia:efTotal,netWorth,tasa:_editData.config.tasa,notas:'',gastoReal,presupuestado:totalPresupuestado});
