@@ -32,6 +32,7 @@
   --z-nav:200;
   --z-group-toggle:201;
   --z-pwa-banner:250;
+  --z-fab:280;
   --z-overflow:300;
   --z-edit-modal:500;
   --z-cierre-modal:600;
@@ -306,6 +307,35 @@ header{will-change:auto}
 .wallet-income-btn:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 4px 14px rgba(34,211,160,.28)}
 .wallet-income-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .wallet-income-done{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(34,211,160,.18);border:1px solid rgba(34,211,160,.4);border-radius:99px;color:var(--green);font-family:var(--font);font-weight:700;font-size:12px}
+
+/* ══ MI SALDO — Quick-Pay FAB (batch 5) ══ */
+#quickPayFab{position:fixed;right:24px;bottom:28px;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:28px;font-weight:300;cursor:pointer;box-shadow:0 8px 24px rgba(59,130,246,.35);z-index:var(--z-fab);display:none;align-items:center;justify-content:center;transition:transform .15s,box-shadow .2s}
+#quickPayFab.visible{display:flex}
+#quickPayFab:hover{transform:scale(1.05) translateY(-2px);box-shadow:0 12px 28px rgba(59,130,246,.45)}
+#quickPayFab:active{transform:scale(.96)}
+#quickPayFab:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media(max-width:640px){
+  /* Park above the mobile bottom-nav + group-toggle stack so it stays thumb-reachable */
+  #quickPayFab{right:16px;bottom:calc(115px + env(safe-area-inset-bottom));width:54px;height:54px;font-size:26px}
+}
+@media(prefers-reduced-motion:reduce){
+  #quickPayFab,#quickPayFab:hover,#quickPayFab:active{transition:none;transform:none}
+}
+
+/* ══ MI SALDO — Quick-Pay modal ══ */
+#quickPayModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#quickPayModal.open{display:flex}
+.qpay-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:440px;width:100%;padding:24px;-webkit-overflow-scrolling:touch}
+.qpay-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.qpay-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+.qpay-field{margin-bottom:12px}
+.qpay-field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:600}
+.qpay-field input,.qpay-field select{width:100%}
+.qpay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qpay-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.qpay-actions .btn{flex:1;justify-content:center;min-width:120px}
+.qpay-error{background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:12px;display:none}
+.qpay-error.show{display:block}
 @media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
 
 /* ══ MI SALDO — first-use setup modal ══ */
@@ -1106,6 +1136,39 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
 <!-- ══ CIERRE DE MES WIZARD ══ -->
 <!-- ══ MI SALDO — First-use setup modal ══ -->
+<!-- ══ MI SALDO — Quick-Pay floating button + modal (batch 5) ══ -->
+<button id="quickPayFab" type="button" onclick="openQuickPay()" aria-label="Pago rápido" title="Pago rápido">+</button>
+
+<div id="quickPayModal" role="dialog" aria-modal="true" aria-labelledby="quickPayTitle">
+  <div class="qpay-card">
+    <h2 id="quickPayTitle" class="qpay-title" data-i18n="qpay_title">Pago rápido</h2>
+    <div class="qpay-sub" data-i18n="qpay_sub">Registra un gasto en segundos.</div>
+    <div id="qpayError" class="qpay-error" role="alert"></div>
+    <div class="qpay-field">
+      <label for="qpayAmount" data-i18n="qpay_amount">Monto</label>
+      <input class="cierre-input" id="qpayAmount" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+    </div>
+    <div class="qpay-grid">
+      <div class="qpay-field">
+        <label for="qpayMethod" data-i18n="qpay_method">Método</label>
+        <select class="cierre-input" id="qpayMethod"></select>
+      </div>
+      <div class="qpay-field">
+        <label for="qpayCategoria" data-i18n="qpay_category">Categoría</label>
+        <select class="cierre-input" id="qpayCategoria"></select>
+      </div>
+    </div>
+    <div class="qpay-field">
+      <label for="qpayNota" data-i18n="qpay_for">Para qué</label>
+      <input class="cierre-input" id="qpayNota" type="text" placeholder="" autocomplete="off">
+    </div>
+    <div class="qpay-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeQuickPay()" data-i18n="qpay_cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="submitQuickPay()" data-i18n="qpay_submit">Pagar</button>
+    </div>
+  </div>
+</div>
+
 <div id="walletSetupModal" role="dialog" aria-modal="true" aria-labelledby="walletSetupTitle">
   <div class="wallet-setup-card">
     <h2 id="walletSetupTitle" data-i18n="wallet_setup_title">Configura Mi Saldo</h2>
@@ -1473,6 +1536,76 @@ function onWalletChipClick(){
 function walletViewAllMovements(){
   showTab('registro',null);
   if(typeof syncMobileNav==='function')syncMobileNav('registro');
+}
+
+// Show the FAB whenever a wallet is configured. Hidden during loader and
+// on the empty-wallet state so it doesn't compete with the "Set up Mi Saldo"
+// CTA on the Resumen card.
+function renderQuickPayFab(){
+  const fab=document.getElementById('quickPayFab');
+  if(!fab)return;
+  const dashShown=document.getElementById('dashApp')?.style.display!=='none';
+  const hasWallet=!!getDefaultCashAccount();
+  fab.classList.toggle('visible',!!(dashShown&&hasWallet));
+  // Localized aria-label/title — re-set so language toggles propagate
+  const label=t('qpay_fab_aria');
+  fab.setAttribute('aria-label',label);
+  fab.setAttribute('title',label);
+}
+
+// QUICK-PAY MODAL
+const QPAY_CATS=['comida','transporte','entretenimiento','salud','compras','hogar','educacion','personal','otro'];
+function openQuickPay(){
+  // No wallet → defer to first-use setup; afterwards the user can tap the FAB again.
+  if(!getDefaultCashAccount()){promptFirstCashSetup(null);return;}
+  const m=document.getElementById('quickPayModal');if(!m)return;
+  // Reset inputs to a clean state
+  const amt=document.getElementById('qpayAmount');if(amt){amt.value='';amt.classList.remove('changed');}
+  const nota=document.getElementById('qpayNota');if(nota)nota.value='';
+  const err=document.getElementById('qpayError');if(err){err.classList.remove('show');err.textContent='';}
+  // (Re)populate method + category dropdowns so i18n stays current
+  const metSel=document.getElementById('qpayMethod');
+  if(metSel){metSel.innerHTML=['efectivo','tarjeta','transferencia'].map(v=>`<option value="${v}">${escH(t('reg_'+v))}</option>`).join('');metSel.value='efectivo';}
+  const catSel=document.getElementById('qpayCategoria');
+  if(catSel){catSel.innerHTML=QPAY_CATS.map(c=>`<option value="${c}">${escH(t('reg_cat_'+c))}</option>`).join('');catSel.value='otro';}
+  m.classList.add('open');
+  setTimeout(()=>amt&&amt.focus(),50);
+}
+function closeQuickPay(){document.getElementById('quickPayModal')?.classList.remove('open');}
+function submitQuickPay(){
+  const monto=pf(document.getElementById('qpayAmount')?.value||'');
+  const err=document.getElementById('qpayError');
+  if(!(monto>0)){
+    if(err){err.textContent=t('qpay_err_amount');err.classList.add('show');}
+    return false;
+  }
+  const metodo=document.getElementById('qpayMethod')?.value||'efectivo';
+  const categoria=document.getElementById('qpayCategoria')?.value||'otro';
+  const nota=(document.getElementById('qpayNota')?.value||'').trim();
+  const cfg=_editData.config;
+  const tx={
+    fecha:new Date().toISOString().slice(0,10),
+    monto,categoria,nota,metodo,
+    gastoIdx:-1,
+    mes:cfg.mes,anio:cfg.anio,
+  };
+  if(!_editData.transacciones)_editData.transacciones=[];
+  applyCashDebit(tx); // no-op if metodo isn't efectivo
+  _editData.transacciones.push(tx);
+  if(navigator.vibrate)navigator.vibrate([10,30,10]);
+  closeQuickPay();
+  saveToDB();
+  buildDashboard({..._editData});
+  // Toast shows the resulting balance in primary currency. Cash payments
+  // call out the wallet by name; non-cash falls back to a generic toast.
+  if(metodo==='efectivo'){
+    const cuenta=getDefaultCashAccount();
+    const balText=cuenta?formatWalletAmount(cuenta.saldo,cuenta.moneda):'';
+    showToast(t('qpay_toast_cash').replace('{n}',balText),'var(--green)');
+  } else {
+    showToast(t('qpay_toast_other'),'var(--green)');
+  }
+  return true;
 }
 
 // Find the most recent N transactions that affected the default cash account.
@@ -1923,6 +2056,19 @@ const LANG = {
     wallet_income_already:'Ya registraste tu pago este mes',
     wallet_income_zero:'Define tu ingreso primero (Editar > Configuración)',
     wallet_income_toast:'Mi Saldo +{n}',
+    // Quick-pay FAB + modal (batch 5)
+    qpay_fab_aria:'Pago rápido',
+    qpay_title:'Pago rápido',
+    qpay_sub:'Registra un gasto en segundos.',
+    qpay_amount:'Monto',
+    qpay_method:'Método',
+    qpay_category:'Categoría',
+    qpay_for:'Para qué',
+    qpay_submit:'Pagar',
+    qpay_cancel:'Cancelar',
+    qpay_err_amount:'Ingresa un monto mayor a 0',
+    qpay_toast_cash:'Pago registrado · Mi Saldo {n}',
+    qpay_toast_other:'Pago registrado',
     // Mi Saldo widget + Resumen card
     wallet_balance:'Disponible',
     wallet_movements:'Últimos movimientos',
@@ -2377,6 +2523,19 @@ const LANG = {
     wallet_income_already:'You already recorded this month’s pay',
     wallet_income_zero:'Set your income first (Edit > Settings)',
     wallet_income_toast:'My Balance +{n}',
+    // Quick-pay FAB + modal (batch 5)
+    qpay_fab_aria:'Quick pay',
+    qpay_title:'Quick pay',
+    qpay_sub:'Record an expense in seconds.',
+    qpay_amount:'Amount',
+    qpay_method:'Method',
+    qpay_category:'Category',
+    qpay_for:'What for',
+    qpay_submit:'Pay',
+    qpay_cancel:'Cancel',
+    qpay_err_amount:'Enter an amount greater than 0',
+    qpay_toast_cash:'Payment recorded · My Balance {n}',
+    qpay_toast_other:'Payment recorded',
     // My Balance widget + Resumen card
     wallet_balance:'Available',
     wallet_movements:'Recent activity',
@@ -4641,6 +4800,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   if(config.defaultCashAccountId&&!forNow.cuentas.some(c=>c.id===config.defaultCashAccountId))config.defaultCashAccountId=null;
   renderWalletChip();
   renderWalletCard();
+  renderQuickPayFab();
   const{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual,txGasto}=calcDerivedMetrics({config,gastos,forNow,emerg});
 
   // Header
@@ -5986,19 +6146,21 @@ document.addEventListener('keydown',e=>{
     if(document.getElementById('editModal')?.classList.contains('open'))closeEditModal();
     else if(document.getElementById('cierreModal')?.classList.contains('open'))closeCierre();
     else if(document.getElementById('walletSetupModal')?.classList.contains('open'))cancelWalletSetup();
+    else if(document.getElementById('quickPayModal')?.classList.contains('open'))closeQuickPay();
   }
 });
 // Close modals on backdrop tap (mobile-friendly: tap outside the modal body to dismiss).
 // Setup wizard is intentionally excluded — losing multi-step onboarding progress on an
 // accidental tap would be worse than forcing the user to complete or refresh.
-['editModal','cierreModal','walletSetupModal'].forEach(id=>{
+['editModal','cierreModal','walletSetupModal','quickPayModal'].forEach(id=>{
   const m=document.getElementById(id);
   if(!m)return;
   m.addEventListener('click',e=>{
     if(e.target!==m||!m.classList.contains('open'))return;
     if(id==='editModal')closeEditModal();
     else if(id==='cierreModal')closeCierre();
-    else cancelWalletSetup();
+    else if(id==='walletSetupModal')cancelWalletSetup();
+    else closeQuickPay();
   });
 });
 
