@@ -273,6 +273,46 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .loader-dot,.logo-dot{will-change:opacity,transform}
 header{will-change:auto}
 
+/* ══ MI SALDO — header chip ══ */
+.wallet-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:linear-gradient(135deg,rgba(34,211,160,.16),rgba(6,182,212,.12));border:1px solid rgba(34,211,160,.35);border-radius:99px;color:var(--green);font-family:var(--font);font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .2s;min-height:36px}
+.wallet-chip:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(34,211,160,.18)}
+.wallet-chip:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.wallet-chip-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.wallet-chip-val{font-size:14px;color:var(--green);font-variant-numeric:tabular-nums}
+.wallet-chip.flash-down{animation:walletFlashDown .6s ease-out}
+.wallet-chip.flash-up{animation:walletFlashUp .6s ease-out}
+@keyframes walletFlashDown{0%{background:linear-gradient(135deg,rgba(244,96,106,.35),rgba(244,96,106,.18))}100%{background:linear-gradient(135deg,rgba(34,211,160,.16),rgba(6,182,212,.12))}}
+@keyframes walletFlashUp{0%{background:linear-gradient(135deg,rgba(34,211,160,.45),rgba(6,182,212,.25))}100%{background:linear-gradient(135deg,rgba(34,211,160,.16),rgba(6,182,212,.12))}}
+@media(max-width:640px){.wallet-chip{padding:6px 11px;min-height:34px}.wallet-chip-label{display:none}.wallet-chip-val{font-size:13px}}
+
+/* ══ MI SALDO — Resumen card ══ */
+.wallet-card{background:linear-gradient(135deg,rgba(34,211,160,.08),rgba(6,182,212,.06));border:1px solid rgba(34,211,160,.22);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+.wallet-card-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.wallet-card-balance{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:30px;font-weight:800;color:var(--green);line-height:1.1}
+.wallet-card-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.wallet-movements{margin-top:14px;padding-top:14px;border-top:1px solid rgba(34,211,160,.18)}
+.wallet-mov-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.wallet-mov-meta{color:var(--muted);font-size:11px;margin-top:1px}
+.wallet-mov-amt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.wallet-mov-amt.debit{color:var(--red)}
+.wallet-mov-amt.credit{color:var(--green)}
+.wallet-empty-state{padding:8px 0;color:var(--muted);font-size:13px;text-align:center}
+.wallet-cta{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:99px;font-family:var(--font);font-weight:700;font-size:13px;cursor:pointer;min-height:40px}
+.wallet-cta:hover{opacity:.92;transform:translateY(-1px)}
+@media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
+
+/* ══ MI SALDO — first-use setup modal ══ */
+#walletSetupModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#walletSetupModal.open{display:flex}
+.wallet-setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:420px;width:100%;padding:24px}
+.wallet-setup-card h2{font-size:18px;font-weight:800;margin-bottom:6px}
+.wallet-setup-card p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px}
+.wallet-setup-card .field-label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:600}
+.wallet-setup-card input{width:100%}
+.wallet-setup-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.wallet-setup-actions .btn{flex:1;justify-content:center;min-width:120px}
+@media(prefers-reduced-motion:reduce){.wallet-chip.flash-down,.wallet-chip.flash-up{animation:none}}
+
 /* ══ ICONS — inline SVG (replaces cross-platform-inconsistent emojis) ══ */
 .icon{display:inline-block;vertical-align:-3px;flex-shrink:0}
 .hdr-btn .icon,.btn .icon{vertical-align:middle}
@@ -738,6 +778,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       </div>
     </div>
     <div class="header-meta">
+      <button id="walletChip" class="wallet-chip" type="button" onclick="onWalletChipClick()" aria-live="polite" style="display:none">
+        <span class="wallet-chip-label" data-i18n="wallet_chip_label">Mi Saldo</span>
+        <span class="wallet-chip-val mono" id="walletChipVal">—</span>
+      </button>
       <div class="meta-item"><div class="meta-label" data-i18n="hdr_tasa">Tasa USD</div><div class="meta-val" id="hTasa">—</div></div>
       <div class="meta-item"><div class="meta-label" data-i18n="hdr_ingusd">Ingreso USD</div><div class="meta-val" id="hIngUSD">—</div></div>
       <div class="meta-item"><div class="meta-label" data-i18n="hdr_ingrd">Ingreso RD$</div><div class="meta-val" style="color:var(--green)" id="hIngRD">—</div></div>
@@ -802,6 +846,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
   <!-- RESUMEN -->
   <div id="tab-resumen" class="panel active" role="tabpanel">
+    <div id="walletCard" aria-live="polite"></div>
     <div class="grid g4" style="margin-bottom:16px" id="kpiRow" aria-live="polite" aria-atomic="false"></div>
     <div id="summaryExtras" style="margin-bottom:16px"></div>
     <div class="grid g13" style="margin-bottom:16px">
@@ -1053,6 +1098,20 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 </div>
 
 <!-- ══ CIERRE DE MES WIZARD ══ -->
+<!-- ══ MI SALDO — First-use setup modal ══ -->
+<div id="walletSetupModal" role="dialog" aria-modal="true" aria-labelledby="walletSetupTitle">
+  <div class="wallet-setup-card">
+    <h2 id="walletSetupTitle" data-i18n="wallet_setup_title">Configura Mi Saldo</h2>
+    <p data-i18n="wallet_setup_sub">¿Cuánto efectivo tienes ahora mismo? Mi Saldo bajará cuando pagues en efectivo y subirá cuando recibas tu pago.</p>
+    <label class="field-label" for="walletSetupAmount" data-i18n="wallet_setup_amount">Saldo inicial</label>
+    <input class="cierre-input" id="walletSetupAmount" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+    <div class="wallet-setup-actions">
+      <button type="button" class="btn btn-ghost" onclick="cancelWalletSetup()" data-i18n="wallet_setup_cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="confirmWalletSetup()" data-i18n="wallet_setup_confirm">Crear Mi Saldo</button>
+    </div>
+  </div>
+</div>
+
 <div id="cierreModal" role="dialog" aria-modal="true" aria-labelledby="cierreModalTitle">
   <div class="cierre-container">
     <div class="cierre-header">
@@ -1242,6 +1301,188 @@ function setDefaultCashAccount(idOrNull){
   if(!c)return;
   c.tipo='cash';
   _editData.config.defaultCashAccountId=idOrNull;
+}
+
+// Convert a transacción amount (stored in RD$) into the cuenta's moneda so the
+// debit/credit hits the saldo in the right unit.
+function txAmountInCuenta(montoRD,cuenta,tasa){
+  if(!cuenta)return 0;
+  const r=tasa||_editData?.config?.tasa||60;
+  return cuenta.moneda==='USD'?(montoRD/r):montoRD;
+}
+
+// Apply a cash debit from a transacción to its cuenta. Idempotent: a tx with
+// `applied:true` is a no-op so re-renders / reloads don't double-debit.
+function applyCashDebit(tx){
+  if(!tx||tx.applied||tx.metodo!=='efectivo')return false;
+  const cuenta=getDefaultCashAccount(_editData);
+  if(!cuenta)return false;
+  const amt=txAmountInCuenta(tx.monto||0,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)-amt;
+  tx.applied=true;
+  tx.cuentaId=cuenta.id;
+  return true;
+}
+
+// Reverse a previously-applied debit. Used when deleting a tx so the user
+// gets their cash balance back.
+function reverseCashDebit(tx){
+  if(!tx||!tx.applied||!tx.cuentaId)return false;
+  const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===tx.cuentaId);
+  if(!cuenta)return false;
+  const amt=txAmountInCuenta(tx.monto||0,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)+amt;
+  tx.applied=false;
+  return true;
+}
+
+// Format a saldo for the chip / card. The chip lives in the dashboard so
+// the user's primary currency (config.monedaPrincipal) is what they expect.
+function formatWalletAmount(saldo,cuentaMoneda){
+  // Cuenta saldos are stored in their own moneda. Convert to primary currency
+  // for display, then run through fmtC for the symbol + grouping.
+  const tasa=_editData?.config?.tasa||60;
+  const primary=_editData?.config?.monedaPrincipal||'RD';
+  let inPrimary=saldo||0;
+  if(cuentaMoneda==='USD'&&primary==='RD')inPrimary=(saldo||0)*tasa;
+  else if(cuentaMoneda==='RD'&&primary==='USD')inPrimary=(saldo||0)/tasa;
+  return fmtC(inPrimary);
+}
+
+// Update the header chip to reflect the current default cash account.
+// Hidden when no default is configured.
+let _lastWalletSaldo=null;
+function renderWalletChip(){
+  const chip=document.getElementById('walletChip');
+  const valEl=document.getElementById('walletChipVal');
+  if(!chip||!valEl)return;
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta){chip.style.display='none';_lastWalletSaldo=null;return;}
+  chip.style.display='inline-flex';
+  valEl.textContent=formatWalletAmount(cuenta.saldo,cuenta.moneda);
+  // Flash the chip on balance change so the user notices the wallet moved.
+  if(_lastWalletSaldo!==null&&_lastWalletSaldo!==cuenta.saldo){
+    chip.classList.remove('flash-down','flash-up');
+    void chip.offsetWidth; // force reflow so the class re-add restarts the animation
+    chip.classList.add(cuenta.saldo<_lastWalletSaldo?'flash-down':'flash-up');
+  }
+  _lastWalletSaldo=cuenta.saldo;
+}
+
+// onClick handler for the chip — if a default exists, scroll to the Resumen
+// card; if not, open the first-use setup modal.
+function onWalletChipClick(){
+  if(!getDefaultCashAccount()){promptFirstCashSetup(null);return;}
+  showTab('resumen',document.querySelector('.tab-btn[onclick*="\'resumen\'"]'));
+  setTimeout(()=>{const card=document.getElementById('walletCard');if(card)card.scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+
+// Find the most recent N transactions that affected the default cash account.
+function recentWalletMovements(limit){
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta)return [];
+  const txs=(_editData.transacciones||[])
+    .filter(tx=>tx.applied&&tx.cuentaId===cuenta.id)
+    .slice().sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  return txs.slice(0,limit||5);
+}
+
+// Render the prominent Mi Saldo card on the Resumen tab.
+function renderWalletCard(){
+  const wrap=document.getElementById('walletCard');
+  if(!wrap)return;
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta){
+    wrap.innerHTML=`<div class="wallet-card" role="region" aria-label="${escH(t('wallet_label'))}">
+      <div class="wallet-card-row">
+        <div>
+          <div class="wallet-card-label">${escH(t('wallet_label'))}</div>
+          <div class="wallet-card-balance" style="color:var(--muted);font-size:18px">${escH(t('wallet_setup_sub'))}</div>
+        </div>
+        <button class="wallet-cta" onclick="promptFirstCashSetup()">${escH(t('wallet_setup_cta'))}</button>
+      </div>
+    </div>`;
+    return;
+  }
+  const movs=recentWalletMovements(5);
+  const movsHtml=movs.length===0
+    ? `<div class="wallet-empty-state">${escH(t('wallet_no_movements'))}</div>`
+    : movs.map(tx=>{
+        const dateStr=String(tx.fecha||'').slice(5);
+        const cat=t('reg_cat_'+(tx.categoria||'otro'));
+        const isCredit=(tx.monto||0)<0;
+        const sign=isCredit?'+':'-';
+        const cls=isCredit?'credit':'debit';
+        return `<div class="wallet-mov-item">
+          <div>
+            <div>${escH(tx.nota||cat)}</div>
+            <div class="wallet-mov-meta">${escH(dateStr)} · ${escH(cat)}</div>
+          </div>
+          <div class="wallet-mov-amt ${cls}">${sign}${escH(fmtC(toDisplay(Math.abs(tx.monto||0))))}</div>
+        </div>`;
+      }).join('');
+  wrap.innerHTML=`<div class="wallet-card" role="region" aria-label="${escH(t('wallet_label'))}">
+    <div class="wallet-card-row">
+      <div>
+        <div class="wallet-card-label">${escH(t('wallet_label'))} · ${escH(cuenta.nombre)}</div>
+        <div class="wallet-card-balance">${escH(formatWalletAmount(cuenta.saldo,cuenta.moneda))}</div>
+      </div>
+    </div>
+    <div class="wallet-movements">
+      <div class="wallet-card-label" style="margin-bottom:6px">${escH(t('wallet_movements'))}</div>
+      ${movsHtml}
+    </div>
+  </div>`;
+}
+
+// First-use setup flow. Optional `pendingTx` is the in-flight transacción
+// the user just submitted; once the wallet is created, we apply the debit
+// and finish the original submission.
+let _walletPendingTx=null;
+function promptFirstCashSetup(pendingTx){
+  _walletPendingTx=pendingTx||null;
+  const m=document.getElementById('walletSetupModal');if(!m)return;
+  const inp=document.getElementById('walletSetupAmount');if(inp)inp.value='';
+  m.classList.add('open');
+  setTimeout(()=>inp&&inp.focus(),50);
+}
+function cancelWalletSetup(){
+  document.getElementById('walletSetupModal')?.classList.remove('open');
+  _walletPendingTx=null;
+}
+function confirmWalletSetup(){
+  const inp=document.getElementById('walletSetupAmount');
+  const amt=Math.max(0,pf(inp?.value||'0'));
+  const primary=_editData?.config?.monedaPrincipal||'RD';
+  const cuenta={
+    id:genCuentaId(),
+    nombre:t('wallet_setup_account_name'),
+    moneda:primary,
+    saldo:amt,
+    tipo:'cash',
+    comp:0,disp:amt
+  };
+  if(!_editData.forNow.cuentas)_editData.forNow.cuentas=[];
+  _editData.forNow.cuentas.push(cuenta);
+  _editData.config.defaultCashAccountId=cuenta.id;
+  _editData.forNow.fecha=new Date().toISOString().slice(0,10);
+  // If the user reached this modal via addTransaccion, finish that flow now.
+  const pending=_walletPendingTx;_walletPendingTx=null;
+  document.getElementById('walletSetupModal')?.classList.remove('open');
+  if(pending){
+    const tx={fecha:pending.fecha,monto:pending.monto,categoria:pending.categoria,nota:pending.nota,metodo:pending.metodo,gastoIdx:pending.gastoIdx>=0?pending.gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio};
+    applyCashDebit(tx);
+    _editData.transacciones.push(tx);
+    if(pending.recurrencia&&pending.recurrencia!=='none'){
+      if(!_editData.recurrentes)_editData.recurrentes=[];
+      _editData.recurrentes.push({id:'rec_'+Date.now(),fecha:pending.fecha,monto:pending.monto,categoria:pending.categoria,nota:pending.nota,metodo:pending.metodo,gastoIdx:pending.gastoIdx>=0?pending.gastoIdx:-1,frecuencia:pending.recurrencia,lastGenerated:pending.fecha});
+    }
+    const m=document.getElementById('regMonto');if(m)m.value='';
+    const n=document.getElementById('regNota');if(n)n.value='';
+    const r=document.getElementById('regRecurrencia');if(r)r.value='none';
+  }
+  saveToDB();
+  buildDashboard({..._editData});
 }
 
 // ══════════════════════════════════
@@ -1554,6 +1795,19 @@ const LANG = {
     cuenta_tipo_banco:'Banco',
     cuenta_tipo_ahorro:'Ahorros',
     cuenta_tipo_inversion:'Inversión',
+    // Mi Saldo widget + Resumen card
+    wallet_balance:'Disponible',
+    wallet_movements:'Últimos movimientos',
+    wallet_no_movements:'Sin movimientos aún',
+    wallet_view_all:'Ver todos',
+    wallet_setup_cta:'Configurar Mi Saldo',
+    wallet_setup_title:'Configura Mi Saldo',
+    wallet_setup_sub:'¿Cuánto efectivo tienes ahora mismo? Mi Saldo bajará cuando pagues en efectivo y subirá cuando recibas tu pago.',
+    wallet_setup_amount:'Saldo inicial',
+    wallet_setup_confirm:'Crear Mi Saldo',
+    wallet_setup_cancel:'Cancelar',
+    wallet_setup_account_name:'Efectivo',
+    wallet_chip_label:'Mi Saldo',
     ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Rango: 1–30 días',
     // Cashflow field labels
     ecf_ingreso:'Ingreso Mensual ({cs})', ecf_gasto:'Gasto Mensual Total',
@@ -1982,6 +2236,19 @@ const LANG = {
     cuenta_tipo_banco:'Bank',
     cuenta_tipo_ahorro:'Savings',
     cuenta_tipo_inversion:'Investment',
+    // My Balance widget + Resumen card
+    wallet_balance:'Available',
+    wallet_movements:'Recent activity',
+    wallet_no_movements:'No movements yet',
+    wallet_view_all:'View all',
+    wallet_setup_cta:'Set up My Balance',
+    wallet_setup_title:'Set up My Balance',
+    wallet_setup_sub:"How much cash do you have right now? My Balance will go down as you spend cash and up when you record income.",
+    wallet_setup_amount:'Starting balance',
+    wallet_setup_confirm:'Create My Balance',
+    wallet_setup_cancel:'Cancel',
+    wallet_setup_account_name:'Cash',
+    wallet_chip_label:'My Balance',
     ecfg_dias:'Payment alert days', ecfg_dias_note:'Range: 1–30 days',
     // Cashflow field labels
     ecf_ingreso:'Monthly Income ({cs})', ecf_gasto:'Total Monthly Expenses',
@@ -3522,7 +3789,12 @@ function addTransaccion(){
   const recurrencia=document.getElementById('regRecurrencia').value;
   if(monto<=0)return;
   if(!_editData.transacciones)_editData.transacciones=[];
-  _editData.transacciones.push({fecha,monto,categoria,nota,metodo,gastoIdx:gastoIdx>=0?gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio});
+  const tx={fecha,monto,categoria,nota,metodo,gastoIdx:gastoIdx>=0?gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio};
+  // Apply wallet debit if a default cash account is configured. If not,
+  // the tx is still recorded — the Resumen wallet card CTA is the discovery
+  // surface for wallet setup, so we don't block the user's primary flow here.
+  applyCashDebit(tx); // no-op when there's no default or non-cash method
+  _editData.transacciones.push(tx);
   // Create recurring rule if frequency selected
   if(recurrencia&&recurrencia!=='none'){
     if(!_editData.recurrentes)_editData.recurrentes=[];
@@ -3536,15 +3808,17 @@ function addTransaccion(){
   document.getElementById('regMonto').value='';
   document.getElementById('regNota').value='';
   saveToDB();
-  buildRegistro(_editData.transacciones,_editData.gastos,_editData.config);
+  buildDashboard({..._editData});
 }
 
 function deleteTransaccion(idx){
   if(!confirm(t('reg_delete_confirm')))return;
   if(_editData.transacciones&&_editData.transacciones[idx]!==undefined){
+    // Restore cash balance before removing the tx
+    reverseCashDebit(_editData.transacciones[idx]);
     _editData.transacciones.splice(idx,1);
     saveToDB();
-    buildRegistro(_editData.transacciones,_editData.gastos,_editData.config);
+    buildDashboard({..._editData});
   }
 }
 
@@ -3714,11 +3988,14 @@ function generateRecurring(config){
     dates.forEach(d=>{
       const iso=d.toISOString().slice(0,10);
       if(_editData.transacciones.some(tx=>tx.recurrenteId===rec.id&&tx.fecha===iso))return;
-      _editData.transacciones.push({
+      const tx={
         fecha:iso,monto:rec.monto,categoria:rec.categoria,nota:rec.nota,
         metodo:rec.metodo,gastoIdx:rec.gastoIdx,
         mes:MESES_INTERNOS[d.getMonth()],anio:d.getFullYear(),recurrenteId:rec.id
-      });
+      };
+      // Apply wallet debit for cash methods (no-op if no default cash account)
+      applyCashDebit(tx);
+      _editData.transacciones.push(tx);
       generated++;
     });
     rec.lastGenerated=today.toISOString().slice(0,10);
@@ -4185,6 +4462,8 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   ensureCuentaIds({forNow});
   if(config.defaultCashAccountId===undefined)config.defaultCashAccountId=null;
   if(config.defaultCashAccountId&&!forNow.cuentas.some(c=>c.id===config.defaultCashAccountId))config.defaultCashAccountId=null;
+  renderWalletChip();
+  renderWalletCard();
   const{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual,txGasto}=calcDerivedMetrics({config,gastos,forNow,emerg});
 
   // Header
@@ -5525,18 +5804,20 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     if(document.getElementById('editModal')?.classList.contains('open'))closeEditModal();
     else if(document.getElementById('cierreModal')?.classList.contains('open'))closeCierre();
+    else if(document.getElementById('walletSetupModal')?.classList.contains('open'))cancelWalletSetup();
   }
 });
 // Close modals on backdrop tap (mobile-friendly: tap outside the modal body to dismiss).
 // Setup wizard is intentionally excluded — losing multi-step onboarding progress on an
 // accidental tap would be worse than forcing the user to complete or refresh.
-['editModal','cierreModal'].forEach(id=>{
+['editModal','cierreModal','walletSetupModal'].forEach(id=>{
   const m=document.getElementById(id);
   if(!m)return;
   m.addEventListener('click',e=>{
     if(e.target!==m||!m.classList.contains('open'))return;
     if(id==='editModal')closeEditModal();
-    else closeCierre();
+    else if(id==='cierreModal')closeCierre();
+    else cancelWalletSetup();
   });
 });
 
@@ -5777,7 +6058,7 @@ function addForNowRow(){_editData.forNow.cuentas.push({nombre:'Nueva cuenta',mon
 function addEmergFundRow(){const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeudado||0),0);const defaultMeta=gasto>0?Math.round(gasto*3):0;_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:defaultMeta,falta:defaultMeta,moneda:'RD'});markChanged(document.body);buildEditForms();}
 function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:_editData.config.tasa||60,notas:''});markChanged(document.body);buildEditForms();}
 function addTxEditRow(){if(!_editData.transacciones)_editData.transacciones=[];_editData.transacciones.push({fecha:new Date().toISOString().slice(0,10),monto:0,categoria:'otro',nota:'',metodo:'efectivo',gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio});markChanged(document.body);buildEditForms();}
-function deleteTxEditRow(i){if(!confirm(t('reg_delete_confirm')))return;_editData.transacciones.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteTxEditRow(i){if(!confirm(t('reg_delete_confirm')))return;reverseCashDebit(_editData.transacciones[i]);_editData.transacciones.splice(i,1);markChanged(document.body);buildEditForms();}
 function addPresEditRow(){if(!_editData.presupuesto)_editData.presupuesto=[];_editData.presupuesto.push({categoria:'otro',presupuestado:0,mes:_editData.config.mes,anio:_editData.config.anio});markChanged(document.body);buildEditForms();}
 function deletePresEditRow(i){if(!confirm(t('pres_delete_confirm')))return;_editData.presupuesto.splice(i,1);markChanged(document.body);buildEditForms();}
 function addRecEditRow(){if(!_editData.recurrentes)_editData.recurrentes=[];_editData.recurrentes.push({id:'rec_'+Date.now(),fecha:new Date().toISOString().slice(0,10),monto:0,categoria:'otro',nota:'',metodo:'efectivo',gastoIdx:-1,frecuencia:'mensual',lastGenerated:new Date().toISOString().slice(0,10)});markChanged(document.body);buildEditForms();}
