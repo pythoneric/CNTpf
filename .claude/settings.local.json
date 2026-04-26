@@ -33,7 +33,10 @@
       "Bash(git ls-remote *)",
       "Bash(git push *)",
       "Bash(xargs -I {} basename {})",
-      "Bash(node -e \"const fs=require\\('fs'\\);const src=fs.readFileSync\\('/home/qwerty/Repos/CNTpf/cnt.html','utf8'\\);const m=src.match\\(/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/\\);if\\(!m\\){console.error\\('no script block'\\);process.exit\\(1\\)}new Function\\(m[1]\\);console.log\\('script parses OK'\\)\")"
+      "Bash(node -e \"const fs=require\\('fs'\\);const src=fs.readFileSync\\('/home/qwerty/Repos/CNTpf/cnt.html','utf8'\\);const m=src.match\\(/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/\\);if\\(!m\\){console.error\\('no script block'\\);process.exit\\(1\\)}new Function\\(m[1]\\);console.log\\('script parses OK'\\)\")",
+      "Bash('~/.local/bin/gh' pr create --draft --base main --head feat/income-pay-frequency --title 'Income pay-frequency selector \\(weekly / biweekly / monthly\\)' --body ' *)",
+      "Bash(grep -n 'fornowEditBody\\\\|forNow.cuentas\\\\[\\\\${i}\\\\]' /home/qwerty/Repos/CNTpf/cnt.html)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const src=fs.readFileSync\\('/home/qwerty/Repos/CNTpf/cnt.html','utf8'\\);const m=src.match\\(/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/\\);new Function\\(m[1]\\);console.log\\('OK'\\)\")"
     ]
   }
 }

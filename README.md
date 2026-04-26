@@ -106,6 +106,14 @@ El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un contr
 - **Distribucion de flujo de caja** -- Barra visual de gastos vs sobrante con metricas de retiro USD, tasa, ahorros y compromisos
 - **Moneda dual** -- Soporte completo para USD y RD$ como moneda principal. Selector en el asistente de configuracion y en Editar > Configuracion. Todos los montos, graficos y KPIs se adaptan automaticamente. Internamente los datos se almacenan en RD$ y se convierten al vuelo para usuarios USD
 - **Frecuencia de pago** -- Selecciona como te pagan: mensual, cada 2 semanas (quincenal) o semanal. Ingresa el monto que recibes por pago y el dashboard calcula automaticamente el equivalente mensual (× 26/12 quincenal, × 52/12 semanal) para todos los KPIs (DTI, tasa de ahorro, presupuesto, salud financiera). Editable desde el asistente o desde Editar > Configuracion
+- **Mi Saldo (billetera de efectivo)** -- Seguimiento en tiempo real del saldo de efectivo. Cada cuenta de Fondos tiene un tipo (`cash` / `banco` / `ahorro` / `inversion`) y una se marca como **Mi Saldo** principal. Lo que el feature hace por ti:
+  - **Chip en el header + tarjeta en Resumen** muestran el saldo actual con los ultimos 5 movimientos
+  - **Deduccion automatica de transacciones en efectivo** -- al registrar un gasto en el Registro con metodo "Efectivo", el saldo baja automaticamente. Borrar la transaccion lo restaura
+  - **Deduccion automatica de gastos fijos** -- cada gasto/deuda puede tener un metodo de pago (Efectivo / Tarjeta / Transferencia / sin auto-debito). Marcar uno como pagado en el checklist con metodo Efectivo descuenta la cuota del saldo. Desmarcar la restaura. Los items en efectivo muestran un badge 💵 en el checklist
+  - **Boton "Recibi mi pago"** -- en la tarjeta de Resumen, abona automaticamente el equivalente mensual del ingreso (ingresoUSD x payFrequency multiplier x tasa) una vez por mes
+  - **Boton flotante de pago rapido** -- FAB con icono +. Modal de 4 campos (monto, metodo, categoria, descripcion) para registrar un pago en segundos. Si no hay billetera configurada, se abre el asistente de configuracion y al confirmar reanuda el pago
+  - **Configuracion** -- en el asistente "Empezar desde cero" (paso 2) o en Editar > Fondos. Si haces tu primera transaccion en efectivo sin billetera, el sistema te pide configurar el saldo inicial
+  - **Soporta moneda mixta** -- billetera USD con transacciones en RD$ (o viceversa) se convierten via la tasa
 - **Hitos de net worth** -- Celebraciones automaticas al alcanzar net worth positivo, libre de deudas, RD$100K, RD$500K y RD$1M
 
 ### Alertas & Pagos (tab unificado)
@@ -255,8 +263,8 @@ El respaldo se exporta como un archivo `.json` con esta estructura:
 
 ```json
 {
-  "_meta": { "version": 3, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
-  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5, "monedaPrincipal": "RD", "payFrequency": "mensual" },
+  "_meta": { "version": 4, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
+  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5, "monedaPrincipal": "RD", "payFrequency": "mensual", "defaultCashAccountId": "cnt_…" },
   "gastos": [...],
   "forNow": { "cuentas": [...], "fecha": "...", "total": 0 },
   "emerg": { "fondos": [...], "cashflow": {...} },
@@ -322,6 +330,8 @@ El archivo Excel tiene hasta **9 hojas**. La importacion desde Excel sigue siend
 | 0 | Nombre cuenta |
 | 1 | Moneda (RD / USD) |
 | 2 | Saldo |
+
+> **Nota (v4):** desde la versión 4 del JSON, cada cuenta lleva un `id` estable (`cnt_…`) y un `tipo` (`cash` / `banco` / `ahorro` / `inversion`). `config.defaultCashAccountId` apunta al `id` de la cuenta marcada como **Mi Saldo** (la billetera principal usada por los pagos en efectivo). Las importaciones desde versiones anteriores autogeneran ids y asignan `tipo: 'banco'` por defecto.
 
 ### Hoja Metas -- columnas
 

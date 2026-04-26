@@ -32,6 +32,7 @@
   --z-nav:200;
   --z-group-toggle:201;
   --z-pwa-banner:250;
+  --z-fab:280;
   --z-overflow:300;
   --z-edit-modal:500;
   --z-cierre-modal:600;
@@ -272,6 +273,82 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .panel{will-change:opacity,transform}
 .loader-dot,.logo-dot{will-change:opacity,transform}
 header{will-change:auto}
+
+/* ══ MI SALDO — header chip ══ */
+.wallet-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:linear-gradient(135deg,rgba(34,211,160,.16),rgba(6,182,212,.12));border:1px solid rgba(34,211,160,.35);border-radius:99px;color:var(--green);font-family:var(--font);font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .2s;min-height:36px}
+.wallet-chip:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(34,211,160,.18)}
+.wallet-chip:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.wallet-chip-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.wallet-chip-val{font-size:14px;color:var(--green);font-variant-numeric:tabular-nums}
+.wallet-chip.flash-down{animation:walletFlashDown .6s ease-out}
+.wallet-chip.flash-up{animation:walletFlashUp .6s ease-out}
+@keyframes walletFlashDown{0%{background:linear-gradient(135deg,rgba(244,96,106,.35),rgba(244,96,106,.18))}100%{background:linear-gradient(135deg,rgba(34,211,160,.16),rgba(6,182,212,.12))}}
+@keyframes walletFlashUp{0%{background:linear-gradient(135deg,rgba(34,211,160,.45),rgba(6,182,212,.25))}100%{background:linear-gradient(135deg,rgba(34,211,160,.16),rgba(6,182,212,.12))}}
+@media(max-width:640px){.wallet-chip{padding:6px 11px;min-height:34px}.wallet-chip-label{display:none}.wallet-chip-val{font-size:13px}}
+
+/* ══ MI SALDO — Resumen card ══ */
+.wallet-card{background:linear-gradient(135deg,rgba(34,211,160,.08),rgba(6,182,212,.06));border:1px solid rgba(34,211,160,.22);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+.wallet-card-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.wallet-card-balance{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:30px;font-weight:800;color:var(--green);line-height:1.1}
+.wallet-card-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.wallet-movements{margin-top:14px;padding-top:14px;border-top:1px solid rgba(34,211,160,.18)}
+.wallet-mov-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.wallet-mov-meta{color:var(--muted);font-size:11px;margin-top:1px}
+.wallet-mov-amt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.wallet-mov-amt.debit{color:var(--red)}
+.wallet-mov-amt.credit{color:var(--green)}
+.wallet-empty-state{padding:8px 0;color:var(--muted);font-size:13px;text-align:center}
+.wallet-cta{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:99px;font-family:var(--font);font-weight:700;font-size:13px;cursor:pointer;min-height:40px}
+.wallet-cta:hover{opacity:.92;transform:translateY(-1px)}
+.wallet-view-all{background:none;border:none;color:var(--accent);font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;padding:2px 4px;text-transform:uppercase;letter-spacing:.06em}
+.wallet-view-all:hover{text-decoration:underline}
+.cash-badge{display:inline-block;font-size:11px;margin-left:4px;vertical-align:1px;opacity:.85;cursor:help}
+.wallet-income-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:linear-gradient(135deg,#22d3a0,#06b6d4);color:#052e16;border:none;border-radius:99px;font-family:var(--font);font-weight:700;font-size:13px;cursor:pointer;min-height:38px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wallet-income-btn:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 4px 14px rgba(34,211,160,.28)}
+.wallet-income-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.wallet-income-done{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(34,211,160,.18);border:1px solid rgba(34,211,160,.4);border-radius:99px;color:var(--green);font-family:var(--font);font-weight:700;font-size:12px}
+
+/* ══ MI SALDO — Quick-Pay FAB (batch 5) ══ */
+#quickPayFab{position:fixed;right:24px;bottom:28px;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:28px;font-weight:300;cursor:pointer;box-shadow:0 8px 24px rgba(59,130,246,.35);z-index:var(--z-fab);display:none;align-items:center;justify-content:center;transition:transform .15s,box-shadow .2s}
+#quickPayFab.visible{display:flex}
+#quickPayFab:hover{transform:scale(1.05) translateY(-2px);box-shadow:0 12px 28px rgba(59,130,246,.45)}
+#quickPayFab:active{transform:scale(.96)}
+#quickPayFab:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media(max-width:640px){
+  /* Park above the mobile bottom-nav + group-toggle stack so it stays thumb-reachable */
+  #quickPayFab{right:16px;bottom:calc(115px + env(safe-area-inset-bottom));width:54px;height:54px;font-size:26px}
+}
+@media(prefers-reduced-motion:reduce){
+  #quickPayFab,#quickPayFab:hover,#quickPayFab:active{transition:none;transform:none}
+}
+
+/* ══ MI SALDO — Quick-Pay modal ══ */
+#quickPayModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#quickPayModal.open{display:flex}
+.qpay-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:440px;width:100%;padding:24px;-webkit-overflow-scrolling:touch}
+.qpay-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.qpay-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+.qpay-field{margin-bottom:12px}
+.qpay-field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:600}
+.qpay-field input,.qpay-field select{width:100%}
+.qpay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qpay-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.qpay-actions .btn{flex:1;justify-content:center;min-width:120px}
+.qpay-error{background:rgba(244,96,106,.1);border:1px solid rgba(244,96,106,.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:12px;display:none}
+.qpay-error.show{display:block}
+@media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
+
+/* ══ MI SALDO — first-use setup modal ══ */
+#walletSetupModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#walletSetupModal.open{display:flex}
+.wallet-setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:420px;width:100%;padding:24px}
+.wallet-setup-card h2{font-size:18px;font-weight:800;margin-bottom:6px}
+.wallet-setup-card p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px}
+.wallet-setup-card .field-label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:600}
+.wallet-setup-card input{width:100%}
+.wallet-setup-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.wallet-setup-actions .btn{flex:1;justify-content:center;min-width:120px}
+@media(prefers-reduced-motion:reduce){.wallet-chip.flash-down,.wallet-chip.flash-up{animation:none}}
 
 /* ══ ICONS — inline SVG (replaces cross-platform-inconsistent emojis) ══ */
 .icon{display:inline-block;vertical-align:-3px;flex-shrink:0}
@@ -738,6 +815,10 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       </div>
     </div>
     <div class="header-meta">
+      <button id="walletChip" class="wallet-chip" type="button" onclick="onWalletChipClick()" aria-live="polite" style="display:none">
+        <span class="wallet-chip-label" data-i18n="wallet_chip_label">Mi Saldo</span>
+        <span class="wallet-chip-val mono" id="walletChipVal">—</span>
+      </button>
       <div class="meta-item"><div class="meta-label" data-i18n="hdr_tasa">Tasa USD</div><div class="meta-val" id="hTasa">—</div></div>
       <div class="meta-item"><div class="meta-label" data-i18n="hdr_ingusd">Ingreso USD</div><div class="meta-val" id="hIngUSD">—</div></div>
       <div class="meta-item"><div class="meta-label" data-i18n="hdr_ingrd">Ingreso RD$</div><div class="meta-val" style="color:var(--green)" id="hIngRD">—</div></div>
@@ -802,6 +883,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
   <!-- RESUMEN -->
   <div id="tab-resumen" class="panel active" role="tabpanel">
+    <div id="walletCard" aria-live="polite"></div>
     <div class="grid g4" style="margin-bottom:16px" id="kpiRow" aria-live="polite" aria-atomic="false"></div>
     <div id="summaryExtras" style="margin-bottom:16px"></div>
     <div class="grid g13" style="margin-bottom:16px">
@@ -1053,6 +1135,53 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 </div>
 
 <!-- ══ CIERRE DE MES WIZARD ══ -->
+<!-- ══ MI SALDO — First-use setup modal ══ -->
+<!-- ══ MI SALDO — Quick-Pay floating button + modal (batch 5) ══ -->
+<button id="quickPayFab" type="button" onclick="openQuickPay()" aria-label="Pago rápido" title="Pago rápido">+</button>
+
+<div id="quickPayModal" role="dialog" aria-modal="true" aria-labelledby="quickPayTitle">
+  <div class="qpay-card">
+    <h2 id="quickPayTitle" class="qpay-title" data-i18n="qpay_title">Pago rápido</h2>
+    <div class="qpay-sub" data-i18n="qpay_sub">Registra un gasto en segundos.</div>
+    <div id="qpayError" class="qpay-error" role="alert"></div>
+    <div class="qpay-field">
+      <label for="qpayAmount" data-i18n="qpay_amount">Monto</label>
+      <input class="cierre-input" id="qpayAmount" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+    </div>
+    <div class="qpay-grid">
+      <div class="qpay-field">
+        <label for="qpayMethod" data-i18n="qpay_method">Método</label>
+        <select class="cierre-input" id="qpayMethod"></select>
+      </div>
+      <div class="qpay-field">
+        <label for="qpayCategoria" data-i18n="qpay_category">Categoría</label>
+        <select class="cierre-input" id="qpayCategoria"></select>
+      </div>
+    </div>
+    <div class="qpay-field">
+      <label for="qpayNota" data-i18n="qpay_for">Para qué</label>
+      <input class="cierre-input" id="qpayNota" type="text" placeholder="" autocomplete="off">
+    </div>
+    <div class="qpay-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeQuickPay()" data-i18n="qpay_cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="submitQuickPay()" data-i18n="qpay_submit">Pagar</button>
+    </div>
+  </div>
+</div>
+
+<div id="walletSetupModal" role="dialog" aria-modal="true" aria-labelledby="walletSetupTitle">
+  <div class="wallet-setup-card">
+    <h2 id="walletSetupTitle" data-i18n="wallet_setup_title">Configura Mi Saldo</h2>
+    <p data-i18n="wallet_setup_sub">¿Cuánto efectivo tienes ahora mismo? Mi Saldo bajará cuando pagues en efectivo y subirá cuando recibas tu pago.</p>
+    <label class="field-label" for="walletSetupAmount" data-i18n="wallet_setup_amount">Saldo inicial</label>
+    <input class="cierre-input" id="walletSetupAmount" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+    <div class="wallet-setup-actions">
+      <button type="button" class="btn btn-ghost" onclick="cancelWalletSetup()" data-i18n="wallet_setup_cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="confirmWalletSetup()" data-i18n="wallet_setup_confirm">Crear Mi Saldo</button>
+    </div>
+  </div>
+</div>
+
 <div id="cierreModal" role="dialog" aria-modal="true" aria-labelledby="cierreModalTitle">
   <div class="cierre-container">
     <div class="cierre-header">
@@ -1107,7 +1236,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr>
             <th data-i18n="eth_desc">Descripción</th><th data-i18n="eth_tipo">Tipo</th><th data-i18n="eth_pagado">Pagado (RD$)</th><th data-i18n="eth_adeudado">Cuota (RD$)</th>
-            <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_tasaCreacion">Tasa Creación</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_notas">Notas</th><th></th>
+            <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_tasaCreacion">Tasa Creación</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_metodo">Método</th><th data-i18n="eth_notas">Notas</th><th></th>
           </tr></thead><tbody id="esencialesEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addEsencialRow()" data-i18n="edit_add_row">+ Agregar fila</button>
@@ -1120,7 +1249,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
           <div class="field-group"><label class="field-label" data-i18n="eth_fechaActualizado">Fecha Actualizado</label><input type="date" class="field-input" id="fornow-fecha" oninput="markChanged(this)"></div>
         </div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th data-i18n="eth_cuenta">Cuenta</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_saldo">Saldo</th><th></th></tr></thead><tbody id="fornowEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_cuenta">Cuenta</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_saldo">Saldo</th><th data-i18n="cuenta_tipo_label">Tipo</th><th data-i18n="wallet_label">Mi Saldo</th><th></th></tr></thead><tbody id="fornowEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addForNowRow()" data-i18n="edit_add_cuenta">+ Agregar cuenta</button>
       </div>
@@ -1208,6 +1337,409 @@ function monthlyIncomeRD(cfg){
   cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
   if(!cfg)return 0;
   return monthlyIncomeUSD(cfg)*(cfg.tasa||60);
+}
+
+// ══════════════════════════════════
+// MI SALDO (wallet) — running cash-on-hand balance
+// ══════════════════════════════════
+// One forNow.cuentas[] entry is designated the "Mi Saldo" wallet.
+// `config.defaultCashAccountId` references it by stable id. `tipo` on each
+// cuenta is one of 'cash' | 'banco' | 'ahorro' | 'inversion' (default 'banco').
+// Every cuenta carries an `id` so renames/reorders don't break the link.
+const CUENTA_TIPOS=['cash','banco','ahorro','inversion'];
+function genCuentaId(){return 'cnt_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function ensureCuentaIds(data){
+  // Idempotent migration: add stable id + tipo defaults to every cuenta in place.
+  const cs=data?.forNow?.cuentas;if(!Array.isArray(cs))return;
+  const seen=new Set();
+  cs.forEach(c=>{
+    if(!c.id||seen.has(c.id))c.id=genCuentaId();
+    seen.add(c.id);
+    if(!CUENTA_TIPOS.includes(c.tipo))c.tipo='banco';
+  });
+}
+function getDefaultCashAccount(data){
+  data=data||(typeof _editData!=='undefined'?_editData:null);
+  const id=data?.config?.defaultCashAccountId;
+  if(!id||!Array.isArray(data?.forNow?.cuentas))return null;
+  return data.forNow.cuentas.find(c=>c.id===id)||null;
+}
+function setDefaultCashAccount(idOrNull){
+  if(!_editData?.config)return;
+  if(idOrNull===null){_editData.config.defaultCashAccountId=null;return;}
+  const c=(_editData.forNow?.cuentas||[]).find(x=>x.id===idOrNull);
+  if(!c)return;
+  c.tipo='cash';
+  _editData.config.defaultCashAccountId=idOrNull;
+}
+
+// Convert a transacción amount (stored in RD$) into the cuenta's moneda so the
+// debit/credit hits the saldo in the right unit.
+function txAmountInCuenta(montoRD,cuenta,tasa){
+  if(!cuenta)return 0;
+  const r=tasa||_editData?.config?.tasa||60;
+  return cuenta.moneda==='USD'?(montoRD/r):montoRD;
+}
+
+// Apply a cash debit from a transacción to its cuenta. Idempotent: a tx with
+// `applied:true` is a no-op so re-renders / reloads don't double-debit.
+function applyCashDebit(tx){
+  if(!tx||tx.applied||tx.metodo!=='efectivo')return false;
+  const cuenta=getDefaultCashAccount(_editData);
+  if(!cuenta)return false;
+  const amt=txAmountInCuenta(tx.monto||0,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)-amt;
+  tx.applied=true;
+  tx.cuentaId=cuenta.id;
+  return true;
+}
+
+// Reverse a previously-applied debit. Used when deleting a tx so the user
+// gets their cash balance back.
+function reverseCashDebit(tx){
+  if(!tx||!tx.applied||!tx.cuentaId)return false;
+  const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===tx.cuentaId);
+  if(!cuenta)return false;
+  const amt=txAmountInCuenta(tx.monto||0,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)+amt;
+  tx.applied=false;
+  return true;
+}
+
+// Same idempotent debit/restore for a gasto checklist item. The mechanism
+// is parallel to applyCashDebit but tracks state on the gasto itself
+// (`pagadoApplied` + `pagadoCuentaId` + `pagadoAppliedAmt`) so the monthly
+// cycle of pagadoMes flips can apply/restore independently from a tx ledger.
+function applyGastoDebit(gasto){
+  if(!gasto||gasto.pagadoApplied||gasto.metodo!=='efectivo')return false;
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta)return false;
+  const amt=txAmountInCuenta(gasto.adeudado||0,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)-amt;
+  gasto.pagadoApplied=true;
+  gasto.pagadoCuentaId=cuenta.id;
+  // Pin the amount actually debited so an edit to `adeudado` later doesn't
+  // cause a stale refund (Bug #1 from batch-3 audit).
+  gasto.pagadoAppliedAmt=amt;
+  return true;
+}
+// Synthetic income deposits live in `transacciones[]` with categoria='ingreso'
+// and negative `monto` (credit semantic). Every site that sums transacciones
+// for SPENDING totals must filter through this helper, otherwise the income
+// tx silently subtracts from gasto, distorts category charts, and corrupts
+// historial entries on cierre.
+function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso';}
+
+// Deposit the user's monthly income to the wallet. Idempotent per (mes, anio):
+// only one income tx per month is allowed. Records as a synthetic transacción
+// with negative monto (credit semantic) so the existing tx-delete flow correctly
+// un-credits via reverseCashDebit (which adds tx.monto, and adding a negative
+// subtracts — exactly the right reversal for an income credit).
+function findIncomeTxThisMonth(){
+  const cfg=_editData?.config;if(!cfg)return null;
+  const cuenta=getDefaultCashAccount();if(!cuenta)return null;
+  return (_editData.transacciones||[]).find(tx=>
+    tx.categoria==='ingreso'&&tx.mes===cfg.mes&&tx.anio===cfg.anio&&tx.applied&&tx.cuentaId===cuenta.id
+  )||null;
+}
+function depositIncomeToWallet(){
+  // No wallet yet → open setup; user can re-click after configuring.
+  if(!getDefaultCashAccount()){promptFirstCashSetup(null);return false;}
+  const cuenta=getDefaultCashAccount();
+  const cfg=_editData.config;
+  const monthlyRD=monthlyIncomeRD(cfg);
+  if(monthlyRD<=0){showToast(t('wallet_income_zero'),'var(--yellow)');return false;}
+  if(findIncomeTxThisMonth()){showToast(t('wallet_income_already'),'var(--yellow)');return false;}
+  const amt=txAmountInCuenta(monthlyRD,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)+amt;
+  if(!_editData.transacciones)_editData.transacciones=[];
+  _editData.transacciones.push({
+    fecha:new Date().toISOString().slice(0,10),
+    monto:-monthlyRD, // negative monto = credit semantic (movements list renders as +)
+    categoria:'ingreso',
+    metodo:'transferencia', // not 'efectivo' so applyCashDebit short-circuits
+    nota:t('wallet_income_note'),
+    gastoIdx:-1,
+    mes:cfg.mes,anio:cfg.anio,
+    applied:true,cuentaId:cuenta.id,
+  });
+  if(navigator.vibrate)navigator.vibrate([15,40,15,40,30]);
+  saveToDB();
+  buildDashboard({..._editData});
+  showToast(t('wallet_income_toast').replace('{n}',fmtC(amt)),'var(--green)');
+  return true;
+}
+
+function reverseGastoDebit(gasto){
+  if(!gasto||!gasto.pagadoApplied)return false;
+  const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===gasto.pagadoCuentaId);
+  if(cuenta){
+    // Refund the exact amount we debited (or fall back to the cuenta-converted
+    // adeudado for legacy / hand-edited records lacking pagadoAppliedAmt).
+    const amt=(typeof gasto.pagadoAppliedAmt==='number')?gasto.pagadoAppliedAmt:txAmountInCuenta(gasto.adeudado||0,cuenta);
+    cuenta.saldo=(cuenta.saldo||0)+amt;
+  }
+  // Always clear the flags. If the cuenta is gone (deleted by the user),
+  // the receivable can never be recovered — clearing the flag is the right
+  // thing so a subsequent re-check can re-apply against a new default
+  // (Bug #2 from batch-3 audit: orphan flags blocked all future toggles).
+  gasto.pagadoApplied=false;
+  delete gasto.pagadoCuentaId;
+  delete gasto.pagadoAppliedAmt;
+  return !!cuenta;
+}
+
+// Format a saldo for the chip / card. The chip lives in the dashboard so
+// the user's primary currency (config.monedaPrincipal) is what they expect.
+function formatWalletAmount(saldo,cuentaMoneda){
+  // Cuenta saldos are stored in their own moneda. Convert to primary currency
+  // for display, then run through fmtC for the symbol + grouping.
+  const tasa=_editData?.config?.tasa||60;
+  const primary=_editData?.config?.monedaPrincipal||'RD';
+  let inPrimary=saldo||0;
+  if(cuentaMoneda==='USD'&&primary==='RD')inPrimary=(saldo||0)*tasa;
+  else if(cuentaMoneda==='RD'&&primary==='USD')inPrimary=(saldo||0)/tasa;
+  return fmtC(inPrimary);
+}
+
+// Update the header chip to reflect the current default cash account.
+// Hidden when no default is configured.
+let _lastWalletSaldo=null;
+function renderWalletChip(){
+  const chip=document.getElementById('walletChip');
+  const valEl=document.getElementById('walletChipVal');
+  if(!chip||!valEl)return;
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta){chip.style.display='none';_lastWalletSaldo=null;return;}
+  chip.style.display='inline-flex';
+  valEl.textContent=formatWalletAmount(cuenta.saldo,cuenta.moneda);
+  // Flash the chip on balance change so the user notices the wallet moved.
+  if(_lastWalletSaldo!==null&&_lastWalletSaldo!==cuenta.saldo){
+    chip.classList.remove('flash-down','flash-up');
+    void chip.offsetWidth; // force reflow so the class re-add restarts the animation
+    chip.classList.add(cuenta.saldo<_lastWalletSaldo?'flash-down':'flash-up');
+  }
+  _lastWalletSaldo=cuenta.saldo;
+}
+
+// onClick handler for the chip — if a default exists, scroll to the Resumen
+// card; if not, open the first-use setup modal.
+function onWalletChipClick(){
+  if(!getDefaultCashAccount()){promptFirstCashSetup(null);return;}
+  // showTab refetches the desktop tab btn when null, so this works on mobile
+  // (where desktop tab is display:none) too. Keep the mobile bottom nav in sync.
+  showTab('resumen',null);
+  if(typeof syncMobileNav==='function')syncMobileNav('resumen');
+  setTimeout(()=>{const card=document.getElementById('walletCard');if(card)card.scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+// Jump from the Resumen wallet card "View all" link to the full Registro tab.
+function walletViewAllMovements(){
+  showTab('registro',null);
+  if(typeof syncMobileNav==='function')syncMobileNav('registro');
+}
+
+// Show the FAB whenever a wallet is configured. Hidden during loader and
+// on the empty-wallet state so it doesn't compete with the "Set up Mi Saldo"
+// CTA on the Resumen card.
+function renderQuickPayFab(){
+  const fab=document.getElementById('quickPayFab');
+  if(!fab)return;
+  const dashShown=document.getElementById('dashApp')?.style.display!=='none';
+  const hasWallet=!!getDefaultCashAccount();
+  fab.classList.toggle('visible',!!(dashShown&&hasWallet));
+  // Localized aria-label/title — re-set so language toggles propagate
+  const label=t('qpay_fab_aria');
+  fab.setAttribute('aria-label',label);
+  fab.setAttribute('title',label);
+}
+
+// QUICK-PAY MODAL
+const QPAY_CATS=['comida','transporte','entretenimiento','salud','compras','hogar','educacion','personal','otro'];
+// When the user invokes the FAB without a wallet, we open setup; after they
+// confirm, we re-open the quick-pay modal so they don't have to chase the FAB
+// again. This flag is the cheapest way to signal that intent.
+let _qpayResumeAfterSetup=false;
+function openQuickPay(){
+  // No wallet → defer to first-use setup; auto-resume quick-pay on confirm.
+  if(!getDefaultCashAccount()){_qpayResumeAfterSetup=true;promptFirstCashSetup(null);return;}
+  const m=document.getElementById('quickPayModal');if(!m)return;
+  // Reset inputs to a clean state
+  const amt=document.getElementById('qpayAmount');if(amt){amt.value='';amt.classList.remove('changed');}
+  const nota=document.getElementById('qpayNota');if(nota)nota.value='';
+  const err=document.getElementById('qpayError');if(err){err.classList.remove('show');err.textContent='';}
+  // (Re)populate method + category dropdowns so i18n stays current
+  const metSel=document.getElementById('qpayMethod');
+  if(metSel){metSel.innerHTML=['efectivo','tarjeta','transferencia'].map(v=>`<option value="${v}">${escH(t('reg_'+v))}</option>`).join('');metSel.value='efectivo';}
+  const catSel=document.getElementById('qpayCategoria');
+  if(catSel){catSel.innerHTML=QPAY_CATS.map(c=>`<option value="${c}">${escH(t('reg_cat_'+c))}</option>`).join('');catSel.value='otro';}
+  m.classList.add('open');
+  setTimeout(()=>amt&&amt.focus(),50);
+}
+function closeQuickPay(){document.getElementById('quickPayModal')?.classList.remove('open');}
+function submitQuickPay(){
+  const monto=pf(document.getElementById('qpayAmount')?.value||'');
+  const err=document.getElementById('qpayError');
+  if(!(monto>0)){
+    if(err){err.textContent=t('qpay_err_amount');err.classList.add('show');}
+    return false;
+  }
+  const metodo=document.getElementById('qpayMethod')?.value||'efectivo';
+  const categoria=document.getElementById('qpayCategoria')?.value||'otro';
+  const nota=(document.getElementById('qpayNota')?.value||'').trim();
+  const cfg=_editData.config;
+  const tx={
+    fecha:new Date().toISOString().slice(0,10),
+    monto,categoria,nota,metodo,
+    gastoIdx:-1,
+    mes:cfg.mes,anio:cfg.anio,
+  };
+  if(!_editData.transacciones)_editData.transacciones=[];
+  applyCashDebit(tx); // no-op if metodo isn't efectivo
+  _editData.transacciones.push(tx);
+  if(navigator.vibrate)navigator.vibrate([10,30,10]);
+  closeQuickPay();
+  saveToDB();
+  buildDashboard({..._editData});
+  // Toast shows the resulting balance in primary currency. Cash payments
+  // call out the wallet by name; non-cash falls back to a generic toast.
+  if(metodo==='efectivo'){
+    const cuenta=getDefaultCashAccount();
+    const balText=cuenta?formatWalletAmount(cuenta.saldo,cuenta.moneda):'';
+    showToast(t('qpay_toast_cash').replace('{n}',balText),'var(--green)');
+  } else {
+    showToast(t('qpay_toast_other'),'var(--green)');
+  }
+  return true;
+}
+
+// Find the most recent N transactions that affected the default cash account.
+function recentWalletMovements(limit){
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta)return [];
+  const txs=(_editData.transacciones||[])
+    .filter(tx=>tx.applied&&tx.cuentaId===cuenta.id)
+    .slice().sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  return txs.slice(0,limit||5);
+}
+
+// Render the prominent Mi Saldo card on the Resumen tab.
+function renderWalletCard(){
+  const wrap=document.getElementById('walletCard');
+  if(!wrap)return;
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta){
+    wrap.innerHTML=`<div class="wallet-card" role="region" aria-label="${escH(t('wallet_label'))}">
+      <div class="wallet-card-row">
+        <div>
+          <div class="wallet-card-label">${escH(t('wallet_label'))}</div>
+          <div class="wallet-card-balance" style="color:var(--muted);font-size:18px">${escH(t('wallet_setup_sub'))}</div>
+        </div>
+        <button class="wallet-cta" onclick="promptFirstCashSetup()">${escH(t('wallet_setup_cta'))}</button>
+      </div>
+    </div>`;
+    return;
+  }
+  const movs=recentWalletMovements(5);
+  const movsHtml=movs.length===0
+    ? `<div class="wallet-empty-state">${escH(t('wallet_no_movements'))}</div>`
+    : movs.map(tx=>{
+        const dateStr=String(tx.fecha||'').slice(5);
+        const cat=t('reg_cat_'+(tx.categoria||'otro'));
+        const isCredit=(tx.monto||0)<0;
+        const sign=isCredit?'+':'-';
+        const cls=isCredit?'credit':'debit';
+        return `<div class="wallet-mov-item">
+          <div>
+            <div>${escH(tx.nota||cat)}</div>
+            <div class="wallet-mov-meta">${escH(dateStr)} · ${escH(cat)}</div>
+          </div>
+          <div class="wallet-mov-amt ${cls}">${sign}${escH(fmtC(toDisplay(Math.abs(tx.monto||0))))}</div>
+        </div>`;
+      }).join('');
+  // Income deposit affordance: button if not yet deposited this month, else
+  // a green "received" indicator. Hidden entirely if the user hasn't set an
+  // income (monthlyIncomeRD <= 0) — there's nothing to credit.
+  const monthlyRD=monthlyIncomeRD();
+  const incomeAlready=findIncomeTxThisMonth();
+  let incomeBtnHtml='';
+  if(monthlyRD>0){
+    if(incomeAlready){
+      incomeBtnHtml=`<div class="wallet-income-done" aria-live="polite">✓ ${escH(t('wallet_income_received_this_month'))}</div>`;
+    } else {
+      const labelAmt=fmtC(txAmountInCuenta(monthlyRD,cuenta));
+      incomeBtnHtml=`<button type="button" class="wallet-income-btn" onclick="depositIncomeToWallet()">+ ${escH(t('wallet_income_button'))} · ${escH(labelAmt)}</button>`;
+    }
+  }
+  wrap.innerHTML=`<div class="wallet-card" role="region" aria-label="${escH(t('wallet_label'))}">
+    <div class="wallet-card-row">
+      <div>
+        <div class="wallet-card-label">${escH(t('wallet_label'))} · ${escH(cuenta.nombre)}</div>
+        <div class="wallet-card-balance">${escH(formatWalletAmount(cuenta.saldo,cuenta.moneda))}</div>
+      </div>
+      ${incomeBtnHtml}
+    </div>
+    <div class="wallet-movements">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px">
+        <div class="wallet-card-label">${escH(t('wallet_movements'))}</div>
+        ${movs.length>0?`<button type="button" class="wallet-view-all" onclick="walletViewAllMovements()">${escH(t('wallet_view_all'))} →</button>`:''}
+      </div>
+      ${movsHtml}
+    </div>
+  </div>`;
+}
+
+// First-use setup flow. Optional `pendingTx` is the in-flight transacción
+// the user just submitted; once the wallet is created, we apply the debit
+// and finish the original submission.
+let _walletPendingTx=null;
+function promptFirstCashSetup(pendingTx){
+  _walletPendingTx=pendingTx||null;
+  const m=document.getElementById('walletSetupModal');if(!m)return;
+  const inp=document.getElementById('walletSetupAmount');if(inp)inp.value='';
+  m.classList.add('open');
+  setTimeout(()=>inp&&inp.focus(),50);
+}
+function cancelWalletSetup(){
+  document.getElementById('walletSetupModal')?.classList.remove('open');
+  _walletPendingTx=null;
+  _qpayResumeAfterSetup=false;
+}
+function confirmWalletSetup(){
+  const inp=document.getElementById('walletSetupAmount');
+  const amt=Math.max(0,pf(inp?.value||'0'));
+  const primary=_editData?.config?.monedaPrincipal||'RD';
+  const cuenta={
+    id:genCuentaId(),
+    nombre:t('wallet_setup_account_name'),
+    moneda:primary,
+    saldo:amt,
+    tipo:'cash',
+    comp:0,disp:amt
+  };
+  if(!_editData.forNow.cuentas)_editData.forNow.cuentas=[];
+  _editData.forNow.cuentas.push(cuenta);
+  _editData.config.defaultCashAccountId=cuenta.id;
+  _editData.forNow.fecha=new Date().toISOString().slice(0,10);
+  // If the user reached this modal via addTransaccion, finish that flow now.
+  const pending=_walletPendingTx;_walletPendingTx=null;
+  document.getElementById('walletSetupModal')?.classList.remove('open');
+  if(pending){
+    const tx={fecha:pending.fecha,monto:pending.monto,categoria:pending.categoria,nota:pending.nota,metodo:pending.metodo,gastoIdx:pending.gastoIdx>=0?pending.gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio};
+    applyCashDebit(tx);
+    _editData.transacciones.push(tx);
+    if(pending.recurrencia&&pending.recurrencia!=='none'){
+      if(!_editData.recurrentes)_editData.recurrentes=[];
+      _editData.recurrentes.push({id:'rec_'+Date.now(),fecha:pending.fecha,monto:pending.monto,categoria:pending.categoria,nota:pending.nota,metodo:pending.metodo,gastoIdx:pending.gastoIdx>=0?pending.gastoIdx:-1,frecuencia:pending.recurrencia,lastGenerated:pending.fecha});
+    }
+    const m=document.getElementById('regMonto');if(m)m.value='';
+    const n=document.getElementById('regNota');if(n)n.value='';
+    const r=document.getElementById('regRecurrencia');if(r)r.value='none';
+  }
+  saveToDB();
+  buildDashboard({..._editData});
+  // If the user reached setup via the quick-pay FAB, resume that flow now
+  // that the wallet exists. They don't have to chase the FAB a second time.
+  if(_qpayResumeAfterSetup){_qpayResumeAfterSetup=false;openQuickPay();}
 }
 
 // ══════════════════════════════════
@@ -1508,6 +2040,56 @@ const LANG = {
     payfreq_semanal:'Semanal',
     payfreq_per_period:'por pago',
     payfreq_monthly_equiv:'≈ {n} al mes',
+    // Mi Saldo (wallet)
+    wallet_label:'Mi Saldo',
+    wallet_default_label:'Cuenta principal de Mi Saldo',
+    wallet_default_note:'La cuenta marcada aquí es la que se usa como saldo principal cuando registras pagos en efectivo.',
+    wallet_set_default:'Usar como Mi Saldo',
+    wallet_is_default:'Mi Saldo principal',
+    wallet_clear_default:'Quitar como principal',
+    cuenta_tipo_label:'Tipo de cuenta',
+    cuenta_tipo_cash:'Efectivo',
+    cuenta_tipo_banco:'Banco',
+    cuenta_tipo_ahorro:'Ahorros',
+    cuenta_tipo_inversion:'Inversión',
+    // Gasto cash-payment auto-debit (batch 3)
+    gasto_metodo_label:'Método de pago',
+    gasto_metodo_none:'Sin auto-débito',
+    gasto_paid_with_cash:'Se paga en efectivo · descuenta de Mi Saldo',
+    eth_metodo:'Método',
+    // Income deposit (batch 4)
+    wallet_income_button:'Recibí mi pago',
+    wallet_income_received_this_month:'Pago recibido este mes',
+    wallet_income_note:'Pago mensual',
+    wallet_income_already:'Ya registraste tu pago este mes',
+    wallet_income_zero:'Define tu ingreso primero (Editar > Configuración)',
+    wallet_income_toast:'Mi Saldo +{n}',
+    // Quick-pay FAB + modal (batch 5)
+    qpay_fab_aria:'Pago rápido',
+    qpay_title:'Pago rápido',
+    qpay_sub:'Registra un gasto en segundos.',
+    qpay_amount:'Monto',
+    qpay_method:'Método',
+    qpay_category:'Categoría',
+    qpay_for:'Para qué',
+    qpay_submit:'Pagar',
+    qpay_cancel:'Cancelar',
+    qpay_err_amount:'Ingresa un monto mayor a 0',
+    qpay_toast_cash:'Pago registrado · Mi Saldo {n}',
+    qpay_toast_other:'Pago registrado',
+    // Mi Saldo widget + Resumen card
+    wallet_balance:'Disponible',
+    wallet_movements:'Últimos movimientos',
+    wallet_no_movements:'Sin movimientos aún',
+    wallet_view_all:'Ver todos',
+    wallet_setup_cta:'Configurar Mi Saldo',
+    wallet_setup_title:'Configura Mi Saldo',
+    wallet_setup_sub:'¿Cuánto efectivo tienes ahora mismo? Mi Saldo bajará cuando pagues en efectivo y subirá cuando recibas tu pago.',
+    wallet_setup_amount:'Saldo inicial',
+    wallet_setup_confirm:'Crear Mi Saldo',
+    wallet_setup_cancel:'Cancelar',
+    wallet_setup_account_name:'Efectivo',
+    wallet_chip_label:'Mi Saldo',
     ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Rango: 1–30 días',
     // Cashflow field labels
     ecf_ingreso:'Ingreso Mensual ({cs})', ecf_gasto:'Gasto Mensual Total',
@@ -1616,6 +2198,7 @@ const LANG = {
     reg_cat_comida:'Comida', reg_cat_transporte:'Transporte', reg_cat_entretenimiento:'Entretenimiento',
     reg_cat_salud:'Salud', reg_cat_compras:'Compras', reg_cat_hogar:'Hogar',
     reg_cat_educacion:'Educación', reg_cat_personal:'Personal', reg_cat_otro:'Otro',
+    reg_cat_ingreso:'Ingreso',
     reg_chart_title:'Gasto por Categoría', reg_tracked:'Gasto registrado', reg_trend_title:'Tendencia de Gasto',
     edit_tab_transacciones:'🧾 Transacciones',
     // Feature 6 – Presupuesto (Forward Budget)
@@ -1924,6 +2507,56 @@ const LANG = {
     payfreq_semanal:'Weekly',
     payfreq_per_period:'per pay',
     payfreq_monthly_equiv:'≈ {n} monthly',
+    // My Balance (wallet)
+    wallet_label:'My Balance',
+    wallet_default_label:'Primary My Balance account',
+    wallet_default_note:'The account flagged here is used as your primary balance when you record cash payments.',
+    wallet_set_default:'Use as My Balance',
+    wallet_is_default:'Primary My Balance',
+    wallet_clear_default:'Clear primary',
+    cuenta_tipo_label:'Account type',
+    cuenta_tipo_cash:'Cash',
+    cuenta_tipo_banco:'Bank',
+    cuenta_tipo_ahorro:'Savings',
+    cuenta_tipo_inversion:'Investment',
+    // Gasto cash-payment auto-debit (batch 3)
+    gasto_metodo_label:'Payment method',
+    gasto_metodo_none:'No auto-debit',
+    gasto_paid_with_cash:'Paid in cash · deducts from My Balance',
+    eth_metodo:'Method',
+    // Income deposit (batch 4)
+    wallet_income_button:'I got paid',
+    wallet_income_received_this_month:'Income received this month',
+    wallet_income_note:'Monthly income',
+    wallet_income_already:'You already recorded this month’s pay',
+    wallet_income_zero:'Set your income first (Edit > Settings)',
+    wallet_income_toast:'My Balance +{n}',
+    // Quick-pay FAB + modal (batch 5)
+    qpay_fab_aria:'Quick pay',
+    qpay_title:'Quick pay',
+    qpay_sub:'Record an expense in seconds.',
+    qpay_amount:'Amount',
+    qpay_method:'Method',
+    qpay_category:'Category',
+    qpay_for:'What for',
+    qpay_submit:'Pay',
+    qpay_cancel:'Cancel',
+    qpay_err_amount:'Enter an amount greater than 0',
+    qpay_toast_cash:'Payment recorded · My Balance {n}',
+    qpay_toast_other:'Payment recorded',
+    // My Balance widget + Resumen card
+    wallet_balance:'Available',
+    wallet_movements:'Recent activity',
+    wallet_no_movements:'No movements yet',
+    wallet_view_all:'View all',
+    wallet_setup_cta:'Set up My Balance',
+    wallet_setup_title:'Set up My Balance',
+    wallet_setup_sub:"How much cash do you have right now? My Balance will go down as you spend cash and up when you record income.",
+    wallet_setup_amount:'Starting balance',
+    wallet_setup_confirm:'Create My Balance',
+    wallet_setup_cancel:'Cancel',
+    wallet_setup_account_name:'Cash',
+    wallet_chip_label:'My Balance',
     ecfg_dias:'Payment alert days', ecfg_dias_note:'Range: 1–30 days',
     // Cashflow field labels
     ecf_ingreso:'Monthly Income ({cs})', ecf_gasto:'Total Monthly Expenses',
@@ -2032,6 +2665,7 @@ const LANG = {
     reg_cat_comida:'Food', reg_cat_transporte:'Transport', reg_cat_entretenimiento:'Entertainment',
     reg_cat_salud:'Health', reg_cat_compras:'Shopping', reg_cat_hogar:'Home',
     reg_cat_educacion:'Education', reg_cat_personal:'Personal', reg_cat_otro:'Other',
+    reg_cat_ingreso:'Income',
     reg_chart_title:'Spending by Category', reg_tracked:'Tracked spending', reg_trend_title:'Spending Trend',
     edit_tab_transacciones:'🧾 Transactions',
     // Feature 6 – Budget (Forward Budget)
@@ -2465,7 +3099,7 @@ function defaultEditData(){
   const now=new Date();
   const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   return{
-    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD',payFrequency:'mensual'},
+    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD',payFrequency:'mensual',defaultCashAccountId:null},
     gastos:[],
     forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
     emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,ahorros:0,balanceAhorros:0}},
@@ -2481,15 +3115,47 @@ function defaultEditData(){
 // ── Helper renderers (defined before _setupSteps so they're available inside render:() arrows) ──
 function renderSwCuenta(i,c){
   const mon=c.moneda||'RD';
-  return`<div class="sw-cuenta-row" style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
-    <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
-    <select class="cierre-input sw-cnt-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
-    <input class="cierre-input sw-cnt-saldo" type="text" inputmode="decimal" placeholder="Saldo" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
-    <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
+  const tipo=CUENTA_TIPOS.includes(c.tipo)?c.tipo:'banco';
+  // Stable id is generated/persisted on the data object so the radio survives re-renders
+  if(!c.id)c.id=genCuentaId();
+  const isDefault=_editData.config?.defaultCashAccountId===c.id;
+  return`<div class="sw-cuenta-row" data-cuenta-id="${c.id}" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center;margin-bottom:8px">
+      <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
+      <select class="cierre-input sw-cnt-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
+      <input class="cierre-input sw-cnt-saldo" type="text" inputmode="decimal" placeholder="Saldo" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
+      <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select class="cierre-input sw-cnt-tipo" style="font-size:12px;padding:6px 8px;cursor:pointer;flex:1;min-width:120px">
+        ${CUENTA_TIPOS.map(tp=>`<option value="${tp}" ${tp===tipo?'selected':''}>${t('cuenta_tipo_'+tp)}</option>`).join('')}
+      </select>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:${isDefault?'var(--accent)':'var(--muted)'};cursor:pointer;font-weight:${isDefault?'700':'500'}">
+        <input type="radio" name="sw-cnt-default" class="sw-cnt-default" ${isDefault?'checked':''} onchange="swSetDefaultCash('${c.id}')">
+        ${t('wallet_set_default')}
+      </label>
+    </div>
   </div>`;
 }
+function swSetDefaultCash(id){
+  // Update underlying _editData immediately + reflect in DOM labels
+  if(_editData.config)_editData.config.defaultCashAccountId=id;
+  document.querySelectorAll('.sw-cuenta-row').forEach(row=>{
+    const isMatch=row.dataset.cuentaId===id;
+    const lbl=row.querySelector('label');
+    if(lbl){
+      lbl.style.color=isMatch?'var(--accent)':'var(--muted)';
+      lbl.style.fontWeight=isMatch?'700':'500';
+    }
+    // If marking as default, force tipo to 'cash'
+    if(isMatch){
+      const tipoSel=row.querySelector('.sw-cnt-tipo');
+      if(tipoSel)tipoSel.value='cash';
+    }
+  });
+}
 function addSwCuenta(){
-  document.getElementById('sw-cuentas-list').insertAdjacentHTML('beforeend',renderSwCuenta(Date.now(),{nombre:'',moneda:'RD',saldo:0}));
+  document.getElementById('sw-cuentas-list').insertAdjacentHTML('beforeend',renderSwCuenta(Date.now(),{id:genCuentaId(),nombre:'',moneda:'RD',saldo:0,tipo:'banco'}));
 }
 function renderSwGasto(i,g){
   const tipos=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
@@ -2507,10 +3173,19 @@ function renderSwGasto(i,g){
       <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="text" inputmode="decimal" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
       <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="text" inputmode="decimal" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
     </div>
+    <div style="margin-top:8px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${escH(t('gasto_metodo_label')).toUpperCase()}</div>
+      <select class="cierre-input sw-g-metodo" style="font-size:13px;padding:7px 8px;cursor:pointer;width:100%">
+        <option value="" ${!g.metodo?'selected':''}>${escH(t('gasto_metodo_none'))}</option>
+        <option value="efectivo" ${g.metodo==='efectivo'?'selected':''}>${escH(t('reg_efectivo'))}</option>
+        <option value="tarjeta" ${g.metodo==='tarjeta'?'selected':''}>${escH(t('reg_tarjeta'))}</option>
+        <option value="transferencia" ${g.metodo==='transferencia'?'selected':''}>${escH(t('reg_transferencia'))}</option>
+      </select>
+    </div>
   </div>`;
 }
 function addSwGasto(){
-  document.getElementById('sw-gastos-list').insertAdjacentHTML('beforeend',renderSwGasto(Date.now(),{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0}));
+  document.getElementById('sw-gastos-list').insertAdjacentHTML('beforeend',renderSwGasto(Date.now(),{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0,metodo:''}));
 }
 function renderSwFondo(i,f){
   const mon=f.moneda||'RD';
@@ -2631,12 +3306,21 @@ const _setupSteps=[
     save:()=>{
       const rows=document.querySelectorAll('.sw-cuenta-row');
       _editData.forNow.cuentas=[];
+      let defaultId=null;
       rows.forEach(row=>{
         const nombre=row.querySelector('.sw-cnt-nombre').value.trim();
         const moneda=row.querySelector('.sw-cnt-moneda')?.value||'RD';
         const saldo=pf(row.querySelector('.sw-cnt-saldo').value);
-        if(nombre) _editData.forNow.cuentas.push({nombre,moneda,saldo,comp:0,disp:saldo});
+        const tipo=row.querySelector('.sw-cnt-tipo')?.value||'banco';
+        const id=row.dataset.cuentaId||genCuentaId();
+        const isDefault=row.querySelector('.sw-cnt-default')?.checked;
+        if(nombre){
+          _editData.forNow.cuentas.push({id,nombre,moneda,saldo,tipo:CUENTA_TIPOS.includes(tipo)?tipo:'banco',comp:0,disp:saldo});
+          if(isDefault)defaultId=id;
+        }
       });
+      // Persist the wallet pointer; clear if no row was marked
+      _editData.config.defaultCashAccountId=defaultId;
       const tasa=_editData.config.tasa||60;
       _editData.forNow.total=_editData.forNow.cuentas.reduce((a,c)=>a+(c.moneda==='USD'?(c.saldo||0)*tasa:(c.saldo||0)),0);
       _editData.forNow.fecha=new Date().toISOString().slice(0,10);
@@ -2665,7 +3349,9 @@ const _setupSteps=[
         const tasa=pf(row.querySelector('.sw-g-tasa').value);
         const balance=pf(row.querySelector('.sw-g-balance').value);
         const tipo=row.querySelector('.sw-g-tipo').value;
-        _editData.gastos.push({nombre,tipo,pagado:0,adeudado,dia,tasa,balance,originalRD:balance||adeudado,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:null,notas:'',pagadoMes:false});
+        const metodoRaw=row.querySelector('.sw-g-metodo')?.value||'';
+        const metodo=['efectivo','tarjeta','transferencia'].includes(metodoRaw)?metodoRaw:'';
+        _editData.gastos.push({nombre,tipo,pagado:0,adeudado,dia,tasa,balance,originalRD:balance||adeudado,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:null,notas:'',pagadoMes:false,metodo});
       });
       const totalGasto=_editData.gastos.reduce((a,g)=>a+g.adeudado,0);
       _editData.emerg.cashflow.gasto=totalGasto;
@@ -2904,14 +3590,14 @@ async function hardResetCache(){
     if(btn){btn.style.opacity='';btn.style.pointerEvents='';}
   }
 }
-const _DEMO_DATA_RD={"config":{"tasa":61.5,"mes":"Mayo","anio":2026,"ingresoUSD":3800,"diasAlerta":7,"ingresoRD":233700,"monedaPrincipal":"RD","payFrequency":"mensual"},"gastos":[{"nombre":"Hipoteca Apt. Naco","tipo":"Vivienda","pagado":52000,"adeudado":52000,"dia":5,"tasa":11.5,"balance":4185000,"originalRD":5500000,"originalUSD":89430,"tasaCreacion":54.5,"fechaLimite":"2041-03-05","notas":"Banco BHD · cuota fija 15 años","pagadoMes":true},{"nombre":"Mantenimiento Condo","tipo":"Vivienda","pagado":4500,"adeudado":4500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Incluye agua y basura","pagadoMes":true},{"nombre":"Préstamo Kia Sportage","tipo":"Préstamo","pagado":0,"adeudado":18500,"dia":15,"tasa":18,"balance":682400,"originalRD":950000,"originalUSD":15447,"tasaCreacion":57.2,"fechaLimite":"2028-09-15","notas":"Banreservas · 5 años","pagadoMes":false},{"nombre":"Visa Oro BPD","tipo":"Tarjeta","pagado":8000,"adeudado":12500,"dia":20,"tasa":60,"balance":145200,"originalRD":145200,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Pago mínimo no cubre intereses","pagadoMes":false},{"nombre":"Mastercard Banreservas","tipo":"Tarjeta","pagado":5000,"adeudado":6800,"dia":25,"tasa":45,"balance":38400,"originalRD":52000,"originalUSD":0,"tasaCreacion":60.5,"fechaLimite":"—","notas":"Consolidar con Visa","pagadoMes":false},{"nombre":"Edenorte (Electricidad)","tipo":"Servicio","pagado":4850,"adeudado":4850,"dia":10,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Promedio últimos 3 meses","pagadoMes":true},{"nombre":"Claro Triple Play","tipo":"Servicio","pagado":3200,"adeudado":3200,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Internet 200Mbps + TV + tel","pagadoMes":true},{"nombre":"Altice Móvil","tipo":"Servicio","pagado":1890,"adeudado":1890,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar 3 líneas","pagadoMes":true},{"nombre":"ARS Humano (Salud)","tipo":"Seguro","pagado":7200,"adeudado":7200,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar complementario","pagadoMes":true},{"nombre":"Supermercado Nacional","tipo":"Variable","pagado":0,"adeudado":22000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Estimado semanal ~RD$5,500","pagadoMes":false},{"nombre":"Gasolina / Transporte","tipo":"Variable","pagado":0,"adeudado":8500,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 tanques al mes","pagadoMes":false},{"nombre":"Gimnasio Body Shop","tipo":"Variable","pagado":2800,"adeudado":2800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Membresía mensual","pagadoMes":true},{"nombre":"Netflix + Disney+","tipo":"Servicio","pagado":1480,"adeudado":1480,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan estándar ambos","pagadoMes":true},{"nombre":"Inglés hija (APEC)","tipo":"Educación","pagado":6500,"adeudado":6500,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Curso trimestral · cuota mensual","pagadoMes":true},{"nombre":"Apoyo a mamá","tipo":"Familiar","pagado":0,"adeudado":8000,"dia":28,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Transferencia mensual fija","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Cuenta Corriente BPD","moneda":"RD","saldo":28450,"comp":0,"disp":0},{"nombre":"Cuenta de Ahorros Banreservas","moneda":"RD","saldo":142300,"comp":0,"disp":0},{"nombre":"Cuenta USD Popular","moneda":"USD","saldo":1840,"comp":0,"disp":0},{"nombre":"Cash en mano","moneda":"RD","saldo":8200,"comp":0,"disp":0},{"nombre":"Inversión corto plazo","moneda":"RD","saldo":75000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":367110,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"Fondo 3 Meses Gastos","moneda":"RD","balance":180000,"meta":234000},{"fondo":"Fondo Auto","moneda":"RD","balance":45000,"meta":80000},{"fondo":"Fondo Médico","moneda":"RD","balance":80000,"meta":80000},{"fondo":"Fondo Hogar","moneda":"RD","balance":22000,"meta":60000},{"fondo":"Fondo Educación Hija","moneda":"USD","balance":500,"meta":2000}],"cashflow":{"ingreso":233700,"gasto":160720,"tasa":61.5,"retirarUSD":2613.33,"ahorros":12000,"balanceAhorros":187500}},"historial":[{"mes":"Mayo","anio":2026,"ingresos":233700,"gasto":160720,"ahorro":72980,"tasaAhorro":0.312280701754386,"deudas":5051000,"emergencia":357750,"netWorth":-2831050,"tasa":61.5,"notas":"Mejor mes del año — pagué extra a Visa"},{"mes":"Abril","anio":2026,"ingresos":232180,"gasto":168400,"ahorro":63780,"tasaAhorro":0.27470066327849085,"deudas":5108000,"emergencia":342000,"netWorth":-2915820,"tasa":61,"notas":"Bono de Semana Santa ayudó"},{"mes":"Marzo","anio":2026,"ingresos":230660,"gasto":172300,"ahorro":58360,"tasaAhorro":0.2530130928639556,"deudas":5165000,"emergencia":325000,"netWorth":-3012700,"tasa":60.7,"notas":"Pagué cuota extra auto"},{"mes":"Febrero","anio":2026,"ingresos":229140,"gasto":165800,"ahorro":63340,"tasaAhorro":0.2764248930784673,"deudas":5225000,"emergencia":308000,"netWorth":-3098660,"tasa":60.3,"notas":""},{"mes":"Enero","anio":2026,"ingresos":228380,"gasto":170200,"ahorro":58180,"tasaAhorro":0.25475085384009105,"deudas":5290000,"emergencia":292000,"netWorth":-3186820,"tasa":60.1,"notas":"Gastos de Reyes subieron Variable"},{"mes":"Diciembre","anio":2025,"ingresos":235600,"gasto":195300,"ahorro":40300,"tasaAhorro":0.17105263157894737,"deudas":5358000,"emergencia":275000,"netWorth":-3285000,"tasa":62,"notas":"Navidad — gastos extras fuertes"},{"mes":"Noviembre","anio":2025,"ingresos":228000,"gasto":162400,"ahorro":65600,"tasaAhorro":0.28771929824561404,"deudas":5420000,"emergencia":260000,"netWorth":-3372000,"tasa":60,"notas":"Mes disciplinado"},{"mes":"Octubre","anio":2025,"ingresos":226480,"gasto":168700,"ahorro":57780,"tasaAhorro":0.25512186506534795,"deudas":5488000,"emergencia":244000,"netWorth":-3460800,"tasa":59.6,"notas":""},{"mes":"Septiembre","anio":2025,"ingresos":224200,"gasto":164300,"ahorro":59900,"tasaAhorro":0.2671721677074041,"deudas":5542000,"emergencia":228000,"netWorth":-3542000,"tasa":59,"notas":""},{"mes":"Agosto","anio":2025,"ingresos":224200,"gasto":218500,"ahorro":-5700,"tasaAhorro":-0.025423728813559324,"deudas":5598000,"emergencia":212000,"netWorth":-3628500,"tasa":59,"notas":"⚠ Mes malo — reparación auto RD$48K + urgencia médica"},{"mes":"Julio","anio":2025,"ingresos":222680,"gasto":165200,"ahorro":57480,"tasaAhorro":0.2581282557930663,"deudas":5580000,"emergencia":198000,"netWorth":-3611680,"tasa":58.6,"notas":"Buen mes — regresé a la disciplina"},{"mes":"Junio","anio":2025,"ingresos":222680,"gasto":170800,"ahorro":51880,"tasaAhorro":0.23298006107418717,"deudas":5645000,"emergencia":182000,"netWorth":-3698320,"tasa":58.6,"notas":""},{"mes":"Mayo","anio":2025,"ingresos":221920,"gasto":168400,"ahorro":53520,"tasaAhorro":0.24116798846431145,"deudas":5710000,"emergencia":168000,"netWorth":-3782080,"tasa":58.4,"notas":""},{"mes":"Abril","anio":2025,"ingresos":221160,"gasto":172600,"ahorro":48560,"tasaAhorro":0.21956954241273285,"deudas":5762000,"emergencia":155000,"netWorth":-3856240,"tasa":58.2,"notas":""},{"mes":"Marzo","anio":2025,"ingresos":220400,"gasto":175200,"ahorro":45200,"tasaAhorro":0.20508166969147004,"deudas":5820000,"emergencia":140000,"netWorth":-3935800,"tasa":58,"notas":"Empecé fondo educación hija"},{"mes":"Febrero","anio":2025,"ingresos":219640,"gasto":178500,"ahorro":41140,"tasaAhorro":0.1873065015479876,"deudas":5785000,"emergencia":125000,"netWorth":-3918860,"tasa":57.8,"notas":""},{"mes":"Enero","anio":2025,"ingresos":218880,"gasto":182300,"ahorro":36580,"tasaAhorro":0.1671235380116959,"deudas":5810000,"emergencia":108000,"netWorth":-3964120,"tasa":57.6,"notas":"Resolución: pagar deudas agresivamente"},{"mes":"Diciembre","anio":2024,"ingresos":222300,"gasto":210800,"ahorro":11500,"tasaAhorro":0.051731893837157,"deudas":5850000,"emergencia":92000,"netWorth":-4035700,"tasa":58.5,"notas":"Navidad — gastos altos pero controlados"}],"metas":[{"name":"Vacaciones Cancún","goal":85000,"saved":52000,"monthly":8500},{"name":"Laptop nueva","goal":45000,"saved":45000,"monthly":0},{"name":"Fondo universidad hija","goal":500000,"saved":38000,"monthly":5000},{"name":"Remodelación cocina","goal":120000,"saved":18500,"monthly":6000},{"name":"Fondo retiro anticipado","goal":2000000,"saved":95000,"monthly":12000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo.json"};
-const _DEMO_DATA_USD={"config":{"tasa":60,"mes":"May","anio":2026,"ingresoUSD":6500,"diasAlerta":7,"ingresoRD":390000,"monedaPrincipal":"USD","payFrequency":"mensual"},"gastos":[{"nombre":"Mortgage (Wells Fargo)","tipo":"Vivienda","pagado":111000,"adeudado":111000,"dia":1,"tasa":6.5,"balance":17100000,"originalRD":17100000,"originalUSD":285000,"tasaCreacion":60,"fechaLimite":"2054-01-01","notas":"30yr fixed · escrow included","pagadoMes":true},{"nombre":"Car Loan (Toyota)","tipo":"Préstamo","pagado":0,"adeudado":27000,"dia":15,"tasa":5.9,"balance":1080000,"originalRD":1680000,"originalUSD":28000,"tasaCreacion":60,"fechaLimite":"2029-06-15","notas":"5yr auto loan","pagadoMes":false},{"nombre":"Student Loan (Navient)","tipo":"Préstamo","pagado":21000,"adeudado":21000,"dia":20,"tasa":4.5,"balance":1680000,"originalRD":2700000,"originalUSD":45000,"tasaCreacion":60,"fechaLimite":"2034-09-20","notas":"Federal · 10yr standard","pagadoMes":true},{"nombre":"Visa (Chase)","tipo":"Tarjeta","pagado":12000,"adeudado":12000,"dia":25,"tasa":24.99,"balance":252000,"originalRD":252000,"originalUSD":4200,"tasaCreacion":60,"fechaLimite":"—","notas":"Minimum doesn't cover interest","pagadoMes":false},{"nombre":"Amex Blue Cash","tipo":"Tarjeta","pagado":0,"adeudado":9000,"dia":10,"tasa":21.99,"balance":108000,"originalRD":108000,"originalUSD":1800,"tasaCreacion":60,"fechaLimite":"—","notas":"Consolidate with Visa","pagadoMes":false},{"nombre":"Electric (Duke Energy)","tipo":"Servicio","pagado":9900,"adeudado":9900,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Average last 3 months","pagadoMes":true},{"nombre":"Internet (Xfinity)","tipo":"Servicio","pagado":4800,"adeudado":4800,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"300 Mbps plan","pagadoMes":true},{"nombre":"Cell Phone (T-Mobile)","tipo":"Servicio","pagado":8400,"adeudado":8400,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Family plan · 4 lines","pagadoMes":true},{"nombre":"Health Insurance","tipo":"Seguro","pagado":22800,"adeudado":22800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Employer + employee portion","pagadoMes":true},{"nombre":"Car Insurance (Geico)","tipo":"Seguro","pagado":9900,"adeudado":9900,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full coverage · 2 vehicles","pagadoMes":true},{"nombre":"Groceries (Costco/Walmart)","tipo":"Variable","pagado":0,"adeudado":39000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Weekly ~$160","pagadoMes":false},{"nombre":"Gas / Transport","tipo":"Variable","pagado":0,"adeudado":12000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 fill-ups per month","pagadoMes":false},{"nombre":"Gym (Planet Fitness)","tipo":"Variable","pagado":1500,"adeudado":1500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Monthly membership","pagadoMes":true},{"nombre":"Streaming (Netflix+Spotify+YT)","tipo":"Servicio","pagado":2520,"adeudado":2520,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Standard plans all three","pagadoMes":true},{"nombre":"Daycare / Childcare","tipo":"Educación","pagado":0,"adeudado":51000,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full-time daycare","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Checking (Chase)","moneda":"USD","saldo":3200,"comp":0,"disp":0},{"nombre":"Savings (Marcus)","moneda":"USD","saldo":8500,"comp":0,"disp":0},{"nombre":"Emergency Savings (Ally)","moneda":"USD","saldo":12000,"comp":0,"disp":0},{"nombre":"Cash","moneda":"USD","saldo":150,"comp":0,"disp":0},{"nombre":"Brokerage (Fidelity)","moneda":"USD","saldo":15000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":2331000,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"3-Month Expenses Fund","moneda":"USD","balance":12000,"meta":18000},{"fondo":"Car Repair Fund","moneda":"USD","balance":1500,"meta":3000},{"fondo":"Medical Fund","moneda":"USD","balance":2000,"meta":5000},{"fondo":"Home Repair Fund","moneda":"USD","balance":800,"meta":5000},{"fondo":"Kid's College 529","moneda":"USD","balance":4500,"meta":50000}],"cashflow":{"ingreso":390000,"gasto":341820,"tasa":60,"retirarUSD":0,"ahorros":24000,"balanceAhorros":510000}},"historial":[{"mes":"May","anio":2026,"ingresos":390000,"gasto":341820,"ahorro":48180,"tasaAhorro":0.1235,"deudas":20220000,"emergencia":1248000,"netWorth":-15558000,"tasa":60,"notas":"Best month — extra payment on Visa"},{"mes":"April","anio":2026,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":20370000,"emergencia":1188000,"netWorth":-15732000,"tasa":60,"notas":"Tax refund helped savings"},{"mes":"March","anio":2026,"ingresos":390000,"gasto":355200,"ahorro":34800,"tasaAhorro":0.0892,"deudas":20520000,"emergencia":1110000,"netWorth":-15990000,"tasa":60,"notas":"Paid extra on car loan"},{"mes":"February","anio":2026,"ingresos":390000,"gasto":346800,"ahorro":43200,"tasaAhorro":0.1108,"deudas":20670000,"emergencia":1032000,"netWorth":-16278000,"tasa":60,"notas":""},{"mes":"January","anio":2026,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":20820000,"emergencia":960000,"netWorth":-16500000,"tasa":60,"notas":"Post-holiday spending catch-up"},{"mes":"December","anio":2025,"ingresos":390000,"gasto":432000,"ahorro":-42000,"tasaAhorro":-0.1077,"deudas":20970000,"emergencia":912000,"netWorth":-16728000,"tasa":60,"notas":"Holiday spending high — gifts + travel"},{"mes":"November","anio":2025,"ingresos":390000,"gasto":339000,"ahorro":51000,"tasaAhorro":0.1308,"deudas":21090000,"emergencia":888000,"netWorth":-16872000,"tasa":60,"notas":"Disciplined month — Black Friday avoided"},{"mes":"October","anio":2025,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":21228000,"emergencia":840000,"netWorth":-17118000,"tasa":60,"notas":""},{"mes":"September","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21360000,"emergencia":792000,"netWorth":-17388000,"tasa":60,"notas":"Back to school supplies"},{"mes":"August","anio":2025,"ingresos":390000,"gasto":426000,"ahorro":-36000,"tasaAhorro":-0.0923,"deudas":21492000,"emergencia":750000,"netWorth":-17592000,"tasa":60,"notas":"⚠ Bad month — AC repair $1,200 + summer daycare costs up"},{"mes":"July","anio":2025,"ingresos":390000,"gasto":340800,"ahorro":49200,"tasaAhorro":0.1262,"deudas":21600000,"emergencia":708000,"netWorth":-17748000,"tasa":60,"notas":"Good month — got back on track"},{"mes":"June","anio":2025,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":21732000,"emergencia":660000,"netWorth":-18012000,"tasa":60,"notas":""},{"mes":"May","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21870000,"emergencia":612000,"netWorth":-18258000,"tasa":60,"notas":""},{"mes":"April","anio":2025,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22008000,"emergencia":570000,"netWorth":-18498000,"tasa":60,"notas":""},{"mes":"March","anio":2025,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":22140000,"emergencia":528000,"netWorth":-18732000,"tasa":60,"notas":"Started kid college 529 contributions"},{"mes":"February","anio":2025,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":22272000,"emergencia":480000,"netWorth":-18972000,"tasa":60,"notas":""},{"mes":"January","anio":2025,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":22410000,"emergencia":432000,"netWorth":-19218000,"tasa":60,"notas":"Resolution: pay debts aggressively"},{"mes":"December","anio":2024,"ingresos":390000,"gasto":450000,"ahorro":-60000,"tasaAhorro":-0.1538,"deudas":22500000,"emergencia":390000,"netWorth":-19440000,"tasa":60,"notas":"Holiday spending — high but manageable"}],"metas":[{"name":"Family Vacation (Hawaii)","goal":300000,"saved":168000,"monthly":24000},{"name":"New Laptop","goal":90000,"saved":90000,"monthly":0},{"name":"Kid's College Fund","goal":3000000,"saved":270000,"monthly":18000},{"name":"Kitchen Renovation","goal":900000,"saved":192000,"monthly":15000},{"name":"Early Retirement Fund","goal":30000000,"saved":900000,"monthly":30000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo_usd.json"};
+const _DEMO_DATA_RD={"config":{"tasa":61.5,"mes":"Mayo","anio":2026,"ingresoUSD":3800,"diasAlerta":7,"ingresoRD":233700,"monedaPrincipal":"RD","payFrequency":"mensual"},"gastos":[{"nombre":"Hipoteca Apt. Naco","tipo":"Vivienda","pagado":52000,"adeudado":52000,"dia":5,"tasa":11.5,"balance":4185000,"originalRD":5500000,"originalUSD":89430,"tasaCreacion":54.5,"fechaLimite":"2041-03-05","notas":"Banco BHD · cuota fija 15 años","pagadoMes":true},{"nombre":"Mantenimiento Condo","tipo":"Vivienda","pagado":4500,"adeudado":4500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Incluye agua y basura","pagadoMes":true},{"nombre":"Préstamo Kia Sportage","tipo":"Préstamo","pagado":0,"adeudado":18500,"dia":15,"tasa":18,"balance":682400,"originalRD":950000,"originalUSD":15447,"tasaCreacion":57.2,"fechaLimite":"2028-09-15","notas":"Banreservas · 5 años","pagadoMes":false},{"nombre":"Visa Oro BPD","tipo":"Tarjeta","pagado":8000,"adeudado":12500,"dia":20,"tasa":60,"balance":145200,"originalRD":145200,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Pago mínimo no cubre intereses","pagadoMes":false},{"nombre":"Mastercard Banreservas","tipo":"Tarjeta","pagado":5000,"adeudado":6800,"dia":25,"tasa":45,"balance":38400,"originalRD":52000,"originalUSD":0,"tasaCreacion":60.5,"fechaLimite":"—","notas":"Consolidar con Visa","pagadoMes":false},{"nombre":"Edenorte (Electricidad)","tipo":"Servicio","pagado":4850,"adeudado":4850,"dia":10,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Promedio últimos 3 meses","pagadoMes":true},{"nombre":"Claro Triple Play","tipo":"Servicio","pagado":3200,"adeudado":3200,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Internet 200Mbps + TV + tel","pagadoMes":true},{"nombre":"Altice Móvil","tipo":"Servicio","pagado":1890,"adeudado":1890,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar 3 líneas","pagadoMes":true},{"nombre":"ARS Humano (Salud)","tipo":"Seguro","pagado":7200,"adeudado":7200,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan familiar complementario","pagadoMes":true},{"nombre":"Supermercado Nacional","tipo":"Variable","pagado":0,"adeudado":22000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Estimado semanal ~RD$5,500","pagadoMes":false,"metodo":"efectivo"},{"nombre":"Gasolina / Transporte","tipo":"Variable","pagado":0,"adeudado":8500,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 tanques al mes","pagadoMes":false,"metodo":"efectivo"},{"nombre":"Gimnasio Body Shop","tipo":"Variable","pagado":2800,"adeudado":2800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Membresía mensual","pagadoMes":true},{"nombre":"Netflix + Disney+","tipo":"Servicio","pagado":1480,"adeudado":1480,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan estándar ambos","pagadoMes":true},{"nombre":"Inglés hija (APEC)","tipo":"Educación","pagado":6500,"adeudado":6500,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Curso trimestral · cuota mensual","pagadoMes":true},{"nombre":"Apoyo a mamá","tipo":"Familiar","pagado":0,"adeudado":8000,"dia":28,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Transferencia mensual fija","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Cuenta Corriente BPD","moneda":"RD","saldo":28450,"comp":0,"disp":0},{"nombre":"Cuenta de Ahorros Banreservas","moneda":"RD","saldo":142300,"comp":0,"disp":0},{"nombre":"Cuenta USD Popular","moneda":"USD","saldo":1840,"comp":0,"disp":0},{"nombre":"Cash en mano","moneda":"RD","saldo":8200,"comp":0,"disp":0},{"nombre":"Inversión corto plazo","moneda":"RD","saldo":75000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":367110,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"Fondo 3 Meses Gastos","moneda":"RD","balance":180000,"meta":234000},{"fondo":"Fondo Auto","moneda":"RD","balance":45000,"meta":80000},{"fondo":"Fondo Médico","moneda":"RD","balance":80000,"meta":80000},{"fondo":"Fondo Hogar","moneda":"RD","balance":22000,"meta":60000},{"fondo":"Fondo Educación Hija","moneda":"USD","balance":500,"meta":2000}],"cashflow":{"ingreso":233700,"gasto":160720,"tasa":61.5,"retirarUSD":2613.33,"ahorros":12000,"balanceAhorros":187500}},"historial":[{"mes":"Mayo","anio":2026,"ingresos":233700,"gasto":160720,"ahorro":72980,"tasaAhorro":0.312280701754386,"deudas":5051000,"emergencia":357750,"netWorth":-2831050,"tasa":61.5,"notas":"Mejor mes del año — pagué extra a Visa"},{"mes":"Abril","anio":2026,"ingresos":232180,"gasto":168400,"ahorro":63780,"tasaAhorro":0.27470066327849085,"deudas":5108000,"emergencia":342000,"netWorth":-2915820,"tasa":61,"notas":"Bono de Semana Santa ayudó"},{"mes":"Marzo","anio":2026,"ingresos":230660,"gasto":172300,"ahorro":58360,"tasaAhorro":0.2530130928639556,"deudas":5165000,"emergencia":325000,"netWorth":-3012700,"tasa":60.7,"notas":"Pagué cuota extra auto"},{"mes":"Febrero","anio":2026,"ingresos":229140,"gasto":165800,"ahorro":63340,"tasaAhorro":0.2764248930784673,"deudas":5225000,"emergencia":308000,"netWorth":-3098660,"tasa":60.3,"notas":""},{"mes":"Enero","anio":2026,"ingresos":228380,"gasto":170200,"ahorro":58180,"tasaAhorro":0.25475085384009105,"deudas":5290000,"emergencia":292000,"netWorth":-3186820,"tasa":60.1,"notas":"Gastos de Reyes subieron Variable"},{"mes":"Diciembre","anio":2025,"ingresos":235600,"gasto":195300,"ahorro":40300,"tasaAhorro":0.17105263157894737,"deudas":5358000,"emergencia":275000,"netWorth":-3285000,"tasa":62,"notas":"Navidad — gastos extras fuertes"},{"mes":"Noviembre","anio":2025,"ingresos":228000,"gasto":162400,"ahorro":65600,"tasaAhorro":0.28771929824561404,"deudas":5420000,"emergencia":260000,"netWorth":-3372000,"tasa":60,"notas":"Mes disciplinado"},{"mes":"Octubre","anio":2025,"ingresos":226480,"gasto":168700,"ahorro":57780,"tasaAhorro":0.25512186506534795,"deudas":5488000,"emergencia":244000,"netWorth":-3460800,"tasa":59.6,"notas":""},{"mes":"Septiembre","anio":2025,"ingresos":224200,"gasto":164300,"ahorro":59900,"tasaAhorro":0.2671721677074041,"deudas":5542000,"emergencia":228000,"netWorth":-3542000,"tasa":59,"notas":""},{"mes":"Agosto","anio":2025,"ingresos":224200,"gasto":218500,"ahorro":-5700,"tasaAhorro":-0.025423728813559324,"deudas":5598000,"emergencia":212000,"netWorth":-3628500,"tasa":59,"notas":"⚠ Mes malo — reparación auto RD$48K + urgencia médica"},{"mes":"Julio","anio":2025,"ingresos":222680,"gasto":165200,"ahorro":57480,"tasaAhorro":0.2581282557930663,"deudas":5580000,"emergencia":198000,"netWorth":-3611680,"tasa":58.6,"notas":"Buen mes — regresé a la disciplina"},{"mes":"Junio","anio":2025,"ingresos":222680,"gasto":170800,"ahorro":51880,"tasaAhorro":0.23298006107418717,"deudas":5645000,"emergencia":182000,"netWorth":-3698320,"tasa":58.6,"notas":""},{"mes":"Mayo","anio":2025,"ingresos":221920,"gasto":168400,"ahorro":53520,"tasaAhorro":0.24116798846431145,"deudas":5710000,"emergencia":168000,"netWorth":-3782080,"tasa":58.4,"notas":""},{"mes":"Abril","anio":2025,"ingresos":221160,"gasto":172600,"ahorro":48560,"tasaAhorro":0.21956954241273285,"deudas":5762000,"emergencia":155000,"netWorth":-3856240,"tasa":58.2,"notas":""},{"mes":"Marzo","anio":2025,"ingresos":220400,"gasto":175200,"ahorro":45200,"tasaAhorro":0.20508166969147004,"deudas":5820000,"emergencia":140000,"netWorth":-3935800,"tasa":58,"notas":"Empecé fondo educación hija"},{"mes":"Febrero","anio":2025,"ingresos":219640,"gasto":178500,"ahorro":41140,"tasaAhorro":0.1873065015479876,"deudas":5785000,"emergencia":125000,"netWorth":-3918860,"tasa":57.8,"notas":""},{"mes":"Enero","anio":2025,"ingresos":218880,"gasto":182300,"ahorro":36580,"tasaAhorro":0.1671235380116959,"deudas":5810000,"emergencia":108000,"netWorth":-3964120,"tasa":57.6,"notas":"Resolución: pagar deudas agresivamente"},{"mes":"Diciembre","anio":2024,"ingresos":222300,"gasto":210800,"ahorro":11500,"tasaAhorro":0.051731893837157,"deudas":5850000,"emergencia":92000,"netWorth":-4035700,"tasa":58.5,"notas":"Navidad — gastos altos pero controlados"}],"metas":[{"name":"Vacaciones Cancún","goal":85000,"saved":52000,"monthly":8500},{"name":"Laptop nueva","goal":45000,"saved":45000,"monthly":0},{"name":"Fondo universidad hija","goal":500000,"saved":38000,"monthly":5000},{"name":"Remodelación cocina","goal":120000,"saved":18500,"monthly":6000},{"name":"Fondo retiro anticipado","goal":2000000,"saved":95000,"monthly":12000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo.json"};
+const _DEMO_DATA_USD={"config":{"tasa":60,"mes":"May","anio":2026,"ingresoUSD":6500,"diasAlerta":7,"ingresoRD":390000,"monedaPrincipal":"USD","payFrequency":"mensual"},"gastos":[{"nombre":"Mortgage (Wells Fargo)","tipo":"Vivienda","pagado":111000,"adeudado":111000,"dia":1,"tasa":6.5,"balance":17100000,"originalRD":17100000,"originalUSD":285000,"tasaCreacion":60,"fechaLimite":"2054-01-01","notas":"30yr fixed · escrow included","pagadoMes":true},{"nombre":"Car Loan (Toyota)","tipo":"Préstamo","pagado":0,"adeudado":27000,"dia":15,"tasa":5.9,"balance":1080000,"originalRD":1680000,"originalUSD":28000,"tasaCreacion":60,"fechaLimite":"2029-06-15","notas":"5yr auto loan","pagadoMes":false},{"nombre":"Student Loan (Navient)","tipo":"Préstamo","pagado":21000,"adeudado":21000,"dia":20,"tasa":4.5,"balance":1680000,"originalRD":2700000,"originalUSD":45000,"tasaCreacion":60,"fechaLimite":"2034-09-20","notas":"Federal · 10yr standard","pagadoMes":true},{"nombre":"Visa (Chase)","tipo":"Tarjeta","pagado":12000,"adeudado":12000,"dia":25,"tasa":24.99,"balance":252000,"originalRD":252000,"originalUSD":4200,"tasaCreacion":60,"fechaLimite":"—","notas":"Minimum doesn't cover interest","pagadoMes":false},{"nombre":"Amex Blue Cash","tipo":"Tarjeta","pagado":0,"adeudado":9000,"dia":10,"tasa":21.99,"balance":108000,"originalRD":108000,"originalUSD":1800,"tasaCreacion":60,"fechaLimite":"—","notas":"Consolidate with Visa","pagadoMes":false},{"nombre":"Electric (Duke Energy)","tipo":"Servicio","pagado":9900,"adeudado":9900,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Average last 3 months","pagadoMes":true},{"nombre":"Internet (Xfinity)","tipo":"Servicio","pagado":4800,"adeudado":4800,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"300 Mbps plan","pagadoMes":true},{"nombre":"Cell Phone (T-Mobile)","tipo":"Servicio","pagado":8400,"adeudado":8400,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Family plan · 4 lines","pagadoMes":true},{"nombre":"Health Insurance","tipo":"Seguro","pagado":22800,"adeudado":22800,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Employer + employee portion","pagadoMes":true},{"nombre":"Car Insurance (Geico)","tipo":"Seguro","pagado":9900,"adeudado":9900,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full coverage · 2 vehicles","pagadoMes":true},{"nombre":"Groceries (Costco/Walmart)","tipo":"Variable","pagado":0,"adeudado":39000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Weekly ~$160","pagadoMes":false,"metodo":"efectivo"},{"nombre":"Gas / Transport","tipo":"Variable","pagado":0,"adeudado":12000,"dia":0,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"~3 fill-ups per month","pagadoMes":false,"metodo":"efectivo"},{"nombre":"Gym (Planet Fitness)","tipo":"Variable","pagado":1500,"adeudado":1500,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Monthly membership","pagadoMes":true},{"nombre":"Streaming (Netflix+Spotify+YT)","tipo":"Servicio","pagado":2520,"adeudado":2520,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Standard plans all three","pagadoMes":true},{"nombre":"Daycare / Childcare","tipo":"Educación","pagado":0,"adeudado":51000,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Full-time daycare","pagadoMes":false}],"forNow":{"cuentas":[{"nombre":"Checking (Chase)","moneda":"USD","saldo":3200,"comp":0,"disp":0},{"nombre":"Savings (Marcus)","moneda":"USD","saldo":8500,"comp":0,"disp":0},{"nombre":"Emergency Savings (Ally)","moneda":"USD","saldo":12000,"comp":0,"disp":0},{"nombre":"Cash","moneda":"USD","saldo":150,"comp":0,"disp":0},{"nombre":"Brokerage (Fidelity)","moneda":"USD","saldo":15000,"comp":0,"disp":0}],"fecha":"2026-05-15","total":2331000,"comprometido":0,"disponible":0},"emerg":{"fondos":[{"fondo":"3-Month Expenses Fund","moneda":"USD","balance":12000,"meta":18000},{"fondo":"Car Repair Fund","moneda":"USD","balance":1500,"meta":3000},{"fondo":"Medical Fund","moneda":"USD","balance":2000,"meta":5000},{"fondo":"Home Repair Fund","moneda":"USD","balance":800,"meta":5000},{"fondo":"Kid's College 529","moneda":"USD","balance":4500,"meta":50000}],"cashflow":{"ingreso":390000,"gasto":341820,"tasa":60,"retirarUSD":0,"ahorros":24000,"balanceAhorros":510000}},"historial":[{"mes":"May","anio":2026,"ingresos":390000,"gasto":341820,"ahorro":48180,"tasaAhorro":0.1235,"deudas":20220000,"emergencia":1248000,"netWorth":-15558000,"tasa":60,"notas":"Best month — extra payment on Visa"},{"mes":"April","anio":2026,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":20370000,"emergencia":1188000,"netWorth":-15732000,"tasa":60,"notas":"Tax refund helped savings"},{"mes":"March","anio":2026,"ingresos":390000,"gasto":355200,"ahorro":34800,"tasaAhorro":0.0892,"deudas":20520000,"emergencia":1110000,"netWorth":-15990000,"tasa":60,"notas":"Paid extra on car loan"},{"mes":"February","anio":2026,"ingresos":390000,"gasto":346800,"ahorro":43200,"tasaAhorro":0.1108,"deudas":20670000,"emergencia":1032000,"netWorth":-16278000,"tasa":60,"notas":""},{"mes":"January","anio":2026,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":20820000,"emergencia":960000,"netWorth":-16500000,"tasa":60,"notas":"Post-holiday spending catch-up"},{"mes":"December","anio":2025,"ingresos":390000,"gasto":432000,"ahorro":-42000,"tasaAhorro":-0.1077,"deudas":20970000,"emergencia":912000,"netWorth":-16728000,"tasa":60,"notas":"Holiday spending high — gifts + travel"},{"mes":"November","anio":2025,"ingresos":390000,"gasto":339000,"ahorro":51000,"tasaAhorro":0.1308,"deudas":21090000,"emergencia":888000,"netWorth":-16872000,"tasa":60,"notas":"Disciplined month — Black Friday avoided"},{"mes":"October","anio":2025,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":21228000,"emergencia":840000,"netWorth":-17118000,"tasa":60,"notas":""},{"mes":"September","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21360000,"emergencia":792000,"netWorth":-17388000,"tasa":60,"notas":"Back to school supplies"},{"mes":"August","anio":2025,"ingresos":390000,"gasto":426000,"ahorro":-36000,"tasaAhorro":-0.0923,"deudas":21492000,"emergencia":750000,"netWorth":-17592000,"tasa":60,"notas":"⚠ Bad month — AC repair $1,200 + summer daycare costs up"},{"mes":"July","anio":2025,"ingresos":390000,"gasto":340800,"ahorro":49200,"tasaAhorro":0.1262,"deudas":21600000,"emergencia":708000,"netWorth":-17748000,"tasa":60,"notas":"Good month — got back on track"},{"mes":"June","anio":2025,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":21732000,"emergencia":660000,"netWorth":-18012000,"tasa":60,"notas":""},{"mes":"May","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21870000,"emergencia":612000,"netWorth":-18258000,"tasa":60,"notas":""},{"mes":"April","anio":2025,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22008000,"emergencia":570000,"netWorth":-18498000,"tasa":60,"notas":""},{"mes":"March","anio":2025,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":22140000,"emergencia":528000,"netWorth":-18732000,"tasa":60,"notas":"Started kid college 529 contributions"},{"mes":"February","anio":2025,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":22272000,"emergencia":480000,"netWorth":-18972000,"tasa":60,"notas":""},{"mes":"January","anio":2025,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":22410000,"emergencia":432000,"netWorth":-19218000,"tasa":60,"notas":"Resolution: pay debts aggressively"},{"mes":"December","anio":2024,"ingresos":390000,"gasto":450000,"ahorro":-60000,"tasaAhorro":-0.1538,"deudas":22500000,"emergencia":390000,"netWorth":-19440000,"tasa":60,"notas":"Holiday spending — high but manageable"}],"metas":[{"name":"Family Vacation (Hawaii)","goal":300000,"saved":168000,"monthly":24000},{"name":"New Laptop","goal":90000,"saved":90000,"monthly":0},{"name":"Kid's College Fund","goal":3000000,"saved":270000,"monthly":18000},{"name":"Kitchen Renovation","goal":900000,"saved":192000,"monthly":15000},{"name":"Early Retirement Fund","goal":30000000,"saved":900000,"monthly":30000}],"transacciones":[],"presupuesto":[],"recurrentes":[],"filename":"cnt_demo_usd.json"};
 // ══════════════════════════════════
 // JSON EXPORT / IMPORT
 // ══════════════════════════════════
 function downloadJSON(){
   const data=JSON.parse(JSON.stringify(_editData));
-  data._meta={version:3,exportedAt:new Date().toISOString(),app:'CNTpf'};
+  data._meta={version:4,exportedAt:new Date().toISOString(),app:'CNTpf'};
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
@@ -2942,6 +3628,13 @@ function importJSON(file){
       if(!_editData.transacciones)_editData.transacciones=[];
       if(!_editData.presupuesto)_editData.presupuesto=[];
       if(!_editData.recurrentes)_editData.recurrentes=[];
+      // v3→v4 wallet migration: ensure each cuenta has a stable id and default tipo
+      ensureCuentaIds(_editData);
+      if(_editData.config.defaultCashAccountId===undefined)_editData.config.defaultCashAccountId=null;
+      // Validate the pointer still resolves; null it out if the referenced cuenta is gone
+      if(_editData.config.defaultCashAccountId&&!_editData.forNow.cuentas.some(c=>c.id===_editData.config.defaultCashAccountId)){
+        _editData.config.defaultCashAccountId=null;
+      }
       _editData.filename=file.name;
       buildDashboard(_editData);
       applyI18n();
@@ -2963,6 +3656,9 @@ async function loadDemo(currency){
     if(!_editData.config.payFrequency)_editData.config.payFrequency='mensual';
     _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
     _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
+    // Wallet migration: ensure ids/tipos
+    ensureCuentaIds(_editData);
+    if(_editData.config.defaultCashAccountId===undefined)_editData.config.defaultCashAccountId=null;
     buildDashboard(_editData);
     applyI18n();
     document.getElementById('loaderScreen').style.display='none';
@@ -3160,7 +3856,7 @@ function buildChecklist(gastos){
       ${isDone?'✓':''}
     </div>
     <div style="flex:1">
-      <div class="check-name">${escH(g.nombre)}</div>
+      <div class="check-name">${escH(g.nombre)}${g.metodo==='efectivo'?` <span class="cash-badge" title="${escH(t('gasto_paid_with_cash'))}" aria-label="${escH(t('gasto_paid_with_cash'))}">💵</span>`:''}</div>
       <div class="check-day">
         <span class="pill" style="background:${(tipoColors[g.tipo]||'#64748b')}22;color:${tipoColors[g.tipo]||'#94a3b8'}">${escH(g.tipo||'—')}</span>
         &nbsp;· ${t('chk_day')} <strong>${g.dia||'—'}</strong>
@@ -3223,6 +3919,10 @@ function toggleCheck(idx){
   // Sync pagado amount: marking as done sets full adeudado; unmarking clears if auto-set
   if(g.pagadoMes&&g.adeudado>0) g.pagado=g.adeudado;
   else if(!g.pagadoMes&&g.pagado===g.adeudado) g.pagado=0;
+  // Wallet auto-debit / restore for cash-paid gastos. Idempotent via
+  // pagadoApplied flag — repeated checks within the same paid state are no-ops.
+  if(g.pagadoMes)applyGastoDebit(g);
+  else reverseGastoDebit(g);
   _pendingSave=true;
   autoSave();
   // Haptic feedback on mobile
@@ -3246,6 +3946,9 @@ function resetChecklist(){
     if(g.adeudado>0){
       // Also reset pagado if it was auto-set by toggleCheck (pagado===adeudado)
       if(g.pagadoMes&&g.pagado===g.adeudado) g.pagado=0;
+      // Reset means "I haven't paid these yet" — restore any wallet debits
+      // that were applied during this cycle.
+      if(g.pagadoApplied)reverseGastoDebit(g);
       g.pagadoMes=false;
     }
   });
@@ -3259,6 +3962,9 @@ function markAllChecklist(){
     if(g.adeudado>0&&!g.pagadoMes){
       g.pagadoMes=true;
       if(g.pagado===0) g.pagado=g.adeudado;
+      // Apply wallet debit for cash gastos so bulk-mark stays consistent
+      // with one-by-one toggleCheck behavior.
+      applyGastoDebit(g);
     }
   });
   _pendingSave=true;
@@ -3282,7 +3988,11 @@ function buildRegistro(transacciones,gastos,config){
   generateRecurring(config);
   transacciones=_editData.transacciones||transacciones;// refresh after generation
   const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
-  const total=tx.reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
+  // Spending totals must exclude income credits (synthetic deposits with
+  // categoria='ingreso' and negative monto would otherwise subtract from
+  // the displayed monthly spend).
+  const expenseTx=tx.filter(isExpenseTx);
+  const total=expenseTx.reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
 
   // Fix #5: use correct day count — for past months use total days, for current month use today's date
   const today=new Date();
@@ -3297,10 +4007,10 @@ function buildRegistro(transacciones,gastos,config){
   const totalBg=presBudget>0?(total>presBudget?'rgba(244,96,106,.12)':total>presBudget*0.8?'rgba(245,200,66,.12)':'rgba(34,211,160,.12)'):'rgba(59,130,246,.12)';
   const totalLabel=presBudget>0?`${t('reg_total_mes')} (${Math.round(total/presBudget*100)}%)`:t('reg_total_mes');
 
-  // KPIs
+  // KPIs (count + avg only count expense tx; income deposits aren't "transactions" the user spent)
   document.getElementById('registroKpis').innerHTML=[
     {l:totalLabel,v:`${fmtC(total)}`,c:totalColor,b:totalBg},
-    {l:t('reg_count'),v:tx.length,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
+    {l:t('reg_count'),v:expenseTx.length,c:'var(--accent)',b:'rgba(59,130,246,.12)'},
     {l:t('reg_avg'),v:`${fmtC(Math.round(avg))}`,c:'var(--accent2)',b:'rgba(6,182,212,.12)'},
   ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div></div>`).join('');
 
@@ -3364,8 +4074,8 @@ function buildRegistro(transacciones,gastos,config){
     [{v:'none',l:'rec_none'},{v:'diario',l:'rec_diario'},{v:'semanal',l:'rec_semanal'},{v:'quincenal',l:'rec_quincenal'},{v:'mensual',l:'rec_mensual'}].forEach(m=>{const o=document.createElement('option');o.value=m.v;o.textContent=t(m.l);recSel.appendChild(o);});
   }
 
-  // Category chart
-  const catTotals={};tx.forEach(t=>{catTotals[t.categoria]=(catTotals[t.categoria]||0)+t.monto;});
+  // Category chart — expense tx only (income would render a negative wedge)
+  const catTotals={};expenseTx.forEach(t=>{catTotals[t.categoria]=(catTotals[t.categoria]||0)+t.monto;});
   const cats=Object.keys(catTotals);
   if(charts.regCat)try{charts.regCat.destroy()}catch(e){}
   const ctx=document.getElementById('regCatChart');
@@ -3386,7 +4096,13 @@ function buildRegistro(transacciones,gastos,config){
       const dateStr=dateParts.length===3?`${dateParts[2]}/${dateParts[1]}`:`${tr.fecha}`;
       const metIcon=tr.metodo==='tarjeta'?'💳':tr.metodo==='transferencia'?'🏦':'💵';
       const recBadge=tr.recurrenteId?'<span style="font-size:9px;background:rgba(59,130,246,.15);color:var(--accent);padding:1px 5px;border-radius:4px;margin-left:4px">🔄</span>':'';
-      return`<div class="reg-item"><span class="reg-date">${dateStr}</span><div class="reg-desc">${escH(tr.nota||t('reg_cat_'+tr.categoria))} <span style="font-size:11px;color:var(--muted)">${metIcon}</span>${recBadge}</div><span class="reg-cat">${t('reg_cat_'+tr.categoria)}</span><span class="reg-amt">-${fmtC(toDisplay(tr.monto))}</span><button class="reg-del" onclick="deleteTransaccion(${idx})" title="Delete">✕</button></div>`;
+      // Income tx (negative monto + categoria='ingreso') renders as +green;
+      // expense tx renders as -red. The displayed value is always positive.
+      const isIncome=!isExpenseTx(tr);
+      const sign=isIncome?'+':'-';
+      const amtColor=isIncome?'var(--green)':'var(--red)';
+      const absMonto=Math.abs(tr.monto||0);
+      return`<div class="reg-item"><span class="reg-date">${dateStr}</span><div class="reg-desc">${escH(tr.nota||t('reg_cat_'+tr.categoria))} <span style="font-size:11px;color:var(--muted)">${metIcon}</span>${recBadge}</div><span class="reg-cat">${t('reg_cat_'+tr.categoria)}</span><span class="reg-amt" style="color:${amtColor}">${sign}${fmtC(toDisplay(absMonto))}</span><button class="reg-del" onclick="deleteTransaccion(${idx})" title="Delete">✕</button></div>`;
     }).join('');
   }
 
@@ -3413,7 +4129,12 @@ function addTransaccion(){
   const recurrencia=document.getElementById('regRecurrencia').value;
   if(monto<=0)return;
   if(!_editData.transacciones)_editData.transacciones=[];
-  _editData.transacciones.push({fecha,monto,categoria,nota,metodo,gastoIdx:gastoIdx>=0?gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio});
+  const tx={fecha,monto,categoria,nota,metodo,gastoIdx:gastoIdx>=0?gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio};
+  // Apply wallet debit if a default cash account is configured. If not,
+  // the tx is still recorded — the Resumen wallet card CTA is the discovery
+  // surface for wallet setup, so we don't block the user's primary flow here.
+  applyCashDebit(tx); // no-op when there's no default or non-cash method
+  _editData.transacciones.push(tx);
   // Create recurring rule if frequency selected
   if(recurrencia&&recurrencia!=='none'){
     if(!_editData.recurrentes)_editData.recurrentes=[];
@@ -3427,15 +4148,17 @@ function addTransaccion(){
   document.getElementById('regMonto').value='';
   document.getElementById('regNota').value='';
   saveToDB();
-  buildRegistro(_editData.transacciones,_editData.gastos,_editData.config);
+  buildDashboard({..._editData});
 }
 
 function deleteTransaccion(idx){
   if(!confirm(t('reg_delete_confirm')))return;
   if(_editData.transacciones&&_editData.transacciones[idx]!==undefined){
+    // Restore cash balance before removing the tx
+    reverseCashDebit(_editData.transacciones[idx]);
     _editData.transacciones.splice(idx,1);
     saveToDB();
-    buildRegistro(_editData.transacciones,_editData.gastos,_editData.config);
+    buildDashboard({..._editData});
   }
 }
 
@@ -3450,7 +4173,9 @@ function togglePresForm(){
 
 function buildPresupuesto(presupuesto,transacciones,config){
   const pres=(presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio);
-  const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio);
+  // Budget-vs-actual is about SPENDING; income deposits must not skew the
+  // category aggregations.
+  const tx=(transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio&&isExpenseTx(t));
   const ingreso=config.ingresoRD||monthlyIncomeRD(config)||0;
   const totalAdeudado=(_editData.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
   const disponible=ingreso-totalAdeudado;
@@ -3605,11 +4330,14 @@ function generateRecurring(config){
     dates.forEach(d=>{
       const iso=d.toISOString().slice(0,10);
       if(_editData.transacciones.some(tx=>tx.recurrenteId===rec.id&&tx.fecha===iso))return;
-      _editData.transacciones.push({
+      const tx={
         fecha:iso,monto:rec.monto,categoria:rec.categoria,nota:rec.nota,
         metodo:rec.metodo,gastoIdx:rec.gastoIdx,
         mes:MESES_INTERNOS[d.getMonth()],anio:d.getFullYear(),recurrenteId:rec.id
-      });
+      };
+      // Apply wallet debit for cash methods (no-op if no default cash account)
+      applyCashDebit(tx);
+      _editData.transacciones.push(tx);
       generated++;
     });
     rec.lastGenerated=today.toISOString().slice(0,10);
@@ -4045,7 +4773,9 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   // is only used as an absolute fallback for legacy records.
   const ingreso=config.ingresoUSD>0&&config.tasa>0?monthlyIncomeRD(config):(config.ingresoRD||cf.ingreso||0);
   // Include tracked spending from Registro (transacciones) in total expenses
-  const txGasto=(_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio).reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
+  // The global tx-gasto must filter out income deposits, otherwise a synthetic
+  // ingreso tx with negative monto silently DECREASES gasto across every KPI.
+  const txGasto=(_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio&&isExpenseTx(t)).reduce((a,t)=>a+(parseFloat(t.monto)||0),0);
   const gasto=(totalAdeudado||cf.gasto)+txGasto;
   const resta=ingreso-gasto;
   const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
@@ -4071,6 +4801,14 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
 // ══════════════════════════════════
 function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   destroyCharts();
+  // Wallet migration — runs on every dashboard build so any entry path
+  // (importJSON, loadDemo, IndexedDB restore, _testLoadData) gets ids/tipos.
+  ensureCuentaIds({forNow});
+  if(config.defaultCashAccountId===undefined)config.defaultCashAccountId=null;
+  if(config.defaultCashAccountId&&!forNow.cuentas.some(c=>c.id===config.defaultCashAccountId))config.defaultCashAccountId=null;
+  renderWalletChip();
+  renderWalletCard();
+  renderQuickPayFab();
   const{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual,txGasto}=calcDerivedMetrics({config,gastos,forNow,emerg});
 
   // Header
@@ -4113,7 +4851,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const mDone=metasAll.filter(m=>(m.saved||0)>=(m.goal||1)&&m.goal>0).length;
     const mPct=mGoal>0?Math.min(100,Math.round(mSaved/mGoal*100)):0;
     const pres=(_editData.presupuesto||[]).filter(p=>p.mes===config.mes&&p.anio===config.anio&&(p.presupuestado||0)>0);
-    const tx=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio);
+    const tx=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio&&isExpenseTx(x));
     const pBudget=pres.reduce((a,p)=>a+p.presupuestado,0);
     const budgetedCats=new Set(pres.map(p=>p.categoria));
     const pActual=tx.filter(x=>budgetedCats.has(x.categoria)).reduce((a,x)=>a+(parseFloat(x.monto)||0),0);
@@ -4408,7 +5146,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   setTimeout(()=>{
     // Fix #4: use allDeudas (balance > 0) not arbitrary > 100 threshold
     const allDeudas2=allDeudas;
-    const txGastoRaw=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio).reduce((a,x)=>a+(parseFloat(x.monto)||0),0);
+    const txGastoRaw=(_editData.transacciones||[]).filter(x=>x.mes===config.mes&&x.anio===config.anio&&isExpenseTx(x)).reduce((a,x)=>a+(parseFloat(x.monto)||0),0);
     const pieLabels=[...Object.keys(tipoColors)];
     const pieData=Object.keys(tipoColors).map(ty=>gastos.filter(g=>g.tipo===ty).reduce((a,g)=>a+g.adeudado,0));
     const pieColors=Object.values(tipoColors).map(c=>c+'cc');
@@ -4679,7 +5417,7 @@ function buildCashflowWaterfall(ingreso,gastos,config,metas){
   const el=document.getElementById('cashflowWaterfall');
   if(!el||ingreso<=0){if(el)el.innerHTML='';return;}
   const obligations=toDisplay(gastos.reduce((a,g)=>a+(g.adeudado||0),0));
-  const txGasto=toDisplay((_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio).reduce((a,t)=>a+(parseFloat(t.monto)||0),0));
+  const txGasto=toDisplay((_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio&&isExpenseTx(t)).reduce((a,t)=>a+(parseFloat(t.monto)||0),0));
   const goalContrib=toDisplay((metas||[]).reduce((a,m)=>a+(m.monthly||0),0));
   const interest=toDisplay(gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0));
   const surplus=ingreso-obligations-txGasto-goalContrib;
@@ -5234,7 +5972,8 @@ function cierreNav(dir){
       const netWorth=fnTotalCierre+(cf.balanceAhorros||0)+efTotal-totalDeudas;
       const ahorro=ingreso-gasto;
       const tasaAhorro=ingreso>0?ahorro/ingreso:0;
-      const gastoReal=(_editData.transacciones||[]).filter(tx=>tx.mes===_editData.config.mes&&tx.anio===_editData.config.anio).reduce((a,tx)=>a+tx.monto,0);
+      // gastoReal must exclude income deposits — historial records spending only
+      const gastoReal=(_editData.transacciones||[]).filter(tx=>tx.mes===_editData.config.mes&&tx.anio===_editData.config.anio&&isExpenseTx(tx)).reduce((a,tx)=>a+tx.monto,0);
       const presMes=(_editData.presupuesto||[]).filter(p=>p.mes===_editData.config.mes&&p.anio===_editData.config.anio);
       const totalPresupuestado=presMes.reduce((a,p)=>a+p.presupuestado,0);
       _editData.historial.unshift({mes:_editData.config.mes,anio:_editData.config.anio,ingresos:ingreso,gasto,ahorro,tasaAhorro,deudas:totalDeudas,emergencia:efTotal,netWorth,tasa:_editData.config.tasa,notas:'',gastoReal,presupuestado:totalPresupuestado});
@@ -5243,8 +5982,11 @@ function cierreNav(dir){
       const nextAnio=parseInt(document.getElementById('cw-nextanio')?.value);
       if(nextMes)_editData.config.mes=nextMes;
       if(!isNaN(nextAnio))_editData.config.anio=nextAnio;
-      // Reset payment status for new month
-      _editData.gastos.forEach(g=>{g.pagadoMes=false;g.pagado=0;});
+      // Reset payment status for new month. Wallet debits applied this cycle
+      // are settled (the user's saldo already reflects the spend), so we just
+      // clear the bookkeeping flags — never call reverseGastoDebit here, that
+      // would re-credit money the user has actually spent.
+      _editData.gastos.forEach(g=>{g.pagadoMes=false;g.pagado=0;g.pagadoApplied=false;delete g.pagadoCuentaId;delete g.pagadoAppliedAmt;});
       // Budget carry-forward: copy current budget to next month if no budget exists yet
       if(presMes.length>0&&!(_editData.presupuesto||[]).some(p=>p.mes===_editData.config.mes&&p.anio===_editData.config.anio)){
         presMes.forEach(p=>{_editData.presupuesto.push({categoria:p.categoria,presupuestado:p.presupuestado,mes:_editData.config.mes,anio:_editData.config.anio});});
@@ -5411,18 +6153,22 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     if(document.getElementById('editModal')?.classList.contains('open'))closeEditModal();
     else if(document.getElementById('cierreModal')?.classList.contains('open'))closeCierre();
+    else if(document.getElementById('walletSetupModal')?.classList.contains('open'))cancelWalletSetup();
+    else if(document.getElementById('quickPayModal')?.classList.contains('open'))closeQuickPay();
   }
 });
 // Close modals on backdrop tap (mobile-friendly: tap outside the modal body to dismiss).
 // Setup wizard is intentionally excluded — losing multi-step onboarding progress on an
 // accidental tap would be worse than forcing the user to complete or refresh.
-['editModal','cierreModal'].forEach(id=>{
+['editModal','cierreModal','walletSetupModal','quickPayModal'].forEach(id=>{
   const m=document.getElementById(id);
   if(!m)return;
   m.addEventListener('click',e=>{
     if(e.target!==m||!m.classList.contains('open'))return;
     if(id==='editModal')closeEditModal();
-    else closeCierre();
+    else if(id==='cierreModal')closeCierre();
+    else if(id==='walletSetupModal')cancelWalletSetup();
+    else closeQuickPay();
   });
 });
 
@@ -5435,7 +6181,9 @@ let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
+window._testSetupGoToStep=function(stepIdx){_setupStep=stepIdx;renderSetup();};
 window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
+window.CUENTA_TIPOS=CUENTA_TIPOS;
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;autoSave();}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
 function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';_balanceSnapshot=(_editData.gastos||[]).map(g=>g.balance||0);buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
@@ -5486,6 +6234,35 @@ function onCurrencySwitch(i,sel,collection){
   }
   collection[i].moneda=nw;markChanged(sel);buildEditForms();
 }
+function onCuentaTipoChange(i,sel){
+  const c=_editData.forNow?.cuentas?.[i];if(!c)return;
+  const nw=CUENTA_TIPOS.includes(sel.value)?sel.value:'banco';
+  c.tipo=nw;
+  // If user demoted the wallet account away from cash, clear the default pointer
+  if(_editData.config.defaultCashAccountId===c.id&&nw!=='cash'){
+    _editData.config.defaultCashAccountId=null;
+    document.querySelectorAll('.fornow-default').forEach(r=>{r.checked=false;});
+  }
+  markChanged(sel);
+}
+function onWalletDefaultChange(id){
+  // Promotes the targeted cuenta to default cash. Auto-flips its tipo to 'cash'
+  // so the dropdown stays in sync with the radio.
+  setDefaultCashAccount(id);
+  markChanged(document.body);
+  buildEditForms();
+}
+function onGastoMetodoChange(i,sel){
+  const g=_editData.gastos?.[i];if(!g)return;
+  const nw=sel.value||''; // '' means "no auto-debit"
+  // If the gasto is currently paid AND its previous method was efectivo (so a
+  // wallet debit is in flight), reverse it before changing the method.
+  if(g.pagadoMes&&g.pagadoApplied)reverseGastoDebit(g);
+  g.metodo=nw;
+  // After updating the method, re-apply if still in the paid state and now efectivo
+  if(g.pagadoMes)applyGastoDebit(g);
+  markChanged(sel);
+}
 // Convert fondo balance/meta to base currency (RD$) — if moneda=USD, multiply by config.tasa
 function fondoToRD(f){const tasa=_editData.config.tasa||60;const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
 // Convert fondo to display currency
@@ -5528,6 +6305,12 @@ function buildEditForms(){
       <td><input class="tbl-input" id="origUSD-${i}" type="text" inputmode="decimal" min="0" value="${g.originalUSD||0}" oninput="markChanged(this);syncOriginal(${i},'originalUSD',this)" style="min-width:80px"></td>
       <td><input class="tbl-input" type="text" inputmode="decimal" value="${g.tasaCreacion||''}" readonly style="min-width:70px;opacity:.6;cursor:not-allowed"></td>
       <td><input class="tbl-input" type="date" value="${g.fechaLimite?String(g.fechaLimite).slice(0,10):''}" oninput="markChanged(this);_editData.gastos[${i}].fechaLimite=this.value" style="min-width:120px"></td>
+      <td><select class="tbl-input gasto-metodo" data-idx="${i}" onchange="onGastoMetodoChange(${i},this)" style="min-width:130px">
+        <option value="" ${!g.metodo?'selected':''}>${escH(t('gasto_metodo_none'))}</option>
+        <option value="efectivo" ${g.metodo==='efectivo'?'selected':''}>${escH(t('reg_efectivo'))}</option>
+        <option value="tarjeta" ${g.metodo==='tarjeta'?'selected':''}>${escH(t('reg_tarjeta'))}</option>
+        <option value="transferencia" ${g.metodo==='transferencia'?'selected':''}>${escH(t('reg_transferencia'))}</option>
+      </select></td>
       <td><input class="tbl-input" value="${escH(g.notas||'')}" oninput="markChanged(this);_editData.gastos[${i}].notas=this.value" style="min-width:120px"></td>
       <td><button class="row-del-btn" onclick="deleteGastoRow(${i})">✕</button></td>
     </tr>`;
@@ -5538,9 +6321,15 @@ function buildEditForms(){
   const fb=document.getElementById('fornowEditBody');fb.innerHTML='';
   forNow.cuentas.forEach((c,i)=>{
     const mon=c.moneda||'RD';
-    fb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
+    if(!c.id)c.id=genCuentaId();
+    const tipo=CUENTA_TIPOS.includes(c.tipo)?c.tipo:'banco';
+    const isDefault=config.defaultCashAccountId===c.id;
+    const tipoOptions=CUENTA_TIPOS.map(tp=>`<option value="${tp}" ${tp===tipo?'selected':''}>${t('cuenta_tipo_'+tp)}</option>`).join('');
+    fb.innerHTML+=`<tr data-cuenta-id="${c.id}"><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
       <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.forNow.cuentas)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
       <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
+      <td><select class="tbl-input fornow-tipo" data-idx="${i}" onchange="onCuentaTipoChange(${i},this)" style="min-width:90px">${tipoOptions}</select></td>
+      <td style="text-align:center"><input type="radio" name="fornow-default" class="fornow-default" data-cuenta-id="${c.id}" ${isDefault?'checked':''} onchange="onWalletDefaultChange('${c.id}')" aria-label="${t('wallet_set_default')}"></td>
       <td><button class="row-del-btn" onclick="deleteFornowRow(${i})">✕</button></td></tr>`;
   });
   // EMERGENCY
@@ -5637,7 +6426,7 @@ function addForNowRow(){_editData.forNow.cuentas.push({nombre:'Nueva cuenta',mon
 function addEmergFundRow(){const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeudado||0),0);const defaultMeta=gasto>0?Math.round(gasto*3):0;_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:defaultMeta,falta:defaultMeta,moneda:'RD'});markChanged(document.body);buildEditForms();}
 function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:_editData.config.tasa||60,notas:''});markChanged(document.body);buildEditForms();}
 function addTxEditRow(){if(!_editData.transacciones)_editData.transacciones=[];_editData.transacciones.push({fecha:new Date().toISOString().slice(0,10),monto:0,categoria:'otro',nota:'',metodo:'efectivo',gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio});markChanged(document.body);buildEditForms();}
-function deleteTxEditRow(i){if(!confirm(t('reg_delete_confirm')))return;_editData.transacciones.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteTxEditRow(i){if(!confirm(t('reg_delete_confirm')))return;reverseCashDebit(_editData.transacciones[i]);_editData.transacciones.splice(i,1);markChanged(document.body);buildEditForms();}
 function addPresEditRow(){if(!_editData.presupuesto)_editData.presupuesto=[];_editData.presupuesto.push({categoria:'otro',presupuestado:0,mes:_editData.config.mes,anio:_editData.config.anio});markChanged(document.body);buildEditForms();}
 function deletePresEditRow(i){if(!confirm(t('pres_delete_confirm')))return;_editData.presupuesto.splice(i,1);markChanged(document.body);buildEditForms();}
 function addRecEditRow(){if(!_editData.recurrentes)_editData.recurrentes=[];_editData.recurrentes.push({id:'rec_'+Date.now(),fecha:new Date().toISOString().slice(0,10),monto:0,categoria:'otro',nota:'',metodo:'efectivo',gastoIdx:-1,frecuencia:'mensual',lastGenerated:new Date().toISOString().slice(0,10)});markChanged(document.body);buildEditForms();}
