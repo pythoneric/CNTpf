@@ -43,7 +43,9 @@ test.describe('toggleCheck — mark payment', () => {
   test('marking sets pagadoMes=true and pagado=adeudado', async ({ page }) => {
     await loadWithGastos(page, [mkGasto({ nombre: 'Renta', adeudado: 25000 })]);
     const result = await page.evaluate(() => {
-      toggleCheck(0);
+      // Bypass the payment-method prompt with a preset method (transferencia
+      // = no balance change) so this test stays focused on pagadoMes/pagado.
+      window._testToggleWithMethod(0, 'transferencia');
       return { pagadoMes: _editData.gastos[0].pagadoMes, pagado: _editData.gastos[0].pagado };
     });
     expect(result.pagadoMes).toBe(true);
@@ -86,7 +88,7 @@ test.describe('toggleCheck — mark payment', () => {
   test('toggleCheck on zero-adeudado item still toggles pagadoMes', async ({ page }) => {
     await loadWithGastos(page, [mkGasto({ nombre: 'Free', adeudado: 0 })]);
     const result = await page.evaluate(() => {
-      toggleCheck(0);
+      window._testToggleWithMethod(0, 'transferencia');
       return { pagadoMes: _editData.gastos[0].pagadoMes, pagado: _editData.gastos[0].pagado };
     });
     expect(result.pagadoMes).toBe(true);
@@ -307,15 +309,15 @@ test.describe('Checklist full cycle', () => {
     ]);
     await goToChecklist(page);
 
-    // Mark first item (15000 of 20000 = 75%)
-    await page.evaluate(() => toggleCheck(0));
+    // Mark first item (15000 of 20000 = 75%) — bypass prompt with transferencia
+    await page.evaluate(() => window._testToggleWithMethod(0, 'transferencia'));
     await expect(page.locator('#checklistProgress')).toContainText('75%');
 
     // Mark second item (20000 of 20000 = 100%)
-    await page.evaluate(() => toggleCheck(1));
+    await page.evaluate(() => window._testToggleWithMethod(1, 'transferencia'));
     await expect(page.locator('#checklistProgress')).toContainText('100%');
 
-    // Unmark first item (5000 of 20000 = 25%)
+    // Unmark first item (5000 of 20000 = 25%) — uncheck path doesn't prompt
     await page.evaluate(() => toggleCheck(0));
     await expect(page.locator('#checklistProgress')).toContainText('25%');
   });
