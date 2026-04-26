@@ -422,8 +422,9 @@ test.describe('Fix #10 — Currency switch conversion', () => {
     const saldoBefore = await page.evaluate(() => _editData.forNow.cuentas[0].saldo);
     expect(saldoBefore).toBe(60000);
 
-    // Switch to USD — dialog auto-accepted
-    await page.locator('#fornowEditBody tr').first().locator('select').selectOption('USD');
+    // Switch to USD — dialog auto-accepted. Now there are 2 selects per row
+    // (moneda + tipo); target the moneda one explicitly.
+    await page.locator('#fornowEditBody tr').first().locator('select[onchange*="onCurrencySwitch"]').selectOption('USD');
 
     const data = await page.evaluate(() => ({
       moneda: _editData.forNow.cuentas[0].moneda,

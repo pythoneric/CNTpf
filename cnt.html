@@ -1120,7 +1120,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
           <div class="field-group"><label class="field-label" data-i18n="eth_fechaActualizado">Fecha Actualizado</label><input type="date" class="field-input" id="fornow-fecha" oninput="markChanged(this)"></div>
         </div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th data-i18n="eth_cuenta">Cuenta</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_saldo">Saldo</th><th></th></tr></thead><tbody id="fornowEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_cuenta">Cuenta</th><th data-i18n="eth_moneda">Moneda</th><th data-i18n="eth_saldo">Saldo</th><th data-i18n="cuenta_tipo_label">Tipo</th><th data-i18n="wallet_label">Mi Saldo</th><th></th></tr></thead><tbody id="fornowEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addForNowRow()" data-i18n="edit_add_cuenta">+ Agregar cuenta</button>
       </div>
@@ -1208,6 +1208,40 @@ function monthlyIncomeRD(cfg){
   cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
   if(!cfg)return 0;
   return monthlyIncomeUSD(cfg)*(cfg.tasa||60);
+}
+
+// ══════════════════════════════════
+// MI SALDO (wallet) — running cash-on-hand balance
+// ══════════════════════════════════
+// One forNow.cuentas[] entry is designated the "Mi Saldo" wallet.
+// `config.defaultCashAccountId` references it by stable id. `tipo` on each
+// cuenta is one of 'cash' | 'banco' | 'ahorro' | 'inversion' (default 'banco').
+// Every cuenta carries an `id` so renames/reorders don't break the link.
+const CUENTA_TIPOS=['cash','banco','ahorro','inversion'];
+function genCuentaId(){return 'cnt_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function ensureCuentaIds(data){
+  // Idempotent migration: add stable id + tipo defaults to every cuenta in place.
+  const cs=data?.forNow?.cuentas;if(!Array.isArray(cs))return;
+  const seen=new Set();
+  cs.forEach(c=>{
+    if(!c.id||seen.has(c.id))c.id=genCuentaId();
+    seen.add(c.id);
+    if(!CUENTA_TIPOS.includes(c.tipo))c.tipo='banco';
+  });
+}
+function getDefaultCashAccount(data){
+  data=data||(typeof _editData!=='undefined'?_editData:null);
+  const id=data?.config?.defaultCashAccountId;
+  if(!id||!Array.isArray(data?.forNow?.cuentas))return null;
+  return data.forNow.cuentas.find(c=>c.id===id)||null;
+}
+function setDefaultCashAccount(idOrNull){
+  if(!_editData?.config)return;
+  if(idOrNull===null){_editData.config.defaultCashAccountId=null;return;}
+  const c=(_editData.forNow?.cuentas||[]).find(x=>x.id===idOrNull);
+  if(!c)return;
+  c.tipo='cash';
+  _editData.config.defaultCashAccountId=idOrNull;
 }
 
 // ══════════════════════════════════
@@ -1508,6 +1542,18 @@ const LANG = {
     payfreq_semanal:'Semanal',
     payfreq_per_period:'por pago',
     payfreq_monthly_equiv:'≈ {n} al mes',
+    // Mi Saldo (wallet)
+    wallet_label:'Mi Saldo',
+    wallet_default_label:'Cuenta principal de Mi Saldo',
+    wallet_default_note:'La cuenta marcada aquí es la que se usa como saldo principal cuando registras pagos en efectivo.',
+    wallet_set_default:'Usar como Mi Saldo',
+    wallet_is_default:'Mi Saldo principal',
+    wallet_clear_default:'Quitar como principal',
+    cuenta_tipo_label:'Tipo de cuenta',
+    cuenta_tipo_cash:'Efectivo',
+    cuenta_tipo_banco:'Banco',
+    cuenta_tipo_ahorro:'Ahorros',
+    cuenta_tipo_inversion:'Inversión',
     ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Rango: 1–30 días',
     // Cashflow field labels
     ecf_ingreso:'Ingreso Mensual ({cs})', ecf_gasto:'Gasto Mensual Total',
@@ -1924,6 +1970,18 @@ const LANG = {
     payfreq_semanal:'Weekly',
     payfreq_per_period:'per pay',
     payfreq_monthly_equiv:'≈ {n} monthly',
+    // My Balance (wallet)
+    wallet_label:'My Balance',
+    wallet_default_label:'Primary My Balance account',
+    wallet_default_note:'The account flagged here is used as your primary balance when you record cash payments.',
+    wallet_set_default:'Use as My Balance',
+    wallet_is_default:'Primary My Balance',
+    wallet_clear_default:'Clear primary',
+    cuenta_tipo_label:'Account type',
+    cuenta_tipo_cash:'Cash',
+    cuenta_tipo_banco:'Bank',
+    cuenta_tipo_ahorro:'Savings',
+    cuenta_tipo_inversion:'Investment',
     ecfg_dias:'Payment alert days', ecfg_dias_note:'Range: 1–30 days',
     // Cashflow field labels
     ecf_ingreso:'Monthly Income ({cs})', ecf_gasto:'Total Monthly Expenses',
@@ -2465,7 +2523,7 @@ function defaultEditData(){
   const now=new Date();
   const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   return{
-    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD',payFrequency:'mensual'},
+    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD',payFrequency:'mensual',defaultCashAccountId:null},
     gastos:[],
     forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
     emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,ahorros:0,balanceAhorros:0}},
@@ -2481,15 +2539,47 @@ function defaultEditData(){
 // ── Helper renderers (defined before _setupSteps so they're available inside render:() arrows) ──
 function renderSwCuenta(i,c){
   const mon=c.moneda||'RD';
-  return`<div class="sw-cuenta-row" style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
-    <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
-    <select class="cierre-input sw-cnt-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
-    <input class="cierre-input sw-cnt-saldo" type="text" inputmode="decimal" placeholder="Saldo" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
-    <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
+  const tipo=CUENTA_TIPOS.includes(c.tipo)?c.tipo:'banco';
+  // Stable id is generated/persisted on the data object so the radio survives re-renders
+  if(!c.id)c.id=genCuentaId();
+  const isDefault=_editData.config?.defaultCashAccountId===c.id;
+  return`<div class="sw-cuenta-row" data-cuenta-id="${c.id}" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center;margin-bottom:8px">
+      <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
+      <select class="cierre-input sw-cnt-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
+      <input class="cierre-input sw-cnt-saldo" type="text" inputmode="decimal" placeholder="Saldo" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
+      <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select class="cierre-input sw-cnt-tipo" style="font-size:12px;padding:6px 8px;cursor:pointer;flex:1;min-width:120px">
+        ${CUENTA_TIPOS.map(tp=>`<option value="${tp}" ${tp===tipo?'selected':''}>${t('cuenta_tipo_'+tp)}</option>`).join('')}
+      </select>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:${isDefault?'var(--accent)':'var(--muted)'};cursor:pointer;font-weight:${isDefault?'700':'500'}">
+        <input type="radio" name="sw-cnt-default" class="sw-cnt-default" ${isDefault?'checked':''} onchange="swSetDefaultCash('${c.id}')">
+        ${t('wallet_set_default')}
+      </label>
+    </div>
   </div>`;
 }
+function swSetDefaultCash(id){
+  // Update underlying _editData immediately + reflect in DOM labels
+  if(_editData.config)_editData.config.defaultCashAccountId=id;
+  document.querySelectorAll('.sw-cuenta-row').forEach(row=>{
+    const isMatch=row.dataset.cuentaId===id;
+    const lbl=row.querySelector('label');
+    if(lbl){
+      lbl.style.color=isMatch?'var(--accent)':'var(--muted)';
+      lbl.style.fontWeight=isMatch?'700':'500';
+    }
+    // If marking as default, force tipo to 'cash'
+    if(isMatch){
+      const tipoSel=row.querySelector('.sw-cnt-tipo');
+      if(tipoSel)tipoSel.value='cash';
+    }
+  });
+}
 function addSwCuenta(){
-  document.getElementById('sw-cuentas-list').insertAdjacentHTML('beforeend',renderSwCuenta(Date.now(),{nombre:'',moneda:'RD',saldo:0}));
+  document.getElementById('sw-cuentas-list').insertAdjacentHTML('beforeend',renderSwCuenta(Date.now(),{id:genCuentaId(),nombre:'',moneda:'RD',saldo:0,tipo:'banco'}));
 }
 function renderSwGasto(i,g){
   const tipos=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
@@ -2631,12 +2721,21 @@ const _setupSteps=[
     save:()=>{
       const rows=document.querySelectorAll('.sw-cuenta-row');
       _editData.forNow.cuentas=[];
+      let defaultId=null;
       rows.forEach(row=>{
         const nombre=row.querySelector('.sw-cnt-nombre').value.trim();
         const moneda=row.querySelector('.sw-cnt-moneda')?.value||'RD';
         const saldo=pf(row.querySelector('.sw-cnt-saldo').value);
-        if(nombre) _editData.forNow.cuentas.push({nombre,moneda,saldo,comp:0,disp:saldo});
+        const tipo=row.querySelector('.sw-cnt-tipo')?.value||'banco';
+        const id=row.dataset.cuentaId||genCuentaId();
+        const isDefault=row.querySelector('.sw-cnt-default')?.checked;
+        if(nombre){
+          _editData.forNow.cuentas.push({id,nombre,moneda,saldo,tipo:CUENTA_TIPOS.includes(tipo)?tipo:'banco',comp:0,disp:saldo});
+          if(isDefault)defaultId=id;
+        }
       });
+      // Persist the wallet pointer; clear if no row was marked
+      _editData.config.defaultCashAccountId=defaultId;
       const tasa=_editData.config.tasa||60;
       _editData.forNow.total=_editData.forNow.cuentas.reduce((a,c)=>a+(c.moneda==='USD'?(c.saldo||0)*tasa:(c.saldo||0)),0);
       _editData.forNow.fecha=new Date().toISOString().slice(0,10);
@@ -2911,7 +3010,7 @@ const _DEMO_DATA_USD={"config":{"tasa":60,"mes":"May","anio":2026,"ingresoUSD":6
 // ══════════════════════════════════
 function downloadJSON(){
   const data=JSON.parse(JSON.stringify(_editData));
-  data._meta={version:3,exportedAt:new Date().toISOString(),app:'CNTpf'};
+  data._meta={version:4,exportedAt:new Date().toISOString(),app:'CNTpf'};
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
@@ -2942,6 +3041,13 @@ function importJSON(file){
       if(!_editData.transacciones)_editData.transacciones=[];
       if(!_editData.presupuesto)_editData.presupuesto=[];
       if(!_editData.recurrentes)_editData.recurrentes=[];
+      // v3→v4 wallet migration: ensure each cuenta has a stable id and default tipo
+      ensureCuentaIds(_editData);
+      if(_editData.config.defaultCashAccountId===undefined)_editData.config.defaultCashAccountId=null;
+      // Validate the pointer still resolves; null it out if the referenced cuenta is gone
+      if(_editData.config.defaultCashAccountId&&!_editData.forNow.cuentas.some(c=>c.id===_editData.config.defaultCashAccountId)){
+        _editData.config.defaultCashAccountId=null;
+      }
       _editData.filename=file.name;
       buildDashboard(_editData);
       applyI18n();
@@ -2963,6 +3069,9 @@ async function loadDemo(currency){
     if(!_editData.config.payFrequency)_editData.config.payFrequency='mensual';
     _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
     _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
+    // Wallet migration: ensure ids/tipos
+    ensureCuentaIds(_editData);
+    if(_editData.config.defaultCashAccountId===undefined)_editData.config.defaultCashAccountId=null;
     buildDashboard(_editData);
     applyI18n();
     document.getElementById('loaderScreen').style.display='none';
@@ -4071,6 +4180,11 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
 // ══════════════════════════════════
 function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   destroyCharts();
+  // Wallet migration — runs on every dashboard build so any entry path
+  // (importJSON, loadDemo, IndexedDB restore, _testLoadData) gets ids/tipos.
+  ensureCuentaIds({forNow});
+  if(config.defaultCashAccountId===undefined)config.defaultCashAccountId=null;
+  if(config.defaultCashAccountId&&!forNow.cuentas.some(c=>c.id===config.defaultCashAccountId))config.defaultCashAccountId=null;
   const{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual,txGasto}=calcDerivedMetrics({config,gastos,forNow,emerg});
 
   // Header
@@ -5435,7 +5549,9 @@ let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
+window._testSetupGoToStep=function(stepIdx){_setupStep=stepIdx;renderSetup();};
 window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
+window.CUENTA_TIPOS=CUENTA_TIPOS;
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;autoSave();}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
 function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';_balanceSnapshot=(_editData.gastos||[]).map(g=>g.balance||0);buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
@@ -5485,6 +5601,24 @@ function onCurrencySwitch(i,sel,collection){
     }
   }
   collection[i].moneda=nw;markChanged(sel);buildEditForms();
+}
+function onCuentaTipoChange(i,sel){
+  const c=_editData.forNow?.cuentas?.[i];if(!c)return;
+  const nw=CUENTA_TIPOS.includes(sel.value)?sel.value:'banco';
+  c.tipo=nw;
+  // If user demoted the wallet account away from cash, clear the default pointer
+  if(_editData.config.defaultCashAccountId===c.id&&nw!=='cash'){
+    _editData.config.defaultCashAccountId=null;
+    document.querySelectorAll('.fornow-default').forEach(r=>{r.checked=false;});
+  }
+  markChanged(sel);
+}
+function onWalletDefaultChange(id){
+  // Promotes the targeted cuenta to default cash. Auto-flips its tipo to 'cash'
+  // so the dropdown stays in sync with the radio.
+  setDefaultCashAccount(id);
+  markChanged(document.body);
+  buildEditForms();
 }
 // Convert fondo balance/meta to base currency (RD$) — if moneda=USD, multiply by config.tasa
 function fondoToRD(f){const tasa=_editData.config.tasa||60;const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
@@ -5538,9 +5672,15 @@ function buildEditForms(){
   const fb=document.getElementById('fornowEditBody');fb.innerHTML='';
   forNow.cuentas.forEach((c,i)=>{
     const mon=c.moneda||'RD';
-    fb.innerHTML+=`<tr><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
+    if(!c.id)c.id=genCuentaId();
+    const tipo=CUENTA_TIPOS.includes(c.tipo)?c.tipo:'banco';
+    const isDefault=config.defaultCashAccountId===c.id;
+    const tipoOptions=CUENTA_TIPOS.map(tp=>`<option value="${tp}" ${tp===tipo?'selected':''}>${t('cuenta_tipo_'+tp)}</option>`).join('');
+    fb.innerHTML+=`<tr data-cuenta-id="${c.id}"><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
       <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.forNow.cuentas)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
       <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
+      <td><select class="tbl-input fornow-tipo" data-idx="${i}" onchange="onCuentaTipoChange(${i},this)" style="min-width:90px">${tipoOptions}</select></td>
+      <td style="text-align:center"><input type="radio" name="fornow-default" class="fornow-default" data-cuenta-id="${c.id}" ${isDefault?'checked':''} onchange="onWalletDefaultChange('${c.id}')" aria-label="${t('wallet_set_default')}"></td>
       <td><button class="row-del-btn" onclick="deleteFornowRow(${i})">✕</button></td></tr>`;
   });
   // EMERGENCY
