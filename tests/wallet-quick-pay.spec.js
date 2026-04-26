@@ -269,3 +269,119 @@ test.describe('Quick-pay i18n', () => {
     expect(aria).toBe('Quick pay');
   });
 });
+
+// ───────────────────────────────────────────────────────────────────
+// 6. Final-audit follow-ups
+// ───────────────────────────────────────────────────────────────────
+test.describe('Quick-pay — final audit follow-ups', () => {
+  test('FAB sits BEHIND open modals (z-index lower than modal layer)', async ({ page }) => {
+    await loadAppDefault(page);
+    // Open the edit modal
+    await page.evaluate(() => window.openEditModal());
+    const stack = await page.evaluate(() => ({
+      fab: parseInt(getComputedStyle(document.getElementById('quickPayFab')).zIndex, 10),
+      edit: parseInt(getComputedStyle(document.getElementById('editModal')).zIndex, 10),
+      cierre: parseInt(getComputedStyle(document.getElementById('cierreModal')).zIndex, 10),
+      qpay: parseInt(getComputedStyle(document.getElementById('quickPayModal')).zIndex, 10),
+      setup: parseInt(getComputedStyle(document.getElementById('walletSetupModal')).zIndex, 10),
+    }));
+    expect(stack.fab).toBeLessThan(stack.edit);
+    expect(stack.fab).toBeLessThan(stack.cierre);
+    expect(stack.fab).toBeLessThan(stack.qpay);
+    expect(stack.fab).toBeLessThan(stack.setup);
+  });
+
+  test('opening FAB while edit modal is already open: quick-pay still opens but stays at same z-layer', async ({ page }) => {
+    // Real users can't tap a hidden FAB through a modal, but a
+    // programmatic call shouldn't corrupt state.
+    await loadAppDefault(page);
+    await page.evaluate(() => window.openEditModal());
+    await page.evaluate(() => window.openQuickPay());
+    const both = await page.evaluate(() => ({
+      edit: document.getElementById('editModal').classList.contains('open'),
+      qpay: document.getElementById('quickPayModal').classList.contains('open'),
+    }));
+    // Both modals open simultaneously is an edge case; the test asserts the
+    // app doesn't crash and quick-pay state is consistent.
+    expect(both.qpay).toBe(true);
+    expect(both.edit).toBe(true);
+    // Closing quick-pay shouldn't take the edit modal with it
+    await page.evaluate(() => window.closeQuickPay());
+    const after = await page.evaluate(() => ({
+      edit: document.getElementById('editModal').classList.contains('open'),
+      qpay: document.getElementById('quickPayModal').classList.contains('open'),
+    }));
+    expect(after.qpay).toBe(false);
+    expect(after.edit).toBe(true);
+  });
+
+  test('cross-currency: USD wallet, RD$-stored monto debits via tasa', async ({ page }) => {
+    page.on('dialog', d => d.accept());
+    await page.goto('/cnt.html');
+    await page.waitForFunction(() => typeof window._testLoadData === 'function');
+    await page.evaluate(() => {
+      const data = window.defaultEditData();
+      data.config.tasa = 60;
+      data.config.mes = 'Marzo';
+      data.config.anio = 2026;
+      const cashId = 'cnt_cash_usd';
+      data.forNow.cuentas = [
+        { id: cashId, nombre: 'Cash USD', moneda: 'USD', saldo: 100, tipo: 'cash', comp: 0, disp: 100 },
+      ];
+      data.config.defaultCashAccountId = cashId;
+      window._testLoadData(data);
+    });
+    await page.waitForSelector('#dashApp', { state: 'visible' });
+    await page.locator('#quickPayFab').click();
+    await page.locator('#qpayAmount').fill('1200'); // RD$1,200
+    await page.locator('#quickPayModal .btn-primary').click();
+    const saldo = await page.evaluate(() => _editData.forNow.cuentas[0].saldo);
+    // USD$100 - (1200/60) = $80
+    expect(saldo).toBe(80);
+  });
+
+  test('full integration: setup → income deposit → quick-pay → balance is correct', async ({ page }) => {
+    // Start with NO wallet; FAB opens setup; setup auto-resumes quick-pay
+    await loadAppDefault(page, { withDefault: false });
+    await page.evaluate(() => window.openQuickPay());
+    // Setup modal is up first
+    await expect(page.locator('#walletSetupModal')).toHaveClass(/open/);
+    // Confirm setup with starting balance 5000
+    await page.evaluate(() => {
+      document.getElementById('walletSetupAmount').value = '5000';
+      window.confirmWalletSetup();
+    });
+    // Auto-resume should reopen quick-pay
+    await expect(page.locator('#quickPayModal')).toHaveClass(/open/);
+    await page.locator('#qpayAmount').fill('800');
+    await page.locator('#quickPayModal .btn-primary').click();
+    let saldo = await page.evaluate(() =>
+      _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
+    );
+    expect(saldo).toBe(4200); // 5000 - 800
+    // Income deposit credits monthly equivalent
+    await page.evaluate(() => window.depositIncomeToWallet());
+    saldo = await page.evaluate(() =>
+      _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
+    );
+    // 4200 + 180000 = 184200
+    expect(saldo).toBe(184200);
+    // Wallet card on Resumen reflects the latest balance
+    const balanceText = await page.locator('#walletCard .wallet-card-balance').textContent();
+    expect(balanceText).toMatch(/184[,.]?200/);
+  });
+
+  test('cancelling setup from FAB flow does NOT auto-resume quick-pay', async ({ page }) => {
+    await loadAppDefault(page, { withDefault: false });
+    await page.evaluate(() => window.openQuickPay());
+    await expect(page.locator('#walletSetupModal')).toHaveClass(/open/);
+    await page.evaluate(() => window.cancelWalletSetup());
+    // Both modals closed; the resume flag is reset
+    const state = await page.evaluate(() => ({
+      setup: document.getElementById('walletSetupModal').classList.contains('open'),
+      qpay: document.getElementById('quickPayModal').classList.contains('open'),
+    }));
+    expect(state.setup).toBe(false);
+    expect(state.qpay).toBe(false);
+  });
+});

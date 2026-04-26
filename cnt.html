@@ -1555,9 +1555,13 @@ function renderQuickPayFab(){
 
 // QUICK-PAY MODAL
 const QPAY_CATS=['comida','transporte','entretenimiento','salud','compras','hogar','educacion','personal','otro'];
+// When the user invokes the FAB without a wallet, we open setup; after they
+// confirm, we re-open the quick-pay modal so they don't have to chase the FAB
+// again. This flag is the cheapest way to signal that intent.
+let _qpayResumeAfterSetup=false;
 function openQuickPay(){
-  // No wallet → defer to first-use setup; afterwards the user can tap the FAB again.
-  if(!getDefaultCashAccount()){promptFirstCashSetup(null);return;}
+  // No wallet → defer to first-use setup; auto-resume quick-pay on confirm.
+  if(!getDefaultCashAccount()){_qpayResumeAfterSetup=true;promptFirstCashSetup(null);return;}
   const m=document.getElementById('quickPayModal');if(!m)return;
   // Reset inputs to a clean state
   const amt=document.getElementById('qpayAmount');if(amt){amt.value='';amt.classList.remove('changed');}
@@ -1698,6 +1702,7 @@ function promptFirstCashSetup(pendingTx){
 function cancelWalletSetup(){
   document.getElementById('walletSetupModal')?.classList.remove('open');
   _walletPendingTx=null;
+  _qpayResumeAfterSetup=false;
 }
 function confirmWalletSetup(){
   const inp=document.getElementById('walletSetupAmount');
@@ -1732,6 +1737,9 @@ function confirmWalletSetup(){
   }
   saveToDB();
   buildDashboard({..._editData});
+  // If the user reached setup via the quick-pay FAB, resume that flow now
+  // that the wallet exists. They don't have to chase the FAB a second time.
+  if(_qpayResumeAfterSetup){_qpayResumeAfterSetup=false;openQuickPay();}
 }
 
 // ══════════════════════════════════
