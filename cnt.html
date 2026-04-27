@@ -297,6 +297,7 @@ header{will-change:auto}
 .wallet-mov-amt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
 .wallet-mov-amt.debit{color:var(--red)}
 .wallet-mov-amt.credit{color:var(--green)}
+.wallet-mov-amt.ajuste{color:var(--muted)}
 .wallet-empty-state{padding:8px 0;color:var(--muted);font-size:13px;text-align:center}
 .wallet-cta{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:99px;font-family:var(--font);font-weight:700;font-size:13px;cursor:pointer;min-height:40px}
 .wallet-cta:hover{opacity:.92;transform:translateY(-1px)}
@@ -347,8 +348,8 @@ header{will-change:auto}
 @media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
 
 /* ══ MI SALDO — first-use setup modal ══ */
-#walletSetupModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
-#walletSetupModal.open{display:flex}
+#walletSetupModal,#walletReconcileModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#walletSetupModal.open,#walletReconcileModal.open{display:flex}
 .wallet-setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:420px;width:100%;padding:24px}
 .wallet-setup-card h2{font-size:18px;font-weight:800;margin-bottom:6px}
 .wallet-setup-card p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px}
@@ -1210,6 +1211,23 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 </div>
 
+<!-- ══ MI SALDO — Reconcile (ajuste) modal ══ -->
+<div id="walletReconcileModal" role="dialog" aria-modal="true" aria-labelledby="walletReconcileTitle">
+  <div class="wallet-setup-card">
+    <h2 id="walletReconcileTitle" data-i18n="wallet_reconcile_title">Ajustar Mi Saldo</h2>
+    <p id="walletReconcileSub" data-i18n="wallet_reconcile_sub">Cuenta tu efectivo real ahora mismo y registra el saldo. La diferencia queda guardada como un ajuste, sin perder el historial.</p>
+    <label class="field-label" for="walletReconcileAmount" data-i18n="wallet_reconcile_amount">Saldo real</label>
+    <input class="cierre-input" id="walletReconcileAmount" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+    <div id="walletReconcileDelta" class="field-note" style="margin-top:6px;min-height:14px"></div>
+    <label class="field-label" for="walletReconcileNote" style="margin-top:10px" data-i18n="wallet_reconcile_note">Nota (opcional)</label>
+    <input class="cierre-input" id="walletReconcileNote" type="text" placeholder="" autocomplete="off">
+    <div class="wallet-setup-actions">
+      <button type="button" class="btn btn-ghost" onclick="cancelWalletReconcile()" data-i18n="wallet_reconcile_cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="confirmWalletReconcile()" data-i18n="wallet_reconcile_confirm">Registrar ajuste</button>
+    </div>
+  </div>
+</div>
+
 <div id="cierreModal" role="dialog" aria-modal="true" aria-labelledby="cierreModalTitle">
   <div class="cierre-container">
     <div class="cierre-header">
@@ -1485,7 +1503,7 @@ function applyGastoTransferencia(gasto){
 // for SPENDING totals must filter through this helper, otherwise the income
 // tx silently subtracts from gasto, distorts category charts, and corrupts
 // historial entries on cierre.
-function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso';}
+function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso'&&tx.categoria!=='ajuste';}
 
 // Deposit the user's monthly income to the wallet. Idempotent per (mes, anio):
 // only one income tx per month is allowed. Records as a synthetic transacción
@@ -1574,6 +1592,37 @@ function projectWalletBalance(daysAhead){
     lowestDate,
     eventCount:events.length,
   };
+}
+
+// Reconcile the wallet to a real-world cash count. Records an explicit
+// `ajuste` transaction so the ledger keeps its audit trail instead of the
+// saldo silently drifting. `newAmount` is in the wallet's moneda. Returns
+// the created tx (or null if no wallet / no delta).
+function reconcileWallet(newAmount,note){
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta)return null;
+  const target=Math.max(0,Number(newAmount)||0);
+  const current=cuenta.saldo||0;
+  const delta=target-current;
+  if(delta===0)return null;
+  // monto sign convention: negative = credit (balance went UP), positive = debit
+  const cfg=_editData?.config||{};
+  const tasa=cfg.tasa||60;
+  const deltaRD=cuenta.moneda==='USD'?delta*tasa:delta;
+  cuenta.saldo=target;
+  if(!_editData.transacciones)_editData.transacciones=[];
+  const tx={
+    fecha:new Date().toISOString().slice(0,10),
+    monto:-deltaRD, // RD$ scale, negative when balance went UP
+    categoria:'ajuste',
+    metodo:'transferencia', // bypass applyCashDebit on re-render
+    nota:note||'',
+    gastoIdx:-1,
+    mes:cfg.mes,anio:cfg.anio,
+    applied:true,cuentaId:cuenta.id,
+  };
+  _editData.transacciones.push(tx);
+  return tx;
 }
 
 // Resolve the wallet low-balance threshold in RD$. User can override via
@@ -1849,12 +1898,14 @@ function renderWalletCard(){
     : movs.map(tx=>{
         const dateStr=String(tx.fecha||'').slice(5);
         const cat=t('reg_cat_'+(tx.categoria||'otro'));
+        const isAjuste=tx.categoria==='ajuste';
         const isCredit=(tx.monto||0)<0;
         const sign=isCredit?'+':'-';
-        const cls=isCredit?'credit':'debit';
+        const cls=isAjuste?'ajuste':(isCredit?'credit':'debit');
+        const icon=isAjuste?'⚖️ ':'';
         return `<div class="wallet-mov-item">
           <div>
-            <div>${escH(tx.nota||cat)}</div>
+            <div>${icon}${escH(tx.nota||cat)}</div>
             <div class="wallet-mov-meta">${escH(dateStr)} · ${escH(cat)}</div>
           </div>
           <div class="wallet-mov-amt ${cls}">${sign}${escH(fmtC(toDisplay(Math.abs(tx.monto||0))))}</div>
@@ -1961,6 +2012,63 @@ function confirmWalletSetup(){
   // If the user reached setup via the quick-pay FAB, resume that flow now
   // that the wallet exists. They don't have to chase the FAB a second time.
   if(_qpayResumeAfterSetup){_qpayResumeAfterSetup=false;openQuickPay();}
+}
+
+// Reconcile / Ajustar Mi Saldo — opens the modal pre-filled with the current
+// saldo and shows a live delta hint so the user understands what gets logged.
+function openWalletReconcile(){
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta){promptFirstCashSetup(null);return;}
+  const m=document.getElementById('walletReconcileModal');if(!m)return;
+  const inp=document.getElementById('walletReconcileAmount');
+  const noteInp=document.getElementById('walletReconcileNote');
+  if(inp)inp.value=cuenta.saldo||0;
+  if(noteInp)noteInp.value='';
+  _renderReconcileDelta();
+  // Re-bind a single live listener (re-bound each open is fine — the input is
+  // not re-created across opens).
+  if(inp){inp.oninput=_renderReconcileDelta;}
+  m.classList.add('open');
+  setTimeout(()=>inp&&inp.select(),50);
+}
+function _renderReconcileDelta(){
+  const cuenta=getDefaultCashAccount();if(!cuenta)return;
+  const inp=document.getElementById('walletReconcileAmount');
+  const out=document.getElementById('walletReconcileDelta');
+  if(!inp||!out)return;
+  const target=Math.max(0,pf(inp.value||'0'));
+  const delta=target-(cuenta.saldo||0);
+  if(delta===0){out.textContent=t('wallet_reconcile_delta_zero');out.style.color='var(--muted)';return;}
+  const sym=cuenta.moneda==='USD'?'$':'RD$';
+  const abs=Math.abs(delta).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});
+  const sign=delta>0?'+':'-';
+  out.textContent=`${t('wallet_reconcile_delta_label')}: ${sign}${sym}${abs}`;
+  out.style.color=delta>0?'var(--green)':'var(--red)';
+}
+function cancelWalletReconcile(){
+  document.getElementById('walletReconcileModal')?.classList.remove('open');
+}
+function confirmWalletReconcile(){
+  const cuenta=getDefaultCashAccount();if(!cuenta)return;
+  const inp=document.getElementById('walletReconcileAmount');
+  const noteInp=document.getElementById('walletReconcileNote');
+  const target=Math.max(0,pf(inp?.value||'0'));
+  const note=(noteInp?.value||'').trim();
+  const tx=reconcileWallet(target,note);
+  document.getElementById('walletReconcileModal')?.classList.remove('open');
+  if(!tx){
+    // No delta — nothing to log. Quietly close; user sees same balance.
+    return;
+  }
+  saveToDB();
+  buildDashboard({..._editData});
+  // If the Edit modal is open, refresh its fondos table to reflect the new
+  // saldo on the readonly wallet input.
+  if(document.getElementById('editModal')?.classList.contains('open')){
+    if(typeof buildEditForms==='function')buildEditForms();
+    if(typeof applyI18n==='function')applyI18n();
+  }
+  showToast(t('wallet_reconcile_toast'),'var(--accent)');
 }
 
 // ══════════════════════════════════
@@ -2322,6 +2430,17 @@ const LANG = {
     wallet_setup_confirm:'Crear Mi Saldo',
     wallet_setup_cancel:'Cancelar',
     wallet_setup_account_name:'Efectivo',
+    wallet_reconcile_btn:'Ajustar',
+    wallet_reconcile_btn_title:'Ajustar Mi Saldo registrando un ajuste en el historial',
+    wallet_reconcile_title:'Ajustar Mi Saldo',
+    wallet_reconcile_sub:'Cuenta tu efectivo real ahora mismo y registra el saldo. La diferencia queda guardada como un ajuste, sin perder el historial.',
+    wallet_reconcile_amount:'Saldo real',
+    wallet_reconcile_note:'Nota (opcional)',
+    wallet_reconcile_cancel:'Cancelar',
+    wallet_reconcile_confirm:'Registrar ajuste',
+    wallet_reconcile_delta_label:'Diferencia',
+    wallet_reconcile_delta_zero:'Sin cambio',
+    wallet_reconcile_toast:'⚖️ Ajuste registrado',
     wallet_chip_label:'Mi Saldo',
     wallet_proj_after_commitments:'Después de pendientes',
     wallet_proj_lowest:'Punto más bajo (día {dia})',
@@ -2440,6 +2559,7 @@ const LANG = {
     reg_cat_salud:'Salud', reg_cat_compras:'Compras', reg_cat_hogar:'Hogar',
     reg_cat_educacion:'Educación', reg_cat_personal:'Personal', reg_cat_otro:'Otro',
     reg_cat_ingreso:'Ingreso',
+    reg_cat_ajuste:'Ajuste',
     reg_chart_title:'Gasto por Categoría', reg_tracked:'Gasto registrado', reg_trend_title:'Tendencia de Gasto',
     edit_tab_transacciones:'🧾 Transacciones',
     // Feature 6 – Presupuesto (Forward Budget)
@@ -2809,6 +2929,17 @@ const LANG = {
     wallet_setup_confirm:'Create My Balance',
     wallet_setup_cancel:'Cancel',
     wallet_setup_account_name:'Cash',
+    wallet_reconcile_btn:'Adjust',
+    wallet_reconcile_btn_title:'Adjust My Balance and log the change as an audit entry',
+    wallet_reconcile_title:'Adjust My Balance',
+    wallet_reconcile_sub:'Count your actual cash right now and record the balance. The difference is saved as an adjustment so the ledger stays intact.',
+    wallet_reconcile_amount:'Real balance',
+    wallet_reconcile_note:'Note (optional)',
+    wallet_reconcile_cancel:'Cancel',
+    wallet_reconcile_confirm:'Log adjustment',
+    wallet_reconcile_delta_label:'Delta',
+    wallet_reconcile_delta_zero:'No change',
+    wallet_reconcile_toast:'⚖️ Adjustment logged',
     wallet_chip_label:'My Balance',
     wallet_proj_after_commitments:'After upcoming bills',
     wallet_proj_lowest:'Lowest point (day {dia})',
@@ -2927,6 +3058,7 @@ const LANG = {
     reg_cat_salud:'Health', reg_cat_compras:'Shopping', reg_cat_hogar:'Home',
     reg_cat_educacion:'Education', reg_cat_personal:'Personal', reg_cat_otro:'Other',
     reg_cat_ingreso:'Income',
+    reg_cat_ajuste:'Adjustment',
     reg_chart_title:'Spending by Category', reg_tracked:'Tracked spending', reg_trend_title:'Spending Trend',
     edit_tab_transacciones:'🧾 Transactions',
     // Feature 6 – Budget (Forward Budget)
@@ -6482,6 +6614,8 @@ let _balanceSnapshot=[];
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
 window.projectWalletBalance=projectWalletBalance;
 window.walletLowThresholdRD=walletLowThresholdRD;
+window.reconcileWallet=reconcileWallet;
+window.isExpenseTx=isExpenseTx;
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
 window._testSetupGoToStep=function(stepIdx){_setupStep=stepIdx;renderSetup();};
 // Tests that exercise the toggle/apply cycle without going through the
@@ -6635,9 +6769,14 @@ function buildEditForms(){
     const tipo=CUENTA_TIPOS.includes(c.tipo)?c.tipo:'banco';
     const isDefault=config.defaultCashAccountId===c.id;
     const tipoOptions=CUENTA_TIPOS.map(tp=>`<option value="${tp}" ${tp===tipo?'selected':''}>${t('cuenta_tipo_'+tp)}</option>`).join('');
+    // Wallet row — saldo edits flow through reconcileWallet so the ledger
+    // captures an `ajuste` tx instead of silently overwriting the balance.
+    const saldoCell=isDefault
+      ? `<td><div style="display:flex;gap:6px;align-items:center"><input class="tbl-input" type="text" inputmode="decimal" value="${c.saldo||0}" readonly style="opacity:.7;cursor:not-allowed" aria-label="${t('eth_saldo')}"><button type="button" class="btn btn-sm" onclick="openWalletReconcile()" title="${escH(t('wallet_reconcile_btn_title'))}" style="white-space:nowrap;padding:6px 10px;font-size:12px">⚖️ ${escH(t('wallet_reconcile_btn'))}</button></div></td>`
+      : `<td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>`;
     fb.innerHTML+=`<tr data-cuenta-id="${c.id}"><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
       <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.forNow.cuentas)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
-      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
+      ${saldoCell}
       <td><select class="tbl-input fornow-tipo" data-idx="${i}" onchange="onCuentaTipoChange(${i},this)" style="min-width:90px">${tipoOptions}</select></td>
       <td style="text-align:center"><input type="radio" name="fornow-default" class="fornow-default" data-cuenta-id="${c.id}" ${isDefault?'checked':''} onchange="onWalletDefaultChange('${c.id}')" aria-label="${t('wallet_set_default')}"></td>
       <td><button class="row-del-btn" onclick="deleteFornowRow(${i})">✕</button></td></tr>`;
