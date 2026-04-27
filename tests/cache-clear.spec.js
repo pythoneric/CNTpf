@@ -94,7 +94,9 @@ test.describe('Cache Clear - Preserves User Data', () => {
     const banner = page.locator('#savedDataBanner');
     await expect(banner).toBeVisible();
 
-    // The "Continuar" button should be available
-    await expect(page.locator('button', { hasText: /Continuar|Continue/ })).toBeVisible();
+    // The "Continuar donde lo dejé" button should be available. Use the
+    // onclick attribute as a stable selector so we don't pick up the new
+    // demo-confirm modal's "Continuar sin respaldo" button.
+    await expect(page.locator('button[onclick="loadFromDB()"]')).toBeVisible();
   });
 });

@@ -7,14 +7,14 @@ const { test, expect } = require('@playwright/test');
 test.describe('Demo Data Loader', () => {
   test('RD demo button is visible on loader screen', async ({ page }) => {
     await page.goto('/cnt.html');
-    const demoBtn = page.locator('button[onclick="loadDemo(\'RD\')"]');
+    const demoBtn = page.locator('button[onclick="loadDemoSafe(\'RD\')"]');
     await expect(demoBtn).toBeVisible();
     await expect(demoBtn).toContainText(/Demo RD\$/);
   });
 
   test('USD demo button is visible on loader screen', async ({ page }) => {
     await page.goto('/cnt.html');
-    const demoBtn = page.locator('button[onclick="loadDemo(\'USD\')"]');
+    const demoBtn = page.locator('button[onclick="loadDemoSafe(\'USD\')"]');
     await expect(demoBtn).toBeVisible();
     await expect(demoBtn).toContainText(/Demo USD/);
   });
@@ -46,7 +46,7 @@ test.describe('Demo Data Loader', () => {
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
 
-    await page.locator('button[onclick="loadDemo(\'RD\')"]').click();
+    await page.locator('button[onclick="loadDemoSafe(\'RD\')"]').click();
 
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('#loaderScreen')).toBeHidden();
@@ -65,7 +65,7 @@ test.describe('Demo Data Loader', () => {
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
 
-    await page.locator('button[onclick="loadDemo(\'USD\')"]').click();
+    await page.locator('button[onclick="loadDemoSafe(\'USD\')"]').click();
 
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('#loaderScreen')).toBeHidden();
@@ -81,7 +81,7 @@ test.describe('Demo Data Loader', () => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
-    await page.locator('button[onclick="loadDemo(\'RD\')"]').click();
+    await page.locator('button[onclick="loadDemoSafe(\'RD\')"]').click();
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const gastoCount = await page.evaluate(() => _editData.gastos.length);
@@ -92,7 +92,7 @@ test.describe('Demo Data Loader', () => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
-    await page.locator('button[onclick="loadDemo(\'USD\')"]').click();
+    await page.locator('button[onclick="loadDemoSafe(\'USD\')"]').click();
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const gastoCount = await page.evaluate(() => _editData.gastos.length);
@@ -103,7 +103,7 @@ test.describe('Demo Data Loader', () => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
-    await page.locator('button[onclick="loadDemo(\'RD\')"]').click();
+    await page.locator('button[onclick="loadDemoSafe(\'RD\')"]').click();
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const histCount = await page.evaluate(() => _editData.historial.length);
@@ -114,7 +114,7 @@ test.describe('Demo Data Loader', () => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
-    await page.locator('button[onclick="loadDemo(\'USD\')"]').click();
+    await page.locator('button[onclick="loadDemoSafe(\'USD\')"]').click();
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const histCount = await page.evaluate(() => _editData.historial.length);
@@ -125,7 +125,7 @@ test.describe('Demo Data Loader', () => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
-    await page.locator('button[onclick="loadDemo(\'RD\')"]').click();
+    await page.locator('button[onclick="loadDemoSafe(\'RD\')"]').click();
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const metasCount = await page.evaluate(() => _editData.metas.length);
@@ -136,7 +136,7 @@ test.describe('Demo Data Loader', () => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
-    await page.locator('button[onclick="loadDemo(\'RD\')"]').click();
+    await page.locator('button[onclick="loadDemoSafe(\'RD\')"]').click();
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const accountCount = await page.evaluate(() => _editData.forNow.cuentas.length);
@@ -147,7 +147,7 @@ test.describe('Demo Data Loader', () => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
-    await page.locator('button[onclick="loadDemo(\'RD\')"]').click();
+    await page.locator('button[onclick="loadDemoSafe(\'RD\')"]').click();
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const efCount = await page.evaluate(() => _editData.emerg.fondos.length);

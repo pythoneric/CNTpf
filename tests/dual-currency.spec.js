@@ -269,8 +269,8 @@ test.describe('Ratios & Percentages', () => {
 test.describe('Demo Data', () => {
   test('loader screen shows two demo buttons (RD and USD)', async ({ page }) => {
     await page.goto(APP);
-    const rdBtn = page.locator('button[onclick="loadDemo(\'RD\')"]');
-    const usdBtn = page.locator('button[onclick="loadDemo(\'USD\')"]');
+    const rdBtn = page.locator('button[onclick="loadDemoSafe(\'RD\')"]');
+    const usdBtn = page.locator('button[onclick="loadDemoSafe(\'USD\')"]');
     await expect(rdBtn).toBeVisible();
     await expect(usdBtn).toBeVisible();
   });
