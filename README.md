@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (643 tests)
+tests/                -- Suite de tests Playwright (649 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -521,7 +521,8 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `wallet-projection.spec.js` | 18 | Cash-runway projection, low-balance threshold, alerta wallet_low / wallet_neg |
 | `wallet-reconcile.spec.js` | 12 | reconcileWallet, isExpenseTx exclusion, Edit row gating, modal flow, ajuste row |
 | `wallet-transfer.spec.js` | 14 | transferBetweenAccounts, paired txs, cross-currency, reverseTransferGroup, UI |
-| **Total** | **643** | |
+| `wallet-integration.spec.js` | 6 | JSON round-trip de campos nuevos, exclusion en cierre, deleteTxEditRow paired, demo smoke |
+| **Total** | **649** | |
 
 ---
 
