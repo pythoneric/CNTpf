@@ -354,8 +354,12 @@ header{will-change:auto}
 @media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
 
 /* ══ MI SALDO — first-use setup modal ══ */
-#walletSetupModal,#walletReconcileModal,#walletTransferModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
-#walletSetupModal.open,#walletReconcileModal.open,#walletTransferModal.open{display:flex}
+#walletSetupModal,#walletReconcileModal,#walletTransferModal,#demoConfirmModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#walletSetupModal.open,#walletReconcileModal.open,#walletTransferModal.open,#demoConfirmModal.open{display:flex}
+/* Demo-confirm modal opens while the loader screen is still visible
+   (the user hasn't entered the dashboard yet), so it needs to render
+   above the loader (--z-setup-modal: 1100). */
+#demoConfirmModal{z-index:calc(var(--z-setup-modal) + 10)}
 .wallet-setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:420px;width:100%;padding:24px}
 .wallet-setup-card h2{font-size:18px;font-weight:800;margin-bottom:6px}
 .wallet-setup-card p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px}
@@ -789,14 +793,14 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
     <!-- Option 4: Load demo data — TWO options -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <button class="btn btn-ghost" onclick="loadDemo('RD')" style="justify-content:center;border-style:dashed;gap:8px;padding:14px">
+      <button class="btn btn-ghost" onclick="loadDemoSafe('RD')" style="justify-content:center;border-style:dashed;gap:8px;padding:14px">
         <span style="font-size:20px">🇩🇴</span>
         <div style="text-align:left">
           <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="loader_demo_rd">Demo RD$</div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px" data-i18n="loader_demo_rd_sub">Datos ficticios en Pesos</div>
         </div>
       </button>
-      <button class="btn btn-ghost" onclick="loadDemo('USD')" style="justify-content:center;border-style:dashed;gap:8px;padding:14px">
+      <button class="btn btn-ghost" onclick="loadDemoSafe('USD')" style="justify-content:center;border-style:dashed;gap:8px;padding:14px">
         <span style="font-size:20px">🇺🇸</span>
         <div style="text-align:left">
           <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="loader_demo_usd">Demo USD</div>
@@ -1234,6 +1238,21 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="wallet-setup-actions">
       <button type="button" class="btn btn-ghost" onclick="cancelWalletTransfer()" data-i18n="wallet_transfer_cancel">Cancelar</button>
       <button type="button" class="btn btn-primary" onclick="confirmWalletTransfer()" data-i18n="wallet_transfer_confirm">Transferir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Demo overwrite-guard modal — opens when the user clicks Demo while
+     IndexedDB already holds a saved record. Three actions: download backup,
+     proceed without backup, or cancel. ══ -->
+<div id="demoConfirmModal" role="dialog" aria-modal="true" aria-labelledby="demoConfirmTitle">
+  <div class="wallet-setup-card">
+    <h2 id="demoConfirmTitle" data-i18n="demo_confirm_title">¿Reemplazar tus datos guardados con el demo?</h2>
+    <p data-i18n="demo_confirm_sub">El demo sobreescribirá los datos que tienes guardados en este navegador. Te recomendamos descargar un respaldo antes de continuar.</p>
+    <div class="wallet-setup-actions" style="flex-direction:column;align-items:stretch;gap:8px">
+      <button type="button" class="btn btn-success" onclick="confirmDemoDownloadAndContinue()" data-i18n="demo_confirm_download">💾 Descargar respaldo y continuar</button>
+      <button type="button" class="btn btn-ghost" onclick="confirmDemoContinueNoBackup()" data-i18n="demo_confirm_nobackup">Continuar sin respaldo</button>
+      <button type="button" class="btn btn-ghost" onclick="cancelDemoConfirm()" data-i18n="demo_confirm_cancel">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2827,6 +2846,13 @@ const LANG = {
     currency_note_rd:'Los montos se muestran en RD$. Cuentas en USD se convierten automáticamente.',
     loader_demo_rd:'Demo RD$', loader_demo_rd_sub:'Datos ficticios en Pesos Dominicanos · 18 meses',
     loader_demo_usd:'Demo USD', loader_demo_usd_sub:'Datos ficticios en Dólares · 18 meses',
+    // Demo overwrite-guard modal — opens when the user clicks Demo while
+    // IndexedDB already has saved data, so a backup can be taken first.
+    demo_confirm_title:'¿Reemplazar tus datos guardados con el demo?',
+    demo_confirm_sub:'El demo sobreescribirá los datos que tienes guardados en este navegador. Te recomendamos descargar un respaldo antes de continuar.',
+    demo_confirm_download:'💾 Descargar respaldo y continuar',
+    demo_confirm_nobackup:'Continuar sin respaldo',
+    demo_confirm_cancel:'Cancelar',
     pwa_title:'Instalar BitEric Finance',
     pwa_sub_android:'Accede más rápido desde tu pantalla de inicio.',
     pwa_sub_ios:'Toca <kbd>Compartir</kbd> ↗ y luego <kbd>Agregar a inicio</kbd>.',
@@ -3359,6 +3385,12 @@ const LANG = {
     currency_note_rd:'Amounts shown in RD$. USD accounts are converted automatically.',
     loader_demo_rd:'Demo RD$', loader_demo_rd_sub:'Sample data in Dominican Pesos · 18 months',
     loader_demo_usd:'Demo USD', loader_demo_usd_sub:'Sample data in US Dollars · 18 months',
+    // Demo overwrite-guard modal
+    demo_confirm_title:'Replace your saved data with the demo?',
+    demo_confirm_sub:'The demo will overwrite the data you have saved in this browser. We recommend downloading a backup before continuing.',
+    demo_confirm_download:'💾 Download backup and continue',
+    demo_confirm_nobackup:'Continue without backup',
+    demo_confirm_cancel:'Cancel',
     pwa_title:'Install BitEric Finance',
     pwa_sub_android:'Get faster access from your home screen.',
     pwa_sub_ios:'Tap <kbd>Share</kbd> ↗ then <kbd>Add to Home Screen</kbd>.',
@@ -4505,6 +4537,59 @@ function importJSON(file){
   };
   reader.readAsText(file);
 }
+// Loader-screen demo entry point that protects existing user data. If
+// IndexedDB already holds a saved record, opens a confirmation modal so the
+// user can download a backup before the demo overwrites the autosave; if no
+// saved data exists, just runs loadDemo directly (no friction for first-run
+// users).
+let _pendingDemoCurrency=null;
+async function loadDemoSafe(currency){
+  try{
+    const meta=await dbGet(STORE_DATA,'meta');
+    if(!meta){return loadDemo(currency);}
+  }catch(e){return loadDemo(currency);}
+  _pendingDemoCurrency=currency;
+  document.getElementById('demoConfirmModal')?.classList.add('open');
+}
+function cancelDemoConfirm(){
+  document.getElementById('demoConfirmModal')?.classList.remove('open');
+  _pendingDemoCurrency=null;
+}
+async function confirmDemoContinueNoBackup(){
+  const cur=_pendingDemoCurrency;
+  _pendingDemoCurrency=null;
+  document.getElementById('demoConfirmModal')?.classList.remove('open');
+  if(cur)loadDemo(cur);
+}
+async function confirmDemoDownloadAndContinue(){
+  const cur=_pendingDemoCurrency;
+  try{await downloadFromDB();}catch(e){console.warn('downloadFromDB failed',e);}
+  _pendingDemoCurrency=null;
+  document.getElementById('demoConfirmModal')?.classList.remove('open');
+  if(cur)loadDemo(cur);
+}
+
+// Read whatever is currently saved in IndexedDB and trigger a JSON download
+// — useful when the user wants a backup but hasn't yet "Continued where they
+// left off" (so _editData is empty). Mirrors downloadJSON's blob-and-anchor
+// flow but reads from the DB record directly.
+async function downloadFromDB(){
+  const editData=await dbGet(STORE_DATA,'editData');
+  if(!editData)return false;
+  const data=JSON.parse(JSON.stringify(editData));
+  data._meta={version:4,exportedAt:new Date().toISOString(),app:'CNTpf'};
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const now=new Date();
+  const stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  a.href=url;a.download=`cnt_backup_${stamp}.json`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  return true;
+}
+
 async function loadDemo(currency){
   showSpinner();
   try{
