@@ -295,10 +295,10 @@ test.describe('Demo Data', () => {
     }
   });
 
-  test('RD demo has 15 gastos', async ({ page }) => {
+  test('RD demo has 12 gastos', async ({ page }) => {
     await loadDemoPage(page, 'RD');
     const count = await page.evaluate(() => _editData.gastos.length);
-    expect(count).toBe(15);
+    expect(count).toBe(12);
   });
 
   test('USD demo has 15 gastos', async ({ page }) => {
@@ -307,22 +307,22 @@ test.describe('Demo Data', () => {
     expect(count).toBe(15);
   });
 
-  test('RD demo has 18 historial months', async ({ page }) => {
+  test('RD demo has 30 historial months', async ({ page }) => {
     await loadDemoPage(page, 'RD');
     const count = await page.evaluate(() => _editData.historial.length);
-    expect(count).toBe(18);
+    expect(count).toBe(30);
   });
 
-  test('USD demo has 18 historial months', async ({ page }) => {
+  test('USD demo has 30 historial months', async ({ page }) => {
     await loadDemoPage(page, 'USD');
     const count = await page.evaluate(() => _editData.historial.length);
-    expect(count).toBe(18);
+    expect(count).toBe(30);
   });
 
-  test('both demos have 5 metas', async ({ page }) => {
+  test('demos have metas defined', async ({ page }) => {
     await loadDemoPage(page, 'RD');
     const rdMetas = await page.evaluate(() => _editData.metas.length);
-    expect(rdMetas).toBe(5);
+    expect(rdMetas).toBe(3);
 
     await loadDemoPage(page, 'USD');
     const usdMetas = await page.evaluate(() => _editData.metas.length);

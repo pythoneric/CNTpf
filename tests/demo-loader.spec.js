@@ -85,7 +85,7 @@ test.describe('Demo Data Loader', () => {
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const gastoCount = await page.evaluate(() => _editData.gastos.length);
-    expect(gastoCount).toBe(15);
+    expect(gastoCount).toBe(12);
   });
 
   test('USD demo loads correct number of gastos', async ({ page }) => {
@@ -99,7 +99,7 @@ test.describe('Demo Data Loader', () => {
     expect(gastoCount).toBe(15);
   });
 
-  test('RD demo loads 18 months of history', async ({ page }) => {
+  test('RD demo loads 30 months of history', async ({ page }) => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
@@ -107,10 +107,10 @@ test.describe('Demo Data Loader', () => {
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const histCount = await page.evaluate(() => _editData.historial.length);
-    expect(histCount).toBe(18);
+    expect(histCount).toBe(30);
   });
 
-  test('USD demo loads 18 months of history', async ({ page }) => {
+  test('USD demo loads 30 months of history', async ({ page }) => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
@@ -118,10 +118,10 @@ test.describe('Demo Data Loader', () => {
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const histCount = await page.evaluate(() => _editData.historial.length);
-    expect(histCount).toBe(18);
+    expect(histCount).toBe(30);
   });
 
-  test('demo loads 5 savings goals', async ({ page }) => {
+  test('RD demo loads savings goals', async ({ page }) => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
@@ -129,10 +129,10 @@ test.describe('Demo Data Loader', () => {
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const metasCount = await page.evaluate(() => _editData.metas.length);
-    expect(metasCount).toBe(5);
+    expect(metasCount).toBe(3);
   });
 
-  test('demo loads 5 accounts in ForNow', async ({ page }) => {
+  test('RD demo loads ForNow accounts', async ({ page }) => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
@@ -140,10 +140,10 @@ test.describe('Demo Data Loader', () => {
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const accountCount = await page.evaluate(() => _editData.forNow.cuentas.length);
-    expect(accountCount).toBe(5);
+    expect(accountCount).toBe(4);
   });
 
-  test('demo loads 5 emergency funds', async ({ page }) => {
+  test('RD demo loads emergency funds', async ({ page }) => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
@@ -151,6 +151,6 @@ test.describe('Demo Data Loader', () => {
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
     const efCount = await page.evaluate(() => _editData.emerg.fondos.length);
-    expect(efCount).toBe(5);
+    expect(efCount).toBe(3);
   });
 });

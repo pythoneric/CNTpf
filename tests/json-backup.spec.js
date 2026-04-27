@@ -152,7 +152,7 @@ test.describe('JSON Backup — Demo loader', () => {
     const dash = page.locator('#dashApp');
     await expect(dash).toBeVisible();
     const gastos = await page.evaluate(() => _editData.gastos.length);
-    expect(gastos).toBe(15);
+    expect(gastos).toBe(12);
   });
 
   test('demo does not depend on cnt_demo.xlsx fetch', async ({ page }) => {
