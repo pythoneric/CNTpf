@@ -307,6 +307,11 @@ header{will-change:auto}
 .wallet-income-btn:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 4px 14px rgba(34,211,160,.28)}
 .wallet-income-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .wallet-income-done{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(34,211,160,.18);border:1px solid rgba(34,211,160,.4);border-radius:99px;color:var(--green);font-family:var(--font);font-weight:700;font-size:12px}
+.wallet-projection{margin-top:6px;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
+.wallet-projection strong{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--text);font-weight:700}
+.wallet-proj-sep{opacity:.5}
+.wallet-proj-low strong{color:var(--yellow)}
+.wallet-proj-neg strong{color:var(--red)}
 
 /* ══ MI SALDO — Quick-Pay FAB (batch 5) ══ */
 #quickPayFab{position:fixed;right:24px;bottom:28px;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:28px;font-weight:300;cursor:pointer;box-shadow:0 8px 24px rgba(59,130,246,.35);z-index:var(--z-fab);display:none;align-items:center;justify-content:center;transition:transform .15s,box-shadow .2s}
@@ -1522,6 +1527,67 @@ function depositIncomeToWallet(){
   return true;
 }
 
+// Projected cash-on-hand walk for the next `daysAhead` days. Only unpaid efectivo
+// gastos with a fixed `dia` count — variable (dia===0) or non-cash methods are
+// excluded because we can't time them. Each event hits the next occurrence in
+// the window (≤31 days = at most one occurrence per recurring expense). All
+// returned amounts are in the wallet's moneda so the caller pairs cleanly with
+// `formatWalletAmount`.
+//
+// Returns: { today, afterCommitments, lowestPoint, lowestDate, eventCount }
+//   today           — current saldo (no shift)
+//   afterCommitments— saldo after every projected debit in the window
+//   lowestPoint     — minimum running balance hit during the walk
+//   lowestDate      — day-of-month at which lowestPoint occurs (today if none)
+//   eventCount      — number of efectivo gastos that landed in the window
+function projectWalletBalance(daysAhead){
+  daysAhead=daysAhead||31;
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta)return null;
+  const today=new Date();
+  const dayOfMonth=today.getDate();
+  const daysInMonth=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
+  const gastos=_editData?.gastos||[];
+  const events=[];
+  gastos.forEach(g=>{
+    if(!g||g.metodo!=='efectivo')return;
+    if(!(g.adeudado>0))return;
+    if(!g.dia)return; // dia===0 → variable, no projectable date
+    if(g.pagadoMes||g.pagadoApplied)return; // already settled this cycle
+    const daysUntil=g.dia>=dayOfMonth?g.dia-dayOfMonth:(daysInMonth-dayOfMonth)+g.dia;
+    if(daysUntil>daysAhead)return;
+    events.push({dia:g.dia,daysUntil,amt:txAmountInCuenta(g.adeudado,cuenta)});
+  });
+  events.sort((a,b)=>a.daysUntil-b.daysUntil);
+  const startSaldo=cuenta.saldo||0;
+  let running=startSaldo;
+  let lowestPoint=startSaldo;
+  let lowestDate=dayOfMonth;
+  events.forEach(ev=>{
+    running-=ev.amt;
+    if(running<lowestPoint){lowestPoint=running;lowestDate=ev.dia;}
+  });
+  return {
+    today:startSaldo,
+    afterCommitments:running,
+    lowestPoint,
+    lowestDate,
+    eventCount:events.length,
+  };
+}
+
+// Resolve the wallet low-balance threshold in RD$. User can override via
+// `config.walletLowThreshold` (RD$); blank/0 falls back to max(10% monthly
+// income, 5000) — a behavioral floor below which most users feel anxious.
+function walletLowThresholdRD(cfg){
+  cfg=cfg||_editData?.config;
+  if(!cfg)return 5000;
+  const explicit=Number(cfg.walletLowThreshold);
+  if(explicit>0)return explicit;
+  const monthlyRD=monthlyIncomeRD(cfg)||0;
+  return Math.max(Math.round(monthlyRD*0.10),5000);
+}
+
 // Method-aware reversal: dispatches based on `pagadoMethod` recorded by the
 // matching apply* helper. Falls back to legacy cash path for older data
 // that doesn't have pagadoMethod set (pre-payment-prompt feature).
@@ -1808,11 +1874,28 @@ function renderWalletCard(){
       incomeBtnHtml=`<button type="button" class="wallet-income-btn" onclick="depositIncomeToWallet()">+ ${escH(t('wallet_income_button'))} · ${escH(labelAmt)}</button>`;
     }
   }
+  // Cash-runway projection sub-line. Hidden when there are zero pending
+  // efectivo gastos in the window (would just repeat the same number).
+  const proj=projectWalletBalance(31);
+  let projHtml='';
+  if(proj&&proj.eventCount>0){
+    const after=formatWalletAmount(proj.afterCommitments,cuenta.moneda);
+    const lowest=formatWalletAmount(proj.lowestPoint,cuenta.moneda);
+    const thresholdRD=walletLowThresholdRD();
+    const lowestRD=cuenta.moneda==='USD'?proj.lowestPoint*(_editData?.config?.tasa||60):proj.lowestPoint;
+    const lowCls=proj.lowestPoint<0?'wallet-proj-neg':(lowestRD<thresholdRD?'wallet-proj-low':'');
+    projHtml=`<div class="wallet-projection" aria-live="polite">
+      <span class="wallet-proj-line">${escH(t('wallet_proj_after_commitments'))}: <strong>${escH(after)}</strong></span>
+      <span class="wallet-proj-sep">·</span>
+      <span class="wallet-proj-line ${lowCls}">${escH(t('wallet_proj_lowest').replace('{dia}',proj.lowestDate))}: <strong>${escH(lowest)}</strong></span>
+    </div>`;
+  }
   wrap.innerHTML=`<div class="wallet-card" role="region" aria-label="${escH(t('wallet_label'))}">
     <div class="wallet-card-row">
       <div>
         <div class="wallet-card-label">${escH(t('wallet_label'))} · ${escH(cuenta.nombre)}</div>
         <div class="wallet-card-balance">${escH(formatWalletAmount(cuenta.saldo,cuenta.moneda))}</div>
+        ${projHtml}
       </div>
       ${incomeBtnHtml}
     </div>
@@ -2240,6 +2323,14 @@ const LANG = {
     wallet_setup_cancel:'Cancelar',
     wallet_setup_account_name:'Efectivo',
     wallet_chip_label:'Mi Saldo',
+    wallet_proj_after_commitments:'Después de pendientes',
+    wallet_proj_lowest:'Punto más bajo (día {dia})',
+    alert_wallet_low_title:'Tu Saldo se quedará bajo este mes',
+    alert_wallet_low_sub:'Después de los pagos pendientes en efectivo, tu Saldo bajará a {cs}{amt} (día {dia}). Umbral: {cs}{thr}.',
+    alert_wallet_neg_title:'Tu Saldo proyectado quedará negativo',
+    alert_wallet_neg_sub:'Los pagos pendientes en efectivo exceden tu Saldo en {cs}{amt} (día {dia}). Reduce gastos o reprograma.',
+    ecfg_wallet_low:'Umbral Mi Saldo bajo ({cs})',
+    ecfg_wallet_low_note:'Avisa cuando el Saldo proyectado caerá bajo este monto. 0 = automático (10% del ingreso mensual o {cs}5,000).',
     ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Rango: 1–30 días',
     // Cashflow field labels
     ecf_ingreso:'Ingreso Mensual ({cs})', ecf_gasto:'Gasto Mensual Total',
@@ -2719,6 +2810,14 @@ const LANG = {
     wallet_setup_cancel:'Cancel',
     wallet_setup_account_name:'Cash',
     wallet_chip_label:'My Balance',
+    wallet_proj_after_commitments:'After upcoming bills',
+    wallet_proj_lowest:'Lowest point (day {dia})',
+    alert_wallet_low_title:'Your Balance will run low this month',
+    alert_wallet_low_sub:'After pending cash bills, your Balance will drop to {cs}{amt} (day {dia}). Threshold: {cs}{thr}.',
+    alert_wallet_neg_title:'Your projected Balance will go negative',
+    alert_wallet_neg_sub:'Pending cash bills exceed your Balance by {cs}{amt} (day {dia}). Trim spending or reschedule.',
+    ecfg_wallet_low:'Low Balance threshold ({cs})',
+    ecfg_wallet_low_note:'Alert when projected Balance falls below this. 0 = auto (10% of monthly income or {cs}5,000).',
     ecfg_dias:'Payment alert days', ecfg_dias_note:'Range: 1–30 days',
     // Cashflow field labels
     ecf_ingreso:'Monthly Income ({cs})', ecf_gasto:'Total Monthly Expenses',
@@ -3261,7 +3360,7 @@ function defaultEditData(){
   const now=new Date();
   const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   return{
-    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD',payFrequency:'mensual',defaultCashAccountId:null},
+    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD',payFrequency:'mensual',defaultCashAccountId:null,walletLowThreshold:0},
     gastos:[],
     forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
     emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,ahorros:0,balanceAhorros:0}},
@@ -3947,6 +4046,25 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
   gastos.forEach(g=>{if(g.balance>0&&g.tasa>0&&g.adeudado>0){const intMes=g.balance*(g.tasa/100/12);if(g.adeudado<=intMes){const growth=Math.round(intMes-g.adeudado);agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_negamort_title').replace('{name}',escH(g.nombre))}</div><div class="alert-sub">${t('alert_negamort_sub').replace('{pay}',fmt(toDisplay(g.adeudado))).replace('{int}',fmt(toDisplay(Math.round(intMes)))).replace('{growth}',fmt(toDisplay(growth)))}</div></div></div>`);}}});
   // Fix 3.2: Expense trend anomaly — flag if current gasto > 120% of 3-month average
   if(_editData.historial&&_editData.historial.length>=2){const recent=_editData.historial.slice(0,3);const avg=recent.reduce((a,h)=>a+(h.gasto||0),0)/recent.length;if(avg>0&&gasto>avg*1.2){const spikePct=Math.round((gasto/avg-1)*100);agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📊</div><div class="alert-text"><div class="alert-title">${t('alert_expense_spike_title')}</div><div class="alert-sub">${t('alert_expense_spike_sub').replace('{pct}',spikePct)}</div></div></div>`);}}
+  // Wallet low / negative projection — fires only when a wallet is configured
+  // and projected lowest point in the next 31 days falls under the threshold
+  // (or below zero). Uses RD$ for threshold comparison so the user sees a
+  // consistent floor regardless of wallet moneda.
+  const walletCuenta=getDefaultCashAccount();
+  if(walletCuenta){
+    const proj=projectWalletBalance(31);
+    if(proj&&proj.eventCount>0){
+      const tasa=config.tasa||60;
+      const lowestRD=walletCuenta.moneda==='USD'?proj.lowestPoint*tasa:proj.lowestPoint;
+      const thresholdRD=walletLowThresholdRD(config);
+      if(proj.lowestPoint<0){
+        const shortRD=Math.abs(Math.round(lowestRD));
+        agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_wallet_neg_title')}</div><div class="alert-sub">${t('alert_wallet_neg_sub').replace('{cs}',currencySymbol()).replace('{amt}',fmt(toDisplay(shortRD))).replace('{dia}',proj.lowestDate)}</div></div></div>`);
+      } else if(lowestRD<thresholdRD){
+        agHtml.push(`<div class="alert-item warning"><div class="alert-icon">💰</div><div class="alert-text"><div class="alert-title">${t('alert_wallet_low_title')}</div><div class="alert-sub">${t('alert_wallet_low_sub').replace('{cs}',currencySymbol()).replace('{amt}',fmt(toDisplay(Math.round(lowestRD)))).replace('{thr}',fmt(toDisplay(thresholdRD))).replace('{dia}',proj.lowestDate)}</div></div></div>`);
+      }
+    }
+  }
   ag.innerHTML=agHtml.length?agHtml.join(''):`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_nofinancial')}</div>`;
   const as=document.getElementById('alertasSit');
   const items=[
@@ -6362,6 +6480,8 @@ let _changesCount=0;
 let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
+window.projectWalletBalance=projectWalletBalance;
+window.walletLowThresholdRD=walletLowThresholdRD;
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
 window._testSetupGoToStep=function(stepIdx){_setupStep=stepIdx;renderSetup();};
 // Tests that exercise the toggle/apply cycle without going through the
@@ -6401,6 +6521,7 @@ function syncConfigField(key,el){
     case 'ingresoUSD':{_editData.config.ingresoUSD=Math.max(0,pf(v));_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl2=document.getElementById('cfg-ingresoRD');if(rdEl2)rdEl2.value=Math.round(_editData.config.ingresoRD);}break;
     case 'ingresoRD':{_editData.config.ingresoRD=Math.max(0,pf(v));const mult=payMult(_editData.config.payFrequency||'mensual');_editData.config.ingresoUSD=(_editData.config.tasa>0&&mult>0)?Math.round(_editData.config.ingresoRD/(_editData.config.tasa*mult)*100)/100:0;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const usdEl=document.getElementById('cfg-ingreso');if(usdEl)usdEl.value=_editData.config.ingresoUSD;}break;
     case 'diasAlerta':{const d=parseInt(v);_editData.config.diasAlerta=Math.min(30,Math.max(1,isNaN(d)?5:d));}break;
+    case 'walletLowThreshold':{const w=pf(v);_editData.config.walletLowThreshold=Math.max(0,isNaN(w)?0:w);}break;
   }
   autoSave();
 }
@@ -6476,6 +6597,7 @@ function buildEditForms(){
     {id:'cfg-ingreso',label:t('ecfg_ingreso'),note:t('ecfg_ingreso_note'),key:'ingresoUSD',val:config.ingresoUSD,min:0},
     {id:'cfg-ingresoRD',label:t('ecfg_ingresoRD'),note:t('ecfg_ingresoRD_note'),key:'ingresoRD',val:Math.round(config.ingresoRD||monthlyIncomeRD(config)),min:0},
     {id:'cfg-diasAlerta',label:t('ecfg_dias'),note:t('ecfg_dias_note'),key:'diasAlerta',val:config.diasAlerta||5,min:1,max:30},
+    {id:'cfg-walletLow',label:t('ecfg_wallet_low'),note:t('ecfg_wallet_low_note'),key:'walletLowThreshold',val:config.walletLowThreshold||0,min:0},
   ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="${f.key==='anio'||f.key==='diasAlerta'?'numeric':'decimal'}" value="${f.val}" oninput="markChanged(this);syncConfigField('${f.key}',this)"${f.min!=null?' min="'+f.min+'"':''}${f.max!=null?' max="'+f.max+'"':''}><div class="field-note">${f.note}</div>${f.extra||''}</div>`).join('');
   // ESENCIALES
   const eb=document.getElementById('esencialesEditBody');eb.innerHTML='';
@@ -6629,6 +6751,7 @@ function readConfigFromForm(){
   const freqVal=document.getElementById('cfg-payFreq')?.value;
   if(['mensual','quincenal','semanal'].includes(freqVal))_editData.config.payFrequency=freqVal;
   _editData.config.diasAlerta=Math.min(30,Math.max(1,parseInt(document.getElementById('cfg-diasAlerta')?.value)||5));
+  _editData.config.walletLowThreshold=Math.max(0,pf(document.getElementById('cfg-walletLow')?.value)||0);
   _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
   _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
   _editData.forNow.fecha=document.getElementById('fornow-fecha')?.value||null;
