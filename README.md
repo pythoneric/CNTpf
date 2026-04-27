@@ -60,8 +60,8 @@ Si ya usaste el dashboard antes en este navegador, aparece esta opcion automatic
 
 ### Opcion D -- Ver demo con datos de ejemplo
 Dos demos disponibles:
-- **Demo RD$** 🇩🇴 -- Persona dominicana con finanzas en pesos (Maria Fernandez, marketing manager, Santo Domingo). Ingreso RD$233,700/mes, hipoteca, auto, tarjetas, 18 meses de historial.
-- **Demo USD** 🇺🇸 -- Persona estadounidense con finanzas en dolares (profesional USA). Ingreso $6,500/mes, mortgage, car loan, student loan, credit cards, 18 meses de historial.
+- **Demo RD$** 🇩🇴 -- Persona dominicana con sueldo modesto (Maria Fernandez, asistente administrativa, vive con su mama en Santo Domingo Norte). Ingreso RD$40,000/mes, prestamo cooperativa, tarjeta Visa, gastos en efectivo, presupuesto mensual y Mi Saldo configurado. **30 meses** de historial (Diciembre 2023 -> Mayo 2026).
+- **Demo USD** 🇺🇸 -- Persona estadounidense con finanzas en dolares (profesional USA). Ingreso $6,500/mes, mortgage, car loan, student loan, credit cards, **30 meses** de historial (December 2023 -> May 2026).
 
 Ambas demos son ficticias y utiles para explorar el dashboard sin ingresar datos propios.
 

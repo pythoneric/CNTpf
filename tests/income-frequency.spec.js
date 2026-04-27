@@ -360,9 +360,9 @@ test.describe('Regression — multiplier applied at every write site', () => {
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
     await page.evaluate(() => window.loadDemo('RD'));
     await page.waitForSelector('#dashApp', { state: 'visible' });
-    // Demo data is mensual + ingresoUSD 3800 + tasa 61.5 → monthlyRD = 233,700
+    // Demo data is mensual + ingresoUSD 650.41 + tasa 61.5 → monthlyRD ≈ 40,000
     const monthlyRD = await page.evaluate(() => _editData.config.ingresoRD);
-    expect(monthlyRD).toBeCloseTo(3800 * 61.5, 0);
+    expect(monthlyRD).toBeCloseTo(650.41 * 61.5, 0);
     // Now simulate a hypothetical weekly demo by mutating the loaded config and
     // re-running the same code path: ingresoRD must follow the helper.
     const reweekly = await page.evaluate(() => {
@@ -371,7 +371,7 @@ test.describe('Regression — multiplier applied at every write site', () => {
       _editData.emerg.cashflow.ingreso = _editData.config.ingresoRD;
       return _editData.config.ingresoRD;
     });
-    expect(reweekly).toBeCloseTo(3800 * (52 / 12) * 61.5, 0);
+    expect(reweekly).toBeCloseTo(650.41 * (52 / 12) * 61.5, 0);
   });
 
   test('readConfigFromForm picks up payFrequency change before final write', async ({ page }) => {
