@@ -1142,8 +1142,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
       <!-- Nav -->
       <div style="display:flex;gap:10px;justify-content:space-between;margin-top:24px">
-        <button class="btn btn-ghost" id="setupPrev" onclick="setupNav(-1)">← Anterior</button>
-        <button class="btn btn-primary" id="setupNext" onclick="setupNav(1)">Siguiente →</button>
+        <button class="btn btn-ghost" id="setupPrev" onclick="setupNav(-1)" data-i18n="setup_prev">← Anterior</button>
+        <button class="btn btn-primary" id="setupNext" onclick="setupNav(1)" data-i18n="setup_next">Siguiente →</button>
       </div>
     </div>
   </div>
@@ -1265,8 +1265,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="step-indicator" id="stepDots"></div>
       <div id="cierreSteps"></div>
       <div class="cierre-nav">
-        <button class="btn btn-ghost" id="cierrePrev" onclick="cierreNav(-1)">← Anterior</button>
-        <button class="btn btn-primary" id="cierreNext" onclick="cierreNav(1)">Siguiente →</button>
+        <button class="btn btn-ghost" id="cierrePrev" onclick="cierreNav(-1)" data-i18n="cierre_prev">← Anterior</button>
+        <button class="btn btn-primary" id="cierreNext" onclick="cierreNav(1)" data-i18n="cierre_next">Siguiente →</button>
       </div>
     </div>
   </div>
@@ -1341,7 +1341,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-card">
         <div class="edit-card-title" data-i18n="edit_card_historial">📅 Historial Mensual</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th data-i18n="eth_mes">Mes</th><th data-i18n="eth_anio">Año</th><th data-i18n="eth_ingresosRD">Ingresos (RD$)</th><th data-i18n="eth_gastoRD">Gasto (RD$)</th><th data-i18n="eth_tasaDolar">Tasa Dólar</th><th data-i18n="eth_deudasRD">Deudas (RD$)</th><th data-i18n="eth_emergenciaRD">Emergencia (RD$)</th><th data-i18n="eth_netWorthRD">Net Worth (RD$)</th><th data-i18n="eth_notas">Notas</th><th></th></tr></thead><tbody id="historialEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_mes">Mes</th><th data-i18n="eth_anio">Año</th><th data-i18n="eth_ingresosRD">Ingresos (RD$)</th><th data-i18n="eth_gastoRD">Gasto (RD$)</th><th data-i18n="eth_tasaDolar">Tasa Dólar</th><th data-i18n="eth_deudasRD">Deudas (RD$)</th><th data-i18n="eth_emergenciaRD">Emergencia (RD$)</th><th data-i18n="eth_netWorthRD">Patrimonio Neto (RD$)</th><th data-i18n="eth_notas">Notas</th><th></th></tr></thead><tbody id="historialEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addHistorialRow()" data-i18n="edit_add_mes">+ Agregar mes</button>
       </div>
@@ -1350,27 +1350,27 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="edit-card">
         <div class="edit-card-title" data-i18n="edit_tab_transacciones">🧾 Transacciones</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th>Fecha</th><th>Monto</th><th>Categoría</th><th>Nota</th><th>Método</th><th>Mes</th><th>Año</th><th></th></tr></thead><tbody id="txEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_fecha">Fecha</th><th data-i18n="eth_monto">Monto</th><th data-i18n="eth_categoria">Categoría</th><th data-i18n="eth_nota">Nota</th><th data-i18n="eth_metodo">Método</th><th data-i18n="eth_mes">Mes</th><th data-i18n="eth_anio">Año</th><th></th></tr></thead><tbody id="txEditBody"></tbody></table>
         </div>
-        <button class="row-add-btn" onclick="addTxEditRow()" data-i18n="reg_add">+ Agregar</button>
+        <button class="row-add-btn" onclick="addTxEditRow()" data-i18n="edit_add_tx">+ Agregar transacción</button>
       </div>
     </div>
     <div id="esection-presupuesto" class="edit-section">
       <div class="edit-card">
         <div class="edit-card-title" data-i18n="edit_tab_presupuesto">📋 Presupuesto</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th>Categoría</th><th>Presupuestado</th><th>Mes</th><th>Año</th><th></th></tr></thead><tbody id="presEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_categoria">Categoría</th><th data-i18n="eth_presupuestado">Presupuestado</th><th data-i18n="eth_mes">Mes</th><th data-i18n="eth_anio">Año</th><th></th></tr></thead><tbody id="presEditBody"></tbody></table>
         </div>
-        <button class="row-add-btn" onclick="addPresEditRow()">+ Agregar</button>
+        <button class="row-add-btn" onclick="addPresEditRow()" data-i18n="edit_add_pres">+ Agregar</button>
       </div>
     </div>
     <div id="esection-recurrentes" class="edit-section">
       <div class="edit-card">
         <div class="edit-card-title" data-i18n="edit_tab_recurrentes">🔄 Recurrentes</div>
         <div class="edit-table-wrap">
-          <table class="edit-table"><thead><tr><th>Fecha</th><th>Monto</th><th>Categoría</th><th>Nota</th><th>Método</th><th>Frecuencia</th><th></th></tr></thead><tbody id="recEditBody"></tbody></table>
+          <table class="edit-table"><thead><tr><th data-i18n="eth_fecha">Fecha</th><th data-i18n="eth_monto">Monto</th><th data-i18n="eth_categoria">Categoría</th><th data-i18n="eth_nota">Nota</th><th data-i18n="eth_metodo">Método</th><th data-i18n="eth_frecuencia">Frecuencia</th><th></th></tr></thead><tbody id="recEditBody"></tbody></table>
         </div>
-        <button class="row-add-btn" onclick="addRecEditRow()">+ Agregar</button>
+        <button class="row-add-btn" onclick="addRecEditRow()" data-i18n="edit_add_rec">+ Agregar regla</button>
       </div>
     </div>
     <div class="save-bar">
@@ -2322,7 +2322,7 @@ const LANG = {
     mnav_fornow:'Fondos', mnav_historial:'Historial', mnav_proyector:'Proyector', mnav_registro:'Registro',
     mnav_metas:'Metas', mnav_analisis:'Análisis', mnav_presupuesto:'Presupuesto',
     // KPI labels
-    kpi_income:'Ingresos', kpi_expenses:'Gastos Totales', kpi_surplus:'Superávit del Mes', kpi_networth:'Net Worth',
+    kpi_income:'Ingresos', kpi_expenses:'Gastos Totales', kpi_surplus:'Superávit del Mes', kpi_networth:'Patrimonio Neto',
     kpi_surplus_pct:'% del ingreso ✓', kpi_deficit:'⚠ Déficit', kpi_savings_ef:'Cuentas+Ahorros+EF − Deudas',
     kpi_savingsrate:'Tasa de Ahorro', kpi_savingsrate_sub:'Meta: ≥20% (regla 50/30/20)',
     kpi_savingsrate_tip:'50% necesidades · 30% deseos · 20% ahorro/deuda',
@@ -2352,7 +2352,7 @@ const LANG = {
     deuda_original:'Monto Original', deuda_paidtodate:'Pagado hasta hoy', deuda_advance:'Avance',
     deuda_globalprogress:'Progreso global de pago',
     // Net Worth alert
-    nw_negative:'Net Worth Negativo', nw_positive:'Net Worth Positivo',
+    nw_negative:'Patrimonio Neto Negativo', nw_positive:'Patrimonio Neto Positivo',
     nw_advice_neg:'Priorizar reducción de deudas con tasas altas', nw_advice_pos:'Buen trabajo manteniendo activos sobre pasivos.',
     nw_interest_label:'Interés mensual total', nw_peryear:'solo en intereses',
     // Emergency KPIs
@@ -2379,17 +2379,17 @@ const LANG = {
     cf_expensedivrate:'Gasto ÷ Tasa', cf_surplus2:'Superávit ✓', cf_deficit2:'⚠ Déficit',
     cf_manual:'Manual', cf_accumulated:'Acumulado',
     // Historial
-    hist_lasmonth:'Último mes registrado', hist_income:'Ingresos', hist_networth:'Net Worth',
+    hist_lasmonth:'Último mes registrado', hist_income:'Ingresos', hist_networth:'Patrimonio Neto',
     hist_months:'Meses registrados', hist_recent:'Datos más recientes', hist_monthlydata:'Ingreso del mes',
     hist_assetminusliab:'Activos − Pasivos', hist_totalrecorded:'Total en historial',
     hist_table_title:'Registro Mensual Completo',
     hist_col_month:'Mes', hist_col_year:'Año', hist_col_income:'Ingresos ({cs})', hist_col_expense:'Gasto ({cs})',
     hist_col_savings:'Ahorro Neto', hist_col_savingsrate:'Tasa Ahorro', hist_col_debts:'Deudas ({cs})',
-    hist_col_emergency:'Emergencia ({cs})', hist_col_nw:'Net Worth ({cs})', hist_col_rate:'Tasa $',
+    hist_col_emergency:'Emergencia ({cs})', hist_col_nw:'Patrimonio Neto ({cs})', hist_col_rate:'Tasa $',
     hist_note:'📌 Usa el botón <strong>"🗓 Cerrar Mes"</strong> en el header para registrar el mes actual con un wizard guiado.',
-    hist_evolnw:'Evolución Net Worth & Deudas', hist_incvsexp:'Ingresos vs Gastos por Mes', hist_debttrend:'Balance de Deudas por Mes', hist_savingsrate:'Tasa de Ahorro por Mes',
+    hist_evolnw:'Evolución Patrimonio Neto & Deudas', hist_incvsexp:'Ingresos vs Gastos por Mes', hist_debttrend:'Balance de Deudas por Mes', hist_savingsrate:'Tasa de Ahorro por Mes',
     hist_count:'{n} meses registrados', hist_count_one:'1 mes registrado',
-    hist_chart_nw:'Net Worth ({cs})', hist_chart_debt:'Balance Deudas ({cs})',
+    hist_chart_nw:'Patrimonio Neto ({cs})', hist_chart_debt:'Balance Deudas ({cs})',
     hist_chart_income:'Ingresos', hist_chart_expense:'Gastos',
     hist_chart_debtbal:'Balance Deudas', hist_chart_ef:'Fondos Emergencia',
     hist_empty_title:'Sin historial registrado',
@@ -2398,7 +2398,7 @@ const LANG = {
     hist_savings_benchmark:'Meta recomendada: ≥20% (regla 50/30/20)',
     // Score labels
     score_expense_ratio:'Ratio Gasto/Ingreso', score_debt_ratio:'DTI (Pagos/Ingreso)',
-    score_ef:'Fondos de Emergencia', score_nw_trend:'Tendencia Net Worth',
+    score_ef:'Fondos de Emergencia', score_nw_trend:'Tendencia Patrimonio Neto',
     score_improving:'↑ Mejorando', score_declining:'↓ Bajando', score_nodata:'Sin datos',
     score_excellent:'Excelente', score_good:'Bien', score_fair:'Regular', score_critical:'Crítico',
     // Trend rows
@@ -2501,7 +2501,7 @@ const LANG = {
     panel_deudas_dist:'Distribución de Deudas',
     panel_ef_progress:'Fondos de Emergencia · Progreso', panel_ef_cashflow:'Cashflow Mensual Detallado',
     panel_ef_chart:'Progreso Total vs Meta',
-    panel_hist_chart:'Evolución Net Worth & Deudas',
+    panel_hist_chart:'Evolución Patrimonio Neto & Deudas',
     // For Now
     fornow_total:'Total en Cuentas', fornow_committed:'Pendiente este Mes', fornow_available:'Disponible Real',
     fornow_accounts:'Suma todos los saldos', fornow_commitments:'Compromisos aún no pagados', fornow_aftercommit:'Después de pendientes',
@@ -2513,7 +2513,7 @@ const LANG = {
     fornow_empty_sub:'Agrega tus cuentas de banco, ahorro o efectivo en el botón <strong>✏️ Editar</strong> para ver tu disponibilidad real.',
     fornow_snapshot_tip:'Los saldos son capturas manuales, no datos bancarios en vivo. Actualízalos regularmente con Editar o el asistente de cierre de mes.',
     fornow_runway:'Autonomía', fornow_runway_sub:'Meses de gastos cubiertos con fondos actuales', fornow_months:'meses', fornow_days:'días',
-    fornow_chart_assets:'Patrimonio Total ({cs})', fornow_chart_nw:'Net Worth ({cs})',
+    fornow_chart_assets:'Patrimonio Total ({cs})', fornow_chart_nw:'Patrimonio Neto ({cs})',
     // Cierre wizard
     cierre_title:'🗓 CIERRE DE MES',
     cierre_step1_title:'Paso 1 · Tasa Dólar', cierre_step1_sub:'Actualiza la tasa del dólar para este mes',
@@ -2530,17 +2530,17 @@ const LANG = {
     cierre_success:'🗓 Mes cerrado · Respaldo descargado con historial y pagos reseteados ✓',
     cierre_summary_title:'📊 Resumen del Mes',
     cierre_summary_saved:'Ahorraste', cierre_summary_saverate:'Tasa de ahorro',
-    cierre_summary_debtdelta:'Deuda cambió', cierre_summary_nwdelta:'Net Worth cambió',
+    cierre_summary_debtdelta:'Deuda cambió', cierre_summary_nwdelta:'Patrimonio Neto cambió',
     cierre_summary_great:'¡Excelente mes!', cierre_summary_ok:'Buen progreso.', cierre_summary_watch:'Cuidado con los gastos.',
     // Calendar
     cal_title:'📅 Calendario de Pagos del Mes',
     cal_day:'Día', cal_total:'Total del día', cal_empty:'Sin pagos pendientes este mes.',
     // Milestones
-    milestone_positive_nw:'🎉 ¡Net Worth positivo por primera vez!',
+    milestone_positive_nw:'🎉 ¡Patrimonio Neto positivo por primera vez!',
     milestone_debtfree:'🎉 ¡Libre de deudas!',
-    milestone_nw_100k:'🎉 ¡Net Worth superó {cs}100,000!',
-    milestone_nw_500k:'🎉 ¡Net Worth superó {cs}500,000!',
-    milestone_nw_1m:'🎉 ¡Net Worth superó {cs}1,000,000!',
+    milestone_nw_100k:'🎉 ¡Patrimonio Neto superó {cs}100,000!',
+    milestone_nw_500k:'🎉 ¡Patrimonio Neto superó {cs}500,000!',
+    milestone_nw_1m:'🎉 ¡Patrimonio Neto superó {cs}1,000,000!',
     milestone_ef_complete:'🎉 ¡Fondo de emergencia completo!',
     // Edit modal
     edit_title:'Editar Datos', edit_sub:'Los cambios se aplican al dashboard y puedes descargar tu respaldo',
@@ -2679,10 +2679,29 @@ const LANG = {
     eth_fondo:'Fondo', eth_moneda:'Moneda', eth_balanceActual:'Balance', eth_metaMinima:'Meta',
     eth_mes:'Mes', eth_anio:'Año', eth_ingresosRD:'Ingresos ({cs})', eth_gastoRD:'Gasto ({cs})',
     eth_tasaDolar:'Tasa $', eth_deudasRD:'Deudas ({cs})', eth_emergenciaRD:'Emergencia ({cs})',
-    eth_netWorthRD:'Net Worth ({cs})',
+    eth_netWorthRD:'Patrimonio Neto ({cs})',
     eth_fechaActualizado:'Fecha Actualizado',
+    // Edit-modal table headers (Tx / Presupuesto / Recurrentes)
+    eth_fecha:'Fecha', eth_monto:'Monto', eth_categoria:'Categoría', eth_nota:'Nota',
+    eth_metodo:'Método', eth_frecuencia:'Frecuencia', eth_presupuestado:'Presupuestado',
+    edit_add_tx:'+ Agregar transacción', edit_add_pres:'+ Agregar', edit_add_rec:'+ Agregar regla',
+    // Setup wizard — hardcoded labels (now translated)
+    sw_mes_actual:'Mes actual', sw_anio:'Año',
+    sw_tasa_dolar:'Tasa Dólar (RD$/USD)',
+    sw_dias_alerta:'Días de alerta antes del vencimiento',
+    sw_account_hint:'Agrega tus cuentas de disponibilidad inmediata (corriente, ahorro, cash, etc.)',
+    sw_add_cuenta:'+ Agregar cuenta',
+    sw_add_gasto:'+ Agregar gasto/deuda',
+    sw_add_fondo:'+ Agregar fondo',
+    sw_balance_savings:'Balance de ahorros acumulados',
+    sw_nombre_cuenta:'Nombre cuenta',
+    sw_nombre_fondo:'Nombre fondo',
+    sw_saldo_placeholder:'Saldo',
+    sw_balance_savings_hint:'Auto-calculado según tu plan de ahorro',
+    cierre_accum_label:'← se acumula automáticamente',
+    cierre_balance_prev:'Balance anterior: {amt} + ahorros este mes. Edita si el total real es diferente.',
     // Loader
-    loader_title:'Personal Finance', loader_tagline:'Elige cómo empezar.',
+    loader_title:'Finanzas Personales', loader_tagline:'Elige cómo empezar.',
     loader_privacy:'🔒 Tus datos nunca salen de tu dispositivo.',
     loader_saved:'✅ Datos guardados', loader_continue:'▶ Continuar donde lo dejé',
     loader_or_other:'o empieza de otra forma', loader_or:'o',
@@ -3193,6 +3212,25 @@ const LANG = {
     eth_mes:'Month', eth_anio:'Year', eth_ingresosRD:'Income ({cs})', eth_gastoRD:'Expenses ({cs})',
     eth_tasaDolar:'Rate $', eth_deudasRD:'Debts ({cs})', eth_emergenciaRD:'Emergency ({cs})',
     eth_netWorthRD:'Net Worth ({cs})',
+    // Edit-modal table headers (Tx / Presupuesto / Recurrentes)
+    eth_fecha:'Date', eth_monto:'Amount', eth_categoria:'Category', eth_nota:'Note',
+    eth_metodo:'Method', eth_frecuencia:'Frequency', eth_presupuestado:'Budgeted',
+    edit_add_tx:'+ Add transaction', edit_add_pres:'+ Add', edit_add_rec:'+ Add rule',
+    // Setup wizard — hardcoded labels (now translated)
+    sw_mes_actual:'Current month', sw_anio:'Year',
+    sw_tasa_dolar:'Exchange rate (RD$/USD)',
+    sw_dias_alerta:'Alert days before due',
+    sw_account_hint:'Add the accounts you can access right now (checking, savings, cash, etc.)',
+    sw_add_cuenta:'+ Add account',
+    sw_add_gasto:'+ Add expense/debt',
+    sw_add_fondo:'+ Add fund',
+    sw_balance_savings:'Accumulated savings balance',
+    sw_nombre_cuenta:'Account name',
+    sw_nombre_fondo:'Fund name',
+    sw_saldo_placeholder:'Balance',
+    sw_balance_savings_hint:'Auto-calculated from your savings plan',
+    cierre_accum_label:'← accumulates automatically',
+    cierre_balance_prev:'Previous balance: {amt} + this month\'s savings. Edit if the real total differs.',
     eth_fechaActualizado:'Date Updated',
     // Loader
     loader_title:'Personal Finance', loader_tagline:'Choose how to start.',
@@ -3368,6 +3406,15 @@ function toggleLang(){
   if(_editData&&_editData.config&&_editData.config.mes){
     buildDashboard({..._editData});
   }
+  // Wizards build their content dynamically — applyI18n only catches static
+  // data-i18n nodes. Re-render the open wizard so its labels follow.
+  const setupVisible=document.getElementById('setupModal')?.style.display==='flex';
+  if(setupVisible&&typeof renderSetup==='function')renderSetup();
+  const cierreVisible=document.getElementById('cierreModal')?.classList.contains('open');
+  if(cierreVisible&&typeof renderCierre==='function')renderCierre();
+  // Edit modal also has dynamic content from buildEditForms
+  const editOpen=document.getElementById('editModal')?.classList.contains('open');
+  if(editOpen&&typeof buildEditForms==='function')buildEditForms();
   closeOverflow();
 }
 
@@ -3764,9 +3811,9 @@ function renderSwCuenta(i,c){
   const isDefault=_editData.config?.defaultCashAccountId===c.id;
   return`<div class="sw-cuenta-row" data-cuenta-id="${c.id}" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px">
     <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center;margin-bottom:8px">
-      <input class="cierre-input sw-cnt-nombre" placeholder="Nombre cuenta" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
+      <input class="cierre-input sw-cnt-nombre" placeholder="${escH(t('sw_nombre_cuenta'))}" value="${escH(c.nombre)}" style="font-size:14px;padding:8px 10px">
       <select class="cierre-input sw-cnt-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
-      <input class="cierre-input sw-cnt-saldo" type="text" inputmode="decimal" placeholder="Saldo" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
+      <input class="cierre-input sw-cnt-saldo" type="text" inputmode="decimal" placeholder="${escH(t('sw_saldo_placeholder'))}" value="${c.saldo||''}" style="font-size:14px;padding:8px 10px">
       <button class="row-del-btn" onclick="this.closest('.sw-cuenta-row').remove()">✕</button>
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -3833,7 +3880,7 @@ function addSwGasto(){
 function renderSwFondo(i,f){
   const mon=f.moneda||'RD';
   return`<div class="sw-fondo-row" style="display:grid;grid-template-columns:1fr auto 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
-    <input class="cierre-input sw-f-nombre" placeholder="Nombre fondo" value="${escH(f.fondo)}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-nombre" placeholder="${escH(t('sw_nombre_fondo'))}" value="${escH(f.fondo)}" style="font-size:13px;padding:8px 10px">
     <select class="cierre-input sw-f-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
     <input class="cierre-input sw-f-balance" type="text" inputmode="decimal" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
     <input class="cierre-input sw-f-meta" type="text" inputmode="decimal" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
@@ -3867,15 +3914,15 @@ const _setupSteps=[
         <div id="sw-currency-note" style="font-size:11px;color:var(--muted);margin-bottom:4px">${_editData.config.monedaPrincipal==='USD'?t('currency_note_usd'):t('currency_note_rd')}</div>
       </div>
       <div style="margin-bottom:14px">
-        <label class="cierre-label">Mes actual</label>
+        <label class="cierre-label">${t('sw_mes_actual')}</label>
         <select class="cierre-input" id="sw-mes" style="cursor:pointer">
           ${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
             .map(m=>`<option value="${m}" ${m===_editData.config.mes?'selected':''}>${m}</option>`).join('')}
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div><label class="cierre-label">Año</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-anio" value="${_editData.config.anio}"></div>
-        <div><label class="cierre-label">Tasa Dólar (RD$/USD)</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
+        <div><label class="cierre-label">${t('sw_anio')}</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-anio" value="${_editData.config.anio}"></div>
+        <div><label class="cierre-label">${t('sw_tasa_dolar')}</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-tasa" value="${_editData.config.tasa}" placeholder="60.5" oninput="swUpdateIngresoPreview()"></div>
       </div>
       <div style="margin-top:14px">
         <label class="cierre-label">${t('payfreq_label')}</label>
@@ -3912,7 +3959,7 @@ const _setupSteps=[
         </div>
         <div id="sw-ingreso-preview" style="margin-top:8px;padding:8px 12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:12px;color:var(--accent);display:none"></div>
       </div>
-      <div style="margin-top:14px"><label class="cierre-label">Días de alerta antes del vencimiento</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
+      <div style="margin-top:14px"><label class="cierre-label">${t('sw_dias_alerta')}</label><input class="cierre-input" type="text" inputmode="decimal" id="sw-alerta" value="${_editData.config.diasAlerta}" placeholder="5"></div>
     `,
     save:()=>{
       _editData.config.mes=document.getElementById('sw-mes').value;
@@ -3938,13 +3985,13 @@ const _setupSteps=[
     title:'Paso 2 · Cuentas disponibles',
     sub:'¿En qué cuentas tienes dinero ahora mismo?',
     render:()=>`
-      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Agrega tus cuentas de disponibilidad inmediata (corriente, ahorro, cash, etc.)</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${t('sw_account_hint')}</div>
       <div id="sw-cuentas-list">
         ${_editData.forNow.cuentas.length===0
           ? renderSwCuenta(0,{nombre:'',moneda:'RD',saldo:0})
           : _editData.forNow.cuentas.map((c,i)=>renderSwCuenta(i,c)).join('')}
       </div>
-      <button class="row-add-btn" onclick="addSwCuenta()" style="margin-top:8px">+ Agregar cuenta</button>
+      <button class="row-add-btn" onclick="addSwCuenta()" style="margin-top:8px">${t('sw_add_cuenta')}</button>
     `,
     save:()=>{
       const rows=document.querySelectorAll('.sw-cuenta-row');
@@ -3979,7 +4026,7 @@ const _setupSteps=[
           ? renderSwGasto(0,{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0})
           : _editData.gastos.map((g,i)=>renderSwGasto(i,g)).join('')}
       </div>
-      <button class="row-add-btn" onclick="addSwGasto()" style="margin-top:8px">+ Agregar gasto/deuda</button>
+      <button class="row-add-btn" onclick="addSwGasto()" style="margin-top:8px">${t('sw_add_gasto')}</button>
     `,
     save:()=>{
       const rows=document.querySelectorAll('.sw-gasto-row');
@@ -4011,9 +4058,9 @@ const _setupSteps=[
           ? renderSwFondo(0,{fondo:'',balance:0,meta:0})
           : _editData.emerg.fondos.map((f,i)=>renderSwFondo(i,f)).join('')}
       </div>
-      <button class="row-add-btn" onclick="addSwFondo()" style="margin-top:8px">+ Agregar fondo</button>
+      <button class="row-add-btn" onclick="addSwFondo()" style="margin-top:8px">${t('sw_add_fondo')}</button>
       <div style="margin-top:16px">
-        <label class="cierre-label">Balance de ahorros acumulados (${currencySymbol()})</label>
+        <label class="cierre-label">${t('sw_balance_savings')} (${currencySymbol()})</label>
         <input class="cierre-input" type="text" inputmode="decimal" id="sw-balAh" value="${_editData.emerg.cashflow.balanceAhorros||0}" placeholder="0">
       </div>
     `,
@@ -4158,12 +4205,13 @@ function renderSetup(){
     <div style="width:${i===_setupStep?'24px':'10px'};height:10px;border-radius:99px;background:${i===_setupStep?'var(--accent)':i<_setupStep?'var(--green)':'var(--border)'};transition:all .3s"></div>
   `).join('');
   document.getElementById('setupContent').innerHTML=`
-    <div style="margin-bottom:6px;font-size:16px;font-weight:800">${s.title}</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:18px">${s.sub}</div>
+    <div style="margin-bottom:6px;font-size:16px;font-weight:800">${t('setup_step'+(_setupStep+1)+'_title')}</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:18px">${t('setup_step'+(_setupStep+1)+'_sub')}</div>
     ${s.render()}
   `;
+  document.getElementById('setupPrev').textContent=t('setup_prev');
   document.getElementById('setupPrev').style.visibility=_setupStep===0?'hidden':'visible';
-  document.getElementById('setupNext').textContent=_setupStep===total-1?'✓ Crear dashboard':'Siguiente →';
+  document.getElementById('setupNext').textContent=_setupStep===total-1?t('setup_create'):t('setup_next');
   document.getElementById('setupNext').className=`btn ${_setupStep===total-1?'btn-success':'btn-primary'}`;
 }
 
@@ -6780,7 +6828,7 @@ function renderCierre(){
         const ahorrosInput=document.getElementById('cw-ahorros');
         const ahorrosEste=ahorrosInput?pf(ahorrosInput.value):(_editData.emerg?.cashflow?.ahorros||0);
         curVal=prevBal+ahorrosEste;
-        html+=`<div class="cierre-field"><label class="cierre-label">${f.label} <span style="font-size:11px;color:var(--green)">← se acumula automáticamente</span></label><input class="cierre-input" ${cierreInputAttrs(f)} id="${f.id}" value="${curVal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">Balance anterior: ${fmtC(toDisplay(prevBal))} + ahorros este mes. Edita si el total real es diferente.</div></div>`;
+        html+=`<div class="cierre-field"><label class="cierre-label">${f.label} <span style="font-size:11px;color:var(--green)">${t('cierre_accum_label')}</span></label><input class="cierre-input" ${cierreInputAttrs(f)} id="${f.id}" value="${curVal}"><div style="font-size:11px;color:var(--muted);margin-top:5px">${t('cierre_balance_prev').replace('{amt}',fmtC(toDisplay(prevBal)))}</div></div>`;
         return;
       }
       html+=`<div class="cierre-field"><label class="cierre-label">${f.label}</label><input class="cierre-input" ${cierreInputAttrs(f)} id="${f.id}" value="${curVal}"></div>`;
@@ -6788,7 +6836,8 @@ function renderCierre(){
   }
   document.getElementById('cierreSteps').innerHTML=html;
   document.getElementById('cierrePrev').style.visibility=_cierreStep===0?'hidden':'visible';
-  document.getElementById('cierreNext').textContent=_cierreStep===total-1?'✓ Confirmar y cerrar mes':'Siguiente →';
+  document.getElementById('cierrePrev').textContent=t('cierre_prev');
+  document.getElementById('cierreNext').textContent=_cierreStep===total-1?t('cierre_confirm'):t('cierre_next');
 }
 function cierreNav(dir){
   if(dir===1){
