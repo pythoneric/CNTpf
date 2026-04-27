@@ -297,6 +297,7 @@ header{will-change:auto}
 .wallet-mov-amt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
 .wallet-mov-amt.debit{color:var(--red)}
 .wallet-mov-amt.credit{color:var(--green)}
+.wallet-mov-amt.ajuste{color:var(--muted)}
 .wallet-empty-state{padding:8px 0;color:var(--muted);font-size:13px;text-align:center}
 .wallet-cta{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:99px;font-family:var(--font);font-weight:700;font-size:13px;cursor:pointer;min-height:40px}
 .wallet-cta:hover{opacity:.92;transform:translateY(-1px)}
@@ -307,6 +308,15 @@ header{will-change:auto}
 .wallet-income-btn:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 4px 14px rgba(34,211,160,.28)}
 .wallet-income-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .wallet-income-done{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(34,211,160,.18);border:1px solid rgba(34,211,160,.4);border-radius:99px;color:var(--green);font-family:var(--font);font-weight:700;font-size:12px}
+.wallet-card-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.wallet-transfer-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;border:1px solid var(--border);border-radius:99px;color:var(--muted);font-family:var(--font);font-weight:700;font-size:12px;cursor:pointer}
+.wallet-transfer-btn:hover{color:var(--accent);border-color:var(--accent)}
+.wallet-transfer-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wallet-projection{margin-top:6px;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
+.wallet-projection strong{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--text);font-weight:700}
+.wallet-proj-sep{opacity:.5}
+.wallet-proj-low strong{color:var(--yellow)}
+.wallet-proj-neg strong{color:var(--red)}
 
 /* ══ MI SALDO — Quick-Pay FAB (batch 5) ══ */
 #quickPayFab{position:fixed;right:24px;bottom:28px;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:28px;font-weight:300;cursor:pointer;box-shadow:0 8px 24px rgba(59,130,246,.35);z-index:var(--z-fab);display:none;align-items:center;justify-content:center;transition:transform .15s,box-shadow .2s}
@@ -342,8 +352,8 @@ header{will-change:auto}
 @media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
 
 /* ══ MI SALDO — first-use setup modal ══ */
-#walletSetupModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
-#walletSetupModal.open{display:flex}
+#walletSetupModal,#walletReconcileModal,#walletTransferModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#walletSetupModal.open,#walletReconcileModal.open,#walletTransferModal.open{display:flex}
 .wallet-setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:420px;width:100%;padding:24px}
 .wallet-setup-card h2{font-size:18px;font-weight:800;margin-bottom:6px}
 .wallet-setup-card p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px}
@@ -1205,6 +1215,44 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 </div>
 
+<!-- ══ MI SALDO — Transferir entre cuentas (transfer) modal ══ -->
+<div id="walletTransferModal" role="dialog" aria-modal="true" aria-labelledby="walletTransferTitle">
+  <div class="wallet-setup-card">
+    <h2 id="walletTransferTitle" data-i18n="wallet_transfer_title">Transferir entre cuentas</h2>
+    <p data-i18n="wallet_transfer_sub">Mueve dinero entre Mi Saldo y otra cuenta. Queda registrado como dos asientos enlazados.</p>
+    <label class="field-label" data-i18n="wallet_transfer_from">Desde</label>
+    <input class="cierre-input" id="walletTransferFromName" type="text" readonly style="opacity:.7;cursor:not-allowed">
+    <label class="field-label" for="walletTransferTo" style="margin-top:10px" data-i18n="wallet_transfer_to">Hacia</label>
+    <select class="cierre-input" id="walletTransferTo"></select>
+    <label class="field-label" for="walletTransferAmount" style="margin-top:10px" data-i18n="wallet_transfer_amount">Monto</label>
+    <input class="cierre-input" id="walletTransferAmount" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+    <div id="walletTransferFx" class="field-note" style="margin-top:6px;min-height:14px"></div>
+    <label class="field-label" for="walletTransferNote" style="margin-top:10px" data-i18n="wallet_transfer_note">Nota (opcional)</label>
+    <input class="cierre-input" id="walletTransferNote" type="text" placeholder="" autocomplete="off">
+    <div class="wallet-setup-actions">
+      <button type="button" class="btn btn-ghost" onclick="cancelWalletTransfer()" data-i18n="wallet_transfer_cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="confirmWalletTransfer()" data-i18n="wallet_transfer_confirm">Transferir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MI SALDO — Reconcile (ajuste) modal ══ -->
+<div id="walletReconcileModal" role="dialog" aria-modal="true" aria-labelledby="walletReconcileTitle">
+  <div class="wallet-setup-card">
+    <h2 id="walletReconcileTitle" data-i18n="wallet_reconcile_title">Ajustar Mi Saldo</h2>
+    <p id="walletReconcileSub" data-i18n="wallet_reconcile_sub">Cuenta tu efectivo real ahora mismo y registra el saldo. La diferencia queda guardada como un ajuste, sin perder el historial.</p>
+    <label class="field-label" for="walletReconcileAmount" data-i18n="wallet_reconcile_amount">Saldo real</label>
+    <input class="cierre-input" id="walletReconcileAmount" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+    <div id="walletReconcileDelta" class="field-note" style="margin-top:6px;min-height:14px"></div>
+    <label class="field-label" for="walletReconcileNote" style="margin-top:10px" data-i18n="wallet_reconcile_note">Nota (opcional)</label>
+    <input class="cierre-input" id="walletReconcileNote" type="text" placeholder="" autocomplete="off">
+    <div class="wallet-setup-actions">
+      <button type="button" class="btn btn-ghost" onclick="cancelWalletReconcile()" data-i18n="wallet_reconcile_cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="confirmWalletReconcile()" data-i18n="wallet_reconcile_confirm">Registrar ajuste</button>
+    </div>
+  </div>
+</div>
+
 <div id="cierreModal" role="dialog" aria-modal="true" aria-labelledby="cierreModalTitle">
   <div class="cierre-container">
     <div class="cierre-header">
@@ -1418,9 +1466,13 @@ function applyCashDebit(tx){
 }
 
 // Reverse a previously-applied debit. Used when deleting a tx so the user
-// gets their cash balance back.
+// gets their cash balance back. Transfer txs forward to reverseTransferGroup
+// so both legs un-apply atomically — caller still owns splicing the targeted
+// tx; the peer leg stays as a tombstone (applied=false) until something
+// drives a full delete (deleteTransaccion / deleteTxEditRow handle that).
 function reverseCashDebit(tx){
   if(!tx||!tx.applied||!tx.cuentaId)return false;
+  if(tx.transferGroupId){reverseTransferGroup(tx,false);return true;}
   const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===tx.cuentaId);
   if(!cuenta)return false;
   const amt=txAmountInCuenta(tx.monto||0,cuenta);
@@ -1480,7 +1532,7 @@ function applyGastoTransferencia(gasto){
 // for SPENDING totals must filter through this helper, otherwise the income
 // tx silently subtracts from gasto, distorts category charts, and corrupts
 // historial entries on cierre.
-function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso';}
+function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso'&&tx.categoria!=='ajuste'&&tx.categoria!=='transferencia_interna';}
 
 // Deposit the user's monthly income to the wallet. Idempotent per (mes, anio):
 // only one income tx per month is allowed. Records as a synthetic transacción
@@ -1520,6 +1572,175 @@ function depositIncomeToWallet(){
   buildDashboard({..._editData});
   showToast(t('wallet_income_toast').replace('{n}',fmtC(amt)),'var(--green)');
   return true;
+}
+
+// Projected cash-on-hand walk for the next `daysAhead` days. Only unpaid efectivo
+// gastos with a fixed `dia` count — variable (dia===0) or non-cash methods are
+// excluded because we can't time them. Each event hits the next occurrence in
+// the window (≤31 days = at most one occurrence per recurring expense). All
+// returned amounts are in the wallet's moneda so the caller pairs cleanly with
+// `formatWalletAmount`.
+//
+// Returns: { today, afterCommitments, lowestPoint, lowestDate, eventCount }
+//   today           — current saldo (no shift)
+//   afterCommitments— saldo after every projected debit in the window
+//   lowestPoint     — minimum running balance hit during the walk
+//   lowestDate      — day-of-month at which lowestPoint occurs (today if none)
+//   eventCount      — number of efectivo gastos that landed in the window
+function projectWalletBalance(daysAhead){
+  daysAhead=daysAhead||31;
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta)return null;
+  const today=new Date();
+  const dayOfMonth=today.getDate();
+  const daysInMonth=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
+  const gastos=_editData?.gastos||[];
+  const events=[];
+  gastos.forEach(g=>{
+    if(!g||g.metodo!=='efectivo')return;
+    if(!(g.adeudado>0))return;
+    if(!g.dia)return; // dia===0 → variable, no projectable date
+    if(g.pagadoMes||g.pagadoApplied)return; // already settled this cycle
+    const daysUntil=g.dia>=dayOfMonth?g.dia-dayOfMonth:(daysInMonth-dayOfMonth)+g.dia;
+    if(daysUntil>daysAhead)return;
+    events.push({dia:g.dia,daysUntil,amt:txAmountInCuenta(g.adeudado,cuenta)});
+  });
+  events.sort((a,b)=>a.daysUntil-b.daysUntil);
+  const startSaldo=cuenta.saldo||0;
+  let running=startSaldo;
+  let lowestPoint=startSaldo;
+  let lowestDate=dayOfMonth;
+  events.forEach(ev=>{
+    running-=ev.amt;
+    if(running<lowestPoint){lowestPoint=running;lowestDate=ev.dia;}
+  });
+  return {
+    today:startSaldo,
+    afterCommitments:running,
+    lowestPoint,
+    lowestDate,
+    eventCount:events.length,
+  };
+}
+
+// Reconcile the wallet to a real-world cash count. Records an explicit
+// `ajuste` transaction so the ledger keeps its audit trail instead of the
+// saldo silently drifting. `newAmount` is in the wallet's moneda. Returns
+// the created tx (or null if no wallet / no delta).
+function reconcileWallet(newAmount,note){
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta)return null;
+  const target=Math.max(0,Number(newAmount)||0);
+  const current=cuenta.saldo||0;
+  const delta=target-current;
+  if(delta===0)return null;
+  // monto sign convention: negative = credit (balance went UP), positive = debit
+  const cfg=_editData?.config||{};
+  const tasa=cfg.tasa||60;
+  const deltaRD=cuenta.moneda==='USD'?delta*tasa:delta;
+  cuenta.saldo=target;
+  if(!_editData.transacciones)_editData.transacciones=[];
+  const tx={
+    fecha:new Date().toISOString().slice(0,10),
+    monto:-deltaRD, // RD$ scale, negative when balance went UP
+    categoria:'ajuste',
+    metodo:'transferencia', // bypass applyCashDebit on re-render
+    nota:note||'',
+    gastoIdx:-1,
+    mes:cfg.mes,anio:cfg.anio,
+    applied:true,cuentaId:cuenta.id,
+  };
+  _editData.transacciones.push(tx);
+  return tx;
+}
+
+// Internal account-to-account transfer. Records two paired txs sharing a
+// `transferGroupId` so reversing one cleanly reverses both. Cross-currency
+// uses the live `config.tasa` and snapshots it on each leg (so a later tasa
+// drift doesn't break a deletion). `amount` is in the source cuenta's moneda.
+// Returns { out, in } leg-pair, or null on validation failure.
+function transferBetweenAccounts(fromId,toId,amount,note){
+  if(!fromId||!toId||fromId===toId)return null;
+  const cuentas=_editData?.forNow?.cuentas||[];
+  const from=cuentas.find(c=>c.id===fromId);
+  const to=cuentas.find(c=>c.id===toId);
+  if(!from||!to)return null;
+  const amt=Math.max(0,Number(amount)||0);
+  if(amt<=0)return null;
+  const cfg=_editData?.config||{};
+  const tasa=cfg.tasa||60;
+  const amountRD=from.moneda==='USD'?amt*tasa:amt;
+  const amountInTo=to.moneda==='USD'?amountRD/tasa:amountRD;
+  const groupId='xfer_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const today=new Date().toISOString().slice(0,10);
+  const baseLeg={
+    fecha:today,
+    categoria:'transferencia_interna',
+    metodo:'transferencia',
+    nota:note||'',
+    gastoIdx:-1,
+    mes:cfg.mes,anio:cfg.anio,
+    applied:true,
+    transferGroupId:groupId,
+    tasaSnapshot:tasa,
+  };
+  const out={
+    ...baseLeg,
+    monto:amountRD, // positive RD$ = debit (mirrors expense convention)
+    cuentaId:fromId,
+    transferDirection:'out',
+    peerCuentaId:toId,peerNombre:to.nombre,peerMoneda:to.moneda,peerAmt:amountInTo,
+  };
+  const into={
+    ...baseLeg,
+    monto:-amountRD, // negative RD$ = credit (mirrors ingreso convention)
+    cuentaId:toId,
+    transferDirection:'in',
+    peerCuentaId:fromId,peerNombre:from.nombre,peerMoneda:from.moneda,peerAmt:amt,
+  };
+  from.saldo=(from.saldo||0)-amt;
+  to.saldo=(to.saldo||0)+amountInTo;
+  if(!_editData.transacciones)_editData.transacciones=[];
+  _editData.transacciones.push(out,into);
+  return {out,in:into};
+}
+
+// Reverse both legs of a transfer group. Called from delete paths so a single
+// user gesture cleans up both sides. `removePeer=true` also splices the peer
+// from transacciones[] (caller still splices the originally-targeted tx).
+// Returns the peer's pre-removal index, or -1 if no peer was found.
+function reverseTransferGroup(tx,removePeer){
+  if(!tx||!tx.transferGroupId)return -1;
+  const txs=_editData?.transacciones;
+  if(!Array.isArray(txs))return -1;
+  const peerIdx=txs.findIndex(p=>p!==tx&&p.transferGroupId===tx.transferGroupId);
+  const peer=peerIdx>=0?txs[peerIdx]:null;
+  [tx,peer].filter(Boolean).forEach(leg=>{
+    if(!leg.applied)return;
+    const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===leg.cuentaId);
+    if(!cuenta)return;
+    const tasa=leg.tasaSnapshot||_editData?.config?.tasa||60;
+    // txAmountInCuenta returns positive for debit legs (monto>0) and negative
+    // for credit legs (monto<0); adding it back to saldo correctly inverts
+    // the original apply step in either direction.
+    const adj=txAmountInCuenta(leg.monto||0,cuenta,tasa);
+    cuenta.saldo=(cuenta.saldo||0)+adj;
+    leg.applied=false;
+  });
+  if(removePeer&&peer&&peerIdx>=0)txs.splice(peerIdx,1);
+  return peerIdx;
+}
+
+// Resolve the wallet low-balance threshold in RD$. User can override via
+// `config.walletLowThreshold` (RD$); blank/0 falls back to max(10% monthly
+// income, 5000) — a behavioral floor below which most users feel anxious.
+function walletLowThresholdRD(cfg){
+  cfg=cfg||_editData?.config;
+  if(!cfg)return 5000;
+  const explicit=Number(cfg.walletLowThreshold);
+  if(explicit>0)return explicit;
+  const monthlyRD=monthlyIncomeRD(cfg)||0;
+  return Math.max(Math.round(monthlyRD*0.10),5000);
 }
 
 // Method-aware reversal: dispatches based on `pagadoMethod` recorded by the
@@ -1782,13 +2003,25 @@ function renderWalletCard(){
     ? `<div class="wallet-empty-state">${escH(t('wallet_no_movements'))}</div>`
     : movs.map(tx=>{
         const dateStr=String(tx.fecha||'').slice(5);
+        const isAjuste=tx.categoria==='ajuste';
+        const isXfer=tx.categoria==='transferencia_interna';
         const cat=t('reg_cat_'+(tx.categoria||'otro'));
         const isCredit=(tx.monto||0)<0;
         const sign=isCredit?'+':'-';
-        const cls=isCredit?'credit':'debit';
+        const cls=isAjuste?'ajuste':(isCredit?'credit':'debit');
+        let icon='';
+        let label=tx.nota||cat;
+        if(isAjuste)icon='⚖️ ';
+        if(isXfer){
+          icon='🔁 ';
+          // Direction-aware label: "→ Banco" for outflow, "← Banco" for inflow
+          const arrow=tx.transferDirection==='out'?'→':'←';
+          const peer=tx.peerNombre||'';
+          label=tx.nota?`${tx.nota} ${arrow} ${peer}`:`${arrow} ${peer}`;
+        }
         return `<div class="wallet-mov-item">
           <div>
-            <div>${escH(tx.nota||cat)}</div>
+            <div>${icon}${escH(label)}</div>
             <div class="wallet-mov-meta">${escH(dateStr)} · ${escH(cat)}</div>
           </div>
           <div class="wallet-mov-amt ${cls}">${sign}${escH(fmtC(toDisplay(Math.abs(tx.monto||0))))}</div>
@@ -1808,13 +2041,39 @@ function renderWalletCard(){
       incomeBtnHtml=`<button type="button" class="wallet-income-btn" onclick="depositIncomeToWallet()">+ ${escH(t('wallet_income_button'))} · ${escH(labelAmt)}</button>`;
     }
   }
+  // Transfer affordance: only render when there's at least one other cuenta
+  // available as a destination — moving cash to nothing makes no sense.
+  const otherCuentas=(_editData?.forNow?.cuentas||[]).filter(c=>c.id!==cuenta.id);
+  const transferBtnHtml=otherCuentas.length>0
+    ? `<button type="button" class="wallet-transfer-btn" onclick="openWalletTransfer()" aria-label="${escH(t('wallet_transfer_btn'))}">🔁 ${escH(t('wallet_transfer_btn'))}</button>`
+    : '';
+  // Cash-runway projection sub-line. Hidden when there are zero pending
+  // efectivo gastos in the window (would just repeat the same number).
+  const proj=projectWalletBalance(31);
+  let projHtml='';
+  if(proj&&proj.eventCount>0){
+    const after=formatWalletAmount(proj.afterCommitments,cuenta.moneda);
+    const lowest=formatWalletAmount(proj.lowestPoint,cuenta.moneda);
+    const thresholdRD=walletLowThresholdRD();
+    const lowestRD=cuenta.moneda==='USD'?proj.lowestPoint*(_editData?.config?.tasa||60):proj.lowestPoint;
+    const lowCls=proj.lowestPoint<0?'wallet-proj-neg':(lowestRD<thresholdRD?'wallet-proj-low':'');
+    projHtml=`<div class="wallet-projection" aria-live="polite">
+      <span class="wallet-proj-line">${escH(t('wallet_proj_after_commitments'))}: <strong>${escH(after)}</strong></span>
+      <span class="wallet-proj-sep">·</span>
+      <span class="wallet-proj-line ${lowCls}">${escH(t('wallet_proj_lowest').replace('{dia}',proj.lowestDate))}: <strong>${escH(lowest)}</strong></span>
+    </div>`;
+  }
   wrap.innerHTML=`<div class="wallet-card" role="region" aria-label="${escH(t('wallet_label'))}">
     <div class="wallet-card-row">
       <div>
         <div class="wallet-card-label">${escH(t('wallet_label'))} · ${escH(cuenta.nombre)}</div>
         <div class="wallet-card-balance">${escH(formatWalletAmount(cuenta.saldo,cuenta.moneda))}</div>
+        ${projHtml}
       </div>
-      ${incomeBtnHtml}
+      <div class="wallet-card-actions">
+        ${incomeBtnHtml}
+        ${transferBtnHtml}
+      </div>
     </div>
     <div class="wallet-movements">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px">
@@ -1878,6 +2137,139 @@ function confirmWalletSetup(){
   // If the user reached setup via the quick-pay FAB, resume that flow now
   // that the wallet exists. They don't have to chase the FAB a second time.
   if(_qpayResumeAfterSetup){_qpayResumeAfterSetup=false;openQuickPay();}
+}
+
+// Reconcile / Ajustar Mi Saldo — opens the modal pre-filled with the current
+// saldo and shows a live delta hint so the user understands what gets logged.
+function openWalletReconcile(){
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta){promptFirstCashSetup(null);return;}
+  const m=document.getElementById('walletReconcileModal');if(!m)return;
+  const inp=document.getElementById('walletReconcileAmount');
+  const noteInp=document.getElementById('walletReconcileNote');
+  if(inp)inp.value=cuenta.saldo||0;
+  if(noteInp)noteInp.value='';
+  _renderReconcileDelta();
+  // Re-bind a single live listener (re-bound each open is fine — the input is
+  // not re-created across opens).
+  if(inp){inp.oninput=_renderReconcileDelta;}
+  m.classList.add('open');
+  setTimeout(()=>inp&&inp.select(),50);
+}
+function _renderReconcileDelta(){
+  const cuenta=getDefaultCashAccount();if(!cuenta)return;
+  const inp=document.getElementById('walletReconcileAmount');
+  const out=document.getElementById('walletReconcileDelta');
+  if(!inp||!out)return;
+  const target=Math.max(0,pf(inp.value||'0'));
+  const delta=target-(cuenta.saldo||0);
+  if(delta===0){out.textContent=t('wallet_reconcile_delta_zero');out.style.color='var(--muted)';return;}
+  const sym=cuenta.moneda==='USD'?'$':'RD$';
+  const abs=Math.abs(delta).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});
+  const sign=delta>0?'+':'-';
+  out.textContent=`${t('wallet_reconcile_delta_label')}: ${sign}${sym}${abs}`;
+  out.style.color=delta>0?'var(--green)':'var(--red)';
+}
+function cancelWalletReconcile(){
+  document.getElementById('walletReconcileModal')?.classList.remove('open');
+}
+function confirmWalletReconcile(){
+  const cuenta=getDefaultCashAccount();if(!cuenta)return;
+  const inp=document.getElementById('walletReconcileAmount');
+  const noteInp=document.getElementById('walletReconcileNote');
+  const target=Math.max(0,pf(inp?.value||'0'));
+  const note=(noteInp?.value||'').trim();
+  const tx=reconcileWallet(target,note);
+  document.getElementById('walletReconcileModal')?.classList.remove('open');
+  if(!tx){
+    // No delta — nothing to log. Quietly close; user sees same balance.
+    return;
+  }
+  saveToDB();
+  buildDashboard({..._editData});
+  // If the Edit modal is open, refresh its fondos table to reflect the new
+  // saldo on the readonly wallet input.
+  if(document.getElementById('editModal')?.classList.contains('open')){
+    if(typeof buildEditForms==='function')buildEditForms();
+    if(typeof applyI18n==='function')applyI18n();
+  }
+  showToast(t('wallet_reconcile_toast'),'var(--accent)');
+}
+
+// Transferir entre cuentas — opens a modal with source preselected to the
+// wallet, dest dropdown of all other cuentas, amount input in source moneda.
+// Live FX preview when source/dest monedas differ.
+function openWalletTransfer(){
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta){promptFirstCashSetup(null);return;}
+  const m=document.getElementById('walletTransferModal');if(!m)return;
+  const fromName=document.getElementById('walletTransferFromName');
+  if(fromName)fromName.value=`${cuenta.nombre} (${cuenta.moneda==='USD'?'$':'RD$'})`;
+  const toSel=document.getElementById('walletTransferTo');
+  if(toSel){
+    const cuentas=(_editData?.forNow?.cuentas||[]).filter(c=>c.id!==cuenta.id);
+    toSel.innerHTML=cuentas.map(c=>`<option value="${c.id}">${escH(c.nombre)} (${c.moneda==='USD'?'$':'RD$'})</option>`).join('');
+  }
+  const amt=document.getElementById('walletTransferAmount');
+  const note=document.getElementById('walletTransferNote');
+  if(amt)amt.value='';
+  if(note)note.value='';
+  if(amt)amt.oninput=_renderTransferFx;
+  if(toSel)toSel.onchange=_renderTransferFx;
+  _renderTransferFx();
+  m.classList.add('open');
+  setTimeout(()=>amt&&amt.focus(),50);
+}
+function _renderTransferFx(){
+  const fxOut=document.getElementById('walletTransferFx');
+  if(!fxOut)return;
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta){fxOut.textContent='';return;}
+  const toSel=document.getElementById('walletTransferTo');
+  const cuentas=_editData?.forNow?.cuentas||[];
+  const to=cuentas.find(c=>c.id===toSel?.value);
+  if(!to||cuenta.moneda===to.moneda){fxOut.textContent='';return;}
+  const amt=Math.max(0,pf(document.getElementById('walletTransferAmount')?.value||'0'));
+  if(amt<=0){fxOut.textContent='';return;}
+  const tasa=_editData?.config?.tasa||60;
+  const amtRD=cuenta.moneda==='USD'?amt*tasa:amt;
+  const dest=to.moneda==='USD'?amtRD/tasa:amtRD;
+  const sym=to.moneda==='USD'?'$':'RD$';
+  const formatted=dest.toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});
+  fxOut.textContent=`${t('wallet_transfer_fx_label')}: ${sym}${formatted}`;
+  fxOut.style.color='var(--muted)';
+}
+function cancelWalletTransfer(){
+  document.getElementById('walletTransferModal')?.classList.remove('open');
+}
+function confirmWalletTransfer(){
+  const cuenta=getDefaultCashAccount();if(!cuenta)return;
+  const toId=document.getElementById('walletTransferTo')?.value;
+  const amt=Math.max(0,pf(document.getElementById('walletTransferAmount')?.value||'0'));
+  const note=(document.getElementById('walletTransferNote')?.value||'').trim();
+  if(!toId||amt<=0){
+    showToast(t('wallet_transfer_invalid'),'var(--yellow)');
+    return;
+  }
+  const cuentas=_editData?.forNow?.cuentas||[];
+  const to=cuentas.find(c=>c.id===toId);
+  if(!to)return;
+  // Guard against transferring more than is in the wallet (would push saldo
+  // negative — surfaces immediately rather than waiting for a runway alert).
+  if(amt>(cuenta.saldo||0)){
+    showToast(t('wallet_transfer_insufficient'),'var(--yellow)');
+    return;
+  }
+  const result=transferBetweenAccounts(cuenta.id,toId,amt,note);
+  document.getElementById('walletTransferModal')?.classList.remove('open');
+  if(!result)return;
+  saveToDB();
+  buildDashboard({..._editData});
+  if(document.getElementById('editModal')?.classList.contains('open')){
+    if(typeof buildEditForms==='function')buildEditForms();
+    if(typeof applyI18n==='function')applyI18n();
+  }
+  showToast(t('wallet_transfer_toast').replace('{name}',to.nombre),'var(--accent)');
 }
 
 // ══════════════════════════════════
@@ -2239,7 +2631,39 @@ const LANG = {
     wallet_setup_confirm:'Crear Mi Saldo',
     wallet_setup_cancel:'Cancelar',
     wallet_setup_account_name:'Efectivo',
+    wallet_reconcile_btn:'Ajustar',
+    wallet_reconcile_btn_title:'Ajustar Mi Saldo registrando un ajuste en el historial',
+    wallet_reconcile_title:'Ajustar Mi Saldo',
+    wallet_reconcile_sub:'Cuenta tu efectivo real ahora mismo y registra el saldo. La diferencia queda guardada como un ajuste, sin perder el historial.',
+    wallet_reconcile_amount:'Saldo real',
+    wallet_reconcile_note:'Nota (opcional)',
+    wallet_reconcile_cancel:'Cancelar',
+    wallet_reconcile_confirm:'Registrar ajuste',
+    wallet_reconcile_delta_label:'Diferencia',
+    wallet_reconcile_delta_zero:'Sin cambio',
+    wallet_reconcile_toast:'⚖️ Ajuste registrado',
+    wallet_transfer_btn:'Transferir',
+    wallet_transfer_title:'Transferir entre cuentas',
+    wallet_transfer_sub:'Mueve dinero entre Mi Saldo y otra cuenta. Queda registrado como dos asientos enlazados.',
+    wallet_transfer_from:'Desde',
+    wallet_transfer_to:'Hacia',
+    wallet_transfer_amount:'Monto',
+    wallet_transfer_note:'Nota (opcional)',
+    wallet_transfer_cancel:'Cancelar',
+    wallet_transfer_confirm:'Transferir',
+    wallet_transfer_fx_label:'Recibirá',
+    wallet_transfer_invalid:'Selecciona una cuenta destino y un monto mayor a 0.',
+    wallet_transfer_insufficient:'Saldo insuficiente para esta transferencia.',
+    wallet_transfer_toast:'🔁 Transferido a {name}',
     wallet_chip_label:'Mi Saldo',
+    wallet_proj_after_commitments:'Después de pendientes',
+    wallet_proj_lowest:'Punto más bajo (día {dia})',
+    alert_wallet_low_title:'Tu Saldo se quedará bajo este mes',
+    alert_wallet_low_sub:'Después de los pagos pendientes en efectivo, tu Saldo bajará a {cs}{amt} (día {dia}). Umbral: {cs}{thr}.',
+    alert_wallet_neg_title:'Tu Saldo proyectado quedará negativo',
+    alert_wallet_neg_sub:'Los pagos pendientes en efectivo exceden tu Saldo en {cs}{amt} (día {dia}). Reduce gastos o reprograma.',
+    ecfg_wallet_low:'Umbral Mi Saldo bajo ({cs})',
+    ecfg_wallet_low_note:'Avisa cuando el Saldo proyectado caerá bajo este monto. 0 = automático (10% del ingreso mensual o {cs}5,000).',
     ecfg_dias:'Días alerta vencimiento', ecfg_dias_note:'Rango: 1–30 días',
     // Cashflow field labels
     ecf_ingreso:'Ingreso Mensual ({cs})', ecf_gasto:'Gasto Mensual Total',
@@ -2349,6 +2773,8 @@ const LANG = {
     reg_cat_salud:'Salud', reg_cat_compras:'Compras', reg_cat_hogar:'Hogar',
     reg_cat_educacion:'Educación', reg_cat_personal:'Personal', reg_cat_otro:'Otro',
     reg_cat_ingreso:'Ingreso',
+    reg_cat_ajuste:'Ajuste',
+    reg_cat_transferencia_interna:'Transferencia',
     reg_chart_title:'Gasto por Categoría', reg_tracked:'Gasto registrado', reg_trend_title:'Tendencia de Gasto',
     edit_tab_transacciones:'🧾 Transacciones',
     // Feature 6 – Presupuesto (Forward Budget)
@@ -2718,7 +3144,39 @@ const LANG = {
     wallet_setup_confirm:'Create My Balance',
     wallet_setup_cancel:'Cancel',
     wallet_setup_account_name:'Cash',
+    wallet_reconcile_btn:'Adjust',
+    wallet_reconcile_btn_title:'Adjust My Balance and log the change as an audit entry',
+    wallet_reconcile_title:'Adjust My Balance',
+    wallet_reconcile_sub:'Count your actual cash right now and record the balance. The difference is saved as an adjustment so the ledger stays intact.',
+    wallet_reconcile_amount:'Real balance',
+    wallet_reconcile_note:'Note (optional)',
+    wallet_reconcile_cancel:'Cancel',
+    wallet_reconcile_confirm:'Log adjustment',
+    wallet_reconcile_delta_label:'Delta',
+    wallet_reconcile_delta_zero:'No change',
+    wallet_reconcile_toast:'⚖️ Adjustment logged',
+    wallet_transfer_btn:'Transfer',
+    wallet_transfer_title:'Transfer between accounts',
+    wallet_transfer_sub:'Move money between My Balance and another account. Recorded as two linked entries.',
+    wallet_transfer_from:'From',
+    wallet_transfer_to:'To',
+    wallet_transfer_amount:'Amount',
+    wallet_transfer_note:'Note (optional)',
+    wallet_transfer_cancel:'Cancel',
+    wallet_transfer_confirm:'Transfer',
+    wallet_transfer_fx_label:'Receives',
+    wallet_transfer_invalid:'Pick a destination account and an amount greater than 0.',
+    wallet_transfer_insufficient:'Insufficient balance for this transfer.',
+    wallet_transfer_toast:'🔁 Transferred to {name}',
     wallet_chip_label:'My Balance',
+    wallet_proj_after_commitments:'After upcoming bills',
+    wallet_proj_lowest:'Lowest point (day {dia})',
+    alert_wallet_low_title:'Your Balance will run low this month',
+    alert_wallet_low_sub:'After pending cash bills, your Balance will drop to {cs}{amt} (day {dia}). Threshold: {cs}{thr}.',
+    alert_wallet_neg_title:'Your projected Balance will go negative',
+    alert_wallet_neg_sub:'Pending cash bills exceed your Balance by {cs}{amt} (day {dia}). Trim spending or reschedule.',
+    ecfg_wallet_low:'Low Balance threshold ({cs})',
+    ecfg_wallet_low_note:'Alert when projected Balance falls below this. 0 = auto (10% of monthly income or {cs}5,000).',
     ecfg_dias:'Payment alert days', ecfg_dias_note:'Range: 1–30 days',
     // Cashflow field labels
     ecf_ingreso:'Monthly Income ({cs})', ecf_gasto:'Total Monthly Expenses',
@@ -2828,6 +3286,8 @@ const LANG = {
     reg_cat_salud:'Health', reg_cat_compras:'Shopping', reg_cat_hogar:'Home',
     reg_cat_educacion:'Education', reg_cat_personal:'Personal', reg_cat_otro:'Other',
     reg_cat_ingreso:'Income',
+    reg_cat_ajuste:'Adjustment',
+    reg_cat_transferencia_interna:'Transfer',
     reg_chart_title:'Spending by Category', reg_tracked:'Tracked spending', reg_trend_title:'Spending Trend',
     edit_tab_transacciones:'🧾 Transactions',
     // Feature 6 – Budget (Forward Budget)
@@ -3261,7 +3721,7 @@ function defaultEditData(){
   const now=new Date();
   const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   return{
-    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD',payFrequency:'mensual',defaultCashAccountId:null},
+    config:{tasa:60,mes:meses[now.getMonth()],anio:now.getFullYear(),ingresoUSD:0,ingresoRD:0,diasAlerta:5,monedaPrincipal:'RD',payFrequency:'mensual',defaultCashAccountId:null,walletLowThreshold:0},
     gastos:[],
     forNow:{cuentas:[],fecha:now,total:0,comprometido:0,disponible:0},
     emerg:{fondos:[],cashflow:{ingreso:0,gasto:0,tasa:60,retirarUSD:0,ahorros:0,balanceAhorros:0}},
@@ -3947,6 +4407,25 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
   gastos.forEach(g=>{if(g.balance>0&&g.tasa>0&&g.adeudado>0){const intMes=g.balance*(g.tasa/100/12);if(g.adeudado<=intMes){const growth=Math.round(intMes-g.adeudado);agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_negamort_title').replace('{name}',escH(g.nombre))}</div><div class="alert-sub">${t('alert_negamort_sub').replace('{pay}',fmt(toDisplay(g.adeudado))).replace('{int}',fmt(toDisplay(Math.round(intMes)))).replace('{growth}',fmt(toDisplay(growth)))}</div></div></div>`);}}});
   // Fix 3.2: Expense trend anomaly — flag if current gasto > 120% of 3-month average
   if(_editData.historial&&_editData.historial.length>=2){const recent=_editData.historial.slice(0,3);const avg=recent.reduce((a,h)=>a+(h.gasto||0),0)/recent.length;if(avg>0&&gasto>avg*1.2){const spikePct=Math.round((gasto/avg-1)*100);agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📊</div><div class="alert-text"><div class="alert-title">${t('alert_expense_spike_title')}</div><div class="alert-sub">${t('alert_expense_spike_sub').replace('{pct}',spikePct)}</div></div></div>`);}}
+  // Wallet low / negative projection — fires only when a wallet is configured
+  // and projected lowest point in the next 31 days falls under the threshold
+  // (or below zero). Uses RD$ for threshold comparison so the user sees a
+  // consistent floor regardless of wallet moneda.
+  const walletCuenta=getDefaultCashAccount();
+  if(walletCuenta){
+    const proj=projectWalletBalance(31);
+    if(proj&&proj.eventCount>0){
+      const tasa=config.tasa||60;
+      const lowestRD=walletCuenta.moneda==='USD'?proj.lowestPoint*tasa:proj.lowestPoint;
+      const thresholdRD=walletLowThresholdRD(config);
+      if(proj.lowestPoint<0){
+        const shortRD=Math.abs(Math.round(lowestRD));
+        agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💸</div><div class="alert-text"><div class="alert-title">${t('alert_wallet_neg_title')}</div><div class="alert-sub">${t('alert_wallet_neg_sub').replace('{cs}',currencySymbol()).replace('{amt}',fmt(toDisplay(shortRD))).replace('{dia}',proj.lowestDate)}</div></div></div>`);
+      } else if(lowestRD<thresholdRD){
+        agHtml.push(`<div class="alert-item warning"><div class="alert-icon">💰</div><div class="alert-text"><div class="alert-title">${t('alert_wallet_low_title')}</div><div class="alert-sub">${t('alert_wallet_low_sub').replace('{cs}',currencySymbol()).replace('{amt}',fmt(toDisplay(Math.round(lowestRD)))).replace('{thr}',fmt(toDisplay(thresholdRD))).replace('{dia}',proj.lowestDate)}</div></div></div>`);
+      }
+    }
+  }
   ag.innerHTML=agHtml.length?agHtml.join(''):`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">${t('alert_nofinancial')}</div>`;
   const as=document.getElementById('alertasSit');
   const items=[
@@ -4333,13 +4812,21 @@ function addTransaccion(){
 
 function deleteTransaccion(idx){
   if(!confirm(t('reg_delete_confirm')))return;
-  if(_editData.transacciones&&_editData.transacciones[idx]!==undefined){
-    // Restore cash balance before removing the tx
-    reverseCashDebit(_editData.transacciones[idx]);
-    _editData.transacciones.splice(idx,1);
-    saveToDB();
-    buildDashboard({..._editData});
+  const txs=_editData?.transacciones;
+  const tx=txs?.[idx];
+  if(!tx)return;
+  if(tx.transferGroupId){
+    // Atomic: reverse both legs and splice the peer; if the peer sat before
+    // idx in the array, idx shifts down by one after that splice.
+    const peerIdx=reverseTransferGroup(tx,true);
+    const curIdx=(peerIdx>=0&&peerIdx<idx)?idx-1:idx;
+    txs.splice(curIdx,1);
+  } else {
+    reverseCashDebit(tx);
+    txs.splice(idx,1);
   }
+  saveToDB();
+  buildDashboard({..._editData});
 }
 
 // ══════════════════════════════════
@@ -6362,6 +6849,12 @@ let _changesCount=0;
 let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
 window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
+window.projectWalletBalance=projectWalletBalance;
+window.walletLowThresholdRD=walletLowThresholdRD;
+window.reconcileWallet=reconcileWallet;
+window.isExpenseTx=isExpenseTx;
+window.transferBetweenAccounts=transferBetweenAccounts;
+window.reverseTransferGroup=reverseTransferGroup;
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
 window._testSetupGoToStep=function(stepIdx){_setupStep=stepIdx;renderSetup();};
 // Tests that exercise the toggle/apply cycle without going through the
@@ -6401,6 +6894,7 @@ function syncConfigField(key,el){
     case 'ingresoUSD':{_editData.config.ingresoUSD=Math.max(0,pf(v));_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl2=document.getElementById('cfg-ingresoRD');if(rdEl2)rdEl2.value=Math.round(_editData.config.ingresoRD);}break;
     case 'ingresoRD':{_editData.config.ingresoRD=Math.max(0,pf(v));const mult=payMult(_editData.config.payFrequency||'mensual');_editData.config.ingresoUSD=(_editData.config.tasa>0&&mult>0)?Math.round(_editData.config.ingresoRD/(_editData.config.tasa*mult)*100)/100:0;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const usdEl=document.getElementById('cfg-ingreso');if(usdEl)usdEl.value=_editData.config.ingresoUSD;}break;
     case 'diasAlerta':{const d=parseInt(v);_editData.config.diasAlerta=Math.min(30,Math.max(1,isNaN(d)?5:d));}break;
+    case 'walletLowThreshold':{const w=pf(v);_editData.config.walletLowThreshold=Math.max(0,isNaN(w)?0:w);}break;
   }
   autoSave();
 }
@@ -6476,6 +6970,7 @@ function buildEditForms(){
     {id:'cfg-ingreso',label:t('ecfg_ingreso'),note:t('ecfg_ingreso_note'),key:'ingresoUSD',val:config.ingresoUSD,min:0},
     {id:'cfg-ingresoRD',label:t('ecfg_ingresoRD'),note:t('ecfg_ingresoRD_note'),key:'ingresoRD',val:Math.round(config.ingresoRD||monthlyIncomeRD(config)),min:0},
     {id:'cfg-diasAlerta',label:t('ecfg_dias'),note:t('ecfg_dias_note'),key:'diasAlerta',val:config.diasAlerta||5,min:1,max:30},
+    {id:'cfg-walletLow',label:t('ecfg_wallet_low'),note:t('ecfg_wallet_low_note'),key:'walletLowThreshold',val:config.walletLowThreshold||0,min:0},
   ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="${f.key==='anio'||f.key==='diasAlerta'?'numeric':'decimal'}" value="${f.val}" oninput="markChanged(this);syncConfigField('${f.key}',this)"${f.min!=null?' min="'+f.min+'"':''}${f.max!=null?' max="'+f.max+'"':''}><div class="field-note">${f.note}</div>${f.extra||''}</div>`).join('');
   // ESENCIALES
   const eb=document.getElementById('esencialesEditBody');eb.innerHTML='';
@@ -6513,9 +7008,14 @@ function buildEditForms(){
     const tipo=CUENTA_TIPOS.includes(c.tipo)?c.tipo:'banco';
     const isDefault=config.defaultCashAccountId===c.id;
     const tipoOptions=CUENTA_TIPOS.map(tp=>`<option value="${tp}" ${tp===tipo?'selected':''}>${t('cuenta_tipo_'+tp)}</option>`).join('');
+    // Wallet row — saldo edits flow through reconcileWallet so the ledger
+    // captures an `ajuste` tx instead of silently overwriting the balance.
+    const saldoCell=isDefault
+      ? `<td><div style="display:flex;gap:6px;align-items:center"><input class="tbl-input" type="text" inputmode="decimal" value="${c.saldo||0}" readonly style="opacity:.7;cursor:not-allowed" aria-label="${t('eth_saldo')}"><button type="button" class="btn btn-sm" onclick="openWalletReconcile()" title="${escH(t('wallet_reconcile_btn_title'))}" style="white-space:nowrap;padding:6px 10px;font-size:12px">⚖️ ${escH(t('wallet_reconcile_btn'))}</button></div></td>`
+      : `<td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>`;
     fb.innerHTML+=`<tr data-cuenta-id="${c.id}"><td><input class="tbl-input" value="${escH(c.nombre)}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].nombre=this.value" style="min-width:120px"></td>
       <td><select class="tbl-input" onchange="onCurrencySwitch(${i},this,_editData.forNow.cuentas)" style="min-width:70px"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select></td>
-      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${c.saldo||0}" oninput="markChanged(this);_editData.forNow.cuentas[${i}].saldo=pf(this.value);_editData.forNow.fecha=new Date().toISOString().slice(0,10);const _fd=document.getElementById('fornow-fecha');if(_fd)_fd.value=_editData.forNow.fecha;"></td>
+      ${saldoCell}
       <td><select class="tbl-input fornow-tipo" data-idx="${i}" onchange="onCuentaTipoChange(${i},this)" style="min-width:90px">${tipoOptions}</select></td>
       <td style="text-align:center"><input type="radio" name="fornow-default" class="fornow-default" data-cuenta-id="${c.id}" ${isDefault?'checked':''} onchange="onWalletDefaultChange('${c.id}')" aria-label="${t('wallet_set_default')}"></td>
       <td><button class="row-del-btn" onclick="deleteFornowRow(${i})">✕</button></td></tr>`;
@@ -6614,7 +7114,21 @@ function addForNowRow(){_editData.forNow.cuentas.push({nombre:'Nueva cuenta',mon
 function addEmergFundRow(){const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeudado||0),0);const defaultMeta=gasto>0?Math.round(gasto*3):0;_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:defaultMeta,falta:defaultMeta,moneda:'RD'});markChanged(document.body);buildEditForms();}
 function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:_editData.config.tasa||60,notas:''});markChanged(document.body);buildEditForms();}
 function addTxEditRow(){if(!_editData.transacciones)_editData.transacciones=[];_editData.transacciones.push({fecha:new Date().toISOString().slice(0,10),monto:0,categoria:'otro',nota:'',metodo:'efectivo',gastoIdx:-1,mes:_editData.config.mes,anio:_editData.config.anio});markChanged(document.body);buildEditForms();}
-function deleteTxEditRow(i){if(!confirm(t('reg_delete_confirm')))return;reverseCashDebit(_editData.transacciones[i]);_editData.transacciones.splice(i,1);markChanged(document.body);buildEditForms();}
+function deleteTxEditRow(i){
+  if(!confirm(t('reg_delete_confirm')))return;
+  const txs=_editData?.transacciones;
+  const tx=txs?.[i];
+  if(!tx)return;
+  if(tx.transferGroupId){
+    const peerIdx=reverseTransferGroup(tx,true);
+    const curIdx=(peerIdx>=0&&peerIdx<i)?i-1:i;
+    txs.splice(curIdx,1);
+  } else {
+    reverseCashDebit(tx);
+    txs.splice(i,1);
+  }
+  markChanged(document.body);buildEditForms();
+}
 function addPresEditRow(){if(!_editData.presupuesto)_editData.presupuesto=[];_editData.presupuesto.push({categoria:'otro',presupuestado:0,mes:_editData.config.mes,anio:_editData.config.anio});markChanged(document.body);buildEditForms();}
 function deletePresEditRow(i){if(!confirm(t('pres_delete_confirm')))return;_editData.presupuesto.splice(i,1);markChanged(document.body);buildEditForms();}
 function addRecEditRow(){if(!_editData.recurrentes)_editData.recurrentes=[];_editData.recurrentes.push({id:'rec_'+Date.now(),fecha:new Date().toISOString().slice(0,10),monto:0,categoria:'otro',nota:'',metodo:'efectivo',gastoIdx:-1,frecuencia:'mensual',lastGenerated:new Date().toISOString().slice(0,10)});markChanged(document.body);buildEditForms();}
@@ -6629,6 +7143,7 @@ function readConfigFromForm(){
   const freqVal=document.getElementById('cfg-payFreq')?.value;
   if(['mensual','quincenal','semanal'].includes(freqVal))_editData.config.payFrequency=freqVal;
   _editData.config.diasAlerta=Math.min(30,Math.max(1,parseInt(document.getElementById('cfg-diasAlerta')?.value)||5));
+  _editData.config.walletLowThreshold=Math.max(0,pf(document.getElementById('cfg-walletLow')?.value)||0);
   _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
   _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
   _editData.forNow.fecha=document.getElementById('fornow-fecha')?.value||null;

@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (377 tests)
+tests/                -- Suite de tests Playwright (649 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -112,6 +112,10 @@ El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un contr
   - **Deduccion automatica de gastos fijos** -- cada gasto/deuda puede tener un metodo de pago (Efectivo / Tarjeta / Transferencia / sin auto-debito). Marcar uno como pagado en el checklist con metodo Efectivo descuenta la cuota del saldo. Desmarcar la restaura. Los items en efectivo muestran un badge 💵 en el checklist
   - **Boton "Recibi mi pago"** -- en la tarjeta de Resumen, abona automaticamente el equivalente mensual del ingreso (ingresoUSD x payFrequency multiplier x tasa) una vez por mes
   - **Boton flotante de pago rapido** -- FAB con icono +. Modal de 4 campos (monto, metodo, categoria, descripcion) para registrar un pago en segundos. Si no hay billetera configurada, se abre el asistente de configuracion y al confirmar reanuda el pago
+  - **Proyeccion de runway** -- la tarjeta de Resumen muestra "Despues de pendientes" y "Punto mas bajo (dia N)" para los proximos 31 dias, calculados sobre los gastos en efectivo aun no pagados. Las cifras se colorean de amarillo si caen bajo el umbral configurable y de rojo si proyectan saldo negativo
+  - **Alerta de saldo bajo** -- nueva alerta `wallet_low` (advertencia) o `wallet_neg` (urgente) en Alertas & Pagos cuando la proyeccion del mes cae bajo el umbral. Umbral configurable en Editar > Configuracion (`Umbral Mi Saldo bajo`); 0 = automatico (10% del ingreso mensual o RD$5,000, lo que sea mayor)
+  - **Ajustar Mi Saldo (reconciliacion)** -- en Editar > Fondos, la fila de Mi Saldo expone un boton ⚖️ Ajustar que abre un modal para registrar un conteo real. La diferencia se guarda como una transaccion `ajuste` (categoria propia) en lugar de sobreescribir el saldo silenciosamente -- el historial mantiene la pista de auditoria. Los ajustes aparecen en la lista de movimientos con icono ⚖️ y color neutro, y NO cuentan en los totales de gasto, presupuesto ni cierre
+  - **Transferir entre cuentas** -- boton 🔁 en la tarjeta de Resumen (cuando hay >=2 cuentas) que abre un modal para mover dinero entre Mi Saldo y otra cuenta. Crea dos transacciones enlazadas (categoria `transferencia_interna`) que comparten un `transferGroupId`. Al borrar una pierna, se reversan ambas atomicamente. Cross-currency: la `tasa` se snapshotea en cada pierna para que la reversion use la tasa original
   - **Configuracion** -- en el asistente "Empezar desde cero" (paso 2) o en Editar > Fondos. Si haces tu primera transaccion en efectivo sin billetera, el sistema te pide configurar el saldo inicial
   - **Soporta moneda mixta** -- billetera USD con transacciones en RD$ (o viceversa) se convierten via la tasa
 - **Hitos de net worth** -- Celebraciones automaticas al alcanzar net worth positivo, libre de deudas, RD$100K, RD$500K y RD$1M
@@ -508,7 +512,17 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `presupuesto-recurring.spec.js` | 40 | Presupuesto CRUD, BvA, obligaciones, recurrentes, generacion, dedup, Registro KPIs, Resumen integracion |
 | `strategy-tabs.spec.js` | 31 | Deudas ETA, EF cobertura/doughnut, analisis summary, NW proyeccion, sparklines, waterfall, edge cases |
 | `operations-tabs.spec.js` | 18 | Gastos payoff column, Registro trend, Fondos runway, Checklist countdown, KPI deltas |
-| **Total** | **377** | |
+| `wallet-foundation.spec.js` | 14 | Schema (id + tipo), migration, helpers, setup wizard step 2, Edit Fondos tab |
+| `wallet-debit.spec.js` | 13 | Header chip, Resumen card, auto-debit en cash tx, idempotencia, empty states |
+| `wallet-gasto-debit.spec.js` | 18 | applyGastoDebit/reverseGastoDebit, toggleCheck en efectivo, cambio de metodo |
+| `wallet-payment-prompt.spec.js` | 12 | Prompt al marcar pagado, efectivo/tarjeta/transferencia, reversion al desmarcar |
+| `wallet-quick-pay.spec.js` | 16 | FAB visibility, modal, validacion, debit, no-cash, toasts |
+| `wallet-income-deposit.spec.js` | 14 | Deposito de ingreso, multiplicadores de frecuencia, USD, idempotencia, reversion |
+| `wallet-projection.spec.js` | 18 | Cash-runway projection, low-balance threshold, alerta wallet_low / wallet_neg |
+| `wallet-reconcile.spec.js` | 12 | reconcileWallet, isExpenseTx exclusion, Edit row gating, modal flow, ajuste row |
+| `wallet-transfer.spec.js` | 14 | transferBetweenAccounts, paired txs, cross-currency, reverseTransferGroup, UI |
+| `wallet-integration.spec.js` | 6 | JSON round-trip de campos nuevos, exclusion en cierre, deleteTxEditRow paired, demo smoke |
+| **Total** | **649** | |
 
 ---
 
