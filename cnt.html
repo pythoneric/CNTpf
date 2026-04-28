@@ -3583,6 +3583,10 @@ function toggleLang(){
   // Edit modal also has dynamic content from buildEditForms
   const editOpen=document.getElementById('editModal')?.classList.contains('open');
   if(editOpen&&typeof buildEditForms==='function')buildEditForms();
+  // Help modal: swap to the README for the new language (cached after the
+  // first load per lang, so subsequent toggles are instant).
+  const helpOpen=document.getElementById('helpModal')?.classList.contains('open');
+  if(helpOpen&&typeof _renderHelpForCurrentLang==='function')_renderHelpForCurrentLang();
   closeOverflow();
 }
 
@@ -7187,8 +7191,11 @@ function exportSnapshot(){
 // support. Falls back to a link-out card if the fetch fails (offline /
 // README not deployed alongside cnt.html).
 // ══════════════════════════════════
-const HELP_README_URL='https://github.com/pythoneric/CNTpf/blob/main/README.md';
-let _helpLoaded=false;
+const HELP_README_URL_ES='https://github.com/pythoneric/CNTpf/blob/main/README.md';
+const HELP_README_URL_EN='https://github.com/pythoneric/CNTpf/blob/main/README.en.md';
+// Cache rendered HTML per language so toggling lang while the modal is open
+// repaints from cache instead of refetching.
+const _helpRenderedByLang={};
 function _escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function _inlineMd(s){
   // Order matters: code spans first (they suppress further markdown inside),
@@ -7261,19 +7268,36 @@ function openHelp(){
   const m=document.getElementById('helpModal');if(!m)return;
   m.classList.add('open');
   document.body.style.overflow='hidden';
-  if(_helpLoaded)return;
-  const out=document.getElementById('helpContent');
-  // Fetch README from the app's origin (same folder as cnt.html). If the
-  // file isn't deployed or the user is offline + uncached, show a fallback
-  // pointing at the GitHub copy.
-  fetch('README.md')
+  _renderHelpForCurrentLang();
+}
+// Pick the right README file + GitHub fallback URL based on the active lang.
+function _helpFilesForLang(lang){
+  return lang==='en'
+    ? {file:'README.en.md',url:HELP_README_URL_EN}
+    : {file:'README.md',url:HELP_README_URL_ES};
+}
+// Fetch + render the README for whichever language is currently active. Keeps
+// a per-language render cache so flipping back to a previously-loaded
+// language doesn't refetch.
+function _renderHelpForCurrentLang(){
+  const out=document.getElementById('helpContent');if(!out)return;
+  const lang=_lang||'es';
+  if(_helpRenderedByLang[lang]){out.innerHTML=_helpRenderedByLang[lang];return;}
+  out.innerHTML=`<div class="help-loading">${escH(t('help_loading'))}</div>`;
+  const {file,url}=_helpFilesForLang(lang);
+  fetch(file)
     .then(r=>{if(!r.ok)throw new Error('http '+r.status);return r.text();})
-    .then(md=>{out.innerHTML=renderMarkdown(md);_helpLoaded=true;})
+    .then(md=>{
+      const html=renderMarkdown(md);
+      _helpRenderedByLang[lang]=html;
+      // Only paint if the user hasn't switched away while the fetch was in flight.
+      if((_lang||'es')===lang)out.innerHTML=html;
+    })
     .catch(()=>{
       out.innerHTML=`<div class="help-error">
         <p><strong>${escH(t('help_error_title'))}</strong></p>
         <p>${escH(t('help_error_sub'))}</p>
-        <p><a href="${HELP_README_URL}" target="_blank" rel="noopener">${escH(t('help_error_link'))}</a></p>
+        <p><a href="${url}" target="_blank" rel="noopener">${escH(t('help_error_link'))}</a></p>
       </div>`;
     });
 }

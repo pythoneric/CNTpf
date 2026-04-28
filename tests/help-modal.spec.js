@@ -97,10 +97,16 @@ test.describe('Help modal — README renders', () => {
 
   test('opening the modal a second time does not refetch (uses cache)', async ({ page }) => {
     await loadApp(page);
-    let fetchCount = 0;
-    await page.route('**/README.md', async (route) => {
-      fetchCount++;
-      await route.continue();
+    // Instrument window.fetch directly so we count regardless of whether the
+    // service worker intercepts (page.route only sees network requests).
+    await page.evaluate(() => {
+      window.__helpFetchCount = 0;
+      const orig = window.fetch.bind(window);
+      window.fetch = function(input, init) {
+        const url = typeof input === 'string' ? input : input.url;
+        if (/README(\.en)?\.md$/.test(url)) window.__helpFetchCount++;
+        return orig(input, init);
+      };
     });
     await page.evaluate(() => openHelp());
     await page.waitForFunction(() => document.querySelector('#helpContent h1'));
@@ -108,7 +114,73 @@ test.describe('Help modal — README renders', () => {
     await page.evaluate(() => openHelp());
     // Allow a moment in case a second fetch was queued
     await page.waitForTimeout(150);
-    expect(fetchCount).toBe(1);
+    const count = await page.evaluate(() => window.__helpFetchCount);
+    expect(count).toBe(1);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────
+// 2b. Bilingual: each language gets its own README
+// ───────────────────────────────────────────────────────────────────
+test.describe('Help modal — bilingual README', () => {
+  test('Spanish: fetches README.md and renders Spanish title', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      window._testSetLang('es');
+      window.__helpFetched = [];
+      const orig = window.fetch.bind(window);
+      window.fetch = function(input, init) {
+        const url = typeof input === 'string' ? input : input.url;
+        if (/README(\.en)?\.md$/.test(url)) window.__helpFetched.push(url);
+        return orig(input, init);
+      };
+    });
+    await page.evaluate(() => openHelp());
+    await page.waitForFunction(() => document.querySelector('#helpContent h1'));
+    const fetched = await page.evaluate(() => window.__helpFetched);
+    // Spanish path requests README.md (NOT README.en.md)
+    expect(fetched.some(u => /README\.md$/.test(u))).toBe(true);
+    expect(fetched.some(u => /README\.en\.md$/.test(u))).toBe(false);
+    const h1 = await page.locator('#helpContent h1').first().textContent();
+    expect(h1).toMatch(/Dashboard Financiero Personal/);
+  });
+
+  test('English: fetches README.en.md and renders English title', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      window._testSetLang('en');
+      window.__helpFetched = [];
+      const orig = window.fetch.bind(window);
+      window.fetch = function(input, init) {
+        const url = typeof input === 'string' ? input : input.url;
+        if (/README(\.en)?\.md$/.test(url)) window.__helpFetched.push(url);
+        return orig(input, init);
+      };
+    });
+    await page.evaluate(() => openHelp());
+    await page.waitForFunction(() => document.querySelector('#helpContent h1'));
+    const fetched = await page.evaluate(() => window.__helpFetched);
+    expect(fetched.some(u => /README\.en\.md$/.test(u))).toBe(true);
+    const h1 = await page.locator('#helpContent h1').first().textContent();
+    expect(h1).toMatch(/Personal Finance Dashboard/);
+  });
+
+  test('toggleLang while modal is open swaps the rendered README', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => window._testSetLang('es'));
+    await page.evaluate(() => openHelp());
+    await page.waitForFunction(() => document.querySelector('#helpContent h1'));
+    let h1 = await page.locator('#helpContent h1').first().textContent();
+    expect(h1).toMatch(/Dashboard Financiero Personal/);
+    // Flip language
+    await page.evaluate(() => toggleLang());
+    // Wait for the EN README h1 to appear
+    await page.waitForFunction(() => {
+      const h = document.querySelector('#helpContent h1');
+      return h && /Personal Finance Dashboard/.test(h.textContent || '');
+    }, null, { timeout: 5000 });
+    h1 = await page.locator('#helpContent h1').first().textContent();
+    expect(h1).toMatch(/Personal Finance Dashboard/);
   });
 });
 
@@ -150,7 +222,8 @@ test.describe('Help modal — i18n', () => {
   });
 
   test('Offline fallback strings translate', async ({ page }) => {
-    await page.route('**/README.md', route => route.abort());
+    // EN mode fetches README.en.md — abort that file specifically.
+    await page.route(/README(\.en)?\.md$/, route => route.abort());
     page.on('dialog', d => d.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.openHelp === 'function');
