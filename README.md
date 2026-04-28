@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (709 tests)
+tests/                -- Suite de tests Playwright (711 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -517,7 +517,7 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `wallet-gasto-debit.spec.js` | 18 | applyGastoDebit/reverseGastoDebit, toggleCheck en efectivo, cambio de metodo |
 | `wallet-payment-prompt.spec.js` | 12 | Prompt al marcar pagado, efectivo/tarjeta/transferencia, reversion al desmarcar |
 | `wallet-quick-pay.spec.js` | 16 | FAB visibility, modal, validacion, debit, no-cash, toasts |
-| `wallet-income-deposit.spec.js` | 14 | Deposito de ingreso, multiplicadores de frecuencia, USD, idempotencia, reversion |
+| `wallet-income-deposit.spec.js` | 25 | Deposito por paycheck (per-pay no agregado mensual), dedupe por dia, multiples depositos en distintos dias, idempotencia, reversion |
 | `wallet-projection.spec.js` | 18 | Cash-runway projection, low-balance threshold, alerta wallet_low / wallet_neg |
 | `wallet-reconcile.spec.js` | 12 | reconcileWallet, isExpenseTx exclusion, Edit row gating, modal flow, ajuste row |
 | `wallet-transfer.spec.js` | 14 | transferBetweenAccounts, paired txs, cross-currency, reverseTransferGroup, UI |
@@ -528,7 +528,7 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `setup-wizard-i18n.spec.js` | 17 | Asistente "Empezar desde cero" 100% traducido: header, tipos, etiquetas de filas, hints, resumen, cierre |
 | `setup-income-currency-default.spec.js` | 7 | Moneda primaria es el default para ingreso por período: render inicial, toggle de primaria sincroniza, placeholders i18n |
 | `setup-wallet-prompt.spec.js` | 9 | Asistente paso 2 pregunta cuál cuenta es Mi Saldo: prompt visible, pill verde, auto-default si no se marca |
-| **Total** | **709** | |
+| **Total** | **711** | |
 
 ---
 

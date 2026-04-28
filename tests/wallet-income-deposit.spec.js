@@ -1,15 +1,17 @@
 const { test, expect } = require('@playwright/test');
 
 /**
- * Wallet — Batch 4: "Recibí mi pago" / "I got paid" income deposit
+ * Wallet — "Recibí mi pago" / "I got paid" income deposit
  *
- * - Button on the Resumen wallet card credits monthlyIncomeRD() to the
- *   default cash account once per (mes, anio).
+ * - Button on the Resumen wallet card credits perPayIncomeRD() — the
+ *   amount the user actually receives each paycheck — to the default
+ *   cash account.
  * - Recorded as a synthetic transacción with negative monto + categoria
  *   'ingreso' so the existing tx-delete flow correctly un-credits.
- * - Idempotency: only one deposit per month allowed.
+ * - Idempotency: per ISO date (one deposit per calendar day) so an
+ *   accidental double-click on the same day doesn't double-credit, but
+ *   legitimate paychecks on different days (weekly/biweekly) all land.
  * - First-use: no wallet → opens the setup modal.
- * - Per design choice: full monthly equivalent (not per-pay).
  */
 
 async function loadAppDefault(page, opts = {}) {
@@ -46,8 +48,8 @@ async function loadAppDefault(page, opts = {}) {
 // 1. Helper depositIncomeToWallet
 // ───────────────────────────────────────────────────────────────────
 test.describe('depositIncomeToWallet helper', () => {
-  test('credits the wallet by monthlyIncomeRD (mensual user)', async ({ page }) => {
-    // ingresoUSD 3000 × tasa 60 × mensual mult 1 = RD$180,000
+  test('credits the wallet by per-pay amount (mensual: per-pay = monthly)', async ({ page }) => {
+    // ingresoUSD 3000 × tasa 60 = RD$180,000 (mensual: same as monthly aggregate)
     await loadAppDefault(page);
     const ok = await page.evaluate(() => window.depositIncomeToWallet());
     expect(ok).toBe(true);
@@ -63,37 +65,37 @@ test.describe('depositIncomeToWallet helper', () => {
     expect(result.cuentaId).toBeTruthy();
   });
 
-  test('weekly user gets the FULL monthly equivalent, not one paycheck', async ({ page }) => {
-    // ingresoUSD 400 × tasa 60 × semanal mult (52/12) ≈ 103,999.99
+  test('weekly user: each click credits ONE paycheck (not the monthly aggregate)', async ({ page }) => {
+    // ingresoUSD 400 × tasa 60 = 24,000 per paycheck. Click weekly to accrue.
     await loadAppDefault(page, { payFreq: 'semanal', ingresoUSD: 400 });
     await page.evaluate(() => window.depositIncomeToWallet());
     const saldo = await page.evaluate(() =>
       _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
     );
-    expect(saldo).toBeCloseTo(5000 + 400 * (52 / 12) * 60, 0);
+    expect(saldo).toBe(5000 + 24000);
   });
 
-  test('biweekly user gets the FULL monthly equivalent', async ({ page }) => {
-    // ingresoUSD 1500 × tasa 60 × quincenal mult (26/12) = 195,000
+  test('biweekly user: each click credits ONE paycheck', async ({ page }) => {
+    // ingresoUSD 1500 × tasa 60 = 90,000 per paycheck.
     await loadAppDefault(page, { payFreq: 'quincenal', ingresoUSD: 1500 });
     await page.evaluate(() => window.depositIncomeToWallet());
     const saldo = await page.evaluate(() =>
       _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
     );
-    expect(saldo).toBeCloseTo(5000 + 1500 * (26 / 12) * 60, 0);
+    expect(saldo).toBe(5000 + 90000);
   });
 
-  test('USD wallet: monthly RD income converts via tasa', async ({ page }) => {
+  test('USD wallet: per-pay RD income converts via tasa', async ({ page }) => {
     await loadAppDefault(page, { walletMoneda: 'USD', walletSaldo: 100, ingresoUSD: 3000 });
     await page.evaluate(() => window.depositIncomeToWallet());
     const saldo = await page.evaluate(() =>
       _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
     );
-    // monthlyRD = 180000 → /tasa 60 = $3000 added to USD wallet
+    // per-pay RD = 180000 → /tasa 60 = $3000 added to USD wallet (mensual)
     expect(saldo).toBe(100 + 3000);
   });
 
-  test('idempotency: second deposit in same month is rejected', async ({ page }) => {
+  test('idempotency: second deposit on the same calendar day is rejected', async ({ page }) => {
     await loadAppDefault(page);
     const a = await page.evaluate(() => window.depositIncomeToWallet());
     const b = await page.evaluate(() => window.depositIncomeToWallet());
@@ -107,11 +109,20 @@ test.describe('depositIncomeToWallet helper', () => {
     expect(result.txCount).toBe(1);
   });
 
-  test('changing month + redepositing is allowed', async ({ page }) => {
+  test('depositing on a different day is allowed (e.g. weekly user clicks every Friday)', async ({ page }) => {
     await loadAppDefault(page);
-    await page.evaluate(() => window.depositIncomeToWallet());
-    // Pretend the user closed the month and is now in April
-    await page.evaluate(() => { _editData.config.mes = 'Abril'; });
+    // Plant an existing income tx with yesterday's date — simulates a
+    // previously logged paycheck. The new dedup is per ISO date, so today's
+    // click must still succeed.
+    await page.evaluate(() => {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      _editData.transacciones.push({
+        fecha: yesterday, monto: -180000, categoria: 'ingreso',
+        metodo: 'transferencia', nota: 'Old paycheck', gastoIdx: -1,
+        mes: _editData.config.mes, anio: _editData.config.anio,
+        applied: true, cuentaId: _editData.config.defaultCashAccountId,
+      });
+    });
     const ok = await page.evaluate(() => window.depositIncomeToWallet());
     expect(ok).toBe(true);
     const txCount = await page.evaluate(() =>
@@ -160,12 +171,12 @@ test.describe('depositIncomeToWallet helper', () => {
 // 2. Resumen card UI
 // ───────────────────────────────────────────────────────────────────
 test.describe('Resumen wallet card — income button', () => {
-  test('button shows when income > 0 and not yet deposited this month', async ({ page }) => {
+  test('button shows when income > 0 and not yet deposited today', async ({ page }) => {
     await loadAppDefault(page);
     const btn = page.locator('#walletCard .wallet-income-btn');
     await expect(btn).toBeVisible();
     const text = await btn.textContent();
-    // Button label includes the per-month amount the user will receive
+    // Button label includes the per-paycheck amount the user will receive
     expect(text).toMatch(/180[,.]?000/);
   });
 
@@ -192,6 +203,24 @@ test.describe('Resumen wallet card — income button', () => {
     const balance = await page.locator('#walletCard .wallet-card-balance').textContent();
     // 5000 starting + 180000 income = 185000
     expect(balance).toMatch(/185[,.]?000/);
+  });
+
+  test('weekly user: button label shows the per-paycheck amount, not the monthly aggregate', async ({ page }) => {
+    // ingresoUSD 2000 weekly × tasa 60 = RD$120,000 per paycheck.
+    // Monthly aggregate would be 120000 × 52/12 ≈ 520,000 — must NOT appear on the button.
+    await loadAppDefault(page, { payFreq: 'semanal', ingresoUSD: 2000 });
+    const text = await page.locator('#walletCard .wallet-income-btn').textContent();
+    expect(text).toMatch(/120[,.]?000/);
+    expect(text).not.toMatch(/520[,.]?000/);
+  });
+
+  test('biweekly user: button label shows the per-paycheck amount', async ({ page }) => {
+    // ingresoUSD 1500 quincenal × tasa 60 = RD$90,000 per paycheck.
+    // Monthly aggregate 195,000 — must NOT appear on the button.
+    await loadAppDefault(page, { payFreq: 'quincenal', ingresoUSD: 1500 });
+    const text = await page.locator('#walletCard .wallet-income-btn').textContent();
+    expect(text).toMatch(/90[,.]?000/);
+    expect(text).not.toMatch(/195[,.]?000/);
   });
 });
 
@@ -221,16 +250,16 @@ test.describe('Income deposit i18n', () => {
     await page.evaluate(() => window._testSetLang('es'));
     const keys = await page.evaluate(() => ({
       btn: window.t('wallet_income_button'),
-      done: window.t('wallet_income_received_this_month'),
+      done: window.t('wallet_income_received_today'),
       already: window.t('wallet_income_already'),
       zero: window.t('wallet_income_zero'),
       note: window.t('wallet_income_note'),
     }));
     expect(keys.btn).toBe('Recibí mi pago');
-    expect(keys.done).toMatch(/recibido/i);
+    expect(keys.done).toMatch(/hoy|registrado/i);
     expect(keys.already).toMatch(/ya/i);
     expect(keys.zero).toMatch(/ingreso/i);
-    expect(keys.note).toBe('Pago mensual');
+    expect(keys.note).toBe('Pago recibido');
   });
 
   test('English keys resolve', async ({ page }) => {
@@ -238,16 +267,16 @@ test.describe('Income deposit i18n', () => {
     await page.evaluate(() => window._testSetLang('en'));
     const keys = await page.evaluate(() => ({
       btn: window.t('wallet_income_button'),
-      done: window.t('wallet_income_received_this_month'),
+      done: window.t('wallet_income_received_today'),
       already: window.t('wallet_income_already'),
       zero: window.t('wallet_income_zero'),
       note: window.t('wallet_income_note'),
     }));
     expect(keys.btn).toBe('I got paid');
-    expect(keys.done).toMatch(/received/i);
+    expect(keys.done).toMatch(/today|logged/i);
     expect(keys.already).toMatch(/already/i);
     expect(keys.zero).toMatch(/income/i);
-    expect(keys.note).toBe('Monthly income');
+    expect(keys.note).toBe('Paycheck');
   });
 });
 
