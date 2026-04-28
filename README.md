@@ -8,7 +8,7 @@
 
 Un dashboard financiero completo que vive en 5 archivos. No requiere servidor, no tiene base de datos en la nube, no necesita cuenta. Los datos se guardan en tu propio navegador usando IndexedDB.
 
-Puedes empezar **sin ningun archivo** -- un asistente de configuracion te guia para ingresar tus datos directamente y genera el respaldo JSON inicial automaticamente. Tambien puedes importar un `.json` exportado previamente, o un `.xlsx` legacy si ya tienes datos en Excel.
+Puedes empezar **sin ningun archivo** -- un asistente de configuracion te guia para ingresar tus datos directamente y genera el respaldo JSON inicial automaticamente. Tambien puedes importar un `.json` exportado previamente.
 
 Soporta **espanol e ingles** con cambio de idioma en tiempo real, temas **oscuro y claro**, y **moneda dual USD / RD$** con conversion automatica.
 
@@ -39,8 +39,8 @@ package.json          -- Dependencias de desarrollo (Playwright)
 
 Al abrir el dashboard por primera vez veras tres opciones:
 
-### Opcion A -- Empezar desde cero (sin Excel)
-Si es tu primera vez o no tienes un archivo Excel previo, elige **"Empezar desde cero"**. Un asistente de 5 pasos te guiara para configurar:
+### Opcion A -- Empezar desde cero
+Si es tu primera vez, elige **"Empezar desde cero"**. Un asistente de 5 pasos te guiara para configurar:
 
 | Paso | Que configuras |
 |------|----------------|
@@ -53,7 +53,7 @@ Si es tu primera vez o no tienes un archivo Excel previo, elige **"Empezar desde
 Al confirmar, el dashboard se lanza con tus datos y se descarga automaticamente un `cnt.json` como respaldo. Los datos tambien quedan guardados localmente en el navegador.
 
 ### Opcion B -- Importar archivo
-Arrastra o selecciona un archivo `.json` (exportado previamente) o `.xlsx` (legacy). El dashboard lo procesa localmente y guarda los datos en el navegador para futuras visitas.
+Arrastra o selecciona un archivo `.json` exportado previamente. El dashboard lo procesa localmente y guarda los datos en el navegador para futuras visitas.
 
 ### Opcion C -- Continuar donde lo deje
 Si ya usaste el dashboard antes en este navegador, aparece esta opcion automaticamente. Abre los datos guardados sin necesidad de subir nada.
@@ -153,7 +153,6 @@ El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un contr
 - **Lista cronologica** -- Todas las transacciones del mes con opcion de eliminar
 - Al cerrar el mes, el total registrado se archiva en el historial como `gastoReal`
 - Editable en el modal de edicion (pestana Transacciones)
-- Exportable/importable via Excel (hoja "Transacciones")
 
 ### Presupuesto (Forward Budget)
 - Presupuesto mensual base cero: asigna el monto disponible (despues de compromisos fijos) a las 9 categorias
@@ -165,7 +164,6 @@ El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un contr
 - **Alerta de sobre-gasto** -- Muestra cuantas categorias excedieron el presupuesto
 - **Cierre de mes** -- El total presupuestado se archiva en historial; el presupuesto se copia automaticamente al mes siguiente
 - Editable en el modal de edicion (pestana Presupuesto)
-- Exportable/importable via Excel (hoja "Presupuesto")
 
 ### Proyector de Deudas
 - **Fondos comprometidos** -- Calcula runway (meses de gastos cubiertos), disponible seguro, y capacidad de redireccion
@@ -248,7 +246,6 @@ El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un contr
 
 ### Exportacion
 - **JSON (.json)** -- Exporta todos los datos como archivo JSON lossless (formato nativo de respaldo)
-- **Excel (.xlsx)** -- Importacion legacy compatible (solo lectura, no se exporta)
 - **Snapshot (PDF)** -- Exporta vista actual optimizada para impresion
 
 ### PWA / Offline
@@ -280,106 +277,21 @@ El respaldo se exporta como un archivo `.json` con esta estructura:
 }
 ```
 
-### Excel (formato legacy, solo importacion)
+> **Nota (v3 → v4):**
+> - `config.payFrequency` indica como se interpreta `ingresoUSD`: `"mensual"` (default · multiplicador 1), `"quincenal"` (× 26/12) o `"semanal"` (× 52/12). `ingresoRD` siempre es el equivalente mensual ya multiplicado.
+> - Cada `forNow.cuentas[]` lleva un `id` estable (`cnt_…`) y un `tipo` (`cash` / `banco` / `ahorro` / `inversion`). `config.defaultCashAccountId` apunta al `id` de la cuenta marcada como **Mi Saldo** (la billetera principal usada por los pagos en efectivo).
 
-El archivo Excel tiene hasta **9 hojas**. La importacion desde Excel sigue siendo compatible para usuarios existentes. Las hojas opcionales (Metas, Transacciones, Presupuesto, Recurrentes) solo se crean si hay datos.
+### Categorias (`gastos[].tipo` / `transacciones[].categoria`)
 
-| Hoja | Contenido |
-|------|-----------|
-| `Config` | Tasa dolar, mes actual, ano, ingreso mensual USD, dias de alerta |
-| `Esenciales` | Gastos y deudas mensuales (12 columnas) |
-| `ForNow` | Saldos de cuentas de disponibilidad inmediata con moneda |
-| `Emergency` | Fondos de emergencia y cashflow |
-| `Historial` | Registro mensual historico |
-| `Metas` | Metas de ahorro (nombre, meta, ahorrado, aporte mensual) |
-| `Transacciones` | Registro de gastos reales (fecha, monto, categoria, nota, metodo, mes, ano) |
-| `Presupuesto` | Asignaciones de presupuesto por categoria y mes |
-| `Recurrentes` | Reglas de transacciones recurrentes (frecuencia, monto, categoria) |
-
-### Hoja Config
-
-| Clave | Ejemplo |
+| Campo | Valores |
 |-------|---------|
-| Tasa Dolar | `58` |
-| Mes Actual | `Marzo` |
-| Ano | `2026` |
-| Ingreso Mensual | `3000` (en USD, **por pago** desde v3 — multiplicado por la frecuencia) |
-| Dias alerta | `5` |
+| `gastos[].tipo` | `Fijo`, `Variable`, `Cuota`, `Prestamo`, `Tarjeta`, `Servicio`, `Seguro`, `Familiar`, `Educacion`, `Vivienda` |
+| `gastos[].metodo` | `efectivo`, `tarjeta`, `transferencia`, `''` (sin auto-debito) |
+| `transacciones[].categoria` | `comida`, `transporte`, `entretenimiento`, `salud`, `compras`, `hogar`, `educacion`, `personal`, `otro`, `ingreso`, `ajuste`, `transferencia_interna` |
+| `transacciones[].metodo` | `efectivo`, `tarjeta`, `transferencia` |
+| `recurrentes[].frecuencia` | `diario`, `semanal`, `quincenal`, `mensual` |
 
-> **Nota:** desde v3 del JSON, `config.payFrequency` indica como se interpreta `ingresoUSD`: `"mensual"` (default · multiplicador 1), `"quincenal"` (× 26/12) o `"semanal"` (× 52/12). El campo `ingresoRD` siempre es el equivalente mensual ya multiplicado.
-
-### Hoja Esenciales -- columnas (indice 0-11)
-
-| Col | Campo |
-|-----|-------|
-| 0 | Descripcion |
-| 1 | Tipo (Fijo, Variable, Cuota, Prestamo, Tarjeta, Servicio, Seguro, Familiar, Educacion, Vivienda) |
-| 2 | Pagado (RD$) |
-| 3 | Adeudado/Cuota (RD$) |
-| 4 | Dia de pago |
-| 5 | Tasa de interes % |
-| 6 | Balance pendiente (RD$) |
-| 7 | Monto original (RD$) |
-| 8 | Monto original (USD) |
-| 9 | Fecha limite (YYYY-MM-DD) |
-| 10 | Notas |
-| 11 | Pagado_Mes (SI / NO) |
-
-> **Nota:** La tasa de interes puede estar como porcentaje (`19.45`) o decimal (`0.1945`) -- el dashboard normaliza automaticamente.
-
-### Hoja ForNow -- columnas
-
-| Col | Campo |
-|-----|-------|
-| 0 | Nombre cuenta |
-| 1 | Moneda (RD / USD) |
-| 2 | Saldo |
-
-> **Nota (v4):** desde la versión 4 del JSON, cada cuenta lleva un `id` estable (`cnt_…`) y un `tipo` (`cash` / `banco` / `ahorro` / `inversion`). `config.defaultCashAccountId` apunta al `id` de la cuenta marcada como **Mi Saldo** (la billetera principal usada por los pagos en efectivo). Las importaciones desde versiones anteriores autogeneran ids y asignan `tipo: 'banco'` por defecto.
-
-### Hoja Metas -- columnas
-
-| Col | Campo |
-|-----|-------|
-| 0 | Nombre de la meta |
-| 1 | Monto meta (RD$) |
-| 2 | Monto ahorrado (RD$) |
-| 3 | Aporte mensual (RD$) |
-
-### Hoja Transacciones -- columnas
-
-| Col | Campo |
-|-----|-------|
-| 0 | Fecha (YYYY-MM-DD) |
-| 1 | Monto (RD$) |
-| 2 | Categoria (Comida, Transporte, Entretenimiento, Salud, Compras, Hogar, Educacion, Personal, Otro) |
-| 3 | Nota |
-| 4 | Metodo (Efectivo, Tarjeta, Transferencia) |
-| 5 | Gasto vinculado (nombre del gasto, o vacio) |
-| 6 | Mes |
-| 7 | Ano |
-
-### Hoja Presupuesto -- columnas
-
-| Col | Campo |
-|-----|-------|
-| 0 | Categoria (mismas 9 categorias que Transacciones) |
-| 1 | Presupuestado (RD$) |
-| 2 | Mes |
-| 3 | Ano |
-
-### Hoja Recurrentes -- columnas
-
-| Col | Campo |
-|-----|-------|
-| 0 | ID (identificador unico de la regla) |
-| 1 | Fecha de inicio (YYYY-MM-DD) |
-| 2 | Monto (RD$) |
-| 3 | Categoria |
-| 4 | Nota |
-| 5 | Metodo (Efectivo, Tarjeta, Transferencia) |
-| 6 | Frecuencia (diario, semanal, quincenal, mensual) |
-| 7 | LastGenerated (fecha de ultima generacion) |
+> La tasa de interes (`gastos[].tasa`) puede llegar como porcentaje (`19.45`) o decimal (`0.1945`) -- el dashboard normaliza automaticamente.
 
 ---
 
@@ -539,7 +451,6 @@ npx playwright test tests/finance-advisor-features.spec.js
 | Tecnologia | Uso |
 |------------|-----|
 | HTML / CSS / JavaScript vanilla | La app completa -- sin frameworks |
-| [SheetJS (xlsx)](https://sheetjs.com) | Importar archivos Excel legacy |
 | [Chart.js](https://chartjs.org) | Graficos de donut, barras y lineas |
 | IndexedDB | Persistencia local de datos |
 | Service Worker | Cache offline |

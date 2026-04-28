@@ -2,9 +2,8 @@
 // ⚠️  IMPORTANTE: Incrementar CACHE_NAME al actualizar cnt.html
 //     Ejemplo: 'cnt-core-v3', 'cnt-core-v4', etc.
 //     Esto fuerza que los usuarios descarguen la nueva versión.
-const CACHE_NAME = 'cnt-core-v3';
+const CACHE_NAME = 'cnt-core-v4';
 const EXTERNAL_ASSETS = [
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
   'https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap',
   'https://fonts.gstatic.com',
