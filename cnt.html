@@ -1133,8 +1133,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
         <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">✨</div>
         <div>
-          <div style="font-size:18px;font-weight:800">Configuración inicial</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">Completa estos pasos para generar tu dashboard</div>
+          <div style="font-size:18px;font-weight:800" data-i18n="setup_title">Configuración inicial</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px" data-i18n="setup_sub">Completa estos pasos para generar tu dashboard</div>
         </div>
       </div>
 
@@ -2717,6 +2717,28 @@ const LANG = {
     sw_nombre_fondo:'Nombre fondo',
     sw_saldo_placeholder:'Saldo',
     sw_balance_savings_hint:'Auto-calculado según tu plan de ahorro',
+    // Setup wizard — gasto-row labels (step 3) and fondo placeholders (step 4)
+    sw_gasto_descripcion:'Descripción',
+    sw_gasto_cuota:'CUOTA/MES',
+    sw_gasto_dia:'DÍA DE PAGO',
+    sw_gasto_tasa:'TASA % (si aplica)',
+    sw_gasto_balance:'BALANCE TOTAL',
+    sw_fondo_balance:'Balance actual',
+    sw_fondo_meta:'Meta mínima',
+    sw_step3_hint:'Agrega al menos tus compromisos principales. Puedes agregar más después desde Editar.',
+    sw_step4_hint:'Opcional. Define tus fondos de emergencia con su balance actual y meta mínima.',
+    // Setup wizard — step 5 summary table + closing checklist
+    sw_summary_period:'Período', sw_summary_tasa:'Tasa Dólar', sw_summary_ingreso:'Ingreso',
+    sw_summary_gastos:'Gastos/Cuotas', sw_summary_cuentas:'Cuentas', sw_summary_fondos:'Fondos emergencia',
+    sw_unit_items:'ítems', sw_unit_cuentas:'cuentas', sw_unit_fondos:'fondos',
+    sw_done_intro:'Al confirmar:',
+    sw_done_dashboard:'Se lanza el dashboard con tus datos',
+    sw_done_download:'Se descarga tu respaldo <strong>cnt.json</strong>',
+    sw_done_local:'Los datos quedan guardados localmente',
+    // Tipo de gasto — canonical Spanish stored as `gasto.tipo`, translated for display
+    tipo_fijo:'Fijo', tipo_variable:'Variable', tipo_cuota:'Cuota',
+    tipo_prestamo:'Préstamo', tipo_tarjeta:'Tarjeta', tipo_servicio:'Servicio',
+    tipo_seguro:'Seguro', tipo_familiar:'Familiar', tipo_educacion:'Educación', tipo_vivienda:'Vivienda',
     cierre_accum_label:'← se acumula automáticamente',
     cierre_balance_prev:'Balance anterior: {amt} + ahorros este mes. Edita si el total real es diferente.',
     // Loader
@@ -3255,6 +3277,28 @@ const LANG = {
     sw_nombre_fondo:'Fund name',
     sw_saldo_placeholder:'Balance',
     sw_balance_savings_hint:'Auto-calculated from your savings plan',
+    // Setup wizard — gasto-row labels (step 3) and fondo placeholders (step 4)
+    sw_gasto_descripcion:'Description',
+    sw_gasto_cuota:'PAYMENT/MO',
+    sw_gasto_dia:'PAY DAY',
+    sw_gasto_tasa:'RATE % (if any)',
+    sw_gasto_balance:'TOTAL BALANCE',
+    sw_fondo_balance:'Current balance',
+    sw_fondo_meta:'Minimum goal',
+    sw_step3_hint:'Add at least your main commitments. You can add more later from Edit.',
+    sw_step4_hint:'Optional. Define your emergency funds with current balance and minimum goal.',
+    // Setup wizard — step 5 summary table + closing checklist
+    sw_summary_period:'Period', sw_summary_tasa:'Exchange Rate', sw_summary_ingreso:'Income',
+    sw_summary_gastos:'Expenses/Payments', sw_summary_cuentas:'Accounts', sw_summary_fondos:'Emergency funds',
+    sw_unit_items:'items', sw_unit_cuentas:'accounts', sw_unit_fondos:'funds',
+    sw_done_intro:'On confirm:',
+    sw_done_dashboard:'Dashboard launches with your data',
+    sw_done_download:'Your <strong>cnt.json</strong> backup downloads',
+    sw_done_local:'Data stays saved locally',
+    // Tipo de gasto — canonical Spanish stored as `gasto.tipo`, translated for display
+    tipo_fijo:'Fixed', tipo_variable:'Variable', tipo_cuota:'Payment',
+    tipo_prestamo:'Loan', tipo_tarjeta:'Credit Card', tipo_servicio:'Service',
+    tipo_seguro:'Insurance', tipo_familiar:'Family', tipo_educacion:'Education', tipo_vivienda:'Housing',
     cierre_accum_label:'← accumulates automatically',
     cierre_balance_prev:'Previous balance: {amt} + this month\'s savings. Edit if the real total differs.',
     eth_fechaActualizado:'Date Updated',
@@ -3400,6 +3444,17 @@ const LANG = {
 };
 
 function t(key){ let v=(LANG[_lang]||LANG.es)[key]||key;if(typeof v==='string'&&v.includes('{cs}'))v=v.split('{cs}').join(currencySymbol());return v; }
+
+// Translate a canonical gasto.tipo (stored in Spanish) into the active language
+// for display. Storage convention is preserved: tipo='Préstamo' / 'Educación'
+// remain Spanish in JSON, only the rendered text follows _lang.
+function tipoLabel(tipo){
+  const slug=String(tipo||'').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,''); // strip accents
+  const key='tipo_'+slug;
+  const translated=t(key);
+  return translated===key?tipo:translated;
+}
 
 function applyI18n(){
   // Update all static elements with data-i18n
@@ -3880,20 +3935,22 @@ function addSwCuenta(){
   document.getElementById('sw-cuentas-list').insertAdjacentHTML('beforeend',renderSwCuenta(Date.now(),{id:genCuentaId(),nombre:'',moneda:'RD',saldo:0,tipo:'banco'}));
 }
 function renderSwGasto(i,g){
+  // Tipos are stored in Spanish (canonical) but rendered via tipoLabel() so
+  // the dropdown follows _lang. value attributes stay Spanish for data compat.
   const tipos=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
   return`<div class="sw-gasto-row" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
     <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:8px;align-items:center">
-      <input class="cierre-input sw-g-nombre" placeholder="Descripción" value="${escH(g.nombre)}" style="font-size:14px;padding:8px 10px">
+      <input class="cierre-input sw-g-nombre" placeholder="${escH(t('sw_gasto_descripcion'))}" value="${escH(g.nombre)}" style="font-size:14px;padding:8px 10px">
       <select class="cierre-input sw-g-tipo" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto">
-        ${tipos.map(t=>`<option value="${t}" ${t===g.tipo?'selected':''}>${t}</option>`).join('')}
+        ${tipos.map(tp=>`<option value="${tp}" ${tp===g.tipo?'selected':''}>${escH(tipoLabel(tp))}</option>`).join('')}
       </select>
       <button class="row-del-btn" onclick="this.closest('.sw-gasto-row').remove()">✕</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">CUOTA/MES (${currencySymbol()})</div><input class="cierre-input sw-g-adeudado" type="text" inputmode="decimal" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">DÍA DE PAGO</div><input class="cierre-input sw-g-dia" type="text" inputmode="decimal" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">TASA % (si aplica)</div><input class="cierre-input sw-g-tasa" type="text" inputmode="decimal" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
-      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">BALANCE TOTAL</div><input class="cierre-input sw-g-balance" type="text" inputmode="decimal" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">${escH(t('sw_gasto_cuota'))} (${currencySymbol()})</div><input class="cierre-input sw-g-adeudado" type="text" inputmode="decimal" value="${g.adeudado||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">${escH(t('sw_gasto_dia'))}</div><input class="cierre-input sw-g-dia" type="text" inputmode="decimal" min="1" max="31" value="${g.dia||1}" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">${escH(t('sw_gasto_tasa'))}</div><input class="cierre-input sw-g-tasa" type="text" inputmode="decimal" value="${g.tasa||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">${escH(t('sw_gasto_balance'))}</div><input class="cierre-input sw-g-balance" type="text" inputmode="decimal" value="${g.balance||''}" placeholder="0" style="font-size:13px;padding:7px 8px"></div>
     </div>
     <div style="margin-top:8px">
       <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${escH(t('gasto_metodo_label')).toUpperCase()}</div>
@@ -3914,8 +3971,8 @@ function renderSwFondo(i,f){
   return`<div class="sw-fondo-row" style="display:grid;grid-template-columns:1fr auto 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
     <input class="cierre-input sw-f-nombre" placeholder="${escH(t('sw_nombre_fondo'))}" value="${escH(f.fondo)}" style="font-size:13px;padding:8px 10px">
     <select class="cierre-input sw-f-moneda" style="font-size:13px;padding:8px 10px;cursor:pointer;width:auto"><option value="RD" ${mon==='RD'?'selected':''}>RD$</option><option value="USD" ${mon==='USD'?'selected':''}>USD</option></select>
-    <input class="cierre-input sw-f-balance" type="text" inputmode="decimal" placeholder="Balance actual" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
-    <input class="cierre-input sw-f-meta" type="text" inputmode="decimal" placeholder="Meta mínima" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-balance" type="text" inputmode="decimal" placeholder="${escH(t('sw_fondo_balance'))}" value="${f.balance||''}" style="font-size:13px;padding:8px 10px">
+    <input class="cierre-input sw-f-meta" type="text" inputmode="decimal" placeholder="${escH(t('sw_fondo_meta'))}" value="${f.meta||''}" style="font-size:13px;padding:8px 10px">
     <button class="row-del-btn" onclick="this.closest('.sw-fondo-row').remove()">✕</button>
   </div>`;
 }
@@ -4052,7 +4109,7 @@ const _setupSteps=[
     title:'Paso 3 · Gastos & compromisos',
     sub:'Agrega tus gastos fijos, deudas y cuotas mensuales',
     render:()=>`
-      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Agrega al menos tus compromisos principales. Puedes agregar más después desde Editar.</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${t('sw_step3_hint')}</div>
       <div id="sw-gastos-list">
         ${_editData.gastos.length===0
           ? renderSwGasto(0,{nombre:'',tipo:'Fijo',adeudado:0,dia:1,tasa:0,balance:0})
@@ -4084,7 +4141,7 @@ const _setupSteps=[
     title:'Paso 4 · Fondos de emergencia',
     sub:'¿Tienes fondos de emergencia o metas de ahorro?',
     render:()=>`
-      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Opcional. Define tus fondos de emergencia con su balance actual y meta mínima.</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${t('sw_step4_hint')}</div>
       <div id="sw-fondos-list">
         ${_editData.emerg.fondos.length===0
           ? renderSwFondo(0,{fondo:'',balance:0,meta:0})
@@ -4118,21 +4175,21 @@ const _setupSteps=[
       const ingreso=_editData.config.ingresoRD;
       const gasto=cf.gasto||0;
       const items=[
-        ['Período',`${_editData.config.mes} ${_editData.config.anio}`],
-        ['Tasa Dólar',`${currencySymbol()} ${_editData.config.tasa}`],
-        ['Ingreso',`${fmtUSD(_editData.config.ingresoUSD)} = ${fmtC(ingreso)}`],
-        ['Gastos/Cuotas',`${fmtC(gasto)} · ${_editData.gastos.length} ítems`],
-        ['Cuentas',`${_editData.forNow.cuentas.length} cuentas · ${fmtC(_editData.forNow.total)}`],
-        ['Fondos emergencia',`${_editData.emerg.fondos.length} fondos`],
+        [t('sw_summary_period'),`${_editData.config.mes} ${_editData.config.anio}`],
+        [t('sw_summary_tasa'),`${currencySymbol()} ${_editData.config.tasa}`],
+        [t('sw_summary_ingreso'),`${fmtUSD(_editData.config.ingresoUSD)} = ${fmtC(ingreso)}`],
+        [t('sw_summary_gastos'),`${fmtC(gasto)} · ${_editData.gastos.length} ${t('sw_unit_items')}`],
+        [t('sw_summary_cuentas'),`${_editData.forNow.cuentas.length} ${t('sw_unit_cuentas')} · ${fmtC(_editData.forNow.total)}`],
+        [t('sw_summary_fondos'),`${_editData.emerg.fondos.length} ${t('sw_unit_fondos')}`],
       ];
       return`<div style="background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:16px">
         ${items.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--muted)">${l}</span><span style="font-weight:700;font-family:var(--mono)">${v}</span></div>`).join('')}
       </div>
       <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:12px;font-size:12px;color:var(--muted);line-height:1.7">
-        Al confirmar:<br>
-        ✅ Se lanza el dashboard con tus datos<br>
-        ✅ Se descarga tu respaldo <strong>cnt.json</strong><br>
-        ✅ Los datos quedan guardados localmente
+        ${t('sw_done_intro')}<br>
+        ✅ ${t('sw_done_dashboard')}<br>
+        ✅ ${t('sw_done_download')}<br>
+        ✅ ${t('sw_done_local')}
       </div>`;
     },
     save:()=>{}
