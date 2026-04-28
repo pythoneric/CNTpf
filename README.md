@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (743 tests)
+tests/                -- Suite de tests Playwright (758 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -442,7 +442,8 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `setup-wallet-prompt.spec.js` | 9 | Asistente paso 2 pregunta cuál cuenta es Mi Saldo: prompt visible, pill verde, auto-default si no se marca |
 | `cierre-next-month.spec.js` | 11 | Cierre paso 8 sugiere próximo mes correcto en ES y EN; rollover de año solo en Diciembre |
 | `help-modal.spec.js` | 21 | Botón Ayuda en header, modal renderiza README.md/README.en.md según idioma, toggleLang refresca, fallback offline, i18n, renderMarkdown unit tests |
-| **Total** | **743** | |
+| `wallet-other-income.spec.js` | 15 | Botón "Otro ingreso" para gigs/bonos: monto custom, sin dedup por día, USD wallet, reversión, modal flow, i18n |
+| **Total** | **758** | |
 
 ---
 
