@@ -2725,6 +2725,8 @@ const LANG = {
     sw_gasto_balance:'BALANCE TOTAL',
     sw_fondo_balance:'Balance actual',
     sw_fondo_meta:'Meta mínima',
+    sw_ingreso_placeholder_usd:'ej. 1,500',
+    sw_ingreso_placeholder_rd:'ej. 240,000',
     sw_step3_hint:'Agrega al menos tus compromisos principales. Puedes agregar más después desde Editar.',
     sw_step4_hint:'Opcional. Define tus fondos de emergencia con su balance actual y meta mínima.',
     // Setup wizard — step 5 summary table + closing checklist
@@ -3285,6 +3287,8 @@ const LANG = {
     sw_gasto_balance:'TOTAL BALANCE',
     sw_fondo_balance:'Current balance',
     sw_fondo_meta:'Minimum goal',
+    sw_ingreso_placeholder_usd:'e.g. 1,500',
+    sw_ingreso_placeholder_rd:'e.g. 240,000',
     sw_step3_hint:'Add at least your main commitments. You can add more later from Edit.',
     sw_step4_hint:'Optional. Define your emergency funds with current balance and minimum goal.',
     // Setup wizard — step 5 summary table + closing checklist
@@ -4029,20 +4033,20 @@ const _setupSteps=[
         <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px">
           <button type="button" id="sw-ing-usd-btn"
             onclick="swSetIngresoCurrency('USD')"
-            style="flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--accent);color:#fff">
+            style="flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;${_editData.config.monedaPrincipal==='USD'?'background:var(--accent);color:#fff':'background:var(--surface2);color:var(--muted)'}">
             💵 USD
           </button>
           <button type="button" id="sw-ing-rd-btn"
             onclick="swSetIngresoCurrency('RD')"
-            style="flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--surface2);color:var(--muted)">
+            style="flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;${_editData.config.monedaPrincipal==='RD'?'background:var(--accent);color:#fff':'background:var(--surface2);color:var(--muted)'}">
             🇩🇴 RD$
           </button>
         </div>
         <div style="position:relative">
-          <span id="sw-ing-prefix" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--muted);pointer-events:none">USD</span>
+          <span id="sw-ing-prefix" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--muted);pointer-events:none">${_editData.config.monedaPrincipal==='USD'?'USD':'RD$'}</span>
           <input class="cierre-input" type="text" inputmode="decimal" id="sw-ingreso"
-            value="${_editData.config.ingresoUSD||''}"
-            placeholder="ej. 1500"
+            value="${_editData.config.monedaPrincipal==='USD'?(_editData.config.ingresoUSD||''):(_editData.config.ingresoRD||'')}"
+            placeholder="${_editData.config.monedaPrincipal==='USD'?t('sw_ingreso_placeholder_usd'):t('sw_ingreso_placeholder_rd')}"
             style="padding-left:52px"
             oninput="swUpdateIngresoPreview()">
         </div>
@@ -4240,7 +4244,7 @@ function swSetIngresoCurrency(currency){
     usdBtn.style.background='var(--accent)';usdBtn.style.color='#fff';
     rdBtn.style.background='var(--surface2)';rdBtn.style.color='var(--muted)';
     prefix.textContent='USD';
-    input.placeholder='ej. 1500';
+    input.placeholder=t('sw_ingreso_placeholder_usd');
   } else {
     // If switching FROM USD to RD, convert the current value
     if(usdBtn.style.background==='var(--accent)'&&currentVal>0){
@@ -4248,8 +4252,8 @@ function swSetIngresoCurrency(currency){
     }
     rdBtn.style.background='var(--accent)';rdBtn.style.color='#fff';
     usdBtn.style.background='var(--surface2)';usdBtn.style.color='var(--muted)';
-    prefix.textContent=currencySymbol();
-    input.placeholder='ej. 240,000';
+    prefix.textContent='RD$';
+    input.placeholder=t('sw_ingreso_placeholder_rd');
   }
   swUpdateIngresoPreview();
 }

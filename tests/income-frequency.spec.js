@@ -155,7 +155,9 @@ test.describe('Setup wizard — Step 1 frequency selector', () => {
     await page.evaluate(() => window.startFromScratch());
     await page.waitForSelector('.sw-payfreq-row', { state: 'visible' });
     await page.click('.sw-payfreq-row [data-payfreq="semanal"]');
-    // Make sure USD currency is active and write 400
+    // Income currency now defaults to monedaPrincipal (RD), so explicitly
+    // click USD before entering the dollar amount.
+    await page.click('#sw-ing-usd-btn');
     await page.evaluate(() => {
       document.getElementById('sw-tasa').value = '60';
       document.getElementById('sw-ingreso').value = '400';

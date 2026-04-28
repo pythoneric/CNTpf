@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (693 tests)
+tests/                -- Suite de tests Playwright (700 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -526,7 +526,8 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `i18n-audit.spec.js` | 14 | LANG.es/en parity, ningun "Net Worth" en ES, data-i18n hygiene, wizard + cuenta-tipo render correcto en ambos idiomas |
 | `demo-overwrite-guard.spec.js` | 7 | Demo no sobreescribe sin aviso: modal con respaldo/continuar/cancelar cuando IndexedDB tiene datos |
 | `setup-wizard-i18n.spec.js` | 17 | Asistente "Empezar desde cero" 100% traducido: header, tipos, etiquetas de filas, hints, resumen, cierre |
-| **Total** | **693** | |
+| `setup-income-currency-default.spec.js` | 7 | Moneda primaria es el default para ingreso por período: render inicial, toggle de primaria sincroniza, placeholders i18n |
+| **Total** | **700** | |
 
 ---
 
