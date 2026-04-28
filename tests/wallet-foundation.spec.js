@@ -212,13 +212,21 @@ test.describe('Setup wizard — cuenta tipo + Mi Saldo radio', () => {
     expect(result.saldos[1]).toBe(300);
   });
 
-  test('not flagging any radio leaves defaultCashAccountId null after save', async ({ page }) => {
+  test('not flagging any radio auto-defaults to the first account after save', async ({ page }) => {
+    // Updated contract (feat/setup-wallet-prompt): if the user adds at least
+    // one cuenta but doesn't tick the radio, save() auto-picks the first
+    // 'cash' tipo (or the first row) so the dashboard ships with a working
+    // wallet — saves the user a trip into Editar > Fondos later.
     const row = page.locator('.sw-cuenta-row').first();
     await row.locator('.sw-cnt-nombre').fill('Solo banco');
     await row.locator('.sw-cnt-saldo').fill('1000');
     await page.evaluate(() => window._testSetupSave(1));
-    const id = await page.evaluate(() => _editData.config.defaultCashAccountId);
-    expect(id).toBeFalsy(); // null or undefined both acceptable
+    const r = await page.evaluate(() => ({
+      id: _editData.config.defaultCashAccountId,
+      cuenta: _editData.forNow.cuentas[0],
+    }));
+    expect(r.id).toBe(r.cuenta.id);
+    expect(r.cuenta.tipo).toBe('cash'); // promoted by the auto-default
   });
 });
 

@@ -2709,6 +2709,9 @@ const LANG = {
     sw_tasa_dolar:'Tasa Dólar (RD$/USD)',
     sw_dias_alerta:'Días de alerta antes del vencimiento',
     sw_account_hint:'Agrega tus cuentas de disponibilidad inmediata (corriente, ahorro, cash, etc.)',
+    sw_wallet_prompt_title:'💵 ¿Cuál es tu Mi Saldo?',
+    sw_wallet_prompt_sub:'Marca la cuenta de donde sale tu efectivo del día a día. Se usará para registrar tus pagos en efectivo y mostrar tu saldo en tiempo real. Si no marcas ninguna, usaremos la primera cuenta automáticamente.',
+    sw_wallet_radio_label:'Mi Saldo principal',
     sw_add_cuenta:'+ Agregar cuenta',
     sw_add_gasto:'+ Agregar gasto/deuda',
     sw_add_fondo:'+ Agregar fondo',
@@ -3271,6 +3274,9 @@ const LANG = {
     sw_tasa_dolar:'Exchange rate (RD$/USD)',
     sw_dias_alerta:'Alert days before due',
     sw_account_hint:'Add the accounts you can access right now (checking, savings, cash, etc.)',
+    sw_wallet_prompt_title:'💵 Which one is your My Balance?',
+    sw_wallet_prompt_sub:"Pick the account your daily cash comes from. It'll be used to log cash payments and show your balance in real time. If you don't pick one, we'll auto-select the first account.",
+    sw_wallet_radio_label:'Main My Balance',
     sw_add_cuenta:'+ Add account',
     sw_add_gasto:'+ Add expense/debt',
     sw_add_fondo:'+ Add fund',
@@ -3911,9 +3917,9 @@ function renderSwCuenta(i,c){
       <select class="cierre-input sw-cnt-tipo" style="font-size:12px;padding:6px 8px;cursor:pointer;flex:1;min-width:120px">
         ${CUENTA_TIPOS.map(tp=>`<option value="${tp}" ${tp===tipo?'selected':''}>${t('cuenta_tipo_'+tp)}</option>`).join('')}
       </select>
-      <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:${isDefault?'var(--accent)':'var(--muted)'};cursor:pointer;font-weight:${isDefault?'700':'500'}">
+      <label class="sw-wallet-radio-label" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 10px;border-radius:99px;cursor:pointer;font-weight:${isDefault?'700':'500'};color:${isDefault?'#052e16':'var(--muted)'};background:${isDefault?'rgba(34,211,160,.18)':'transparent'};border:1px solid ${isDefault?'rgba(34,211,160,.45)':'var(--border)'}">
         <input type="radio" name="sw-cnt-default" class="sw-cnt-default" ${isDefault?'checked':''} onchange="swSetDefaultCash('${c.id}')">
-        ${t('wallet_set_default')}
+        💵 ${t('sw_wallet_radio_label')}
       </label>
     </div>
   </div>`;
@@ -3923,10 +3929,12 @@ function swSetDefaultCash(id){
   if(_editData.config)_editData.config.defaultCashAccountId=id;
   document.querySelectorAll('.sw-cuenta-row').forEach(row=>{
     const isMatch=row.dataset.cuentaId===id;
-    const lbl=row.querySelector('label');
+    const lbl=row.querySelector('label.sw-wallet-radio-label');
     if(lbl){
-      lbl.style.color=isMatch?'var(--accent)':'var(--muted)';
+      lbl.style.color=isMatch?'#052e16':'var(--muted)';
       lbl.style.fontWeight=isMatch?'700':'500';
+      lbl.style.background=isMatch?'rgba(34,211,160,.18)':'transparent';
+      lbl.style.border='1px solid '+(isMatch?'rgba(34,211,160,.45)':'var(--border)');
     }
     // If marking as default, force tipo to 'cash'
     if(isMatch){
@@ -4079,6 +4087,10 @@ const _setupSteps=[
     sub:'¿En qué cuentas tienes dinero ahora mismo?',
     render:()=>`
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${t('sw_account_hint')}</div>
+      <div id="sw-wallet-prompt" style="background:rgba(34,211,160,.06);border:1px solid rgba(34,211,160,.22);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:4px">${t('sw_wallet_prompt_title')}</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.45">${t('sw_wallet_prompt_sub')}</div>
+      </div>
       <div id="sw-cuentas-list">
         ${_editData.forNow.cuentas.length===0
           ? renderSwCuenta(0,{nombre:'',moneda:'RD',saldo:0})
@@ -4102,7 +4114,16 @@ const _setupSteps=[
           if(isDefault)defaultId=id;
         }
       });
-      // Persist the wallet pointer; clear if no row was marked
+      // Auto-default: if no row was marked but the user added at least one
+      // account, designate the first 'cash'-tipo (or just the first row) as
+      // Mi Saldo. Saves an extra round-trip into the dashboard later.
+      if(!defaultId&&_editData.forNow.cuentas.length){
+        const cashFirst=_editData.forNow.cuentas.find(c=>c.tipo==='cash');
+        defaultId=(cashFirst||_editData.forNow.cuentas[0]).id;
+        // Promote tipo to 'cash' so the rendering elsewhere matches
+        const target=_editData.forNow.cuentas.find(c=>c.id===defaultId);
+        if(target)target.tipo='cash';
+      }
       _editData.config.defaultCashAccountId=defaultId;
       const tasa=_editData.config.tasa||60;
       _editData.forNow.total=_editData.forNow.cuentas.reduce((a,c)=>a+(c.moneda==='USD'?(c.saldo||0)*tasa:(c.saldo||0)),0);
