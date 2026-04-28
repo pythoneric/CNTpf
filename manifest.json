@@ -1,6 +1,6 @@
 {
-  "name": "CNT Core · Dashboard Financiero",
-  "short_name": "CNT Core",
+  "name": "BitEric Finance",
+  "short_name": "BitEric Finance",
   "description": "Dashboard financiero personal — offline, privado, sin servidor",
   "start_url": "./cnt.html",
   "scope": "./",
