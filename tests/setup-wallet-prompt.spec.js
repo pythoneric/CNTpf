@@ -42,17 +42,17 @@ test.describe('Step 2 — wallet prompt is prominent + i18n-aware', () => {
     await expect(prompt).toBeVisible();
     const text = await prompt.innerText();
     expect(text).toContain('💵');
-    expect(text).toContain('Mi Saldo');
+    expect(text).toContain('Elige tu cuenta Mi Saldo');
     expect(text).toContain('efectivo del día a día');
   });
 
-  test('English: prompt card translates to "Which one is your My Balance?"', async ({ page }) => {
+  test('English: prompt card translates to "Set your My Balance account"', async ({ page }) => {
     await openStep2(page, 'en');
     const prompt = page.locator('#sw-wallet-prompt');
     await expect(prompt).toBeVisible();
     const text = await prompt.innerText();
     expect(text).toContain('💵');
-    expect(text).toContain('My Balance');
+    expect(text).toContain('Set your My Balance account');
     expect(text).toContain('daily cash');
   });
 
