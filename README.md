@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (711 tests)
+tests/                -- Suite de tests Playwright (722 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -528,7 +528,8 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `setup-wizard-i18n.spec.js` | 17 | Asistente "Empezar desde cero" 100% traducido: header, tipos, etiquetas de filas, hints, resumen, cierre |
 | `setup-income-currency-default.spec.js` | 7 | Moneda primaria es el default para ingreso por período: render inicial, toggle de primaria sincroniza, placeholders i18n |
 | `setup-wallet-prompt.spec.js` | 9 | Asistente paso 2 pregunta cuál cuenta es Mi Saldo: prompt visible, pill verde, auto-default si no se marca |
-| **Total** | **711** | |
+| `cierre-next-month.spec.js` | 11 | Cierre paso 8 sugiere próximo mes correcto en ES y EN; rollover de año solo en Diciembre |
+| **Total** | **722** | |
 
 ---
 
