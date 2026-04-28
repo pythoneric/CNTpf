@@ -311,6 +311,9 @@ header{will-change:auto}
 .wallet-income-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .wallet-income-done{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(34,211,160,.18);border:1px solid rgba(34,211,160,.4);border-radius:99px;color:var(--green);font-family:var(--font);font-weight:700;font-size:12px}
 .wallet-card-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.wallet-other-income-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:transparent;border:none;color:var(--green);font-family:var(--font);font-weight:700;font-size:11px;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(34,211,160,.4);text-underline-offset:3px}
+.wallet-other-income-btn:hover{text-decoration-color:var(--green)}
+.wallet-other-income-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:4px}
 .wallet-transfer-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;border:1px solid var(--border);border-radius:99px;color:var(--muted);font-family:var(--font);font-weight:700;font-size:12px;cursor:pointer}
 .wallet-transfer-btn:hover{color:var(--accent);border-color:var(--accent)}
 .wallet-transfer-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -354,8 +357,8 @@ header{will-change:auto}
 @media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
 
 /* ══ MI SALDO — first-use setup modal ══ */
-#walletSetupModal,#walletReconcileModal,#walletTransferModal,#demoConfirmModal,#helpModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
-#walletSetupModal.open,#walletReconcileModal.open,#walletTransferModal.open,#demoConfirmModal.open,#helpModal.open{display:flex}
+#walletSetupModal,#walletReconcileModal,#walletTransferModal,#walletOtherIncomeModal,#demoConfirmModal,#helpModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#walletSetupModal.open,#walletReconcileModal.open,#walletTransferModal.open,#walletOtherIncomeModal.open,#demoConfirmModal.open,#helpModal.open{display:flex}
 /* Help modal — wider card with a scrollable rendered-markdown area */
 #helpModal{align-items:flex-start;overflow-y:auto}
 .help-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;max-width:920px;width:100%;margin:24px auto;display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
@@ -1304,6 +1307,23 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   </div>
 </div>
 
+<!-- ══ MI SALDO — "Otro ingreso" modal (gig / bonus / side-job payments) ══ -->
+<div id="walletOtherIncomeModal" role="dialog" aria-modal="true" aria-labelledby="walletOtherIncomeTitle">
+  <div class="wallet-setup-card">
+    <h2 id="walletOtherIncomeTitle" data-i18n="wallet_other_income_title">+ Otro ingreso</h2>
+    <p data-i18n="wallet_other_income_sub">Registra un pago adicional al de hoy: un gig, un bono, un trabajo extra. Se acredita a Mi Saldo y queda en el historial como ingreso.</p>
+    <label class="field-label" for="walletOtherIncomeAmount" data-i18n="wallet_other_income_amount">Monto</label>
+    <input class="cierre-input" id="walletOtherIncomeAmount" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+    <div id="walletOtherIncomeHint" class="field-note" style="margin-top:6px;min-height:14px"></div>
+    <label class="field-label" for="walletOtherIncomeNote" style="margin-top:10px" data-i18n="wallet_other_income_note">Nota (opcional)</label>
+    <input class="cierre-input" id="walletOtherIncomeNote" type="text" placeholder="" autocomplete="off">
+    <div class="wallet-setup-actions">
+      <button type="button" class="btn btn-ghost" onclick="cancelWalletOtherIncome()" data-i18n="wallet_other_income_cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="confirmWalletOtherIncome()" data-i18n="wallet_other_income_confirm">Registrar ingreso</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MI SALDO — Reconcile (ajuste) modal ══ -->
 <div id="walletReconcileModal" role="dialog" aria-modal="true" aria-labelledby="walletReconcileTitle">
   <div class="wallet-setup-card">
@@ -1650,6 +1670,36 @@ function depositIncomeToWallet(){
   buildDashboard({..._editData});
   showToast(t('wallet_income_toast').replace('{n}',fmtC(amt)),'var(--green)');
   return true;
+}
+
+// "Otro ingreso" — log a custom-amount paycheck (gig, bonus, side-job)
+// independent of the configured per-pay magnitude. Unlike depositIncomeToWallet
+// there is no same-day dedup: gig payments are explicit user intents, the user
+// types the amount and clicks confirm, accidental double-entries are unlikely.
+// `amount` is in the wallet's moneda; `note` is optional. Returns the tx, or
+// null on a missing wallet / non-positive amount.
+function addOtherIncome(amount,note){
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta)return null;
+  const amt=Math.max(0,Number(amount)||0);
+  if(amt<=0)return null;
+  const cfg=_editData?.config||{};
+  const tasa=cfg.tasa||60;
+  const amountRD=cuenta.moneda==='USD'?amt*tasa:amt;
+  cuenta.saldo=(cuenta.saldo||0)+amt;
+  if(!_editData.transacciones)_editData.transacciones=[];
+  const tx={
+    fecha:new Date().toISOString().slice(0,10),
+    monto:-amountRD, // negative = credit, RD$ scale (mirrors depositIncomeToWallet)
+    categoria:'ingreso',
+    metodo:'transferencia',
+    nota:(note&&note.trim())||t('wallet_other_income_default_note'),
+    gastoIdx:-1,
+    mes:cfg.mes,anio:cfg.anio,
+    applied:true,cuentaId:cuenta.id,
+  };
+  _editData.transacciones.push(tx);
+  return tx;
 }
 
 // Projected cash-on-hand walk for the next `daysAhead` days. Only unpaid efectivo
@@ -2121,6 +2171,10 @@ function renderWalletCard(){
       incomeBtnHtml=`<button type="button" class="wallet-income-btn" onclick="depositIncomeToWallet()">+ ${escH(t('wallet_income_button'))} · ${escH(labelAmt)}</button>`;
     }
   }
+  // "Otro ingreso" — small ghost link below the income button for ad-hoc
+  // payments (gigs, bonuses, freelance). Always available; logs an ingreso
+  // tx with a custom amount, no same-day dedup.
+  const otherIncomeBtnHtml=`<button type="button" class="wallet-other-income-btn" onclick="openWalletOtherIncome()">+ ${escH(t('wallet_other_income_btn'))}</button>`;
   // Transfer affordance: only render when there's at least one other cuenta
   // available as a destination — moving cash to nothing makes no sense.
   const otherCuentas=(_editData?.forNow?.cuentas||[]).filter(c=>c.id!==cuenta.id);
@@ -2152,6 +2206,7 @@ function renderWalletCard(){
       </div>
       <div class="wallet-card-actions">
         ${incomeBtnHtml}
+        ${otherIncomeBtnHtml}
         ${transferBtnHtml}
       </div>
     </div>
@@ -2274,6 +2329,48 @@ function confirmWalletReconcile(){
     if(typeof applyI18n==='function')applyI18n();
   }
   showToast(t('wallet_reconcile_toast'),'var(--accent)');
+}
+
+// "Otro ingreso" — opens the modal for logging a one-off paycheck (gig,
+// freelance, bonus). User enters the amount in the wallet's moneda and an
+// optional note. Validates positive amount; nothing pre-fills.
+function openWalletOtherIncome(){
+  const cuenta=getDefaultCashAccount();
+  if(!cuenta){promptFirstCashSetup(null);return;}
+  const m=document.getElementById('walletOtherIncomeModal');if(!m)return;
+  const amt=document.getElementById('walletOtherIncomeAmount');
+  const note=document.getElementById('walletOtherIncomeNote');
+  const hint=document.getElementById('walletOtherIncomeHint');
+  if(amt)amt.value='';
+  if(note)note.value='';
+  if(hint){
+    const sym=cuenta.moneda==='USD'?'$':'RD$';
+    hint.textContent=`${t('wallet_other_income_hint_in')} ${sym} (${cuenta.nombre}).`;
+    hint.style.color='var(--muted)';
+  }
+  m.classList.add('open');
+  setTimeout(()=>amt&&amt.focus(),50);
+}
+function cancelWalletOtherIncome(){
+  document.getElementById('walletOtherIncomeModal')?.classList.remove('open');
+}
+function confirmWalletOtherIncome(){
+  const cuenta=getDefaultCashAccount();if(!cuenta)return;
+  const amtInp=document.getElementById('walletOtherIncomeAmount');
+  const noteInp=document.getElementById('walletOtherIncomeNote');
+  const amount=Math.max(0,pf(amtInp?.value||'0'));
+  const note=(noteInp?.value||'').trim();
+  if(amount<=0){
+    showToast(t('wallet_other_income_zero'),'var(--yellow)');
+    return;
+  }
+  const tx=addOtherIncome(amount,note);
+  document.getElementById('walletOtherIncomeModal')?.classList.remove('open');
+  if(!tx)return;
+  if(navigator.vibrate)navigator.vibrate([15,40,15,40,30]);
+  saveToDB();
+  buildDashboard({..._editData});
+  showToast(t('wallet_income_toast').replace('{n}',fmtC(amount)),'var(--green)');
 }
 
 // Transferir entre cuentas — opens a modal with source preselected to the
@@ -2680,6 +2777,17 @@ const LANG = {
     wallet_income_already:'Ya registraste tu pago este mes',
     wallet_income_zero:'Define tu ingreso primero (Editar > Configuración)',
     wallet_income_toast:'Mi Saldo +{n}',
+    // "Otro ingreso" — ad-hoc paychecks (gig, bono, freelance) — custom amount
+    wallet_other_income_btn:'Otro ingreso',
+    wallet_other_income_title:'+ Otro ingreso',
+    wallet_other_income_sub:'Registra un pago adicional al de hoy: un gig, un bono, un trabajo extra. Se acredita a Mi Saldo y queda en el historial como ingreso.',
+    wallet_other_income_amount:'Monto',
+    wallet_other_income_note:'Nota (opcional)',
+    wallet_other_income_cancel:'Cancelar',
+    wallet_other_income_confirm:'Registrar ingreso',
+    wallet_other_income_default_note:'Otro ingreso',
+    wallet_other_income_zero:'Ingresa un monto mayor a 0.',
+    wallet_other_income_hint_in:'En',
     // Quick-pay FAB + modal (batch 5)
     qpay_fab_aria:'Pago rápido',
     qpay_title:'Pago rápido',
@@ -3252,6 +3360,17 @@ const LANG = {
     wallet_income_already:'You already recorded this month’s pay',
     wallet_income_zero:'Set your income first (Edit > Settings)',
     wallet_income_toast:'My Balance +{n}',
+    // "Other income" — ad-hoc paychecks (gig, bonus, freelance) — custom amount
+    wallet_other_income_btn:'Other income',
+    wallet_other_income_title:'+ Other income',
+    wallet_other_income_sub:"Log a payment on top of today's regular paycheck: a gig, a bonus, a side job. Credits My Balance and stays in the history as income.",
+    wallet_other_income_amount:'Amount',
+    wallet_other_income_note:'Note (optional)',
+    wallet_other_income_cancel:'Cancel',
+    wallet_other_income_confirm:'Log income',
+    wallet_other_income_default_note:'Other income',
+    wallet_other_income_zero:'Enter an amount greater than 0.',
+    wallet_other_income_hint_in:'In',
     // Quick-pay FAB + modal (batch 5)
     qpay_fab_aria:'Quick pay',
     qpay_title:'Quick pay',
