@@ -354,8 +354,37 @@ header{will-change:auto}
 @media(max-width:640px){.wallet-card{padding:14px 16px}.wallet-card-balance{font-size:24px}}
 
 /* ══ MI SALDO — first-use setup modal ══ */
-#walletSetupModal,#walletReconcileModal,#walletTransferModal,#demoConfirmModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
-#walletSetupModal.open,#walletReconcileModal.open,#walletTransferModal.open,#demoConfirmModal.open{display:flex}
+#walletSetupModal,#walletReconcileModal,#walletTransferModal,#demoConfirmModal,#helpModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#walletSetupModal.open,#walletReconcileModal.open,#walletTransferModal.open,#demoConfirmModal.open,#helpModal.open{display:flex}
+/* Help modal — wider card with a scrollable rendered-markdown area */
+#helpModal{align-items:flex-start;overflow-y:auto}
+.help-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;max-width:920px;width:100%;margin:24px auto;display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
+.help-header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid var(--border);flex-shrink:0}
+.help-header h2{font-size:18px;font-weight:800}
+.help-content{padding:18px 28px 28px;overflow-y:auto;font-size:14px;line-height:1.6;color:var(--text)}
+.help-loading,.help-error{padding:40px 0;text-align:center;color:var(--muted);font-size:13px}
+.help-error a{color:var(--accent);font-weight:700}
+/* Rendered markdown — tuned to the app palette */
+.help-content h1{font-size:22px;font-weight:800;margin:24px 0 10px;color:var(--text)}
+.help-content h1:first-child{margin-top:0}
+.help-content h2{font-size:18px;font-weight:800;margin:22px 0 8px;color:var(--text);padding-bottom:6px;border-bottom:1px solid var(--border)}
+.help-content h3{font-size:15px;font-weight:700;margin:18px 0 6px;color:var(--accent)}
+.help-content h4{font-size:13px;font-weight:700;margin:14px 0 4px;color:var(--accent2);text-transform:uppercase;letter-spacing:.04em}
+.help-content p{margin:8px 0}
+.help-content ul,.help-content ol{margin:8px 0 8px 22px}
+.help-content li{margin:4px 0}
+.help-content a{color:var(--accent);text-decoration:none}
+.help-content a:hover{text-decoration:underline}
+.help-content code{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:.92em}
+.help-content pre{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.help-content pre code{background:transparent;border:none;padding:0}
+.help-content blockquote{border-left:3px solid var(--accent);background:rgba(59,130,246,.04);padding:8px 14px;margin:10px 0;color:var(--muted);font-style:italic}
+.help-content hr{border:none;border-top:1px solid var(--border);margin:18px 0}
+.help-content table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+.help-content th,.help-content td{border:1px solid var(--border);padding:6px 10px;text-align:left;vertical-align:top}
+.help-content th{background:var(--surface2);font-weight:700;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+.help-content strong{color:var(--text);font-weight:700}
+@media(max-width:640px){.help-content{padding:14px 18px 22px}.help-card{margin:12px auto;max-height:calc(100vh - 24px)}}
 /* Demo-confirm modal opens while the loader screen is still visible
    (the user hasn't entered the dashboard yet), so it needs to render
    above the loader (--z-setup-modal: 1100). */
@@ -843,6 +872,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="meta-item"><div class="meta-label" data-i18n="hdr_ingrd">Ingreso RD$</div><div class="meta-val" style="color:var(--green)" id="hIngRD">—</div></div>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="openCierre()" data-i18n="closemonth">🗓 Cerrar Mes</button>
       <button class="hdr-btn edit hdr-meta-overflow-hide" onclick="openEditModal()" data-i18n="edit">✏️ Editar</button>
+      <button class="hdr-btn hdr-meta-overflow-hide" onclick="openHelp()" id="helpBtn" data-i18n="help">❓ Ayuda</button>
       <span id="dbSyncStatus" role="status" aria-live="polite" style="display:none;font-size:11px;color:var(--green);font-weight:700;align-items:center;gap:4px">💾 Guardado</span>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleTheme()" id="themeBtn" title="Modo claro/oscuro" aria-label="Modo claro/oscuro"></button>
       <button class="hdr-btn hdr-meta-overflow-hide" onclick="toggleLang()" id="langBtn" title="Switch language" aria-label="Switch language">🇺🇸 EN</button>
@@ -855,6 +885,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <div id="hdrOverflowMenu" role="menu" aria-label="Más opciones">
           <button class="overflow-item" role="menuitem" onclick="openCierre();closeOverflow()" data-i18n="closemonth">🗓 Cerrar Mes</button>
           <button class="overflow-item" role="menuitem" onclick="openEditModal();closeOverflow()" data-i18n="editdata">✏️ Editar datos</button>
+          <button class="overflow-item" role="menuitem" onclick="openHelp();closeOverflow()" data-i18n="help">❓ Ayuda</button>
           <button class="overflow-item" role="menuitem" onclick="toggleTheme();closeOverflow()" id="themeBtnMobile">☀️ <span data-i18n="changetheme">Cambiar tema</span></button>
           <button class="overflow-item" role="menuitem" onclick="toggleLang();closeOverflow()" id="langBtnMobile">🇺🇸 <span id="langBtnMobileLabel">Switch to English</span></button>
           <button class="overflow-item" role="menuitem" onclick="exportSnapshot();closeOverflow()" data-i18n="exportpdf">📸 Exportar PDF</button>
@@ -1238,6 +1269,22 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="wallet-setup-actions">
       <button type="button" class="btn btn-ghost" onclick="cancelWalletTransfer()" data-i18n="wallet_transfer_cancel">Cancelar</button>
       <button type="button" class="btn btn-primary" onclick="confirmWalletTransfer()" data-i18n="wallet_transfer_confirm">Transferir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Help modal — renders README.md inside the app so users can read the
+     docs without leaving the page. Markdown is fetched at open time and
+     rendered by a tiny inline parser (renderMarkdown). Falls back to a
+     link-out card when offline / fetch fails. ══ -->
+<div id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+  <div class="help-card">
+    <div class="help-header">
+      <h2 id="helpModalTitle" data-i18n="help_title">❓ Ayuda &amp; Documentación</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeHelp()" aria-label="Cerrar" title="Cerrar">✕</button>
+    </div>
+    <div id="helpContent" class="help-content">
+      <div class="help-loading" data-i18n="help_loading">Cargando documentación…</div>
     </div>
   </div>
 </div>
@@ -2335,6 +2382,12 @@ const LANG = {
   es: {
     // Header buttons / overflow
     closemonth:'🗓 Cerrar Mes', edit:'✏️ Editar', editdata:'✏️ Editar datos',
+    help:'❓ Ayuda',
+    help_title:'❓ Ayuda y Documentación',
+    help_loading:'Cargando documentación…',
+    help_error_title:'No se pudo cargar la documentación',
+    help_error_sub:'Estás sin conexión o el archivo README.md no está disponible. Puedes verla en línea:',
+    help_error_link:'Ver README en GitHub →',
     changetheme:'Cambiar tema', exportpdf:'📸 Exportar PDF',
     changefile:'↩ Cambiar archivo', clearcache:'🔄 Limpiar caché',
     langbtn:'🇺🇸 EN', langswitch:'Switch to English',
@@ -2901,6 +2954,12 @@ const LANG = {
   en: {
     // Header buttons / overflow
     closemonth:'🗓 Close Month', edit:'✏️ Edit', editdata:'✏️ Edit data',
+    help:'❓ Help',
+    help_title:'❓ Help & Documentation',
+    help_loading:'Loading documentation…',
+    help_error_title:"Couldn't load the documentation",
+    help_error_sub:"You're offline or README.md isn't available. You can view it online:",
+    help_error_link:'View README on GitHub →',
     changetheme:'Change theme', exportpdf:'📸 Export PDF',
     changefile:'↩ Change file', clearcache:'🔄 Clear cache',
     langbtn:'🇩🇴 ES', langswitch:'Cambiar a Español',
@@ -7118,6 +7177,109 @@ function cierreNav(dir){
 // ══════════════════════════════════
 function exportSnapshot(){
   window.print();
+}
+
+// ══════════════════════════════════
+// HELP MODAL — fetches README.md and renders with a small inline markdown
+// converter so users can read the docs without leaving the app. The README
+// covers headings (1-4), lists, tables, code blocks + inline code, links,
+// blockquotes, bold + italic, and horizontal rules — that's all we need to
+// support. Falls back to a link-out card if the fetch fails (offline /
+// README not deployed alongside cnt.html).
+// ══════════════════════════════════
+const HELP_README_URL='https://github.com/pythoneric/CNTpf/blob/main/README.md';
+let _helpLoaded=false;
+function _escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function _inlineMd(s){
+  // Order matters: code spans first (they suppress further markdown inside),
+  // then images-not-yet-supported, links, bold, italic. Plain text gets
+  // HTML-escaped but link/code targets do not need extra escaping.
+  s=_escHtml(s);
+  s=s.replace(/`([^`]+)`/g,(_,c)=>`<code>${c}</code>`);
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
+  s=s.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
+function renderMarkdown(md){
+  const lines=String(md||'').split('\n');
+  let html='';
+  let inCode=false;
+  let inList=false,listType='ul';
+  let inTable=false,tableHeaderDone=false;
+  const closeList=()=>{if(inList){html+=`</${listType}>\n`;inList=false;}};
+  const closeTable=()=>{if(inTable){html+='</table>\n';inTable=false;tableHeaderDone=false;}};
+  for(let i=0;i<lines.length;i++){
+    const raw=lines[i];
+    // Code fences
+    if(/^```/.test(raw)){
+      closeList();closeTable();
+      if(!inCode){html+='<pre><code>';inCode=true;}
+      else{html+='</code></pre>\n';inCode=false;}
+      continue;
+    }
+    if(inCode){html+=_escHtml(raw)+'\n';continue;}
+    // Horizontal rule
+    if(/^-{3,}\s*$/.test(raw)){closeList();closeTable();html+='<hr>\n';continue;}
+    // Headings
+    const h=/^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(raw);
+    if(h){closeList();closeTable();const lvl=h[1].length;html+=`<h${lvl}>${_inlineMd(h[2])}</h${lvl}>\n`;continue;}
+    // Tables
+    if(/^\|/.test(raw)){
+      closeList();
+      // Separator row (`| --- | --- |`) — finalises the header
+      if(/^\|\s*:?-+/.test(raw)){tableHeaderDone=true;continue;}
+      const cols=raw.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      if(!inTable){html+='<table>';inTable=true;tableHeaderDone=false;}
+      const tag=tableHeaderDone?'td':'th';
+      html+='<tr>'+cols.map(c=>`<${tag}>${_inlineMd(c)}</${tag}>`).join('')+'</tr>';
+      continue;
+    } else if(inTable){closeTable();}
+    // Blockquote
+    if(/^>\s?/.test(raw)){closeList();html+=`<blockquote>${_inlineMd(raw.replace(/^>\s?/,''))}</blockquote>\n`;continue;}
+    // Lists
+    const ul=/^[-*]\s+(.+)$/.exec(raw);
+    const ol=/^\d+\.\s+(.+)$/.exec(raw);
+    if(ul||ol){
+      const wantType=ul?'ul':'ol';
+      if(!inList||listType!==wantType){closeList();html+=`<${wantType}>\n`;inList=true;listType=wantType;}
+      html+=`<li>${_inlineMd((ul||ol)[1])}</li>\n`;
+      continue;
+    }
+    // Empty line → close current list + emit nothing
+    if(!raw.trim()){closeList();continue;}
+    // Plain paragraph
+    closeList();
+    html+=`<p>${_inlineMd(raw)}</p>\n`;
+  }
+  closeList();closeTable();
+  if(inCode)html+='</code></pre>';
+  return html;
+}
+
+function openHelp(){
+  const m=document.getElementById('helpModal');if(!m)return;
+  m.classList.add('open');
+  document.body.style.overflow='hidden';
+  if(_helpLoaded)return;
+  const out=document.getElementById('helpContent');
+  // Fetch README from the app's origin (same folder as cnt.html). If the
+  // file isn't deployed or the user is offline + uncached, show a fallback
+  // pointing at the GitHub copy.
+  fetch('README.md')
+    .then(r=>{if(!r.ok)throw new Error('http '+r.status);return r.text();})
+    .then(md=>{out.innerHTML=renderMarkdown(md);_helpLoaded=true;})
+    .catch(()=>{
+      out.innerHTML=`<div class="help-error">
+        <p><strong>${escH(t('help_error_title'))}</strong></p>
+        <p>${escH(t('help_error_sub'))}</p>
+        <p><a href="${HELP_README_URL}" target="_blank" rel="noopener">${escH(t('help_error_link'))}</a></p>
+      </div>`;
+    });
+}
+function closeHelp(){
+  document.getElementById('helpModal')?.classList.remove('open');
+  document.body.style.overflow='';
 }
 
 // ══════════════════════════════════
