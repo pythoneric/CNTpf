@@ -1430,6 +1430,15 @@ function monthlyIncomeRD(cfg){
   if(!cfg)return 0;
   return monthlyIncomeUSD(cfg)*(cfg.tasa||60);
 }
+// Per-pay-period income in RD$ — the magnitude the user actually receives in
+// hand each paycheck. monthlyIncomeRD is the aggregate across the month;
+// per-pay = ingresoUSD * tasa (no payMult), since ingresoUSD is stored as the
+// amount per period.
+function perPayIncomeRD(cfg){
+  cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
+  if(!cfg)return 0;
+  return (cfg.ingresoUSD||0)*(cfg.tasa||60);
+}
 
 // ══════════════════════════════════
 // MI SALDO (wallet) — running cash-on-hand balance
@@ -1555,16 +1564,17 @@ function applyGastoTransferencia(gasto){
 // historial entries on cierre.
 function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso'&&tx.categoria!=='ajuste'&&tx.categoria!=='transferencia_interna';}
 
-// Deposit the user's monthly income to the wallet. Idempotent per (mes, anio):
-// only one income tx per month is allowed. Records as a synthetic transacción
-// with negative monto (credit semantic) so the existing tx-delete flow correctly
-// un-credits via reverseCashDebit (which adds tx.monto, and adding a negative
-// subtracts — exactly the right reversal for an income credit).
-function findIncomeTxThisMonth(){
-  const cfg=_editData?.config;if(!cfg)return null;
+// Deposit one paycheck to the wallet. Magnitude is the per-pay amount
+// (perPayIncomeRD) — what the user actually receives each period. For
+// frequencies with multiple paychecks per month (quincenal, semanal) the
+// user clicks the button each pay day. Dedup is per ISO date so an
+// accidental double-click on the same day does not double-credit; legitimate
+// same-period paychecks land on different days and stay independent.
+function findIncomeTxToday(){
   const cuenta=getDefaultCashAccount();if(!cuenta)return null;
+  const today=new Date().toISOString().slice(0,10);
   return (_editData.transacciones||[]).find(tx=>
-    tx.categoria==='ingreso'&&tx.mes===cfg.mes&&tx.anio===cfg.anio&&tx.applied&&tx.cuentaId===cuenta.id
+    tx.categoria==='ingreso'&&tx.applied&&tx.cuentaId===cuenta.id&&String(tx.fecha||'').slice(0,10)===today
   )||null;
 }
 function depositIncomeToWallet(){
@@ -1572,15 +1582,15 @@ function depositIncomeToWallet(){
   if(!getDefaultCashAccount()){promptFirstCashSetup(null);return false;}
   const cuenta=getDefaultCashAccount();
   const cfg=_editData.config;
-  const monthlyRD=monthlyIncomeRD(cfg);
-  if(monthlyRD<=0){showToast(t('wallet_income_zero'),'var(--yellow)');return false;}
-  if(findIncomeTxThisMonth()){showToast(t('wallet_income_already'),'var(--yellow)');return false;}
-  const amt=txAmountInCuenta(monthlyRD,cuenta);
+  const perPayRD=perPayIncomeRD(cfg);
+  if(perPayRD<=0){showToast(t('wallet_income_zero'),'var(--yellow)');return false;}
+  if(findIncomeTxToday()){showToast(t('wallet_income_already'),'var(--yellow)');return false;}
+  const amt=txAmountInCuenta(perPayRD,cuenta);
   cuenta.saldo=(cuenta.saldo||0)+amt;
   if(!_editData.transacciones)_editData.transacciones=[];
   _editData.transacciones.push({
     fecha:new Date().toISOString().slice(0,10),
-    monto:-monthlyRD, // negative monto = credit semantic (movements list renders as +)
+    monto:-perPayRD, // negative monto = credit semantic (movements list renders as +)
     categoria:'ingreso',
     metodo:'transferencia', // not 'efectivo' so applyCashDebit short-circuits
     nota:t('wallet_income_note'),
@@ -2048,17 +2058,19 @@ function renderWalletCard(){
           <div class="wallet-mov-amt ${cls}">${sign}${escH(fmtC(toDisplay(Math.abs(tx.monto||0))))}</div>
         </div>`;
       }).join('');
-  // Income deposit affordance: button if not yet deposited this month, else
-  // a green "received" indicator. Hidden entirely if the user hasn't set an
-  // income (monthlyIncomeRD <= 0) — there's nothing to credit.
-  const monthlyRD=monthlyIncomeRD();
-  const incomeAlready=findIncomeTxThisMonth();
+  // Income deposit affordance: button shows the per-pay amount (what the user
+  // actually receives each paycheck — they click each pay day). A small
+  // "received today" indicator replaces the button after a same-day deposit
+  // to guard against accidental double-clicks; the next pay day the button
+  // is back. Hidden entirely if no income is configured.
+  const perPayRD=perPayIncomeRD();
+  const incomeAlready=findIncomeTxToday();
   let incomeBtnHtml='';
-  if(monthlyRD>0){
+  if(perPayRD>0){
     if(incomeAlready){
-      incomeBtnHtml=`<div class="wallet-income-done" aria-live="polite">✓ ${escH(t('wallet_income_received_this_month'))}</div>`;
+      incomeBtnHtml=`<div class="wallet-income-done" aria-live="polite">✓ ${escH(t('wallet_income_received_today'))}</div>`;
     } else {
-      const labelAmt=fmtC(txAmountInCuenta(monthlyRD,cuenta));
+      const labelAmt=fmtC(txAmountInCuenta(perPayRD,cuenta));
       incomeBtnHtml=`<button type="button" class="wallet-income-btn" onclick="depositIncomeToWallet()">+ ${escH(t('wallet_income_button'))} · ${escH(labelAmt)}</button>`;
     }
   }
@@ -2610,8 +2622,8 @@ const LANG = {
     eth_metodo:'Método',
     // Income deposit (batch 4)
     wallet_income_button:'Recibí mi pago',
-    wallet_income_received_this_month:'Pago recibido este mes',
-    wallet_income_note:'Pago mensual',
+    wallet_income_received_today:'Pago de hoy registrado',
+    wallet_income_note:'Pago recibido',
     wallet_income_already:'Ya registraste tu pago este mes',
     wallet_income_zero:'Define tu ingreso primero (Editar > Configuración)',
     wallet_income_toast:'Mi Saldo +{n}',
@@ -3176,8 +3188,8 @@ const LANG = {
     eth_metodo:'Method',
     // Income deposit (batch 4)
     wallet_income_button:'I got paid',
-    wallet_income_received_this_month:'Income received this month',
-    wallet_income_note:'Monthly income',
+    wallet_income_received_today:"Today's pay logged",
+    wallet_income_note:'Paycheck',
     wallet_income_already:'You already recorded this month’s pay',
     wallet_income_zero:'Set your income first (Edit > Settings)',
     wallet_income_toast:'My Balance +{n}',
