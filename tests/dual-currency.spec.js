@@ -59,7 +59,7 @@ async function showTab(page, tabId) {
 test.describe('Display Formatting', () => {
   test('KPI cards show RD$ prefix in RD mode', async ({ page }) => {
     await loadWithCurrency(page, 'RD');
-    const kpiTexts = await page.locator('#kpiRow .card .kpi-val').allTextContents();
+    const kpiTexts = await page.locator('#pillarRow .pillar-main-val, #pillarRow .pillar-stat-val').allTextContents();
     const monetaryKpis = kpiTexts.filter(t => t.includes('$'));
     expect(monetaryKpis.length).toBeGreaterThan(0);
     for (const txt of monetaryKpis) {
@@ -69,7 +69,7 @@ test.describe('Display Formatting', () => {
 
   test('KPI cards show $ prefix (not RD$) in USD mode', async ({ page }) => {
     await loadWithCurrency(page, 'USD');
-    const kpiTexts = await page.locator('#kpiRow .card .kpi-val').allTextContents();
+    const kpiTexts = await page.locator('#pillarRow .pillar-main-val, #pillarRow .pillar-stat-val').allTextContents();
     const monetaryKpis = kpiTexts.filter(t => t.includes('$'));
     expect(monetaryKpis.length).toBeGreaterThan(0);
     for (const txt of monetaryKpis) {
@@ -168,7 +168,7 @@ test.describe('Conversion Accuracy', () => {
   test('USD mode shows income divided by tasa', async ({ page }) => {
     await loadWithCurrency(page, 'USD');
     // Income is 180000 RD, tasa=60 => $3,000 displayed
-    const kpiTexts = await page.locator('#kpiRow .card .kpi-val').allTextContents();
+    const kpiTexts = await page.locator('#pillarRow .pillar-main-val, #pillarRow .pillar-stat-val').allTextContents();
     const incomeText = kpiTexts.find(t => t.includes('3,000'));
     expect(incomeText).toBeDefined();
   });
@@ -181,19 +181,13 @@ test.describe('Conversion Accuracy', () => {
   });
 
   test('net worth calculated consistently in both modes', async ({ page }) => {
-    // Load RD mode and capture net worth KPI (4th card, index 3)
+    // Net worth is the main value of pillar 2 (Ahorros)
+    const nwSelector = '#pillarRow .pillar-card:nth-child(3) .pillar-main-val';
     await loadWithCurrency(page, 'RD');
-    const nwRD = await page.evaluate(() => {
-      const cards = document.querySelectorAll('#kpiRow .card .kpi-val');
-      return cards[3] ? cards[3].textContent : '';
-    });
+    const nwRD = await page.locator(nwSelector).textContent();
 
-    // Load USD mode with same data
     await loadWithCurrency(page, 'USD');
-    const nwUSD = await page.evaluate(() => {
-      const cards = document.querySelectorAll('#kpiRow .card .kpi-val');
-      return cards[3] ? cards[3].textContent : '';
-    });
+    const nwUSD = await page.locator(nwSelector).textContent();
 
     // Both should have a value containing $
     expect(nwRD).toContain('$');
@@ -277,7 +271,7 @@ test.describe('Demo Data', () => {
 
   test('RD demo loads with RD$ amounts in KPI cards', async ({ page }) => {
     await loadDemoPage(page, 'RD');
-    const kpiTexts = await page.locator('#kpiRow .card .kpi-val').allTextContents();
+    const kpiTexts = await page.locator('#pillarRow .pillar-main-val, #pillarRow .pillar-stat-val').allTextContents();
     const monetary = kpiTexts.filter(t => t.includes('$'));
     expect(monetary.length).toBeGreaterThan(0);
     for (const txt of monetary) {
@@ -287,7 +281,7 @@ test.describe('Demo Data', () => {
 
   test('USD demo loads with $ amounts (not RD$) in KPI cards', async ({ page }) => {
     await loadDemoPage(page, 'USD');
-    const kpiTexts = await page.locator('#kpiRow .card .kpi-val').allTextContents();
+    const kpiTexts = await page.locator('#pillarRow .pillar-main-val, #pillarRow .pillar-stat-val').allTextContents();
     const monetary = kpiTexts.filter(t => t.includes('$'));
     expect(monetary.length).toBeGreaterThan(0);
     for (const txt of monetary) {
@@ -450,7 +444,7 @@ test.describe('Edge Cases', () => {
     // Dashboard should still be visible
     await expect(page.locator('#dashApp')).toBeVisible();
     // No Infinity or NaN in KPI values
-    const kpiTexts = await page.locator('#kpiRow .card .kpi-val').allTextContents();
+    const kpiTexts = await page.locator('#pillarRow .pillar-main-val, #pillarRow .pillar-stat-val').allTextContents();
     for (const txt of kpiTexts) {
       expect(txt).not.toContain('Infinity');
       expect(txt).not.toContain('NaN');
@@ -473,7 +467,7 @@ test.describe('Edge Cases', () => {
     expect(after).toBe('USD');
 
     // KPI cards should still show $ not RD$
-    const kpiTexts = await page.locator('#kpiRow .card .kpi-val').allTextContents();
+    const kpiTexts = await page.locator('#pillarRow .pillar-main-val, #pillarRow .pillar-stat-val').allTextContents();
     const monetary = kpiTexts.filter(t => t.includes('$'));
     for (const txt of monetary) {
       expect(txt).not.toMatch(/RD\$/);
@@ -493,11 +487,8 @@ test.describe('Edge Cases', () => {
   test('mixed-currency accounts both render in ForNow tab', async ({ page }) => {
     await loadWithCurrency(page, 'RD');
 
-    // Navigate to the Fondos/ForNow tab
-    const tabBtn = page.locator('.tab-btn', { hasText: /disponibilidad|fondos|availability/i });
-    if (await tabBtn.count() > 0) {
-      await tabBtn.first().click();
-    }
+    // Use showTab so the Ahorros section is auto-activated and Fondos sub-tab made visible.
+    await page.evaluate(() => window.showTab('fornow', null));
 
     // Both accounts should appear in the ForNow panel
     const fornow = page.locator('#tab-fornow');

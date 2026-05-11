@@ -44,11 +44,11 @@ async function loadApp(page, extraSetup) {
 
 test.describe('Presupuesto (Forward Budget)', () => {
 
-  test('presupuesto tab exists and is in Operaciones group', async ({ page }) => {
+  test('presupuesto tab exists and is in Gastos section', async ({ page }) => {
     await loadApp(page);
     const tabBtn = page.locator('.tab-btn[onclick*="presupuesto"]');
     await expect(tabBtn).toHaveCount(1);
-    await expect(tabBtn).toHaveAttribute('data-group', 'ops');
+    await expect(tabBtn).toHaveAttribute('data-section', 'gastos');
   });
 
   test('presupuesto panel renders with empty state', async ({ page }) => {
@@ -410,9 +410,9 @@ test.describe('Registro Tab Rendering', () => {
 
   test('resumen Gastos Totales KPI includes tracked spending', async ({ page }) => {
     await loadApp(page);
-    // Resumen tab is active by default. Gastos adeudado = 25000
-    const kpiRow = page.locator('#kpiRow');
-    const expensesBefore = await kpiRow.locator('.kpi-val').nth(1).textContent();
+    // Expenses live in the Mes pillar (index 0), first stat row. Baseline gastos adeudado = 25000.
+    const expensesStat = page.locator('#pillarRow .pillar-card').nth(0).locator('.pillar-stat-val').nth(0);
+    await expensesStat.textContent(); // ensure selector resolves before mutating
 
     // Add a transaction programmatically
     await page.evaluate(() => {
@@ -423,7 +423,7 @@ test.describe('Registro Tab Rendering', () => {
       window.buildDashboard({ ..._editData });
     });
 
-    const expensesAfter = await kpiRow.locator('.kpi-val').nth(1).textContent();
+    const expensesAfter = await expensesStat.textContent();
     // Before: RD$25,000 (just obligations). After: RD$35,000 (25000 + 10000 from transaction)
     expect(expensesAfter).toContain('35,000');
   });

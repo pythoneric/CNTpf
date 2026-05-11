@@ -127,23 +127,19 @@ test.describe('1.4 — Savings rate KPI', () => {
   test('savings rate KPI shows on summary dashboard', async ({ page }) => {
     await loadApp(page);
 
-    const kpiRow = page.locator('#kpiRow');
-    await expect(kpiRow).toContainText(/Tasa de Ahorro|Savings Rate/);
+    const pillarRow = page.locator('#pillarRow');
+    await expect(pillarRow).toContainText(/Tasa de Ahorro|Savings Rate/);
   });
 
-  test('KPI row has 6 cards (including savings rate and EF coverage)', async ({ page }) => {
+  test('Resumen renders 3 pillar cards (Mes / Deudas / Ahorros)', async ({ page }) => {
     await loadApp(page);
 
-    const cards = page.locator('#kpiRow .card');
-    await expect(cards).toHaveCount(6);
+    const cards = page.locator('#pillarRow .pillar-card');
+    await expect(cards).toHaveCount(3);
   });
 
-  test('savings rate shows 50/30/20 guidance text', async ({ page }) => {
-    await loadApp(page);
-
-    const kpiRow = page.locator('#kpiRow');
-    await expect(kpiRow).toContainText(/50.*30.*20/);
-  });
+  // The 50/30/20 educational footer was intentionally removed during the
+  // Resumen simplification — the rate is still visible, just without inline guidance.
 });
 
 // ────────────────────────────────────────────────────

@@ -224,9 +224,9 @@ test.describe('KPI integration — frequency feeds monthly aggregate', () => {
       _editData.emerg.cashflow.ingreso = _editData.config.ingresoRD;
       window.buildDashboard({ ..._editData });
     });
-    // The first KPI card shows monthly aggregate as headline.
+    // Income lives in the Mes pillar main-val (monthly aggregate).
     // 400 × 52/12 × 60 = 103,999.99... → fmt rounds to "104,000"
-    const headline = await page.locator('#kpiRow .kpi-val').first().textContent();
+    const headline = await page.locator('#pillarRow .pillar-card').nth(0).locator('.pillar-main-val').textContent();
     expect(headline).toMatch(/10[34][,.]\d{3}/);
   });
 

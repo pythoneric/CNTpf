@@ -152,15 +152,15 @@ test.describe('#6 Accessibility roles and labels', () => {
     await expect(firstTab).toHaveAttribute('role', 'tab');
   });
 
-  test('group toggle pills are a tablist with aria-selected mirroring active state', async ({ page }) => {
+  test('section toggle pills are a tablist with aria-selected mirroring active state', async ({ page }) => {
     await loadApp(page);
-    await expect(page.locator('#groupToggle')).toHaveAttribute('role', 'tablist');
-    await expect(page.locator('#pillOps')).toHaveAttribute('aria-selected', 'true');
-    await expect(page.locator('#pillStrat')).toHaveAttribute('aria-selected', 'false');
+    await expect(page.locator('#sectionToggle')).toHaveAttribute('role', 'tablist');
+    await expect(page.locator('#pillHoy')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#pillDeudas')).toHaveAttribute('aria-selected', 'false');
     // Switch and verify the flip
-    await page.evaluate(() => window.switchGroup('strat'));
-    await expect(page.locator('#pillOps')).toHaveAttribute('aria-selected', 'false');
-    await expect(page.locator('#pillStrat')).toHaveAttribute('aria-selected', 'true');
+    await page.evaluate(() => window.switchSection('deudas'));
+    await expect(page.locator('#pillHoy')).toHaveAttribute('aria-selected', 'false');
+    await expect(page.locator('#pillDeudas')).toHaveAttribute('aria-selected', 'true');
   });
 
   test('active tab has aria-selected=true, inactive has false', async ({ page }) => {
@@ -189,9 +189,9 @@ test.describe('#6 Accessibility roles and labels', () => {
     }
   });
 
-  test('kpiRow is an aria-live polite region', async ({ page }) => {
+  test('pillarRow is an aria-live polite region', async ({ page }) => {
     await loadApp(page);
-    await expect(page.locator('#kpiRow')).toHaveAttribute('aria-live', 'polite');
+    await expect(page.locator('#pillarRow')).toHaveAttribute('aria-live', 'polite');
   });
 
   test('overflow menu trigger tracks aria-expanded', async ({ page }) => {
@@ -409,7 +409,9 @@ test.describe('#5 Mobile chrome padding uses CSS variable', () => {
     const val = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--mobile-chrome-h').trim()
     );
-    expect(val).toBe('120px');
+    // Was 120px when the floating group-toggle stacked above the bottom nav.
+    // With the 5-section bottom nav the floating toggle is gone, so chrome is 80px.
+    expect(val).toBe('80px');
   });
 
   test('mobile .panel padding-bottom references the variable (not a hard-coded px)', async ({ page }) => {

@@ -25,8 +25,8 @@
   --green:#22d3a0;--red:#f4606a;--yellow:#f5c842;--purple:#a78bfa;--orange:#fb923c;
   --font:'Syne',sans-serif;--mono:'JetBrains Mono',monospace;
   --radius:16px;--shadow:0 4px 24px rgba(0,0,0,.4);
-  /* Mobile chrome height (bottom nav 60 + group toggle 40 + breathing room 20) */
-  --mobile-chrome-h:120px;
+  /* Mobile chrome height (bottom nav 60 + breathing room 20). Section toggle hidden on mobile. */
+  --mobile-chrome-h:80px;
   /* Z-index scale — keeps overlays from fighting each other */
   --z-header:100;
   --z-nav:200;
@@ -149,6 +149,40 @@ tbody tr:hover td{background:rgba(59,130,246,.03)}
 .score-ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .score-num{font-family:var(--mono);font-size:26px;font-weight:800}
 .score-label-sm{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+/* ══ HERO CARD (Resumen) ══ */
+.hero-card{padding:22px 24px}
+.hero-grid{display:grid;grid-template-columns:140px 1fr;gap:24px;align-items:center}
+.hero-score-block{display:flex;flex-direction:column;align-items:center;gap:8px}
+.hero-content{display:flex;flex-direction:column;gap:12px;min-width:0}
+.hero-runway-num{font-family:var(--mono);font-size:32px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.hero-runway-label{font-size:12px;color:var(--muted);margin-top:4px}
+.hero-sparkline{display:block;width:100%;height:42px}
+.hero-trend{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hero-trend .hero-trend-val{font-family:var(--mono);font-weight:700}
+@media(max-width:640px){
+  .hero-card{padding:16px 16px}
+  .hero-grid{grid-template-columns:1fr;gap:14px;text-align:center}
+  .hero-score-block{flex-direction:row;justify-content:center;gap:14px}
+  .hero-runway-num{font-size:28px}
+  .hero-content{align-items:stretch;min-width:0}
+  /* Keep the hero's cf-bar row-aligned and percentage-sized on mobile so
+     "fit-content" segments can't push past the viewport. */
+  .hero-card .cf-bar{flex-direction:row!important;flex-wrap:nowrap!important;height:30px!important;overflow:hidden}
+  .hero-card .cf-seg{min-width:0!important;border-radius:6px!important;padding:0 8px;font-size:11px;justify-content:center;flex:0 0 auto}
+}
+
+/* ══ PILLAR CARDS (Resumen) ══ */
+.pillar-card{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pillar-main-val{font-family:var(--mono);font-size:26px;font-weight:800;line-height:1;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pillar-main-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.pillar-stats{display:flex;flex-direction:column;gap:6px;margin-top:4px;padding-top:10px;border-top:1px solid var(--border)}
+.pillar-stat{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;gap:8px}
+.pillar-stat-label{color:var(--muted)}
+.pillar-stat-val{font-family:var(--mono);font-weight:700;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:640px){
+  .pillar-main-val{font-size:22px}
+}
 
 /* ══ ALERTS PANEL ══ */
 .alert-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;margin-bottom:8px}
@@ -428,12 +462,12 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 .panel{padding-left:max(22px,env(safe-area-inset-left));padding-right:max(22px,env(safe-area-inset-right))}
 #cierreModal,#editModal{padding-bottom:max(24px,env(safe-area-inset-bottom))}
 
-/* ══ GROUP TOGGLE (segmented control) ══ */
-#groupToggle{display:flex;justify-content:center;gap:4px;padding:8px 24px 0;background:var(--bg)}
-#groupToggle{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
-.group-pill{padding:7px 20px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.03em}
-.group-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.group-pill:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+/* ══ SECTION TOGGLE (top-level 5-section nav) ══ */
+#sectionToggle{display:flex;justify-content:center;gap:6px;padding:10px 24px 0;background:var(--bg);flex-wrap:wrap}
+#sectionToggle{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
+.section-pill{padding:8px 18px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.02em;white-space:nowrap}
+.section-pill.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 12px rgba(59,130,246,.25)}
+.section-pill:hover:not(.active){border-color:var(--accent);color:var(--accent)}
 
 /* ══ MOBILE NAV BAR ══ */
 #mobileNav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:var(--z-nav);
@@ -487,10 +521,12 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   /* Layout */
   header{padding:10px 16px;gap:8px}
   .panel{padding:14px 16px;padding-bottom:calc(var(--mobile-chrome-h) + env(safe-area-inset-bottom))}
-  .tabs{display:none}/* replaced by bottom nav */
+  /* Section toggle hidden on mobile — bottom nav serves as primary section nav */
+  #sectionToggle{display:none}
+  /* Sub-tabs stay visible at top as a compact horizontal scroll, so users can move between sub-views */
+  .tabs{padding:8px 16px 0;gap:2px}
+  .tab-btn{padding:7px 12px;font-size:12px}
   #mobileNav{display:flex}
-  #groupToggle{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom));left:0;right:0;z-index:var(--z-group-toggle);padding:6px 16px;background:var(--surface);border-top:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-  .group-pill{font-size:11px;padding:6px 16px}
 
   /* Grids → single column */
   .g2,.g3,.g4,.g12,.g21,.g13{grid-template-columns:1fr}
@@ -541,8 +577,6 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .cf-bar{height:auto;flex-direction:column;gap:4px;border-radius:10px;overflow:visible}
   .cf-seg{border-radius:8px!important;padding:8px 14px;justify-content:flex-start;gap:8px;font-size:13px}
 
-  /* Score card: row layout on mobile to save vertical space */
-  #scoreCard{flex-direction:row!important;gap:16px;align-items:center}
   .score-ring{width:90px;height:90px;flex-shrink:0}
   .score-ring svg{width:90px;height:90px}
   .score-num{font-size:22px}
@@ -570,7 +604,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .panel{padding:24px 32px}
   header{padding:16px 32px}
   .tabs{padding:12px 32px 0}
-  #groupToggle{padding:8px 32px 0}
+  #sectionToggle{padding:10px 32px 0}
   .g4{grid-template-columns:repeat(4,1fr)}
   .card-title{font-size:13px}
   .tab-btn{font-size:15px;padding:10px 20px}
@@ -587,7 +621,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .panel{padding:28px 48px}
   header{padding:18px 48px}
   .tabs{padding:12px 48px 0}
-  #groupToggle{padding:8px 48px 0}
+  #sectionToggle{padding:10px 48px 0}
 }
 
 /* ══ SWIPE INDICATOR (mobile) ══ */
@@ -713,7 +747,6 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
 
 /* ══ KPIS 2×2 on mobile instead of 1 column ══ */
 @media(max-width:640px){
-  #kpiRow.g4{grid-template-columns:repeat(2,1fr)!important}
   #efKpis.g4{grid-template-columns:repeat(2,1fr)!important}
 }
 
@@ -899,50 +932,47 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     </div>
   </header>
 
-  <div id="groupToggle" role="tablist" aria-label="Grupo de pestañas">
-    <button class="group-pill active" id="pillOps" role="tab" aria-selected="true" onclick="switchGroup('ops')" data-i18n="group_ops">Operaciones</button>
-    <button class="group-pill" id="pillStrat" role="tab" aria-selected="false" onclick="switchGroup('strat')" data-i18n="group_strat">Estrategia</button>
+  <div id="sectionToggle" role="tablist" aria-label="Secciones">
+    <button class="section-pill active" id="pillHoy" role="tab" aria-selected="true" onclick="switchSection('hoy')" data-section="hoy" data-i18n="section_hoy">📊 Hoy</button>
+    <button class="section-pill" id="pillGastos" role="tab" aria-selected="false" onclick="switchSection('gastos')" data-section="gastos" data-i18n="section_gastos">💸 Gastos</button>
+    <button class="section-pill" id="pillDeudas" role="tab" aria-selected="false" onclick="switchSection('deudas')" data-section="deudas" data-i18n="section_deudas">🏦 Deudas</button>
+    <button class="section-pill" id="pillAhorros" role="tab" aria-selected="false" onclick="switchSection('ahorros')" data-section="ahorros" data-i18n="section_ahorros">🛡 Ahorros</button>
+    <button class="section-pill" id="pillHistoria" role="tab" aria-selected="false" onclick="switchSection('historia')" data-section="historia" data-i18n="section_historia">📈 Historia</button>
   </div>
-  <div class="tabs" role="tablist" aria-label="Secciones del dashboard">
-    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-resumen" onclick="showTab('resumen',this)" data-group="ops" data-i18n="tab_resumen">📊 Resumen</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-alertas" onclick="showTab('alertas',this)" id="tabAlertas" data-group="ops" data-i18n="tab_alertas">🔔 Alertas & Pagos</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-registro" onclick="showTab('registro',this)" data-group="ops" data-i18n="tab_registro">🧾 Registro</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-presupuesto" onclick="showTab('presupuesto',this)" data-group="ops" data-i18n="tab_presupuesto">📋 Presupuesto</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-gastos" onclick="showTab('gastos',this)" data-group="ops" data-i18n="tab_gastos">💸 Gastos</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-fornow" onclick="showTab('fornow',this)" data-group="ops" data-i18n="tab_fornow">💳 Fondos</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-emergency" onclick="showTab('emergency',this)" data-group="strat" data-i18n="tab_emergency" style="display:none">🛡 Emergencias</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-deudas" onclick="showTab('deudas',this)" data-group="strat" data-i18n="tab_deudas" style="display:none">🏦 Deudas</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-proyector" onclick="showTab('proyector',this)" data-group="strat" data-i18n="tab_proyector" style="display:none">🎯 Proyector</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-metas" onclick="showTab('metas',this)" data-group="strat" data-i18n="tab_metas" style="display:none">🏆 Metas</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-analisis" onclick="showTab('analisis',this)" data-group="strat" data-i18n="tab_analisis" style="display:none">📈 Análisis</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-historial" onclick="showTab('historial',this)" data-group="strat" data-i18n="tab_historial" style="display:none">📅 Historial</button>
+  <div class="tabs" role="tablist" aria-label="Sub-secciones">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-resumen" onclick="showTab('resumen',this)" data-section="hoy" data-i18n="tab_resumen">📊 Resumen</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-alertas" onclick="showTab('alertas',this)" id="tabAlertas" data-section="hoy" data-i18n="tab_alertas">🔔 Alertas & Pagos</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-registro" onclick="showTab('registro',this)" data-section="gastos" data-i18n="tab_registro" style="display:none">🧾 Registro</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-gastos" onclick="showTab('gastos',this)" data-section="gastos" data-i18n="tab_gastos" style="display:none">💸 Gastos</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-presupuesto" onclick="showTab('presupuesto',this)" data-section="gastos" data-i18n="tab_presupuesto" style="display:none">📋 Presupuesto</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-deudas" onclick="showTab('deudas',this)" data-section="deudas" data-i18n="tab_deudas" style="display:none">🏦 Deudas</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-proyector" onclick="showTab('proyector',this)" data-section="deudas" data-i18n="tab_proyector" style="display:none">🎯 Proyector</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-fornow" onclick="showTab('fornow',this)" data-section="ahorros" data-i18n="tab_fornow" style="display:none">💳 Fondos</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-emergency" onclick="showTab('emergency',this)" data-section="ahorros" data-i18n="tab_emergency" style="display:none">🛡 Emergencias</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-metas" onclick="showTab('metas',this)" data-section="ahorros" data-i18n="tab_metas" style="display:none">🏆 Metas</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-analisis" onclick="showTab('analisis',this)" data-section="historia" data-i18n="tab_analisis" style="display:none">📈 Análisis</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-historial" onclick="showTab('historial',this)" data-section="historia" data-i18n="tab_historial" style="display:none">📅 Historial</button>
   </div>
 
-  <!-- Mobile bottom navigation -->
+  <!-- Mobile bottom navigation: 5 sections (was 12 sub-tabs + group toggle) -->
   <nav id="mobileNav" aria-label="Navegación móvil">
-    <button class="mnav-btn" onclick="mobileTab('resumen',this)" id="mnavResumen" data-group="ops"><span class="mnav-icon">📊</span><span data-i18n="mnav_resumen">Resumen</span></button>
-    <button class="mnav-btn" onclick="mobileTab('alertas',this)" id="mobileTabAlertas" data-group="ops"><span class="mnav-icon">🔔</span><span data-i18n="mnav_alertas">Alertas</span></button>
-    <button class="mnav-btn" onclick="mobileTab('registro',this)" id="mnavRegistro" data-group="ops"><span class="mnav-icon">🧾</span><span data-i18n="mnav_registro">Registro</span></button>
-    <button class="mnav-btn" onclick="mobileTab('presupuesto',this)" id="mnavPresupuesto" data-group="ops"><span class="mnav-icon">📋</span><span data-i18n="mnav_presupuesto">Presupuesto</span></button>
-    <button class="mnav-btn" onclick="mobileTab('gastos',this)" id="mnavGastos" data-group="ops"><span class="mnav-icon">💸</span><span data-i18n="mnav_gastos">Gastos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('fornow',this)" id="mnavFondos" data-group="ops"><span class="mnav-icon">💳</span><span data-i18n="mnav_fornow">Fondos</span></button>
-    <button class="mnav-btn" onclick="mobileTab('emergency',this)" id="mnavEmergencia" data-group="strat" style="display:none"><span class="mnav-icon">🛡</span><span data-i18n="mnav_emergency">Emergencias</span></button>
-    <button class="mnav-btn" onclick="mobileTab('deudas',this)" id="mnavDeudas" data-group="strat" style="display:none"><span class="mnav-icon">🏦</span><span data-i18n="mnav_deudas">Deudas</span></button>
-    <button class="mnav-btn" onclick="mobileTab('proyector',this)" id="mnavProyector" data-group="strat" style="display:none"><span class="mnav-icon">🎯</span><span data-i18n="mnav_proyector">Proyector</span></button>
-    <button class="mnav-btn" onclick="mobileTab('metas',this)" id="mnavMetas" data-group="strat" style="display:none"><span class="mnav-icon">🏆</span><span data-i18n="mnav_metas">Metas</span></button>
-    <button class="mnav-btn" onclick="mobileTab('analisis',this)" id="mnavAnalisis" data-group="strat" style="display:none"><span class="mnav-icon">📈</span><span data-i18n="mnav_analisis">Análisis</span></button>
-    <button class="mnav-btn" onclick="mobileTab('historial',this)" id="mnavHistorial" data-group="strat" style="display:none"><span class="mnav-icon">📅</span><span data-i18n="mnav_historial">Historial</span></button>
+    <button class="mnav-btn active" onclick="switchSection('hoy')" id="mnavHoy" data-section="hoy"><span class="mnav-icon">📊</span><span data-i18n="section_hoy_short">Hoy</span></button>
+    <button class="mnav-btn" onclick="switchSection('gastos')" id="mnavGastos" data-section="gastos"><span class="mnav-icon">💸</span><span data-i18n="section_gastos_short">Gastos</span></button>
+    <button class="mnav-btn" onclick="switchSection('deudas')" id="mnavDeudas" data-section="deudas"><span class="mnav-icon">🏦</span><span data-i18n="section_deudas_short">Deudas</span></button>
+    <button class="mnav-btn" onclick="switchSection('ahorros')" id="mnavAhorros" data-section="ahorros"><span class="mnav-icon">🛡</span><span data-i18n="section_ahorros_short">Ahorros</span></button>
+    <button class="mnav-btn" onclick="switchSection('historia')" id="mnavHistoria" data-section="historia"><span class="mnav-icon">📈</span><span data-i18n="section_historia_short">Historia</span></button>
   </nav>
 
   <!-- RESUMEN -->
   <div id="tab-resumen" class="panel active" role="tabpanel">
     <div id="walletCard" aria-live="polite"></div>
-    <div class="grid g4" style="margin-bottom:16px" id="kpiRow" aria-live="polite" aria-atomic="false"></div>
+    <!-- HERO: financial score + runway days + net worth sparkline -->
+    <div class="card hero-card" id="heroCard" style="margin-bottom:16px" aria-live="polite"></div>
+    <!-- 3-pillar KPIs: Mes / Deudas / Ahorros -->
+    <div class="grid g3" style="margin-bottom:16px" id="pillarRow" aria-live="polite"></div>
+    <!-- Cashflow waterfall — the single most informative PF chart, promoted from Análisis -->
+    <div class="card" style="margin-bottom:16px" id="resumenWaterfall"></div>
     <div id="summaryExtras" style="margin-bottom:16px"></div>
-    <div class="grid g13" style="margin-bottom:16px">
-      <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;min-width:0" id="scoreCard"></div>
-      <div class="card" id="cfBarCard"></div>
-    </div>
     <div class="grid g12" style="margin-bottom:16px">
       <div class="card"><div class="card-title">Gastos por Tipo</div><div class="chart-wrap"><canvas id="pieChart"></canvas></div></div>
       <div class="card"><div class="card-title">Pagado vs Pendiente</div><div class="chart-wrap"><canvas id="barChart"></canvas></div></div>
@@ -1076,7 +1106,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="card" style="margin-bottom:16px"><div class="card-title" data-i18n="panel_ef_progress">Fondos de Emergencia · Progreso</div><div id="efFunds"></div></div>
     <div class="grid g2" style="margin-bottom:16px">
       <div class="card"><div class="card-title" data-i18n="panel_ef_chart">Progreso Total vs Meta</div><div class="chart-wrap"><canvas id="efChart"></canvas></div></div>
-      <div class="card"><div class="card-title" id="efCoverageTitle"></div><div class="chart-wrap"><canvas id="efCoverageChart"></canvas></div></div>
+      <div class="card"><div class="card-title" id="efCoverageTitle"></div><div class="chart-wrap" style="height:120px"><canvas id="efCoverageChart"></canvas></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px;padding:0 4px"><span data-i18n="ef_tier_critical">Crítico &lt; 1mo</span><span data-i18n="ef_tier_basic">Básico 3mo</span><span data-i18n="ef_tier_healthy">Saludable 6mo</span></div></div>
     </div>
     <div class="card" id="efTip"></div>
   </div>
@@ -2497,6 +2527,8 @@ const LANG = {
     tab_presupuesto:'📋 Presupuesto',
     // Group toggle
     group_ops:'Operaciones', group_strat:'Estrategia',
+    section_hoy:'📊 Hoy', section_gastos:'💸 Gastos', section_deudas:'🏦 Deudas', section_ahorros:'🛡 Ahorros', section_historia:'📈 Historia',
+    section_hoy_short:'Hoy', section_gastos_short:'Gastos', section_deudas_short:'Deudas', section_ahorros_short:'Ahorros', section_historia_short:'Historia',
     // Mobile nav
     mnav_resumen:'Resumen', mnav_alertas:'Alertas', mnav_checklist:'Pagos',
     mnav_deudas:'Deudas', mnav_gastos:'Gastos', mnav_emergency:'Emergencias',
@@ -2542,6 +2574,9 @@ const LANG = {
     ef_goal:'de', ef_goal_word:'meta', ef_balance_lbl:'Balance:', ef_goal_lbl:'Meta:', ef_missing_lbl:'Falta:',
     ef_overfunded:'🎉 Meta superada', ef_suggested:'Aporte sugerido', ef_goalin:'Meta en', ef_months:'meses', ef_days:'días',
     ef_coverage:'Cobertura', ef_target:'Meta', ef_coverage_chart:'Meses de Gastos Cubiertos', ef_covered:'Cubierto', ef_remaining:'Faltante',
+    ef_tier_critical:'Crítico < 1mo', ef_tier_basic:'Básico 3mo', ef_tier_healthy:'Saludable 6mo',
+    hero_runway_label:'de runway sin ingreso', hero_nw_trend_label:'Patrimonio', hero_score_factors:'Factores del score',
+    pillar_mes:'📅 Este Mes', pillar_deudas:'🏦 Deudas', pillar_ahorros:'🛡 Ahorros',
     ef_plan_title:'⚡ Plan sugerido', ef_plan_surplus:'Superávit', ef_plan_to_ef:'a emergencia',
     ef_plan_timetarget:'Tiempo para meta:', ef_plan_interest_title:'⚠️ Carga de intereses',
     ef_plan_interest_tip:'Reducir deuda aumenta capacidad de ahorro.',
@@ -3080,6 +3115,8 @@ const LANG = {
     tab_presupuesto:'📋 Budget',
     // Group toggle
     group_ops:'Operations', group_strat:'Strategy',
+    section_hoy:'📊 Today', section_gastos:'💸 Spending', section_deudas:'🏦 Debts', section_ahorros:'🛡 Savings', section_historia:'📈 History',
+    section_hoy_short:'Today', section_gastos_short:'Spending', section_deudas_short:'Debts', section_ahorros_short:'Savings', section_historia_short:'History',
     // Mobile nav
     mnav_resumen:'Summary', mnav_alertas:'Alerts', mnav_checklist:'Payments',
     mnav_deudas:'Debts', mnav_gastos:'Expenses', mnav_emergency:'Emergencies',
@@ -3125,6 +3162,9 @@ const LANG = {
     ef_goal:'of', ef_goal_word:'goal', ef_balance_lbl:'Balance:', ef_goal_lbl:'Goal:', ef_missing_lbl:'Missing:',
     ef_overfunded:'🎉 Goal exceeded', ef_suggested:'Suggested', ef_goalin:'Goal in', ef_months:'mo', ef_days:'days',
     ef_coverage:'Coverage', ef_target:'Target', ef_coverage_chart:'Months of Expenses Covered', ef_covered:'Covered', ef_remaining:'Remaining',
+    ef_tier_critical:'Critical < 1mo', ef_tier_basic:'Basic 3mo', ef_tier_healthy:'Healthy 6mo',
+    hero_runway_label:'of runway without income', hero_nw_trend_label:'Net Worth', hero_score_factors:'Score factors',
+    pillar_mes:'📅 This Month', pillar_deudas:'🏦 Debts', pillar_ahorros:'🛡 Savings',
     ef_plan_title:'⚡ Suggested plan', ef_plan_surplus:'Surplus', ef_plan_to_ef:'to emergency',
     ef_plan_timetarget:'Time to goal:', ef_plan_interest_title:'⚠️ Interest burden',
     ef_plan_interest_tip:'Reducing debt increases savings capacity.',
@@ -3947,7 +3987,7 @@ async function loadFromDB(){
     buildDashboard(_editData);
     document.getElementById('loaderScreen').style.display='none';
     document.getElementById('dashApp').style.display='block';
-    switchGroup(localStorage.getItem('cntActiveGroup')||'ops');
+    switchSection(localStorage.getItem('cntActiveSection')||'hoy');
     navigateToHash();
     showToast('📂 Datos cargados desde memoria local','var(--green)');
   }catch(e){
@@ -4002,7 +4042,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&_pendingSa
 window.addEventListener('load',()=>{
   checkSavedData();
   // Set initial active on mobile nav
-  const firstMnav=document.getElementById('mnavResumen');
+  const firstMnav=document.getElementById('mnavHoy');
   if(firstMnav)firstMnav.classList.add('active');
 });
 
@@ -4010,7 +4050,8 @@ window.addEventListener('load',()=>{
 // SWIPE GESTURES — mobile tab nav
 // ══════════════════════════════════
 (()=>{
-  const TAB_ORDER=['resumen','alertas','registro','presupuesto','gastos','fornow','emergency','deudas','proyector','metas','analisis','historial'];
+  // Ordered by section so swiping advances naturally: hoy → gastos → deudas → ahorros → historia.
+  const TAB_ORDER=['resumen','alertas','registro','gastos','presupuesto','deudas','proyector','fornow','emergency','metas','analisis','historial'];
   let _tx=0,_ty=0;
   document.addEventListener('touchstart',e=>{
     _tx=e.touches[0].clientX;
@@ -4531,7 +4572,7 @@ function setupNav(dir){
       buildDashboard(_editData);
       document.getElementById('loaderScreen').style.display='none';
       document.getElementById('dashApp').style.display='block';
-      switchGroup('ops');
+      switchSection('hoy');
       showTab('resumen',document.querySelector('.tab-btn'));
       autoSave();
       downloadJSON();
@@ -4806,7 +4847,7 @@ function importJSON(file){
       applyI18n();
       document.getElementById('loaderScreen').style.display='none';
       document.getElementById('dashApp').style.display='block';
-      switchGroup(localStorage.getItem('cntActiveGroup')||'ops');
+      switchSection(localStorage.getItem('cntActiveSection')||'hoy');
       navigateToHash();
       autoSave();
     }catch(err){showError('⚠ Error al leer JSON: '+err.message);}
@@ -4882,7 +4923,7 @@ async function loadDemo(currency){
     applyI18n();
     document.getElementById('loaderScreen').style.display='none';
     document.getElementById('dashApp').style.display='block';
-    switchGroup(localStorage.getItem('cntActiveGroup')||'ops');
+    switchSection(localStorage.getItem('cntActiveSection')||'hoy');
     navigateToHash();
     autoSave();
   }catch(e){showError(t('loader_demo_error'));}
@@ -5337,7 +5378,14 @@ function buildRegistro(transacciones,gastos,config){
   const ctx=document.getElementById('regCatChart');
   if(cats.length>0){
     ctx.parentElement.style.display='';
-    charts.regCat=new Chart(ctx,{type:'doughnut',data:{labels:cats.map(c=>t('reg_cat_'+c)),datasets:[{data:cats.map(c=>toDisplay(catTotals[c])),backgroundColor:cats.map(c=>REG_CAT_COLORS[c]||'#4a5d80'),borderWidth:0}]},options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}},tooltip:{...ttStyleNow()}}}});
+    // Horizontal bar (was doughnut) — sorted desc, lets the eye compare categories
+    const catRows=cats.map(c=>({l:t('reg_cat_'+c),v:toDisplay(catTotals[c]),c:REG_CAT_COLORS[c]||'#4a5d80'})).sort((a,b)=>b.v-a.v);
+    charts.regCat=new Chart(ctx,{
+      type:'bar',
+      data:{labels:catRows.map(r=>r.l),datasets:[{data:catRows.map(r=>r.v),backgroundColor:catRows.map(r=>r.c),borderWidth:0,borderRadius:6,maxBarThickness:22}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttStyleNow(),callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
+        scales:{x:{grid:{display:true,color:'rgba(120,135,168,.15)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}},y:{grid:{display:false},ticks:{font:{size:11}}}}}
+    });
   } else { ctx.parentElement.style.display='none'; }
 
   // Transaction list
@@ -6096,15 +6144,105 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   const efMo=gasto>0?efTotal/gasto:0;
   const efMoVal=efMo>=1?`${efMo.toFixed(1)} ${t('ef_months')}`:`${Math.round(efMo*30)} ${t('ef_days')}`;
   const efMoC=efMo>=6?'var(--green)':efMo>=3?'var(--yellow)':'var(--red)';
-  const efMoB=efMo>=3?'rgba(34,211,160,.12)':'rgba(244,96,106,.12)';
-  document.getElementById('kpiRow').innerHTML=[
-    {l:t('kpi_income'),v:`${fmtC(ingreso)}${mkDelta(ingreso,prevH?.ingresos,true)}`,s:(config.payFrequency&&config.payFrequency!=='mensual')?`${fmtUSD(config.ingresoUSD)} ${t('payfreq_per_period')} · ${t('payfreq_'+config.payFrequency)} · Tasa RD$${config.tasa}`:`≈ ${fmtUSD(config.ingresoUSD)} · Tasa RD$${config.tasa}`,c:'var(--green)',b:'rgba(34,211,160,.12)'},
-    {l:t('kpi_expenses'),v:`${fmtC(gasto)}${mkDelta(gasto,prevH?.gasto,false)}`,s:`${gastoPct}% ${t('kpi_exp_ofincome')} · ${t('kpi_exp_interest')}: ${fmtC(Math.round(interesMensual))}/${t('kpi_exp_month')}`,c:'var(--red)',b:'rgba(244,96,106,.12)'},
-    {l:t('kpi_surplus'),v:`${fmtC(resta)}${mkDelta(resta,prevH?prevH.ingresos-prevH.gasto:null,true)}`,s:resta>=0?(ingreso>0?`${Math.round(resta/ingreso*100)}% ${t('kpi_surplus_pct')}`:t('kpi_surplus_pct')):t('kpi_deficit'),c:resta>=0?'var(--accent2)':'var(--red)',b:'rgba(6,182,212,.12)'},
-    {l:t('kpi_networth'),v:`${netWorth<0?'('+currencySymbol()+fmt(Math.abs(netWorth))+')':fmtC(netWorth)}${mkDelta(netWorth,prevH?.netWorth,true)}`,s:t('kpi_savings_ef'),c:netWorth>=0?'var(--green)':'var(--red)',b:'rgba(244,96,106,.1)'},
-    {l:t('kpi_savingsrate'),v:`${ingreso>0?Math.round(resta/ingreso*100):0}%`,s:`${t('kpi_savingsrate_sub')}<br><span style="font-size:10px;color:var(--muted)">${t('kpi_savingsrate_tip')}</span>`,c:ingreso>0&&resta/ingreso>=.2?'var(--green)':ingreso>0&&resta/ingreso>=.1?'var(--yellow)':'var(--red)',b:'rgba(167,139,250,.12)'},
-    {l:t('ef_coverage'),v:efMoVal,s:`${t('ef_target')}: 3-6 ${t('ef_months')}`,c:efMoC,b:efMoB},
-  ].map(k=>`<div class="card" style="border-color:${k.b}"><div class="card-title">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
+
+  // ── Score (shared by HERO card and any consumers) ──
+  const sc=calcScore({ingreso,gasto,resta,totalBalance,cuotaDeudas,config,emerg,historial});
+  const _scR=50;const _scCirc=2*Math.PI*_scR;const _scDash=_scCirc*(sc.score/100);
+  const scoreColor=sc.grade.c;
+  // Runway: months of cover by EF alone if income stops. ∞ when no expenses.
+  const runwayMain=gasto<=0?(efTotal>0?'∞':'—'):(efMo>=1?`${efMo.toFixed(1)} ${t('ef_months')}`:`${Math.round(efMo*30)} ${t('ef_days')}`);
+  const runwayColor=gasto<=0&&efTotal>0?'var(--green)':efMoC;
+  // Net worth sparkline series (last 12 months from historial, oldest→newest, + current)
+  const _nwSeries=[...(historial||[])].reverse().map(h=>h.netWorth||0).concat([netWorth]).slice(-12);
+  let _sparkSvg='',_nwTrendHtml='';
+  if(_nwSeries.length>=2){
+    const _w=240,_h=44,_pad=3;
+    const _min=Math.min(..._nwSeries),_max=Math.max(..._nwSeries);
+    const _range=Math.max(1,_max-_min);
+    const _pts=_nwSeries.map((v,i)=>{const x=_pad+(i/(_nwSeries.length-1))*(_w-2*_pad);const y=_h-_pad-((v-_min)/_range)*(_h-2*_pad);return `${x.toFixed(1)},${y.toFixed(1)}`;}).join(' ');
+    const _first=_nwSeries[0],_last=_nwSeries[_nwSeries.length-1];
+    const _sparkColor=_last>=_first?'var(--green)':'var(--red)';
+    _sparkSvg=`<svg class="hero-sparkline" viewBox="0 0 ${_w} ${_h}" preserveAspectRatio="none"><polyline points="${_pts}" fill="none" stroke="${_sparkColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+    const _pctChg=_first!==0?((_last-_first)/Math.abs(_first))*100:0;
+    const _arrow=_pctChg>0?'▲':_pctChg<0?'▼':'•';
+    const _tColor=_pctChg>0?'var(--green)':_pctChg<0?'var(--red)':'var(--muted)';
+    _nwTrendHtml=`<div class="hero-trend"><span>${t('hero_nw_trend_label')}</span><span class="hero-trend-val" style="color:${_tColor}">${_arrow} ${_pctChg>=0?'+':''}${_pctChg.toFixed(1)}% · ${_nwSeries.length} ${t('ef_months')}</span></div>`;
+  }
+
+  // ── HERO CARD: score + runway + NW sparkline + cf-bar + score factor strip ──
+  document.getElementById('heroCard').innerHTML=`
+    <div class="hero-grid">
+      <div class="hero-score-block">
+        <div class="score-ring">
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <circle cx="55" cy="55" r="${_scR}" fill="none" stroke="var(--border)" stroke-width="10"/>
+            <circle cx="55" cy="55" r="${_scR}" fill="none" stroke="${scoreColor}" stroke-width="10" stroke-dasharray="${_scDash} ${_scCirc}" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+          </svg>
+          <div class="score-ring-val">
+            <div class="score-num" style="color:${scoreColor}">${sc.score}</div>
+            <div class="score-label-sm">/100</div>
+          </div>
+        </div>
+        <div style="font-size:14px;font-weight:800;color:${scoreColor};text-transform:uppercase;letter-spacing:.05em">${sc.grade.l}</div>
+      </div>
+      <div class="hero-content">
+        <div>
+          <div class="hero-runway-num" style="color:${runwayColor}">${runwayMain}</div>
+          <div class="hero-runway-label">${t('hero_runway_label')}</div>
+        </div>
+        ${_sparkSvg}
+        ${_nwTrendHtml}
+        <div class="cf-bar" style="height:32px">
+          <div class="cf-seg" style="width:${Math.min(gastoPct,100)}%;background:linear-gradient(90deg,#f4606a,#fb923c);color:#fff">${t('cf_expenses')} ${gastoPct}%</div>
+          <div class="cf-seg" style="width:${Math.max(0,sobrante)}%;background:linear-gradient(90deg,#22d3a0,#06b6d4);color:#052e16">${t('cf_remainder')} ${sobrante}%</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(${sc.details.length},1fr);gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      ${sc.details.map(d=>`<div style="text-align:center;min-width:0"><div style="color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.l}</div><div class="mono" style="color:${d.c};font-weight:700;font-size:11px;margin-top:3px">${d.v}</div></div>`).join('')}
+    </div>`;
+
+  // ── 3-PILLAR KPIs: Mes / Deudas / Ahorros ──
+  const _savingsPct=ingreso>0?Math.round(resta/ingreso*100):0;
+  const _savingsColor=ingreso>0&&resta/ingreso>=.2?'var(--green)':ingreso>0&&resta/ingreso>=.1?'var(--yellow)':'var(--red)';
+  const _nwColor=netWorth>=0?'var(--green)':'var(--red)';
+  const _nwDisplay=netWorth<0?'('+currencySymbol()+fmt(Math.abs(netWorth))+')':fmtC(netWorth);
+  document.getElementById('pillarRow').innerHTML=[
+    {
+      title:t('pillar_mes'),
+      main:{l:t('kpi_income'),v:`${fmtC(ingreso)}${mkDelta(ingreso,prevH?.ingresos,true)}`,c:'var(--green)'},
+      stats:[
+        {l:t('kpi_expenses'),v:`${fmtC(gasto)}${mkDelta(gasto,prevH?.gasto,false)}`,c:'var(--red)'},
+        {l:t('kpi_surplus'),v:`${fmtC(resta)}${mkDelta(resta,prevH?prevH.ingresos-prevH.gasto:null,true)}`,c:resta>=0?'var(--accent2)':'var(--red)'},
+        {l:t('kpi_savingsrate'),v:`${_savingsPct}%`,c:_savingsColor},
+      ],
+    },
+    {
+      title:t('pillar_deudas'),
+      main:{l:t('deuda_balancetotal'),v:fmtC(totalBalance),c:'var(--red)'},
+      stats:[
+        {l:t('deuda_monthly'),v:fmtC(cuotaDeudas),c:'var(--red)'},
+        {l:t('kpi_exp_interest'),v:`${fmtC(Math.round(interesMensual))}/${t('kpi_exp_month')}`,c:'var(--yellow)'},
+        {l:t('deuda_mostexpensive'),v:masCaraDeuda?`${escH(masCaraDeuda.nombre).slice(0,18)} · ${masCaraDeuda.tasa}%`:'—',c:'var(--yellow)'},
+      ],
+    },
+    {
+      title:t('pillar_ahorros'),
+      main:{l:t('kpi_networth'),v:`${_nwDisplay}${mkDelta(netWorth,prevH?.netWorth,true)}`,c:_nwColor},
+      stats:[
+        {l:t('ef_coverage'),v:efMoVal,c:efMoC},
+        {l:t('ef_balance'),v:fmtC(efTotal),c:'var(--yellow)'},
+        {l:t('cf_savings'),v:fmtC(toDisplay(cf.ahorros||0)),c:'var(--green)'},
+      ],
+    },
+  ].map(p=>`<div class="card pillar-card">
+    <div class="card-title">${p.title}</div>
+    <div class="pillar-main-val" style="color:${p.main.c}">${p.main.v}</div>
+    <div class="pillar-main-label">${p.main.l}</div>
+    <div class="pillar-stats">
+      ${p.stats.map(s=>`<div class="pillar-stat"><span class="pillar-stat-label">${s.l}</span><span class="pillar-stat-val" style="color:${s.c}">${s.v}</span></div>`).join('')}
+    </div>
+  </div>`).join('');
 
   // ── Summary Extras: Goals progress + Presupuesto variance ──
   const seEl=document.getElementById('summaryExtras');
@@ -6150,51 +6288,6 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     else if(hasGoals&&hasBudget)seEl.innerHTML=`<div class="grid g2" style="gap:16px">${goalsCard}${budgetCard}</div>`;
     else seEl.innerHTML=goalsCard||budgetCard;
   }
-
-  // ── Score ──
-  const sc=calcScore({ingreso,gasto,resta,totalBalance,cuotaDeudas,config,emerg,historial});
-  const r=50;const circ=2*Math.PI*r;const dash=circ*(sc.score/100);
-  const scoreColor=sc.grade.c;
-  document.getElementById('scoreCard').innerHTML=`
-    <div class="card-title" style="margin-bottom:6px">${t('score_title')}</div>
-    <div class="score-ring-wrap">
-      <div class="score-ring">
-        <svg width="110" height="110" viewBox="0 0 110 110">
-          <circle cx="55" cy="55" r="${r}" fill="none" stroke="var(--border)" stroke-width="10"/>
-          <circle cx="55" cy="55" r="${r}" fill="none" stroke="${scoreColor}" stroke-width="10"
-            stroke-dasharray="${dash} ${circ}" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
-        </svg>
-        <div class="score-ring-val">
-          <div class="score-num" style="color:${scoreColor}">${sc.score}</div>
-          <div class="score-label-sm">/100</div>
-        </div>
-      </div>
-      <div style="font-size:16px;font-weight:800;color:${scoreColor}">${sc.grade.l}</div>
-    </div>
-    <div style="width:100%;margin-top:10px">
-      ${sc.details.map(d=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)">
-        <span style="color:var(--muted)">${d.l}</span>
-        <span style="font-weight:700;color:${d.c};font-family:var(--mono)">${d.v}</span>
-      </div>`).join('')}
-    </div>`;
-
-  // ── CF Bar ──
-  document.getElementById('cfBarCard').innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div class="card-title" style="margin:0">${t('cf_dist')} · ${fmtC(ingreso)}</div>
-      <div style="display:flex;gap:16px;font-size:12px;flex-wrap:wrap">
-        <span style="color:var(--muted)">${t('cf_expenses')}: <span class="mono" style="color:var(--red)">${fmtC(gasto)}</span>${txGasto>0?` <span style="font-size:10px;color:var(--muted)">(${t('reg_tracked')}: <span class="mono" style="color:var(--purple)">${fmtC(txGasto)}</span>)</span>`:''}</span>
-        <span style="color:var(--muted)">${t('cf_remainder')}: <span class="mono" style="color:var(--green)">${fmtC(resta)}</span></span>
-      </div>
-    </div>
-    <div class="cf-bar">
-      <div class="cf-seg" style="width:${Math.min(gastoPct,100)}%;background:linear-gradient(90deg,#f4606a,#fb923c);color:#fff">${t('cf_expenses')} ${gastoPct}%</div>
-      <div class="cf-seg" style="width:${Math.max(0,sobrante)}%;background:linear-gradient(90deg,#22d3a0,#06b6d4);color:#052e16">${t('cf_remainder')} ${sobrante}%</div>
-    </div>
-    <div class="grid g4" style="margin-top:14px;gap:10px">
-      ${[{l:t('cf_withdrawusd'),v:fmtUSD(cf.retirarUSD||(gasto/config.tasa)),c:'var(--accent2)'},{l:t('cf_rate'),v:`${currencySymbol()}${config.tasa}`,c:'var(--yellow)'},{l:t('cf_savings'),v:`${fmtC(toDisplay(cf.ahorros||0))}`,c:'var(--green)'},{l:t('cf_committed'),v:`${fmtC(cuotaDeudas)}`,c:'var(--red)'}]
-        .map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:10px 14px"><div style="font-size:10px;color:var(--muted)">${i.l}</div><div class="mono" style="font-size:15px;font-weight:700;color:${i.c};margin-top:4px">${i.v}</div></div>`).join('')}
-    </div>`;
 
   // ── Gastos Table ──
   const _isPaid=g=>g.pagadoMes||(g.pagado>0&&g.pagado>=g.adeudado&&g.adeudado>0);
@@ -6415,10 +6508,13 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const pieData=Object.keys(tipoColors).map(ty=>gastos.filter(g=>g.tipo===ty).reduce((a,g)=>a+g.adeudado,0));
     const pieColors=Object.values(tipoColors).map(c=>c+'cc');
     if(txGastoRaw>0){pieLabels.push(t('reg_tracked'));pieData.push(txGastoRaw);pieColors.push('#a78bfacc');}
+    // Horizontal bar (was doughnut) — sorted desc, easier to compare categories than a pie
+    const pieRows=pieLabels.map((l,i)=>({l,v:pieData[i],c:pieColors[i]})).filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
     charts.pieChart=new Chart(document.getElementById('pieChart'),{
-      type:'doughnut',
-      data:{labels:pieLabels,datasets:[{data:pieData,backgroundColor:pieColors,borderColor:'var(--surface)',borderWidth:3,hoverOffset:8}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:10,filter:i=>i.raw>0}},tooltip:{...ttStyleNow(),callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}}}
+      type:'bar',
+      data:{labels:pieRows.map(r=>r.l),datasets:[{data:pieRows.map(r=>r.v),backgroundColor:pieRows.map(r=>r.c),borderWidth:0,borderRadius:6,maxBarThickness:22}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttStyleNow(),callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
+        scales:{x:{grid:{display:true,color:'rgba(120,135,168,.15)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}},y:{grid:{display:false},ticks:{font:{size:11}}}}}
     });
     charts.barChart=new Chart(document.getElementById('barChart'),{
       type:'bar',
@@ -6471,10 +6567,18 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     const targetMonths=6;
     const covPct=Math.min(coveredMonths,targetMonths);
     const covRemain=Math.max(0,targetMonths-covPct);
+    // Runway bar (was doughnut) — single horizontal bar against a 0-6 month scale.
+    // Tick marks at 1/3/6 act as risk-tier reference lines, so the user instantly
+    // sees whether they're below "1mo survival", on track ("3-6mo healthy"), or beyond.
+    const efBarColor=coveredMonths>=6?'#22d3a0':coveredMonths>=3?'#f5c842':'#f4606a';
     charts.efCoverage=new Chart(document.getElementById('efCoverageChart'),{
-      type:'doughnut',
-      data:{labels:[t('ef_covered'),t('ef_remaining')],datasets:[{data:[Math.round(covPct*100)/100,Math.round(covRemain*100)/100],backgroundColor:[coveredMonths>=6?'#22d3a0cc':coveredMonths>=3?'#f5c842cc':'#f4606acc','rgba(26,37,64,.3)'],borderWidth:0,hoverOffset:6}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{...ttStyleNow(),callbacks:{label:ctx=>{const v=ctx.raw;return ` ${v.toFixed(1)} ${t('ef_months')}`;}}}},elements:{arc:{borderWidth:0}}}
+      type:'bar',
+      data:{labels:[''],datasets:[
+        {label:t('ef_covered'),data:[covPct],backgroundColor:efBarColor,borderWidth:0,borderRadius:6,barThickness:30,stack:'s'},
+        {label:t('ef_remaining'),data:[covRemain],backgroundColor:'rgba(120,135,168,.18)',borderWidth:0,borderRadius:6,barThickness:30,stack:'s'},
+      ]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttStyleNow(),callbacks:{label:ctx=>` ${ctx.raw.toFixed(1)} ${t('ef_months')}`}}},
+        scales:{x:{stacked:true,min:0,max:6,grid:{display:true,color:'rgba(120,135,168,.15)'},ticks:{font:{size:11},stepSize:1,callback:v=>(v===0||v===1||v===3||v===6)?`${v}mo`:''}},y:{stacked:true,grid:{display:false},ticks:{display:false}}}}
     });
     // ForNow savings chart: current balance vs historical
     // Fix #2: Total Assets = netWorth + deudas (= gross assets, no double-counting EF)
@@ -6678,8 +6782,10 @@ function buildAnalisisSummary(gastos,ingreso,gasto,interesMensual){
 }
 
 function buildCashflowWaterfall(ingreso,gastos,config,metas){
-  const el=document.getElementById('cashflowWaterfall');
-  if(!el||ingreso<=0){if(el)el.innerHTML='';return;}
+  // Render the same waterfall into both Resumen (hero) and Análisis (deep-dive).
+  const targets=['resumenWaterfall','cashflowWaterfall'].map(id=>document.getElementById(id)).filter(Boolean);
+  if(!targets.length)return;
+  if(ingreso<=0){targets.forEach(el=>el.innerHTML='');return;}
   const obligations=toDisplay(gastos.reduce((a,g)=>a+(g.adeudado||0),0));
   const txGasto=toDisplay((_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio&&isExpenseTx(t)).reduce((a,t)=>a+(parseFloat(t.monto)||0),0));
   const goalContrib=toDisplay((metas||[]).reduce((a,m)=>a+(m.monthly||0),0));
@@ -6692,7 +6798,6 @@ function buildCashflowWaterfall(ingreso,gastos,config,metas){
     {l:t('wf_goals'),v:-goalContrib,type:'saving'},
     {l:t('wf_surplus'),v:surplus,type:surplus>=0?'surplus':'deficit'},
   ];
-  // Build horizontal waterfall bars
   const maxVal=ingreso;
   const bar=(val,maxW,color)=>{const w=Math.max(1,Math.abs(val)/maxW*100);return`<div style="height:18px;width:${Math.min(w,100)}%;background:${color};border-radius:4px"></div>`;};
   const rows=steps.map(s=>{
@@ -6705,7 +6810,8 @@ function buildCashflowWaterfall(ingreso,gastos,config,metas){
     </div>`;
   }).join('');
   const intNote=interest>0?`<div style="font-size:10px;color:var(--muted);margin-top:6px">💡 ${t('wf_interest_note').replace('{v}',fmt(Math.round(interest)))}</div>`:'';
-  el.innerHTML=`<div class="card-title">${t('wf_title')}</div>${rows}${intNote}`;
+  const html=`<div class="card-title">${t('wf_title')}</div>${rows}${intNote}`;
+  targets.forEach(el=>el.innerHTML=html);
 }
 
 function buildExpenseTrend(historial,gastos){
@@ -7426,44 +7532,63 @@ function closeHelp(){
 }
 
 // ══════════════════════════════════
-// TAB GROUPS
+// SECTIONS (5 top-level: Hoy / Gastos / Deudas / Ahorros / Historia)
 // ══════════════════════════════════
-const GROUP_OPS=['resumen','alertas','registro','presupuesto','gastos','fornow'];
-const GROUP_STRAT=['emergency','deudas','proyector','metas','analisis','historial'];
-let _activeGroup='ops';
+const SECTIONS={
+  hoy:{tabs:['resumen','alertas']},
+  gastos:{tabs:['registro','gastos','presupuesto']},
+  deudas:{tabs:['deudas','proyector']},
+  ahorros:{tabs:['fornow','emergency','metas']},
+  historia:{tabs:['analisis','historial']},
+};
+const SECTION_OF={};
+Object.keys(SECTIONS).forEach(s=>SECTIONS[s].tabs.forEach(t=>SECTION_OF[t]=s));
+let _activeSection='hoy';
 
-function switchGroup(group){
-  _activeGroup=group;
-  const pillOps=document.getElementById('pillOps'),pillStrat=document.getElementById('pillStrat');
-  pillOps.classList.toggle('active',group==='ops');pillOps.setAttribute('aria-selected',String(group==='ops'));
-  pillStrat.classList.toggle('active',group==='strat');pillStrat.setAttribute('aria-selected',String(group==='strat'));
-  document.querySelectorAll('.tab-btn[data-group]').forEach(btn=>{btn.style.display=btn.dataset.group===group?'':'none';});
-  document.querySelectorAll('.mnav-btn[data-group]').forEach(btn=>{btn.style.display=btn.dataset.group===group?'':'none';});
+// Apply section visibility to pills, sub-tabs, and bottom-nav buttons.
+// Pulled out so showTab can sync chrome without recursing into switchSection.
+function _applySectionVisibility(section){
+  document.querySelectorAll('.section-pill').forEach(p=>{
+    const a=p.dataset.section===section;
+    p.classList.toggle('active',a);
+    p.setAttribute('aria-selected',String(a));
+  });
+  document.querySelectorAll('.tab-btn[data-section]').forEach(btn=>{
+    btn.style.display=btn.dataset.section===section?'':'none';
+  });
+  document.querySelectorAll('.mnav-btn[data-section]').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.section===section);
+  });
+}
+
+function switchSection(section){
+  if(!SECTIONS[section])return;
+  _activeSection=section;
+  _applySectionVisibility(section);
+  // If the currently active panel isn't part of this section, jump to the section's default sub-tab.
   const activePanel=document.querySelector('.panel.active');
-  if(activePanel){
-    const curId=activePanel.id.replace('tab-','');
-    const activeIds=group==='ops'?GROUP_OPS:GROUP_STRAT;
-    if(!activeIds.includes(curId)){
-      const firstId=activeIds[0];
-      const btn=document.querySelector(`.tab-btn[data-group="${group}"]`);
-      showTab(firstId,btn);
-      syncMobileNav(firstId);
-    }
+  const curId=activePanel?activePanel.id.replace('tab-',''):null;
+  if(!curId||!SECTIONS[section].tabs.includes(curId)){
+    const firstId=SECTIONS[section].tabs[0];
+    const btn=document.querySelector(`.tab-btn[data-section="${section}"][onclick*="'${firstId}'"]`);
+    showTab(firstId,btn);
   }
-  try{localStorage.setItem('cntActiveGroup',group);}catch(e){}
+  try{localStorage.setItem('cntActiveSection',section);}catch(e){}
 }
 
 // ══════════════════════════════════
-// TABS
+// TABS — switch panel + sync section chrome
 // ══════════════════════════════════
 function showTab(id,btn){
-  // Auto-switch group if target tab is in a different group
-  const targetGroup=GROUP_OPS.includes(id)?'ops':'strat';
-  if(targetGroup!==_activeGroup){
-    switchGroup(targetGroup);
+  // Auto-switch section if target tab is in a different section.
+  const targetSection=SECTION_OF[id]||'hoy';
+  if(targetSection!==_activeSection){
+    _activeSection=targetSection;
+    _applySectionVisibility(targetSection);
     if(!btn||btn.style.display==='none'){
-      btn=document.querySelector(`.tab-btn[data-group="${targetGroup}"][onclick*="'${id}'"]`);
+      btn=document.querySelector(`.tab-btn[data-section="${targetSection}"][onclick*="'${id}'"]`);
     }
+    try{localStorage.setItem('cntActiveSection',targetSection);}catch(e){}
   }
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false');});
@@ -7504,28 +7629,30 @@ function navigateToHash(){
   }
 }
 
-// Sync mobile bottom nav active state to match a tab id
+// Sync mobile bottom-nav active state to the SECTION that owns the given tab id.
+// (Bottom nav now has 5 section buttons, not 12 sub-tab buttons.)
 function syncMobileNav(id){
-  document.querySelectorAll('.mnav-btn').forEach(b=>{
-    b.classList.remove('active');
-    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes(`'${id}'`))b.classList.add('active');
+  const section=SECTION_OF[id]||_activeSection||'hoy';
+  document.querySelectorAll('.mnav-btn[data-section]').forEach(b=>{
+    b.classList.toggle('active',b.dataset.section===section);
   });
-}
-
-// Mobile bottom nav — syncs with desktop tabs
-function mobileTab(id,btn){
-  const desktopBtn=document.querySelector(`.tab-btn[onclick*="'${id}'"]`);
-  showTab(id,desktopBtn);
-  document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  // Sync alert dot on mobile alertas button
-  const tabAlMobile=document.getElementById('mobileTabAlertas');
+  // Sync alert dot from the desktop "Alertas" sub-tab to the mobile "Hoy" section button
+  // (Alertas lives inside the Hoy section, so its urgency surfaces on that mobile button).
+  const tabAlMobile=document.getElementById('mnavHoy');
   const tabAlDesktop=document.getElementById('tabAlertas');
   if(tabAlMobile&&tabAlDesktop){
     const dot=tabAlDesktop.querySelector('.alert-dot');
     tabAlMobile.querySelector('.alert-dot')?.remove();
     if(dot){const d=document.createElement('span');d.className='alert-dot';d.setAttribute('role','status');d.setAttribute('aria-label',_lang==='en'?'Urgent alerts':'Alertas urgentes');tabAlMobile.appendChild(d);}
   }
+}
+
+// Backward-compat wrapper. Earlier code (swipe gestures, navigateToHash) called mobileTab(id);
+// route it through showTab and let _applySectionVisibility keep the bottom nav in sync.
+function mobileTab(id,_btn){
+  const desktopBtn=document.querySelector(`.tab-btn[onclick*="'${id}'"]`);
+  showTab(id,desktopBtn);
+  syncMobileNav(id);
 }
 
 // Overflow menu
@@ -7577,7 +7704,7 @@ let _editData={};
 let _changesCount=0;
 let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
-window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchGroup('ops');};
+window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchSection('hoy');};
 window.projectWalletBalance=projectWalletBalance;
 window.walletLowThresholdRD=walletLowThresholdRD;
 window.reconcileWallet=reconcileWallet;

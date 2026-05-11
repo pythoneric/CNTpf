@@ -206,10 +206,13 @@ test.describe('Responsive - Phone (390px)', () => {
     expect(overflows).toHaveLength(0);
   });
 
-  test('Mobile nav is visible and tabs are hidden', async ({ page }) => {
+  test('Mobile nav is visible; sub-tabs remain accessible (compact) and section toggle is hidden', async ({ page }) => {
     await loadApp(page);
     await expect(page.locator('#mobileNav')).toBeVisible();
-    await expect(page.locator('.tabs')).toBeHidden();
+    // Sub-tabs (.tabs) are now visible on mobile too, so users can switch within the active section.
+    await expect(page.locator('.tabs')).toBeVisible();
+    // The top-level section toggle is hidden on mobile — its job is taken by the 5-button bottom nav.
+    await expect(page.locator('#sectionToggle')).toBeHidden();
   });
 });
 
@@ -227,12 +230,10 @@ test.describe('Responsive - Small Phone (375px)', () => {
     expect(overflows).toHaveLength(0);
   });
 
-  test('Summary tab: KPIs display in 2-column grid', async ({ page }) => {
+  test('Summary tab: 3 pillar cards render without overflow', async ({ page }) => {
     await loadApp(page);
-    const kpiRow = page.locator('#kpiRow');
-    const cards = kpiRow.locator('.card');
-    await expect(cards).toHaveCount(6);
-    // All cards should be visible without horizontal overflow
+    const pillars = page.locator('#pillarRow .pillar-card');
+    await expect(pillars).toHaveCount(3);
     const overflows = await findHorizontalOverflows(page);
     expect(overflows).toHaveLength(0);
   });
