@@ -45,16 +45,10 @@ async function loadApp(page, overrides = {}) {
   }, overrides);
 }
 
-/** Navigate to the ForNow (Disponibilidad) tab */
+/** Navigate to the ForNow (Disponibilidad) tab. Goes through showTab so the
+ *  Ahorros section is auto-activated and the sub-tab made visible. */
 async function goToForNowTab(page) {
-  const tabBtn = page.locator('.tab-btn', { hasText: /disponibilidad|fondos|availability/i });
-  if (await tabBtn.count() > 0) {
-    await tabBtn.first().click();
-  } else {
-    // Try mobile nav
-    const mobileBtn = page.locator('.mnav-btn', { hasText: /fondos|disponib/i });
-    if (await mobileBtn.count() > 0) await mobileBtn.first().click();
-  }
+  await page.evaluate(() => window.showTab('fornow', null));
   await expect(page.locator('#tab-fornow')).toBeVisible();
 }
 

@@ -207,47 +207,49 @@ test.describe('Checklist — Next Payment Countdown', () => {
 });
 
 // ═══════════════════════════════════════
-// #5: Resumen — KPI Delta Arrows
+// #5: Resumen — Pillar Delta Arrows
 // ═══════════════════════════════════════
+//
+// After the Resumen restructure, KPIs live in 3 pillar cards inside #pillarRow:
+//   pillar 0 (Mes):     main=income,        stats=expenses, surplus, savings rate
+//   pillar 1 (Deudas):  main=balance total, stats=monthly, interest, most expensive
+//   pillar 2 (Ahorros): main=net worth,     stats=EF coverage, EF balance, savings
+// Delta arrows (▲/▼) decorate income/expenses/surplus (pillar 0) and net worth (pillar 2 main).
 
-test.describe('Resumen — KPI Delta Arrows', () => {
+test.describe('Resumen — Pillar Delta Arrows', () => {
 
   test('no delta arrows when no history', async ({ page }) => {
     await loadApp(page);
-    const kpis = page.locator('#kpiRow');
-    const text = await kpis.textContent();
+    const pillars = page.locator('#pillarRow');
+    const text = await pillars.textContent();
     expect(text).not.toContain('▲');
     expect(text).not.toContain('▼');
   });
 
   test('delta arrows appear when history exists', async ({ page }) => {
     await loadApp(page, { withHistory: true });
-    const kpis = page.locator('#kpiRow');
-    const text = await kpis.textContent();
-    // Current expenses (48k) < last month (130k) → green ▼ on expenses (good)
-    // Net worth improved → green ▲
+    const pillars = page.locator('#pillarRow');
+    const text = await pillars.textContent();
     const hasArrow = text.includes('▲') || text.includes('▼');
     expect(hasArrow).toBe(true);
   });
 
-  test('expense decrease shows green down arrow', async ({ page }) => {
+  test('expense decrease shows green down arrow in Mes pillar', async ({ page }) => {
     await loadApp(page, { withHistory: true });
-    const kpis = page.locator('#kpiRow');
-    // Expenses card is 2nd KPI. Current gasto < prev gasto (130k) → ▼ (green, good)
-    const expCard = kpis.locator('.card').nth(1);
-    const val = await expCard.locator('.kpi-val').innerHTML();
-    // Should have ▼ with green color
-    expect(val).toContain('▼');
-    expect(val).toContain('green');
+    // Mes pillar (index 0), expense is the first stat row
+    const mesPillar = page.locator('#pillarRow .pillar-card').nth(0);
+    const expenseStat = mesPillar.locator('.pillar-stat-val').nth(0);
+    const html = await expenseStat.innerHTML();
+    expect(html).toContain('▼');
+    expect(html).toContain('green');
   });
 
-  test('net worth improvement shows green up arrow', async ({ page }) => {
+  test('net worth improvement shows green up arrow in Ahorros pillar', async ({ page }) => {
     await loadApp(page, { withHistory: true });
-    const kpis = page.locator('#kpiRow');
-    // NW card is 4th KPI. Current NW should be > prev NW (-100k)
-    const nwCard = kpis.locator('.card').nth(3);
-    const val = await nwCard.locator('.kpi-val').innerHTML();
-    expect(val).toContain('▲');
-    expect(val).toContain('green');
+    // Ahorros pillar (index 2), net worth is the main value
+    const ahorrosPillar = page.locator('#pillarRow .pillar-card').nth(2);
+    const html = await ahorrosPillar.locator('.pillar-main-val').innerHTML();
+    expect(html).toContain('▲');
+    expect(html).toContain('green');
   });
 });

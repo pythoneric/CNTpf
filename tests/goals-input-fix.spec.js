@@ -48,7 +48,7 @@ async function loadApp(page) {
 /** Navigate to the Metas (Goals) tab */
 async function goToGoalsTab(page) {
   await page.evaluate(() => {
-    switchGroup('strat');
+    switchSection('ahorros');
     showTab('metas', document.querySelector('[data-i18n="tab_metas"]'));
   });
 }

@@ -1,24 +1,23 @@
 const { test, expect } = require('@playwright/test');
 
 /**
- * Tests for tab order — verifies desktop tab bar, TAB_ORDER array,
- * and mobile nav are all in sync with the personal finance workflow.
+ * Tests for tab order and section navigation. Verifies the desktop sub-tab bar,
+ * the TAB_ORDER array, the 5-section mobile bottom nav, and that section
+ * switching keeps pills + sub-tabs + bottom nav in sync.
+ *
+ * Sections (top-level): hoy / gastos / deudas / ahorros / historia
+ * Sub-tabs are grouped by section in the .tabs bar and rendered HTML order.
  */
 
 const EXPECTED_ORDER = [
-  'resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'fornow',
-  'emergency', 'deudas', 'proyector', 'metas', 'analisis', 'historial',
+  'resumen', 'alertas',                   // hoy
+  'registro', 'gastos', 'presupuesto',    // gastos
+  'deudas', 'proyector',                  // deudas
+  'fornow', 'emergency', 'metas',         // ahorros
+  'analisis', 'historial',                // historia
 ];
 
-const EXPECTED_MOBILE_ORDER = [
-  'resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'fornow',
-  'emergency', 'deudas', 'proyector', 'metas', 'analisis', 'historial',
-];
-
-const ALL_TAB_IDS = new Set([
-  'resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'deudas',
-  'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis',
-]);
+const SECTIONS = ['hoy', 'gastos', 'deudas', 'ahorros', 'historia'];
 
 async function loadApp(page) {
   page.on('dialog', dialog => dialog.accept());
@@ -43,32 +42,21 @@ async function loadApp(page) {
   });
 }
 
-/** Extract tab ID from onclick like showTab('resumen',this) */
-function extractTabId(onclick) {
-  const m = onclick.match(/(?:showTab|mobileTab)\('([^']+)'/);
-  return m ? m[1] : null;
-}
-
 test.describe('Tab Order — Personal Finance Workflow', () => {
 
-  // TEST 1 — Desktop tab bar order
-  test('desktop tab bar matches expected sequence', async ({ page }) => {
+  test('desktop sub-tab bar matches expected sequence', async ({ page }) => {
     await loadApp(page);
-
     const tabIds = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('.tabs .tab-btn')).map(btn => {
         const m = btn.getAttribute('onclick').match(/showTab\('([^']+)'/);
         return m ? m[1] : null;
       });
     });
-
     expect(tabIds).toEqual(EXPECTED_ORDER);
   });
 
-  // TEST 2 — TAB_ORDER array matches expected sequence
   test('TAB_ORDER array matches expected sequence', async ({ page }) => {
     await loadApp(page);
-
     const tabOrder = await page.evaluate(() => {
       const scripts = Array.from(document.querySelectorAll('script'));
       for (const s of scripts) {
@@ -77,81 +65,53 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
       }
       return null;
     });
-
     expect(tabOrder).toEqual(EXPECTED_ORDER);
   });
 
-  // TEST 3 — Mobile nav order matches expected sequence
-  test('mobile nav matches expected sequence', async ({ page }) => {
+  test('mobile bottom nav has exactly 5 section buttons in expected order', async ({ page }) => {
     await loadApp(page);
-
-    const mobileIds = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll('#mobileNav .mnav-btn')).map(btn => {
-        const m = btn.getAttribute('onclick').match(/mobileTab\('([^']+)'/);
-        return m ? m[1] : null;
-      });
+    const sections = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll('#mobileNav .mnav-btn')).map(btn => btn.dataset.section);
     });
-
-    expect(mobileIds).toEqual(EXPECTED_MOBILE_ORDER);
+    expect(sections).toEqual(SECTIONS);
   });
 
-  // TEST 4 — TAB_ORDER and desktop tab bar are in sync
-  test('TAB_ORDER and desktop tab bar contain the same tabs', async ({ page }) => {
+  test('TAB_ORDER and desktop sub-tabs contain the same 12 ids', async ({ page }) => {
     await loadApp(page);
-
     const { desktopIds, tabOrderIds } = await page.evaluate(() => {
       const desktopIds = Array.from(document.querySelectorAll('.tabs .tab-btn')).map(btn => {
         const m = btn.getAttribute('onclick').match(/showTab\('([^']+)'/);
         return m ? m[1] : null;
       });
-
       let tabOrderIds = [];
       const scripts = Array.from(document.querySelectorAll('script'));
       for (const s of scripts) {
         const m = s.textContent.match(/const TAB_ORDER=\[([^\]]+)\]/);
         if (m) { tabOrderIds = m[1].replace(/'/g, '').split(','); break; }
       }
-
       return { desktopIds, tabOrderIds };
     });
-
-    // Same length
     expect(desktopIds.length).toBe(tabOrderIds.length);
-
-    // Every desktop tab is in TAB_ORDER
-    for (const id of desktopIds) {
-      expect(tabOrderIds).toContain(id);
-    }
-
-    // Every TAB_ORDER entry is in desktop tabs
-    for (const id of tabOrderIds) {
-      expect(desktopIds).toContain(id);
-    }
+    for (const id of desktopIds) expect(tabOrderIds).toContain(id);
+    for (const id of tabOrderIds) expect(desktopIds).toContain(id);
   });
 
-  // TEST 5 — No tabs were removed or added
-  test('exactly 12 desktop tabs with all original IDs present', async ({ page }) => {
+  test('exactly 12 desktop sub-tabs with all original ids present', async ({ page }) => {
     await loadApp(page);
-
     const desktopIds = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('.tabs .tab-btn')).map(btn => {
         const m = btn.getAttribute('onclick').match(/showTab\('([^']+)'/);
         return m ? m[1] : null;
       });
     });
-
     expect(desktopIds).toHaveLength(12);
-
     const allOriginals = ['resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'deudas',
       'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
-    for (const id of allOriginals) {
-      expect(desktopIds).toContain(id);
-    }
+    for (const id of allOriginals) expect(desktopIds).toContain(id);
   });
 
-  test('TAB_ORDER has exactly 12 entries with all original IDs', async ({ page }) => {
+  test('TAB_ORDER has exactly 12 entries with all original ids', async ({ page }) => {
     await loadApp(page);
-
     const tabOrder = await page.evaluate(() => {
       const scripts = Array.from(document.querySelectorAll('script'));
       for (const s of scripts) {
@@ -160,127 +120,107 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
       }
       return [];
     });
-
     expect(tabOrder).toHaveLength(12);
-
     const allOriginals = ['resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'deudas',
       'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
-    for (const id of allOriginals) {
-      expect(tabOrder).toContain(id);
-    }
+    for (const id of allOriginals) expect(tabOrder).toContain(id);
   });
 
-  // Bonus — Resumen is still the default active tab on load
   test('Resumen is the default active tab on load', async ({ page }) => {
     await loadApp(page);
-
-    const activePanel = await page.evaluate(() => {
-      const panel = document.querySelector('.panel.active');
-      return panel ? panel.id : null;
-    });
-
+    const activePanel = await page.evaluate(() => document.querySelector('.panel.active')?.id);
     expect(activePanel).toBe('tab-resumen');
-
     const activeTab = await page.evaluate(() => {
       const btn = document.querySelector('.tab-btn.active');
       const m = btn?.getAttribute('onclick')?.match(/showTab\('([^']+)'/);
       return m ? m[1] : null;
     });
-
     expect(activeTab).toBe('resumen');
   });
 });
 
-test.describe('Tab Grouping — Operaciones / Estrategia', () => {
+test.describe('Section Switching — 5-section nav', () => {
 
-  test('ops pill has active class on load', async ({ page }) => {
+  test('Hoy pill is active on load', async ({ page }) => {
     await loadApp(page);
-    const opsActive = await page.evaluate(() => document.getElementById('pillOps').classList.contains('active'));
-    const stratActive = await page.evaluate(() => document.getElementById('pillStrat').classList.contains('active'));
-    expect(opsActive).toBe(true);
-    expect(stratActive).toBe(false);
+    const hoyActive = await page.evaluate(() => document.getElementById('pillHoy').classList.contains('active'));
+    expect(hoyActive).toBe(true);
+    for (const s of SECTIONS.filter(s => s !== 'hoy')) {
+      const cap = s.charAt(0).toUpperCase() + s.slice(1);
+      const active = await page.evaluate(id => document.getElementById(id).classList.contains('active'), `pill${cap}`);
+      expect(active).toBe(false);
+    }
   });
 
-  test('clicking Estrategia pill shows strategy tabs, hides ops tabs', async ({ page }) => {
+  test('switchSection shows only the active section\'s sub-tabs', async ({ page }) => {
     await loadApp(page);
-    await page.evaluate(() => window.switchGroup('strat'));
-
-    const opsVisible = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.tab-btn[data-group="ops"]')).filter(b => b.style.display !== 'none').length
-    );
-    const stratVisible = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.tab-btn[data-group="strat"]')).filter(b => b.style.display !== 'none').length
-    );
-    expect(opsVisible).toBe(0);
-    expect(stratVisible).toBeGreaterThan(0);
+    for (const section of SECTIONS) {
+      await page.evaluate(s => window.switchSection(s), section);
+      const visibleSections = await page.evaluate(() =>
+        Array.from(document.querySelectorAll('.tab-btn[data-section]'))
+          .filter(b => b.style.display !== 'none')
+          .map(b => b.dataset.section)
+      );
+      expect(new Set(visibleSections)).toEqual(new Set([section]));
+      expect(visibleSections.length).toBeGreaterThan(0);
+    }
   });
 
-  test('clicking Operaciones pill shows ops tabs, hides strategy tabs', async ({ page }) => {
+  test('switchSection updates pill aria-selected', async ({ page }) => {
     await loadApp(page);
-    await page.evaluate(() => window.switchGroup('strat'));
-    await page.evaluate(() => window.switchGroup('ops'));
-
-    const opsVisible = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.tab-btn[data-group="ops"]')).filter(b => b.style.display !== 'none').length
-    );
-    const stratVisible = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.tab-btn[data-group="strat"]')).filter(b => b.style.display !== 'none').length
-    );
-    expect(opsVisible).toBeGreaterThan(0);
-    expect(stratVisible).toBe(0);
+    await page.evaluate(() => window.switchSection('deudas'));
+    const deudasActive = await page.evaluate(() => document.getElementById('pillDeudas').getAttribute('aria-selected'));
+    const hoyActive = await page.evaluate(() => document.getElementById('pillHoy').getAttribute('aria-selected'));
+    expect(deudasActive).toBe('true');
+    expect(hoyActive).toBe('false');
   });
 
-  test('switching to strat makes strat pill active, ops inactive', async ({ page }) => {
+  test('auto-switch: showTab on a sub-tab outside active section switches the section', async ({ page }) => {
     await loadApp(page);
-    await page.evaluate(() => window.switchGroup('strat'));
-    const opsActive = await page.evaluate(() => document.getElementById('pillOps').classList.contains('active'));
-    const stratActive = await page.evaluate(() => document.getElementById('pillStrat').classList.contains('active'));
-    expect(opsActive).toBe(false);
-    expect(stratActive).toBe(true);
-  });
-
-  test('auto-switch: showing a strat tab from ops switches group', async ({ page }) => {
-    await loadApp(page);
-    // Start in ops, then navigate to a strategy tab
-    await page.evaluate(() => window.showTab('deudas', null));
-    const stratActive = await page.evaluate(() => document.getElementById('pillStrat').classList.contains('active'));
+    await page.evaluate(() => window.showTab('analisis', null));
+    const historiaActive = await page.evaluate(() => document.getElementById('pillHistoria').classList.contains('active'));
     const panel = await page.evaluate(() => document.querySelector('.panel.active')?.id);
-    expect(stratActive).toBe(true);
-    expect(panel).toBe('tab-deudas');
+    expect(historiaActive).toBe(true);
+    expect(panel).toBe('tab-analisis');
   });
 
-  test('mobile nav only shows active group buttons', async ({ page }) => {
+  test('mobile bottom-nav active state follows the section', async ({ page }) => {
     await loadApp(page);
-    // In ops group, strat mobile buttons should be hidden
-    const stratMobileHidden = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.mnav-btn[data-group="strat"]')).every(b => b.style.display === 'none')
-    );
-    expect(stratMobileHidden).toBe(true);
-
-    // Switch to strat, ops mobile buttons should be hidden
-    await page.evaluate(() => window.switchGroup('strat'));
-    const opsMobileHidden = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('.mnav-btn[data-group="ops"]')).every(b => b.style.display === 'none')
-    );
-    expect(opsMobileHidden).toBe(true);
+    // Default: Hoy active
+    let active = await page.evaluate(() => document.querySelector('#mobileNav .mnav-btn.active')?.dataset.section);
+    expect(active).toBe('hoy');
+    // Switch to ahorros
+    await page.evaluate(() => window.switchSection('ahorros'));
+    active = await page.evaluate(() => document.querySelector('#mobileNav .mnav-btn.active')?.dataset.section);
+    expect(active).toBe('ahorros');
   });
 
-  test('group persists in localStorage', async ({ page }) => {
+  test('active section persists in localStorage', async ({ page }) => {
     await loadApp(page);
-    await page.evaluate(() => window.switchGroup('strat'));
-    const stored = await page.evaluate(() => localStorage.getItem('cntActiveGroup'));
-    expect(stored).toBe('strat');
+    await page.evaluate(() => window.switchSection('deudas'));
+    const stored = await page.evaluate(() => localStorage.getItem('cntActiveSection'));
+    expect(stored).toBe('deudas');
   });
 
-  test('hash navigation auto-switches group', async ({ page }) => {
+  test('hash navigation auto-switches section', async ({ page }) => {
     await loadApp(page);
     await page.evaluate(() => {
       window.location.hash = '#analisis';
       window.navigateToHash();
     });
-    const stratActive = await page.evaluate(() => document.getElementById('pillStrat').classList.contains('active'));
+    const historiaActive = await page.evaluate(() => document.getElementById('pillHistoria').classList.contains('active'));
     const panel = await page.evaluate(() => document.querySelector('.panel.active')?.id);
-    expect(stratActive).toBe(true);
+    expect(historiaActive).toBe(true);
     expect(panel).toBe('tab-analisis');
+  });
+
+  test('switching to a section jumps to its first sub-tab when current panel is elsewhere', async ({ page }) => {
+    await loadApp(page);
+    // Start on a non-default sub-tab inside hoy
+    await page.evaluate(() => window.showTab('alertas', null));
+    expect(await page.evaluate(() => document.querySelector('.panel.active')?.id)).toBe('tab-alertas');
+    // Switch to gastos → should land on registro (first sub-tab of gastos)
+    await page.evaluate(() => window.switchSection('gastos'));
+    expect(await page.evaluate(() => document.querySelector('.panel.active')?.id)).toBe('tab-registro');
   });
 });

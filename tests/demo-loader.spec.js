@@ -55,9 +55,9 @@ test.describe('Demo Data Loader', () => {
     expect(headerTitle).toContain('Mayo');
     expect(headerTitle).toContain('2026');
 
-    const kpiRow = page.locator('#kpiRow');
-    await expect(kpiRow.locator('.card')).toHaveCount(6);
-    await expect(kpiRow).toContainText('RD$');
+    const pillarRow = page.locator('#pillarRow');
+    await expect(pillarRow.locator('.pillar-card')).toHaveCount(3);
+    await expect(pillarRow).toContainText('RD$');
   });
 
   test('clicking USD demo loads dashboard with $ data', async ({ page }) => {
@@ -70,11 +70,11 @@ test.describe('Demo Data Loader', () => {
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('#loaderScreen')).toBeHidden();
 
-    const kpiRow = page.locator('#kpiRow');
-    await expect(kpiRow.locator('.card')).toHaveCount(6);
+    const pillarRow = page.locator('#pillarRow');
+    await expect(pillarRow.locator('.pillar-card')).toHaveCount(3);
     // USD demo should show $ prefix, NOT RD$
-    const kpiText = await kpiRow.textContent();
-    expect(kpiText).toContain('$');
+    const pillarText = await pillarRow.textContent();
+    expect(pillarText).toContain('$');
   });
 
   test('RD demo loads correct number of gastos', async ({ page }) => {
