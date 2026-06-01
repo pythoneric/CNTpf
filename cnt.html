@@ -7723,7 +7723,11 @@ window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',la
 window.CUENTA_TIPOS=CUENTA_TIPOS;
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;autoSave();}
 function showEditTab(id,btn){document.querySelectorAll('.edit-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.edit-tab').forEach(b=>b.classList.remove('active'));const s=document.getElementById('esection-'+id);if(s)s.classList.add('active');if(btn)btn.classList.add('active');}
-function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';_balanceSnapshot=(_editData.gastos||[]).map(g=>g.balance||0);buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
+function openEditModal(){_changesCount=0;document.getElementById('changesBadge').style.display='none';_balanceSnapshot=(_editData.gastos||[]).map(g=>g.balance||0);
+  // Heal any pre-existing divergence between config.tasa and emerg.cashflow.tasa
+  // before render — they must represent the same monthly RD$/USD rate.
+  if(_editData?.emerg?.cashflow)_editData.emerg.cashflow.tasa=_editData.config.tasa;
+  buildEditForms();applyI18n();document.getElementById('editModal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{const f=document.querySelector('#editModal button,#editModal input');if(f)f.focus();},100);}
 function closeEditModal(force){
   // Fix: warn if unsaved changes exist (skip when called programmatically with force=true)
   if(!force&&_changesCount>0&&!confirm(t('edit_unsaved_warn')))return;
@@ -7740,10 +7744,25 @@ function cierreInputAttrs(f){
   return `type="text" inputmode="${isInt?'numeric':'decimal'}"`;
 }
 const TIPOS=['Fijo','Variable','Cuota','Préstamo','Tarjeta','Servicio','Seguro','Familiar','Educación','Vivienda'];
+// Keep config.tasa and emerg.cashflow.tasa in lockstep — both represent the
+// current month's RD$/USD rate. Two inputs (#cfg-tasa, #cf-tasa) write through
+// here so editing either updates both stores and the sibling input.
+function syncTasa(v){
+  const tasa=Math.max(1,pf(v)||60);
+  _editData.config.tasa=tasa;
+  if(_editData.emerg&&_editData.emerg.cashflow)_editData.emerg.cashflow.tasa=tasa;
+  _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
+  if(_editData.emerg&&_editData.emerg.cashflow)_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
+  const rdEl=document.getElementById('cfg-ingresoRD');if(rdEl)rdEl.value=Math.round(_editData.config.ingresoRD);
+  const cfIngEl=document.getElementById('cf-ingreso');if(cfIngEl)cfIngEl.value=Math.round(_editData.config.ingresoRD);
+  const cfgEl=document.getElementById('cfg-tasa');if(cfgEl&&document.activeElement!==cfgEl)cfgEl.value=tasa;
+  const cfEl=document.getElementById('cf-tasa');if(cfEl&&document.activeElement!==cfEl)cfEl.value=tasa;
+  const wn=document.getElementById('tasa-warn');if(wn)wn.style.display=tasa===60?'block':'none';
+}
 function syncConfigField(key,el){
   const v=el.value;
   switch(key){
-    case 'tasa':{_editData.config.tasa=Math.max(1,pf(v)||60);_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl=document.getElementById('cfg-ingresoRD');if(rdEl)rdEl.value=Math.round(_editData.config.ingresoRD);const wn=document.getElementById('tasa-warn');if(wn)wn.style.display=_editData.config.tasa===60?'block':'none';}break;
+    case 'tasa':syncTasa(v);break;
     case 'mes':_editData.config.mes=v||'—';break;
     case 'anio':_editData.config.anio=parseInt(v)||2026;break;
     case 'payFrequency':{const f=['mensual','quincenal','semanal'].includes(v)?v:'mensual';_editData.config.payFrequency=f;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdElPF=document.getElementById('cfg-ingresoRD');if(rdElPF)rdElPF.value=Math.round(_editData.config.ingresoRD);}break;
@@ -7896,7 +7915,12 @@ function buildEditForms(){
     // resta removed — always calculated as ingreso - gasto
     {id:'cf-ahorros',label:t('ecf_ahorros'),key:'ahorros',val:cf.ahorros||0},
     {id:'cf-balanceAhorros',label:t('ecf_balanceAhorros'),key:'balanceAhorros',val:cf.balanceAhorros||0},
-  ].map(f=>`<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="decimal" value="${f.val}" ${f.readonly?'readonly style="opacity:.6;cursor:not-allowed"':''} oninput="markChanged(this);_editData.emerg.cashflow['${f.key}']=pf(this.value)">${f.note?`<div class="field-note">${f.note}</div>`:''}</div>`).join('');
+  ].map(f=>{
+    const oninput=f.key==='tasa'
+      ? `markChanged(this);syncTasa(this.value)`
+      : `markChanged(this);_editData.emerg.cashflow['${f.key}']=pf(this.value)`;
+    return `<div class="field-group"><label class="field-label">${f.label}</label><input class="field-input" id="${f.id}" type="text" inputmode="decimal" value="${f.val}" ${f.readonly?'readonly style="opacity:.6;cursor:not-allowed"':''} oninput="${oninput}">${f.note?`<div class="field-note">${f.note}</div>`:''}</div>`;
+  }).join('');
   // HISTORIAL
   const hb=document.getElementById('historialEditBody');hb.innerHTML='';
   historial.forEach((h,i)=>{
