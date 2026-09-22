@@ -1739,25 +1739,64 @@ function activosTotalRD(d){
   const tasa=d?.config?.tasa||60;
   return (d?.activos||[]).reduce((s,a)=>s+activoToRD(a,tasa),0);
 }
-// Single definition of net worth. It previously existed twice — once for the
-// live dashboard and once inside the month-close wizard — which is exactly how
-// the headline figure and the archived history drift apart. Both now call this.
+// ── Net worth: HOLDINGS ONLY ──
+//
+// Single definition, shared with the month-close wizard — it used to exist
+// twice, which is exactly how a headline figure and its archived history drift
+// apart.
+//
+// Only two things are holdings: the accounts money physically sits in
+// (forNow.cuentas) and non-liquid property (activos). Everything else the app
+// tracks — emerg.fondos, cashflow.balanceAhorros, sinkingFunds, metas — is an
+// EARMARK: a label on money that already lives in one of those accounts.
+// Adding earmarks to holdings counts the same peso twice, and the bundled
+// demos proved it: the RD persona had RD$30,800 in accounts against RD$64,500
+// of earmarks, and the USD persona's balanceAhorros ($8,500) and emergency
+// fund ($12,000) were line-for-line duplicates of two of its own accounts.
+//
+// Consequence worth knowing: someone who tracks an emergency fund WITHOUT
+// listing the account it lives in will see it excluded. That is the intended
+// trade — earmarks are views, and the fix is to list the account.
 function netWorthRD(d){
   d=d||(typeof _editData!=='undefined'?_editData:null);
   if(!d)return 0;
   const tasa=d.config?.tasa||60;
   const cuentas=(d.forNow?.cuentas||[]).reduce((a,c)=>a+(c.saldo||0)*(c.moneda==='USD'?tasa:1),0);
-  const ahorros=d.emerg?.cashflow?.balanceAhorros||0;
-  // Converted inline rather than via fondoToRD(), which reads the global
-  // _editData for its rate — that would silently ignore `d` when a caller
-  // (or a test) passes a standalone object.
-  const ef=(d.emerg?.fondos||[]).reduce((a,f)=>a+(f.balance||0)*(f.moneda==='USD'?tasa:1),0);
   const deudas=(d.gastos||[]).reduce((a,g)=>a+(g.balance||0),0);
-  // Sinking-fund balances are cash the user has genuinely set aside. Counted
-  // here so that reclassifying a fund out of emerg.fondos moves it between
-  // buckets without changing net worth — the money did not go anywhere.
+  return cuentas+activosTotalRD(d)-deudas;
+}
+// Total earmarked across every allocation bucket, in RD$. Not part of net
+// worth — the UI shows allocations beside holdings, and reconcileEarmarks
+// compares the two.
+function earmarkedTotalRD(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  if(!d)return 0;
+  const tasa=d.config?.tasa||60;
+  const ef=(d.emerg?.fondos||[]).reduce((a,f)=>a+fondoToRD(f,tasa).balance,0);
   const sinking=(d.sinkingFunds||[]).reduce((a,f)=>a+(f.saved||0)*(f.moneda==='USD'?tasa:1),0);
-  return cuentas+ahorros+ef+sinking+activosTotalRD(d)-deudas;
+  const metas=(d.metas||[]).reduce((a,m)=>a+(m.saved||0),0);
+  return ef+sinking+metas;
+}
+// Do the earmarks actually fit inside the accounts?
+//
+// Net worth counts holdings only, so over-earmarking no longer inflates it —
+// but it is still a bookkeeping error worth surfacing, and one that is easy to
+// fall into: an emergency fund, a sinking fund and a savings goal can each
+// name the same 20,000 pesos without the user noticing. When the total
+// earmarked exceeds what the accounts hold, at least one of those buckets is
+// promised money that is not there.
+//
+// Compared against ALL accounts rather than only the liquid ones. Someone may
+// legitimately hold a goal's money in a brokerage, and a false alarm on a
+// correct setup would train people to ignore the warning.
+function reconcileEarmarks(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  if(!d)return{earmarked:0,held:0,overBy:0,ok:true};
+  const tasa=d.config?.tasa||60;
+  const held=(d.forNow?.cuentas||[]).reduce((a,c)=>a+(c.saldo||0)*(c.moneda==='USD'?tasa:1),0);
+  const earmarked=earmarkedTotalRD(d);
+  const overBy=earmarked-held;
+  return{earmarked,held,overBy:Math.max(0,overBy),ok:overBy<=0};
 }
 
 // ══════════════════════════════════
@@ -1784,13 +1823,10 @@ function sinkingToRD(f,tasa){
 function sinkingMonthsLeft(f,now){
   const cad=_CADENCIA_MESES[f?.cadencia]||12;
   if(!f?.proximaFecha)return cad;
-  // Parsed component-wise, NOT via `new Date('YYYY-MM-DD')`. That form is
-  // spec'd as UTC midnight, so anywhere west of Greenwich — including the
-  // Dominican Republic at UTC-4 — it lands on the previous day, and a
-  // January 1st due date reads as December. That silently shortens every
-  // horizon by a month and inflates the set-aside.
-  const m0=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(f.proximaFecha));
-  const due=m0?new Date(+m0[1],+m0[2]-1,+m0[3]):new Date(f.proximaFecha);
+  // parseLocalDate, not `new Date(str)` — see the note on that helper. A
+  // January 1st due date read as December would shorten this horizon by a
+  // whole month and inflate the set-aside.
+  const due=parseLocalDate(f.proximaFecha);
   if(isNaN(due.getTime()))return cad;
   now=now||new Date();
   const months=(due.getFullYear()-now.getFullYear())*12+(due.getMonth()-now.getMonth());
@@ -3294,6 +3330,14 @@ const LANG = {
     activo_tipo_inmueble:'Inmueble', activo_tipo_vehiculo:'Vehículo',
     activo_tipo_inversion:'Inversión', activo_tipo_otro:'Otro',
     edit_add_activo:'+ Agregar activo',
+    // Earmark reconciliation
+    alert_earmark_title:'Tienes más apartado de lo que hay en tus cuentas',
+    alert_earmark_msg:'Sumas {marked} entre fondo de emergencia, apartados y metas, pero tus cuentas tienen {held} — te pasas por {over}. Revisa que el dinero de cada fondo esté en una cuenta registrada, o baja lo apartado.',
+    // Close-month wizard field labels (were hardcoded Spanish + frozen currency)
+    cw_tasa:'Tasa Dólar (RD$/USD)', cw_mes:'Mes', cw_anio:'Año',
+    cw_gasto:'Gasto total del mes ({cs})',
+    cw_ahorros:'Ahorros este mes ({cs})',
+    cw_balance:'Balance total de ahorros ({cs}) — sugerido: balance anterior + este mes',
     // Retirement
     tab_retiro:'🌴 Retiro',
     retiro_assumptions:'Supuestos',
@@ -3948,6 +3992,14 @@ const LANG = {
     activo_tipo_inmueble:'Real estate', activo_tipo_vehiculo:'Vehicle',
     activo_tipo_inversion:'Investment', activo_tipo_otro:'Other',
     edit_add_activo:'+ Add asset',
+    // Earmark reconciliation
+    alert_earmark_title:'You have earmarked more than your accounts hold',
+    alert_earmark_msg:'Emergency fund, set-asides and goals add up to {marked}, but your accounts hold {held} — over by {over}. Check that each fund’s money sits in a listed account, or lower what is earmarked.',
+    // Close-month wizard field labels (were hardcoded Spanish + frozen currency)
+    cw_tasa:'USD rate (RD$/USD)', cw_mes:'Month', cw_anio:'Year',
+    cw_gasto:'Total spending this month ({cs})',
+    cw_ahorros:'Savings this month ({cs})',
+    cw_balance:'Total savings balance ({cs}) — suggested: previous balance + this month',
     // Retirement
     tab_retiro:'🌴 Retirement',
     retiro_assumptions:'Assumptions',
@@ -5290,41 +5342,41 @@ const _DEMO_DATA_RD={
 {"fondo":"Fondo emergencia (1 mes)","moneda":"RD","balance":15000,"meta":40000}
 ],"cashflow":{"ingreso":40000,"gasto":36850,"tasa":61.5,"retirarUSD":0,"ahorros":1500,"balanceAhorros":18500}},
 "historial":[
-{"mes":"Mayo","anio":2026,"ingresos":40000,"gasto":35850,"ahorro":4150,"tasaAhorro":0.10375,"deudas":70500,"emergencia":15000,"netWorth":120800,"tasa":61.5,"notas":"Mes balance — meta: pagar Visa con extra"},
-{"mes":"Abril","anio":2026,"ingresos":40000,"gasto":36200,"ahorro":3800,"tasaAhorro":0.095,"deudas":70500,"emergencia":14000,"netWorth":117000,"tasa":61.5,"notas":"Comencé curso digital marketing"},
-{"mes":"Marzo","anio":2026,"ingresos":40000,"gasto":38500,"ahorro":1500,"tasaAhorro":0.0375,"deudas":70500,"emergencia":13000,"netWorth":113500,"tasa":61.5,"notas":"Ascenso a Senior — gasto extra de cumpleaños"},
-{"mes":"Febrero","anio":2026,"ingresos":38000,"gasto":34000,"ahorro":4000,"tasaAhorro":0.10526315789473684,"deudas":70500,"emergencia":12000,"netWorth":110000,"tasa":61.5,"notas":"Mes apretado pero balanceado"},
-{"mes":"Enero","anio":2026,"ingresos":38000,"gasto":41200,"ahorro":-3200,"tasaAhorro":-0.08421052631578947,"deudas":70500,"emergencia":10500,"netWorth":105500,"tasa":61.5,"notas":"Reyes — sobre-gasto que ahora pago"},
-{"mes":"Diciembre","anio":2025,"ingresos":60000,"gasto":56000,"ahorro":4000,"tasaAhorro":0.06666666666666667,"deudas":70300,"emergencia":12000,"netWorth":109200,"tasa":61.5,"notas":"Regalía + bono — Navidad cara pero alcanzó"},
-{"mes":"Noviembre","anio":2025,"ingresos":37000,"gasto":33000,"ahorro":4000,"tasaAhorro":0.10810810810810811,"deudas":72100,"emergencia":11500,"netWorth":100900,"tasa":61.5,"notas":"Bonificación de fin de año"},
-{"mes":"Octubre","anio":2025,"ingresos":35000,"gasto":31500,"ahorro":3500,"tasaAhorro":0.1,"deudas":73900,"emergencia":10000,"netWorth":95600,"tasa":61.5,"notas":""},
-{"mes":"Septiembre","anio":2025,"ingresos":35000,"gasto":30200,"ahorro":4800,"tasaAhorro":0.13714285714285715,"deudas":75800,"emergencia":9000,"netWorth":90700,"tasa":61.4,"notas":"Recuperando del mes anterior"},
-{"mes":"Agosto","anio":2025,"ingresos":35000,"gasto":41000,"ahorro":-6000,"tasaAhorro":-0.17142857142857143,"deudas":77700,"emergencia":7500,"netWorth":81300,"tasa":61.4,"notas":"⚠ Urgencia médica de mamá — usé fondo emergencia"},
-{"mes":"Julio","anio":2025,"ingresos":37000,"gasto":38500,"ahorro":-1500,"tasaAhorro":-0.04054054054054054,"deudas":79600,"emergencia":12500,"netWorth":87400,"tasa":61.4,"notas":"Vacaciones más caras que presupuestadas"},
-{"mes":"Junio","anio":2025,"ingresos":35000,"gasto":32000,"ahorro":3000,"tasaAhorro":0.08571428571428572,"deudas":81500,"emergencia":13000,"netWorth":84000,"tasa":61.4,"notas":""},
-{"mes":"Mayo","anio":2025,"ingresos":35000,"gasto":33500,"ahorro":1500,"tasaAhorro":0.04285714285714286,"deudas":83400,"emergencia":11000,"netWorth":78600,"tasa":61.4,"notas":"Día de las Madres"},
-{"mes":"Abril","anio":2025,"ingresos":35000,"gasto":31800,"ahorro":3200,"tasaAhorro":0.09142857142857143,"deudas":85300,"emergencia":10500,"netWorth":75200,"tasa":61.3,"notas":"Aumento por evaluación anual"},
-{"mes":"Marzo","anio":2025,"ingresos":33000,"gasto":30500,"ahorro":2500,"tasaAhorro":0.07575757575757576,"deudas":87200,"emergencia":9000,"netWorth":70800,"tasa":61.3,"notas":""},
-{"mes":"Febrero","anio":2025,"ingresos":33000,"gasto":29500,"ahorro":3500,"tasaAhorro":0.10606060606060606,"deudas":89100,"emergencia":8000,"netWorth":66900,"tasa":61.2,"notas":"Mes disciplinado"},
-{"mes":"Enero","anio":2025,"ingresos":33000,"gasto":33500,"ahorro":-500,"tasaAhorro":-0.015151515151515152,"deudas":91000,"emergencia":6000,"netWorth":62500,"tasa":61.1,"notas":"Reyes — pagué a plazos"},
-{"mes":"Diciembre","anio":2024,"ingresos":55000,"gasto":51000,"ahorro":4000,"tasaAhorro":0.07272727272727272,"deudas":92900,"emergencia":5500,"netWorth":63100,"tasa":61.0,"notas":"Navidad — pude ahorrar algo gracias a la regalía"},
-{"mes":"Noviembre","anio":2024,"ingresos":35000,"gasto":32000,"ahorro":3000,"tasaAhorro":0.08571428571428572,"deudas":94800,"emergencia":6000,"netWorth":59700,"tasa":61.0,"notas":"Cyber Monday — pequeñas compras controladas"},
-{"mes":"Octubre","anio":2024,"ingresos":33000,"gasto":30200,"ahorro":2800,"tasaAhorro":0.08484848484848485,"deudas":96700,"emergencia":4500,"netWorth":55800,"tasa":61.0,"notas":""},
-{"mes":"Septiembre","anio":2024,"ingresos":33000,"gasto":29800,"ahorro":3200,"tasaAhorro":0.09696969696969697,"deudas":98600,"emergencia":3000,"netWorth":51900,"tasa":60.9,"notas":"Mes calmado"},
-{"mes":"Agosto","anio":2024,"ingresos":33000,"gasto":35500,"ahorro":-2500,"tasaAhorro":-0.07575757575757576,"deudas":100500,"emergencia":1000,"netWorth":47500,"tasa":60.8,"notas":"Útiles escolares para sobrina"},
-{"mes":"Julio","anio":2024,"ingresos":35000,"gasto":36000,"ahorro":-1000,"tasaAhorro":-0.02857142857142857,"deudas":102400,"emergencia":2000,"netWorth":46600,"tasa":60.7,"notas":"Vacaciones — playa con primas"},
-{"mes":"Junio","anio":2024,"ingresos":33000,"gasto":30800,"ahorro":2200,"tasaAhorro":0.06666666666666667,"deudas":104300,"emergencia":1500,"netWorth":44200,"tasa":60.6,"notas":""},
-{"mes":"Mayo","anio":2024,"ingresos":33000,"gasto":32500,"ahorro":500,"tasaAhorro":0.015151515151515152,"deudas":106200,"emergencia":0,"netWorth":40800,"tasa":60.5,"notas":"Día de las Madres"},
-{"mes":"Abril","anio":2024,"ingresos":33000,"gasto":31000,"ahorro":2000,"tasaAhorro":0.06060606060606061,"deudas":108100,"emergencia":-1000,"netWorth":37900,"tasa":60.5,"notas":"Aumento pequeño en sueldo"},
-{"mes":"Marzo","anio":2024,"ingresos":32000,"gasto":30200,"ahorro":1800,"tasaAhorro":0.05625,"deudas":110000,"emergencia":-2500,"netWorth":34500,"tasa":60.4,"notas":""},
-{"mes":"Febrero","anio":2024,"ingresos":32000,"gasto":28500,"ahorro":3500,"tasaAhorro":0.109375,"deudas":111800,"emergencia":-4000,"netWorth":31200,"tasa":60.3,"notas":"Mes disciplinado — comencé a ahorrar en serio"},
-{"mes":"Enero","anio":2024,"ingresos":32000,"gasto":35000,"ahorro":-3000,"tasaAhorro":-0.09375,"deudas":113500,"emergencia":-5500,"netWorth":28000,"tasa":60.2,"notas":"Reyes — sobre-presupuesto"},
-{"mes":"Diciembre","anio":2023,"ingresos":50000,"gasto":47000,"ahorro":3000,"tasaAhorro":0.06,"deudas":115000,"emergencia":-5500,"netWorth":28500,"tasa":60.0,"notas":"Regalía + gastos navideños"}
+{"mes":"Mayo","anio":2026,"ingresos":40000,"gasto":35850,"ahorro":4150,"tasaAhorro":0.10375,"deudas":70500,"emergencia":15000,"netWorth":80300,"tasa":61.5,"notas":"Mes balance — meta: pagar Visa con extra"},
+{"mes":"Abril","anio":2026,"ingresos":40000,"gasto":36200,"ahorro":3800,"tasaAhorro":0.095,"deudas":70500,"emergencia":14000,"netWorth":76500,"tasa":61.5,"notas":"Comencé curso digital marketing"},
+{"mes":"Marzo","anio":2026,"ingresos":40000,"gasto":38500,"ahorro":1500,"tasaAhorro":0.0375,"deudas":70500,"emergencia":13000,"netWorth":73000,"tasa":61.5,"notas":"Ascenso a Senior — gasto extra de cumpleaños"},
+{"mes":"Febrero","anio":2026,"ingresos":38000,"gasto":34000,"ahorro":4000,"tasaAhorro":0.10526315789473684,"deudas":70500,"emergencia":12000,"netWorth":69500,"tasa":61.5,"notas":"Mes apretado pero balanceado"},
+{"mes":"Enero","anio":2026,"ingresos":38000,"gasto":41200,"ahorro":-3200,"tasaAhorro":-0.08421052631578947,"deudas":70500,"emergencia":10500,"netWorth":65000,"tasa":61.5,"notas":"Reyes — sobre-gasto que ahora pago"},
+{"mes":"Diciembre","anio":2025,"ingresos":60000,"gasto":56000,"ahorro":4000,"tasaAhorro":0.06666666666666667,"deudas":70300,"emergencia":12000,"netWorth":68700,"tasa":61.5,"notas":"Regalía + bono — Navidad cara pero alcanzó"},
+{"mes":"Noviembre","anio":2025,"ingresos":37000,"gasto":33000,"ahorro":4000,"tasaAhorro":0.10810810810810811,"deudas":72100,"emergencia":11500,"netWorth":60400,"tasa":61.5,"notas":"Bonificación de fin de año"},
+{"mes":"Octubre","anio":2025,"ingresos":35000,"gasto":31500,"ahorro":3500,"tasaAhorro":0.1,"deudas":73900,"emergencia":10000,"netWorth":55100,"tasa":61.5,"notas":""},
+{"mes":"Septiembre","anio":2025,"ingresos":35000,"gasto":30200,"ahorro":4800,"tasaAhorro":0.13714285714285715,"deudas":75800,"emergencia":9000,"netWorth":50200,"tasa":61.4,"notas":"Recuperando del mes anterior"},
+{"mes":"Agosto","anio":2025,"ingresos":35000,"gasto":41000,"ahorro":-6000,"tasaAhorro":-0.17142857142857143,"deudas":77700,"emergencia":7500,"netWorth":40800,"tasa":61.4,"notas":"⚠ Urgencia médica de mamá — usé fondo emergencia"},
+{"mes":"Julio","anio":2025,"ingresos":37000,"gasto":38500,"ahorro":-1500,"tasaAhorro":-0.04054054054054054,"deudas":79600,"emergencia":12500,"netWorth":46900,"tasa":61.4,"notas":"Vacaciones más caras que presupuestadas"},
+{"mes":"Junio","anio":2025,"ingresos":35000,"gasto":32000,"ahorro":3000,"tasaAhorro":0.08571428571428572,"deudas":81500,"emergencia":13000,"netWorth":43500,"tasa":61.4,"notas":""},
+{"mes":"Mayo","anio":2025,"ingresos":35000,"gasto":33500,"ahorro":1500,"tasaAhorro":0.04285714285714286,"deudas":83400,"emergencia":11000,"netWorth":38100,"tasa":61.4,"notas":"Día de las Madres"},
+{"mes":"Abril","anio":2025,"ingresos":35000,"gasto":31800,"ahorro":3200,"tasaAhorro":0.09142857142857143,"deudas":85300,"emergencia":10500,"netWorth":34700,"tasa":61.3,"notas":"Aumento por evaluación anual"},
+{"mes":"Marzo","anio":2025,"ingresos":33000,"gasto":30500,"ahorro":2500,"tasaAhorro":0.07575757575757576,"deudas":87200,"emergencia":9000,"netWorth":30300,"tasa":61.3,"notas":""},
+{"mes":"Febrero","anio":2025,"ingresos":33000,"gasto":29500,"ahorro":3500,"tasaAhorro":0.10606060606060606,"deudas":89100,"emergencia":8000,"netWorth":26400,"tasa":61.2,"notas":"Mes disciplinado"},
+{"mes":"Enero","anio":2025,"ingresos":33000,"gasto":33500,"ahorro":-500,"tasaAhorro":-0.015151515151515152,"deudas":91000,"emergencia":6000,"netWorth":22000,"tasa":61.1,"notas":"Reyes — pagué a plazos"},
+{"mes":"Diciembre","anio":2024,"ingresos":55000,"gasto":51000,"ahorro":4000,"tasaAhorro":0.07272727272727272,"deudas":92900,"emergencia":5500,"netWorth":22600,"tasa":61.0,"notas":"Navidad — pude ahorrar algo gracias a la regalía"},
+{"mes":"Noviembre","anio":2024,"ingresos":35000,"gasto":32000,"ahorro":3000,"tasaAhorro":0.08571428571428572,"deudas":94800,"emergencia":6000,"netWorth":19200,"tasa":61.0,"notas":"Cyber Monday — pequeñas compras controladas"},
+{"mes":"Octubre","anio":2024,"ingresos":33000,"gasto":30200,"ahorro":2800,"tasaAhorro":0.08484848484848485,"deudas":96700,"emergencia":4500,"netWorth":15300,"tasa":61.0,"notas":""},
+{"mes":"Septiembre","anio":2024,"ingresos":33000,"gasto":29800,"ahorro":3200,"tasaAhorro":0.09696969696969697,"deudas":98600,"emergencia":3000,"netWorth":11400,"tasa":60.9,"notas":"Mes calmado"},
+{"mes":"Agosto","anio":2024,"ingresos":33000,"gasto":35500,"ahorro":-2500,"tasaAhorro":-0.07575757575757576,"deudas":100500,"emergencia":1000,"netWorth":7000,"tasa":60.8,"notas":"Útiles escolares para sobrina"},
+{"mes":"Julio","anio":2024,"ingresos":35000,"gasto":36000,"ahorro":-1000,"tasaAhorro":-0.02857142857142857,"deudas":102400,"emergencia":2000,"netWorth":6100,"tasa":60.7,"notas":"Vacaciones — playa con primas"},
+{"mes":"Junio","anio":2024,"ingresos":33000,"gasto":30800,"ahorro":2200,"tasaAhorro":0.06666666666666667,"deudas":104300,"emergencia":1500,"netWorth":3700,"tasa":60.6,"notas":""},
+{"mes":"Mayo","anio":2024,"ingresos":33000,"gasto":32500,"ahorro":500,"tasaAhorro":0.015151515151515152,"deudas":106200,"emergencia":0,"netWorth":300,"tasa":60.5,"notas":"Día de las Madres"},
+{"mes":"Abril","anio":2024,"ingresos":33000,"gasto":31000,"ahorro":2000,"tasaAhorro":0.06060606060606061,"deudas":108100,"emergencia":-1000,"netWorth":-2600,"tasa":60.5,"notas":"Aumento pequeño en sueldo"},
+{"mes":"Marzo","anio":2024,"ingresos":32000,"gasto":30200,"ahorro":1800,"tasaAhorro":0.05625,"deudas":110000,"emergencia":-2500,"netWorth":-6000,"tasa":60.4,"notas":""},
+{"mes":"Febrero","anio":2024,"ingresos":32000,"gasto":28500,"ahorro":3500,"tasaAhorro":0.109375,"deudas":111800,"emergencia":-4000,"netWorth":-9300,"tasa":60.3,"notas":"Mes disciplinado — comencé a ahorrar en serio"},
+{"mes":"Enero","anio":2024,"ingresos":32000,"gasto":35000,"ahorro":-3000,"tasaAhorro":-0.09375,"deudas":113500,"emergencia":-5500,"netWorth":-12500,"tasa":60.2,"notas":"Reyes — sobre-presupuesto"},
+{"mes":"Diciembre","anio":2023,"ingresos":50000,"gasto":47000,"ahorro":3000,"tasaAhorro":0.06,"deudas":115000,"emergencia":-5500,"netWorth":-12000,"tasa":60.0,"notas":"Regalía + gastos navideños"}
 ],
 "metas":[
-{"name":"Curso digital marketing","goal":28000,"saved":12000,"monthly":1500},
-{"name":"Celular nuevo","goal":22000,"saved":8500,"monthly":1000},
-{"name":"Ropa de invierno (visita NY)","goal":15000,"saved":3500,"monthly":800}
+{"name":"Curso digital marketing","goal":28000,"saved":3000,"monthly":1500},
+{"name":"Celular nuevo","goal":22000,"saved":2000,"monthly":1000},
+{"name":"Ropa de invierno (visita NY)","goal":15000,"saved":1000,"monthly":800}
 ],
 "transacciones":[
 {"fecha":"2026-05-04","monto":1200,"categoria":"comida","nota":"Compra colmado semana 1","metodo":"efectivo","gastoIdx":-1,"mes":"Mayo","anio":2026,"applied":true,"cuentaId":"cnt_demo_cash"},
@@ -5385,43 +5437,42 @@ const _DEMO_DATA_USD={
 {"fondo":"Medical Fund","moneda":"USD","balance":2000,"meta":5000}
 ],"cashflow":{"ingreso":390000,"gasto":341820,"tasa":60,"retirarUSD":0,"ahorros":24000,"balanceAhorros":510000}},
 "historial":[
-{"mes":"May","anio":2026,"ingresos":390000,"gasto":341820,"ahorro":48180,"tasaAhorro":0.1235,"deudas":20220000,"emergencia":840000,"netWorth":6798000,"tasa":60,"notas":"Best month — extra payment on Visa"},
-{"mes":"April","anio":2026,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":20370000,"emergencia":780000,"netWorth":6624000,"tasa":60,"notas":"Tax refund helped savings"},
-{"mes":"March","anio":2026,"ingresos":390000,"gasto":355200,"ahorro":34800,"tasaAhorro":0.0892,"deudas":20520000,"emergencia":702000,"netWorth":6366000,"tasa":60,"notas":"Paid extra on car loan"},
-{"mes":"February","anio":2026,"ingresos":390000,"gasto":346800,"ahorro":43200,"tasaAhorro":0.1108,"deudas":20670000,"emergencia":624000,"netWorth":6078000,"tasa":60,"notas":""},
-{"mes":"January","anio":2026,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":20820000,"emergencia":552000,"netWorth":5856000,"tasa":60,"notas":"Post-holiday spending catch-up"},
-{"mes":"December","anio":2025,"ingresos":390000,"gasto":432000,"ahorro":-42000,"tasaAhorro":-0.1077,"deudas":20970000,"emergencia":504000,"netWorth":5628000,"tasa":60,"notas":"Holiday spending high — gifts + travel"},
-{"mes":"November","anio":2025,"ingresos":390000,"gasto":339000,"ahorro":51000,"tasaAhorro":0.1308,"deudas":21090000,"emergencia":480000,"netWorth":5484000,"tasa":60,"notas":"Disciplined month — Black Friday avoided"},
-{"mes":"October","anio":2025,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":21228000,"emergencia":432000,"netWorth":5238000,"tasa":60,"notas":""},
-{"mes":"September","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21360000,"emergencia":384000,"netWorth":4968000,"tasa":60,"notas":"Back to school supplies"},
-{"mes":"August","anio":2025,"ingresos":390000,"gasto":426000,"ahorro":-36000,"tasaAhorro":-0.0923,"deudas":21492000,"emergencia":342000,"netWorth":4764000,"tasa":60,"notas":"⚠ Bad month — AC repair $1,200 + summer daycare costs up"},
-{"mes":"July","anio":2025,"ingresos":390000,"gasto":340800,"ahorro":49200,"tasaAhorro":0.1262,"deudas":21600000,"emergencia":300000,"netWorth":4608000,"tasa":60,"notas":"Good month — got back on track"},
-{"mes":"June","anio":2025,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":21732000,"emergencia":252000,"netWorth":4344000,"tasa":60,"notas":""},
-{"mes":"May","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21870000,"emergencia":204000,"netWorth":4098000,"tasa":60,"notas":""},
-{"mes":"April","anio":2025,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22008000,"emergencia":162000,"netWorth":3858000,"tasa":60,"notas":""},
-{"mes":"March","anio":2025,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":22140000,"emergencia":120000,"netWorth":3624000,"tasa":60,"notas":"Started kid college 529 contributions"},
-{"mes":"February","anio":2025,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":22272000,"emergencia":72000,"netWorth":3384000,"tasa":60,"notas":""},
-{"mes":"January","anio":2025,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":22410000,"emergencia":24000,"netWorth":3138000,"tasa":60,"notas":"Resolution: pay debts aggressively"},
-{"mes":"December","anio":2024,"ingresos":390000,"gasto":450000,"ahorro":-60000,"tasaAhorro":-0.1538,"deudas":22500000,"emergencia":-18000,"netWorth":2916000,"tasa":60,"notas":"Holiday spending — high but manageable"},
-{"mes":"November","anio":2024,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":22640000,"emergencia":-60000,"netWorth":2696000,"tasa":60,"notas":"Pre-holiday savings push"},
-{"mes":"October","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":22772000,"emergencia":-96000,"netWorth":2498000,"tasa":60,"notas":""},
-{"mes":"September","anio":2024,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22898000,"emergencia":-126000,"netWorth":2296000,"tasa":60,"notas":""},
-{"mes":"August","anio":2024,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":23022000,"emergencia":-156000,"netWorth":2094000,"tasa":60,"notas":"Back to school costs"},
-{"mes":"July","anio":2024,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":23142000,"emergencia":-180000,"netWorth":1896000,"tasa":60,"notas":"Good month"},
-{"mes":"June","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":23262000,"emergencia":-210000,"netWorth":1694000,"tasa":60,"notas":""},
-{"mes":"May","anio":2024,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":23382000,"emergencia":-234000,"netWorth":1494000,"tasa":60,"notas":""},
-{"mes":"April","anio":2024,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":23502000,"emergencia":-264000,"netWorth":1286000,"tasa":60,"notas":"Big tax bill — owed extra"},
-{"mes":"March","anio":2024,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":23622000,"emergencia":-276000,"netWorth":1090000,"tasa":60,"notas":"Quarterly tax estimate"},
-{"mes":"February","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":23736000,"emergencia":-300000,"netWorth":906000,"tasa":60,"notas":""},
-{"mes":"January","anio":2024,"ingresos":390000,"gasto":378000,"ahorro":12000,"tasaAhorro":0.0308,"deudas":23850000,"emergencia":-324000,"netWorth":716000,"tasa":60,"notas":"Holiday catch-up + January raises kicked in"},
-{"mes":"December","anio":2023,"ingresos":390000,"gasto":462000,"ahorro":-72000,"tasaAhorro":-0.1846,"deudas":23958000,"emergencia":-330000,"netWorth":546000,"tasa":60,"notas":"Holiday spending bigger than usual"}
+{"mes":"May","anio":2026,"ingresos":390000,"gasto":341820,"ahorro":48180,"tasaAhorro":0.1235,"deudas":20220000,"emergencia":840000,"netWorth":4911000,"tasa":60,"notas":"Best month — extra payment on Visa"},
+{"mes":"April","anio":2026,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":20370000,"emergencia":780000,"netWorth":4737000,"tasa":60,"notas":"Tax refund helped savings"},
+{"mes":"March","anio":2026,"ingresos":390000,"gasto":355200,"ahorro":34800,"tasaAhorro":0.0892,"deudas":20520000,"emergencia":702000,"netWorth":4479000,"tasa":60,"notas":"Paid extra on car loan"},
+{"mes":"February","anio":2026,"ingresos":390000,"gasto":346800,"ahorro":43200,"tasaAhorro":0.1108,"deudas":20670000,"emergencia":624000,"netWorth":4191000,"tasa":60,"notas":""},
+{"mes":"January","anio":2026,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":20820000,"emergencia":552000,"netWorth":3969000,"tasa":60,"notas":"Post-holiday spending catch-up"},
+{"mes":"December","anio":2025,"ingresos":390000,"gasto":432000,"ahorro":-42000,"tasaAhorro":-0.1077,"deudas":20970000,"emergencia":504000,"netWorth":3741000,"tasa":60,"notas":"Holiday spending high — gifts + travel"},
+{"mes":"November","anio":2025,"ingresos":390000,"gasto":339000,"ahorro":51000,"tasaAhorro":0.1308,"deudas":21090000,"emergencia":480000,"netWorth":3597000,"tasa":60,"notas":"Disciplined month — Black Friday avoided"},
+{"mes":"October","anio":2025,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":21228000,"emergencia":432000,"netWorth":3351000,"tasa":60,"notas":""},
+{"mes":"September","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21360000,"emergencia":384000,"netWorth":3081000,"tasa":60,"notas":"Back to school supplies"},
+{"mes":"August","anio":2025,"ingresos":390000,"gasto":426000,"ahorro":-36000,"tasaAhorro":-0.0923,"deudas":21492000,"emergencia":342000,"netWorth":2877000,"tasa":60,"notas":"⚠ Bad month — AC repair $1,200 + summer daycare costs up"},
+{"mes":"July","anio":2025,"ingresos":390000,"gasto":340800,"ahorro":49200,"tasaAhorro":0.1262,"deudas":21600000,"emergencia":300000,"netWorth":2721000,"tasa":60,"notas":"Good month — got back on track"},
+{"mes":"June","anio":2025,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":21732000,"emergencia":252000,"netWorth":2457000,"tasa":60,"notas":""},
+{"mes":"May","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21870000,"emergencia":204000,"netWorth":2211000,"tasa":60,"notas":""},
+{"mes":"April","anio":2025,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22008000,"emergencia":162000,"netWorth":1971000,"tasa":60,"notas":""},
+{"mes":"March","anio":2025,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":22140000,"emergencia":120000,"netWorth":1737000,"tasa":60,"notas":"Started kid college 529 contributions"},
+{"mes":"February","anio":2025,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":22272000,"emergencia":72000,"netWorth":1497000,"tasa":60,"notas":""},
+{"mes":"January","anio":2025,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":22410000,"emergencia":24000,"netWorth":1251000,"tasa":60,"notas":"Resolution: pay debts aggressively"},
+{"mes":"December","anio":2024,"ingresos":390000,"gasto":450000,"ahorro":-60000,"tasaAhorro":-0.1538,"deudas":22500000,"emergencia":-18000,"netWorth":1029000,"tasa":60,"notas":"Holiday spending — high but manageable"},
+{"mes":"November","anio":2024,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":22640000,"emergencia":-60000,"netWorth":809000,"tasa":60,"notas":"Pre-holiday savings push"},
+{"mes":"October","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":22772000,"emergencia":-96000,"netWorth":611000,"tasa":60,"notas":""},
+{"mes":"September","anio":2024,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22898000,"emergencia":-126000,"netWorth":409000,"tasa":60,"notas":""},
+{"mes":"August","anio":2024,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":23022000,"emergencia":-156000,"netWorth":207000,"tasa":60,"notas":"Back to school costs"},
+{"mes":"July","anio":2024,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":23142000,"emergencia":-180000,"netWorth":9000,"tasa":60,"notas":"Good month"},
+{"mes":"June","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":23262000,"emergencia":-210000,"netWorth":-193000,"tasa":60,"notas":""},
+{"mes":"May","anio":2024,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":23382000,"emergencia":-234000,"netWorth":-393000,"tasa":60,"notas":""},
+{"mes":"April","anio":2024,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":23502000,"emergencia":-264000,"netWorth":-601000,"tasa":60,"notas":"Big tax bill — owed extra"},
+{"mes":"March","anio":2024,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":23622000,"emergencia":-276000,"netWorth":-797000,"tasa":60,"notas":"Quarterly tax estimate"},
+{"mes":"February","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":23736000,"emergencia":-300000,"netWorth":-981000,"tasa":60,"notas":""},
+{"mes":"January","anio":2024,"ingresos":390000,"gasto":378000,"ahorro":12000,"tasaAhorro":0.0308,"deudas":23850000,"emergencia":-324000,"netWorth":-1171000,"tasa":60,"notas":"Holiday catch-up + January raises kicked in"},
+{"mes":"December","anio":2023,"ingresos":390000,"gasto":462000,"ahorro":-72000,"tasaAhorro":-0.1846,"deudas":23958000,"emergencia":-330000,"netWorth":-1341000,"tasa":60,"notas":"Holiday spending bigger than usual"}
 ],
 "metas":[
 {"name":"Family Vacation (Hawaii)","goal":300000,"saved":168000,"monthly":24000},
 {"name":"New Laptop","goal":90000,"saved":90000,"monthly":0},
 {"name":"Kid's College Fund","goal":3000000,"saved":270000,"monthly":18000},
-{"name":"Kitchen Renovation","goal":900000,"saved":192000,"monthly":15000},
-{"name":"Early Retirement Fund","goal":30000000,"saved":900000,"monthly":30000}
+{"name":"Kitchen Renovation","goal":900000,"saved":192000,"monthly":15000}
 ],
 "transacciones":[],
 "presupuesto":[],
@@ -5616,7 +5667,7 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
   const limProx=[];
   gastos.forEach(g=>{
     if(!g.fechaLimite||g.balance<=0)return;
-    const fl=g.fechaLimite instanceof Date?g.fechaLimite:new Date(g.fechaLimite);
+    const fl=parseLocalDate(g.fechaLimite);
     if(isNaN(fl.getTime()))return;
     const diffDays=Math.round((fl-today)/(1000*60*60*24));
     if(diffDays>=0&&diffDays<=60)limProx.push({...g,diffDays,fl});
@@ -5655,6 +5706,12 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
     const _used=_cards.reduce((a,g)=>a+Math.max(0,g.balance||0),0);
     const _lim=_cards.reduce((a,g)=>a+g.limiteCredito,0);
     agHtml.push(`<div class="alert-item ${_util>=UTIL_HIGH?'urgent':'warning'}"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">${t('alert_util_title')}</div><div class="alert-sub">${t('alert_util_msg').replace('{pct}',Math.round(_util*100)).replace('{used}',fmtC(toDisplay(_used))).replace('{lim}',fmtC(toDisplay(_lim)))}</div></div></div>`);
+  }
+  // Earmarks that do not fit in the accounts. A warning, not urgent: nothing
+  // is wrong with the money itself, the labels on it just do not add up.
+  const _rec=reconcileEarmarks(_editData);
+  if(!_rec.ok&&_rec.earmarked>0){
+    agHtml.push(`<div class="alert-item warning"><div class="alert-icon">🧮</div><div class="alert-text"><div class="alert-title">${t('alert_earmark_title')}</div><div class="alert-sub">${t('alert_earmark_msg').replace('{over}',fmtC(toDisplay(Math.round(_rec.overBy)))).replace('{marked}',fmtC(toDisplay(Math.round(_rec.earmarked)))).replace('{held}',fmtC(toDisplay(Math.round(_rec.held))))}</div></div></div>`);
   }
   const altaTasa=gastos.filter(g=>g.tasa>15&&g.balance>0);
   altaTasa.forEach(g=>agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${t('alert_highrate_sub').replace('%',g.tasa+'%').replace(currencySymbol(),fmtC(toDisplay(g.balance)))}</div></div></div>`));
@@ -6293,7 +6350,7 @@ function generateRecurring(config){
 
 function getRecurringDates(rec,upTo){
   const dates=[],MAX=365;
-  let cursor=new Date(rec.lastGenerated);
+  let cursor=parseLocalDate(rec.lastGenerated);
   for(let i=0;i<MAX;i++){
     if(rec.frecuencia==='diario')cursor.setDate(cursor.getDate()+1);
     else if(rec.frecuencia==='semanal')cursor.setDate(cursor.getDate()+7);
@@ -6651,7 +6708,7 @@ function updateProyector(){
       sorted.map((d,i)=>{
         let deadlineWarn='';
         if(d.fechaLimite){
-          const fl=d.fechaLimite instanceof Date?d.fechaLimite:new Date(d.fechaLimite);
+          const fl=parseLocalDate(d.fechaLimite);
           if(!isNaN(fl.getTime())){
             const deadlineMonths=Math.round((fl-today)/(1000*60*60*24*30.4375));
             if(d.paidMonth>deadlineMonths) deadlineWarn=`<span style="color:var(--red);font-size:10px;font-weight:700"> ⚠ ${t('proy_deadline_warn')} ${deadlineMonths}m</span>`;
@@ -7127,7 +7184,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   // Fix #6: stale date warning
   let staleWarn='';
   if(forNow.fecha){
-    const fechaDate=forNow.fecha instanceof Date?forNow.fecha:new Date(forNow.fecha);
+    const fechaDate=parseLocalDate(forNow.fecha);
     if(!isNaN(fechaDate.getTime())){
       const daysSince=Math.round((new Date()-fechaDate)/(1000*60*60*24));
       if(daysSince>30) staleWarn=`<div style="padding:8px 12px;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:8px;font-size:11px;color:var(--yellow);margin-top:8px;line-height:1.6">⚠️ ${t('fornow_stale_warn').replace('{days}',daysSince)}</div>`;
@@ -8003,16 +8060,26 @@ function buildDebtPayoffDates(gastos,ingreso,gasto){
 // ══════════════════════════════════
 let _cierreStep=0;
 let _cierreNextMes='',_cierreNextAnio=0;
-const _cierreSteps=[
-  {titleKey:'cierre_step1_title',subKey:'cierre_step1_sub',fields:[{id:'cw-tasa',label:'Tasa Dólar (RD$/USD)',type:'number',key:'tasa',step:'0.01'}]},
-  {titleKey:'cierre_step2_title',subKey:'cierre_step2_sub',fields:[{id:'cw-mes',label:'Mes',type:'text',key:'mes'},{id:'cw-anio',label:'Año',type:'number',key:'anio'}]},
-  {titleKey:'cierre_step3_title',subKey:'cierre_step3_sub',fields:[{id:'cw-ingreso',label:'Ingreso por pago (USD)',type:'number',key:'ingresoUSD',step:'1'}]},
-  {titleKey:'cierre_step4_title',subKey:'cierre_step4_sub',fields:[{id:'cw-gasto',label:'Gasto Total del Mes ('+currencySymbol()+')',type:'number',key:'gasto',step:'any'}]},
-  {titleKey:'cierre_step5_title',subKey:'cierre_step5_sub',fields:[]},
-  {titleKey:'cierre_step6_title',subKey:'cierre_step6_sub',fields:[{id:'cw-ahorros',label:'Ahorros este mes ('+currencySymbol()+')',type:'number',key:'ahorros'},{id:'cw-balAh',label:'Balance total de ahorros ('+currencySymbol()+') — sugerido: balance anterior + este mes',type:'number',key:'balanceAhorros'}]},
-  {titleKey:'cierre_step7_title',subKey:'cierre_step7_sub',fields:[]},
-  {titleKey:'cierre_step8_title',subKey:'cierre_step8_sub',fields:[]},
-];
+// Built per render, NOT a module-level const.
+//
+// As a const this array was evaluated once at load: the labels were hardcoded
+// Spanish and the `currencySymbol()` calls were frozen at whatever the
+// currency was on first paint. So the close-month wizard stayed in Spanish
+// after switching to English, and kept showing RD$ after switching to USD —
+// toggleLang re-renders the wizard, but re-rendering a frozen array changes
+// nothing.
+function cierreSteps(){
+  return [
+    {titleKey:'cierre_step1_title',subKey:'cierre_step1_sub',fields:[{id:'cw-tasa',label:t('cw_tasa'),type:'number',key:'tasa',step:'0.01'}]},
+    {titleKey:'cierre_step2_title',subKey:'cierre_step2_sub',fields:[{id:'cw-mes',label:t('cw_mes'),type:'text',key:'mes'},{id:'cw-anio',label:t('cw_anio'),type:'number',key:'anio'}]},
+    {titleKey:'cierre_step3_title',subKey:'cierre_step3_sub',fields:[{id:'cw-ingreso',label:t('ecfg_ingreso'),type:'number',key:'ingresoUSD',step:'1'}]},
+    {titleKey:'cierre_step4_title',subKey:'cierre_step4_sub',fields:[{id:'cw-gasto',label:t('cw_gasto'),type:'number',key:'gasto',step:'any'}]},
+    {titleKey:'cierre_step5_title',subKey:'cierre_step5_sub',fields:[]},
+    {titleKey:'cierre_step6_title',subKey:'cierre_step6_sub',fields:[{id:'cw-ahorros',label:t('cw_ahorros'),type:'number',key:'ahorros'},{id:'cw-balAh',label:t('cw_balance'),type:'number',key:'balanceAhorros'}]},
+    {titleKey:'cierre_step7_title',subKey:'cierre_step7_sub',fields:[]},
+    {titleKey:'cierre_step8_title',subKey:'cierre_step8_sub',fields:[]},
+  ];
+}
 function openCierre(){
   _cierreStep=0;
   _cierreNextMes='';_cierreNextAnio=0;
@@ -8023,9 +8090,10 @@ function openCierre(){
 }
 function closeCierre(){document.getElementById('cierreModal').classList.remove('open');document.body.style.overflow='';}
 function renderCierre(){
-  const total=_cierreSteps.length;
-  document.getElementById('stepDots').innerHTML=_cierreSteps.map((_,i)=>`<div class="step-dot ${i===_cierreStep?'active':i<_cierreStep?'done':''}"></div>`).join('');
-  const s=_cierreSteps[_cierreStep];
+  const _steps=cierreSteps();
+  const total=_steps.length;
+  document.getElementById('stepDots').innerHTML=_steps.map((_,i)=>`<div class="step-dot ${i===_cierreStep?'active':i<_cierreStep?'done':''}"></div>`).join('');
+  const s=_steps[_cierreStep];
   let html=`<div class="cierre-title">${t(s.titleKey)}</div><div class="cierre-sub">${t(s.subKey)}</div>`;
   if(_cierreStep===4){
     // Saldos cuentas — use numeric index for IDs (account names may contain spaces/special chars)
@@ -8092,7 +8160,7 @@ function renderCierre(){
 }
 function cierreNav(dir){
   if(dir===1){
-    const s=_cierreSteps[_cierreStep];
+    const s=cierreSteps()[_cierreStep];
     if(_cierreStep===0){_editData.config.tasa=pf(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     else if(_cierreStep===1){_editData.config.mes=document.getElementById('cw-mes')?.value||_editData.config.mes;_editData.config.anio=parseInt(document.getElementById('cw-anio')?.value)||_editData.config.anio;}
     else if(_cierreStep===2){const _v=pf(document.getElementById('cw-ingreso')?.value);if(_v>0)setPrimaryIncomeUSD(_editData.config,_v);syncIncomeMirrors(_editData);}
@@ -8171,7 +8239,7 @@ function cierreNav(dir){
       showToast(summaryHtml,saveRate>=20?'var(--green)':'var(--yellow)');
       return;
     }
-    if(_cierreStep<_cierreSteps.length-1){_cierreStep++;renderCierre();}
+    if(_cierreStep<cierreSteps().length-1){_cierreStep++;renderCierre();}
   } else {
     if(_cierreStep===7){_cierreNextMes=document.getElementById('cw-nextmes')?.value.trim()||'';_cierreNextAnio=parseInt(document.getElementById('cw-nextanio')?.value)||0;}
     if(_cierreStep>0){_cierreStep--;renderCierre();}
@@ -8511,6 +8579,18 @@ window.retirementTargetRD=retirementTargetRD;
 window.futureValue=futureValue;
 window.requiredContribution=requiredContribution;
 window.realRate=realRate;
+window.parseLocalDate=parseLocalDate;
+window.cierreSteps=cierreSteps;
+window.earmarkedTotalRD=earmarkedTotalRD;
+window.reconcileEarmarks=reconcileEarmarks;
+window.gastoPagadoMes=gastoPagadoMes;
+window.gastoPendienteMes=gastoPendienteMes;
+window.axisTick=axisTick;
+// A getter, not a plain assignment: destroyCharts() REPLACES the charts
+// object on every dashboard build, so a one-time copy would go stale after
+// the first render and tests would inspect a dead Chart instance.
+Object.defineProperty(window,'charts',{get:()=>charts,configurable:true});
+window.sourceMonthlyUSD=sourceMonthlyUSD;
 window.transferBetweenAccounts=transferBetweenAccounts;
 window.reverseTransferGroup=reverseTransferGroup;
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
@@ -8637,13 +8717,33 @@ function onGastoMetodoChange(i,sel){
   markChanged(sel);
 }
 // Convert fondo balance/meta to base currency (RD$) — if moneda=USD, multiply by config.tasa
-function fondoToRD(f){const tasa=_editData.config.tasa||60;const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
+// `tasa` is an optional second argument so a caller working on a standalone
+// data object (a test, a migration, netWorthRD) can pass its rate. It used to
+// read the global _editData unconditionally, which silently converted another
+// object's funds at the wrong exchange rate.
+function fondoToRD(f,tasa){const r=tasa||_editData?.config?.tasa||60;const m=f.moneda==='USD'?r:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
 // Convert fondo to display currency
 function fondoToDisplay(f){const tasa=_editData.config.tasa||60;const primary=_editData?.config?.monedaPrincipal||'RD';if(primary==='USD'){const m=f.moneda==='USD'?1:1/tasa;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}const m=f.moneda==='USD'?tasa:1;return{balance:(f.balance||0)*m,meta:(f.meta||0)*m};}
+// Parse a stored date as a LOCAL calendar date.
+//
+// Every date this app stores is a plain calendar day ('YYYY-MM-DD'): a payment
+// due date, a fund's next due date, a transaction date. `new Date(str)` is
+// spec'd to read that form as UTC midnight, so anywhere west of Greenwich —
+// the Dominican Republic is UTC-4 — it lands on the PREVIOUS day. Every due
+// date rendered a day early, and the 60-day deadline window was off by one at
+// its boundary. Longer forms ('2026-12-15T10:00:00', 'Dec 15 2026') are
+// already parsed as local time, so they fall through to the native parser.
+function parseLocalDate(v){
+  if(v instanceof Date)return v;
+  if(v===null||v===undefined||v==='')return new Date(NaN);
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v).trim());
+  if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  return new Date(v);
+}
 function fmtFecha(f,opts){
   // Normaliza cualquier formato de fecha (Date, string ISO, string larga) a fecha local en español
   if(!f)return'—';
-  const d=f instanceof Date?f:new Date(f);
+  const d=parseLocalDate(f);
   if(isNaN(d.getTime()))return'—';
   return d.toLocaleDateString('es-DO',opts||{day:'numeric',month:'short',year:'numeric'});
 }

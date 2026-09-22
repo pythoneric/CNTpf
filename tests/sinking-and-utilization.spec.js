@@ -16,7 +16,7 @@ const { test, expect } = require('@playwright/test');
  * Sub-suites:
  *   1. Sinking fund maths (monthly set-aside, months left, cadence)
  *   2. Separation from emergency funds — the score must not move
- *   3. Sinking balances count toward net worth
+ *   3. Sinking balances are earmarks, not net worth
  *   4. Waterfall integration
  *   5. Credit utilization maths + bands
  *   6. Irregular recurrentes cadences
@@ -102,6 +102,40 @@ test.describe('Sinking funds — maths', () => {
     expect(m).toBeCloseTo(100, 5);
   });
 
+  test('sinkingTotalsRD aggregates saved, target and monthly set-aside', async ({ page }) => {
+    await loadWith(page);
+    const t = await page.evaluate(() => {
+      _editData.sinkingFunds = [
+        { nombre: 'A', meta: 12000, saved: 3000, cadencia: 'anual', proximaFecha: '2027-01-01', moneda: 'RD' },
+        { nombre: 'B', meta: 6000, saved: 6000, cadencia: 'anual', proximaFecha: '2027-01-01', moneda: 'RD' },
+      ];
+      window.migrateData(_editData);
+      return window.sinkingTotalsRD(_editData, new Date(2026, 0, 1));
+    });
+    expect(t.count).toBe(2);
+    expect(t.saved).toBe(9000);
+    expect(t.meta).toBe(18000);
+    // Only fund A still needs funding: (12,000 - 3,000) over 12 months.
+    expect(t.monthly).toBeCloseTo(750, 6);
+  });
+
+  test('sinkingTotalsRD is all zeros with no funds', async ({ page }) => {
+    await loadWith(page);
+    const t = await page.evaluate(() => window.sinkingTotalsRD(_editData));
+    expect(t).toEqual({ saved: 0, meta: 0, monthly: 0, count: 0 });
+  });
+
+  test('sinkingTotalsRD converts USD funds at tasa', async ({ page }) => {
+    await loadWith(page);
+    const t = await page.evaluate(() => {
+      _editData.sinkingFunds = [{ nombre: 'U', meta: 200, saved: 100, cadencia: 'anual', proximaFecha: '2027-01-01', moneda: 'USD' }];
+      window.migrateData(_editData);
+      return window.sinkingTotalsRD(_editData, new Date(2026, 0, 1));
+    });
+    expect(t.saved).toBe(6000);
+    expect(t.meta).toBe(12000);
+  });
+
   test('USD funds convert at tasa', async ({ page }) => {
     await loadWith(page);
     const m = await page.evaluate(() => window.sinkingMonthlyRD(
@@ -143,15 +177,18 @@ test.describe('Sinking funds — kept out of the emergency score', () => {
 // 3. Net worth
 // ───────────────────────────────────────────────────────────────────
 test.describe('Sinking funds — net worth', () => {
-  test('set-aside balances count as assets', async ({ page }) => {
+  test('set-aside balances are an earmark, not extra net worth', async ({ page }) => {
     await loadWith(page);
     const before = await page.evaluate(() => window.netWorthRD(_editData));
     await page.evaluate(() => {
       _editData.sinkingFunds = [{ nombre: 'IPI', meta: 20000, saved: 7500, cadencia: 'anual', proximaFecha: '2027-01-01', moneda: 'RD' }];
       window.migrateData(_editData);
     });
-    const after = await page.evaluate(() => window.netWorthRD(_editData));
-    expect(after - before).toBe(7500);
+    const res = await page.evaluate(() => ({ nw: window.netWorthRD(_editData), earmarked: window.earmarkedTotalRD(_editData) }));
+    // The RD$7,500 already sits in an account that net worth counts; it shows
+    // up as an allocation instead.
+    expect(res.nw).toBe(before);
+    expect(res.earmarked).toBeGreaterThanOrEqual(7500);
   });
 
   test('moving a fund from emergency to sinking leaves net worth unchanged', async ({ page }) => {

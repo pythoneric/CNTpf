@@ -28,15 +28,25 @@ const path = require('path');
 
 const SRC = fs.readFileSync(path.join(__dirname, '..', 'cnt.html'), 'utf8');
 
+// Line endings are normalized before any index math. The terminators below are
+// written with \n, but a Windows checkout with core.autocrlf materializes the
+// file as CRLF — indexOf then returns -1, slice(start, -1) swallows the whole
+// rest of cnt.html, and the "EN-only keys" list fills up with object
+// properties like backgroundColor and indexAxis instead of failing honestly.
+const SRC_LF = SRC.replace(/\r\n/g, '\n');
+
 function parseLangBlock(blockName) {
   // Find the LANG object's <name>: { ... } block and parse key/value pairs.
-  const langStart = SRC.indexOf('const LANG');
-  const blockHeader = SRC.indexOf(`${blockName}: {`, langStart);
+  const langStart = SRC_LF.indexOf('const LANG');
+  const blockHeader = SRC_LF.indexOf(`${blockName}: {`, langStart);
   // End at the next top-level lang block or the closing of LANG entirely.
   const nextLang = blockName === 'es'
-    ? SRC.indexOf('\n  en: {', blockHeader)
-    : SRC.indexOf('\n  }\n};', blockHeader);
-  const block = SRC.slice(blockHeader, nextLang);
+    ? SRC_LF.indexOf('\n  en: {', blockHeader)
+    : SRC_LF.indexOf('\n  }\n};', blockHeader);
+  if (blockHeader < 0 || nextLang < 0) {
+    throw new Error(`parseLangBlock('${blockName}'): could not locate the block boundaries in cnt.html`);
+  }
+  const block = SRC_LF.slice(blockHeader, nextLang);
   const pairs = {};
   const re = /(?:^|,|\{)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(['"])((?:\\.|(?!\2).)*)\2/gms;
   let m;
