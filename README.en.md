@@ -29,7 +29,7 @@ The 5 files must live in the **same folder** for the PWA to work correctly.
 Additional development files:
 ```
 playwright.config.js  -- E2E test configuration
-tests/                -- Playwright test suite (931 tests)
+tests/                -- Playwright test suite (973 tests)
 package.json          -- Dev dependencies (Playwright)
 ```
 

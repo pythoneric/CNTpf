@@ -23,6 +23,7 @@ const { test, expect } = require('@playwright/test');
  *   6. Edit modal Ingresos tab
  *   7. Demo data
  *   8. i18n
+ *   9. Helper internals (incomeSources / primaryIncomeSource / sourceMonthlyUSD)
  */
 
 function baseData() {
@@ -312,5 +313,116 @@ test.describe('Income — i18n', () => {
       const vals = await page.evaluate(ks => ks.map(k => t(k)), keys);
       vals.forEach((v, i) => expect(v, `${keys[i]} missing in ${lang}`).not.toBe(keys[i]));
     }
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────
+// 9. Helper internals
+// ───────────────────────────────────────────────────────────────────
+//
+// These three sit under the public helpers and were only exercised
+// indirectly. They carry the compatibility rules, so they get direct tests.
+test.describe('Income — helper internals', () => {
+  test('incomeSources returns the list when one exists', async ({ page }) => {
+    await loadWith(page, "d.config.ingresos=[{id:'a',nombre:'X',monto:5,moneda:'USD',frecuencia:'mensual',tipo:'fijo'}]");
+    const n = await page.evaluate(() => window.incomeSources(_editData.config).length);
+    expect(n).toBe(1);
+  });
+
+  test('incomeSources synthesizes from the legacy scalar when the list is absent', async ({ page }) => {
+    await openApp(page);
+    const src = await page.evaluate(() => window.incomeSources({ ingresoUSD: 800, payFrequency: 'quincenal' }));
+    expect(src).toHaveLength(1);
+    expect(src[0].monto).toBe(800);
+    expect(src[0].frecuencia).toBe('quincenal');
+  });
+
+  test('incomeSources treats an empty list with a legacy amount the same way', async ({ page }) => {
+    await openApp(page);
+    const src = await page.evaluate(() => window.incomeSources({ ingresos: [], ingresoUSD: 800, payFrequency: 'mensual' }));
+    expect(src).toHaveLength(1);
+  });
+
+  test('incomeSources does not synthesize when there is genuinely no income', async ({ page }) => {
+    await openApp(page);
+    const src = await page.evaluate(() => window.incomeSources({ ingresos: [], ingresoUSD: 0 }));
+    expect(src).toEqual([]);
+  });
+
+  test('the synthesized source is read-only — it is not written back', async ({ page }) => {
+    await openApp(page);
+    const after = await page.evaluate(() => {
+      const cfg = { ingresoUSD: 800, payFrequency: 'mensual' };
+      window.incomeSources(cfg);
+      return cfg.ingresos;
+    });
+    expect(after).toBeUndefined();
+  });
+
+  test('primaryIncomeSource picks the source on the primary cadence', async ({ page }) => {
+    await loadWith(page, "d.config.payFrequency='quincenal';d.config.ingresos=[{id:'a',nombre:'Bonus',monto:9,moneda:'USD',frecuencia:'anual',tipo:'variable'},{id:'b',nombre:'Salary',monto:5,moneda:'USD',frecuencia:'quincenal',tipo:'fijo'}]");
+    const name = await page.evaluate(() => window.primaryIncomeSource(_editData.config).nombre);
+    expect(name).toBe('Salary');
+  });
+
+  test('primaryIncomeSource falls back to the first source when none match', async ({ page }) => {
+    await loadWith(page, "d.config.payFrequency='semanal';d.config.ingresos=[{id:'a',nombre:'Only',monto:9,moneda:'USD',frecuencia:'anual',tipo:'variable'}]");
+    const name = await page.evaluate(() => window.primaryIncomeSource(_editData.config).nombre);
+    expect(name).toBe('Only');
+  });
+
+  test('primaryIncomeSource returns null with no sources', async ({ page }) => {
+    await openApp(page);
+    const r = await page.evaluate(() => window.primaryIncomeSource({ ingresos: [], ingresoUSD: 0 }));
+    expect(r).toBeNull();
+  });
+
+  test('setPrimaryIncomeUSD creates a source when none exists', async ({ page }) => {
+    await loadWith(page, "d.config.ingresoUSD=0");
+    const src = await page.evaluate(() => {
+      window.setPrimaryIncomeUSD(_editData.config, 1234);
+      return _editData.config.ingresos;
+    });
+    expect(src).toHaveLength(1);
+    expect(src[0].monto).toBe(1234);
+  });
+
+  test('setPrimaryIncomeUSD converts into an RD-denominated source', async ({ page }) => {
+    await loadWith(page, "d.config.ingresos=[{id:'a',nombre:'Sueldo',monto:60000,moneda:'RD',frecuencia:'mensual',tipo:'fijo'}]");
+    const monto = await page.evaluate(() => {
+      window.setPrimaryIncomeUSD(_editData.config, 2000);
+      return _editData.config.ingresos[0].monto;
+    });
+    // $2,000 stored as RD$120,000 at tasa 60, because that source is in RD$.
+    expect(monto).toBe(120000);
+  });
+
+  test('sourceMonthlyUSD applies the cadence multiplier', async ({ page }) => {
+    await openApp(page);
+    const out = await page.evaluate(() => [
+      window.sourceMonthlyUSD({ monto: 100, moneda: 'USD', frecuencia: 'mensual' }, 60),
+      window.sourceMonthlyUSD({ monto: 100, moneda: 'USD', frecuencia: 'quincenal' }, 60),
+      window.sourceMonthlyUSD({ monto: 100, moneda: 'USD', frecuencia: 'semanal' }, 60),
+      window.sourceMonthlyUSD({ monto: 1200, moneda: 'USD', frecuencia: 'anual' }, 60),
+    ]);
+    expect(out[0]).toBeCloseTo(100, 9);
+    expect(out[1]).toBeCloseTo(100 * 26 / 12, 9);
+    expect(out[2]).toBeCloseTo(100 * 52 / 12, 9);
+    expect(out[3]).toBeCloseTo(100, 9);
+  });
+
+  test('sourceMonthlyUSD converts an RD source at the given rate', async ({ page }) => {
+    await openApp(page);
+    const v = await page.evaluate(() => window.sourceMonthlyUSD({ monto: 6000, moneda: 'RD', frecuencia: 'mensual' }, 60));
+    expect(v).toBe(100);
+  });
+
+  test('sourceMonthlyUSD is zero for junk input', async ({ page }) => {
+    await openApp(page);
+    const out = await page.evaluate(() => [
+      window.sourceMonthlyUSD(null, 60),
+      window.sourceMonthlyUSD({}, 60),
+    ]);
+    expect(out).toEqual([0, 0]);
   });
 });

@@ -8583,6 +8583,14 @@ window.parseLocalDate=parseLocalDate;
 window.cierreSteps=cierreSteps;
 window.earmarkedTotalRD=earmarkedTotalRD;
 window.reconcileEarmarks=reconcileEarmarks;
+window.gastoPagadoMes=gastoPagadoMes;
+window.gastoPendienteMes=gastoPendienteMes;
+window.axisTick=axisTick;
+// A getter, not a plain assignment: destroyCharts() REPLACES the charts
+// object on every dashboard build, so a one-time copy would go stale after
+// the first render and tests would inspect a dead Chart instance.
+Object.defineProperty(window,'charts',{get:()=>charts,configurable:true});
+window.sourceMonthlyUSD=sourceMonthlyUSD;
 window.transferBetweenAccounts=transferBetweenAccounts;
 window.reverseTransferGroup=reverseTransferGroup;
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};

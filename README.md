@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (931 tests)
+tests/                -- Suite de tests Playwright (973 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -465,7 +465,8 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `multi-income.spec.js` | 29 | Múltiples fuentes de ingreso: migración v4→v5, agregación por cadencia, per-pay, espejos legacy, tolerancia a configs sin migrar, pestaña Ingresos |
 | `retirement.spec.js` | 34 | Retiro: tasa real (Fisher), valor futuro/aporte requerido, balance invertido, meta 25x, veredicto, esquema, pestaña, i18n |
 | `preexisting-fixes.spec.js` | 29 | Bugs preexistentes: parseLocalDate (fechas UTC vs locales), labels del cierre traducidos y con moneda viva, fondoToRD con tasa inyectada, reconciliacion de apartados vs cuentas |
-| **Total** | **931** | |
+| `paid-vs-pending-chart.spec.js` | 26 | Grafico Pagado vs Pendiente: clamp a la cuota del mes, invariante pagado+pendiente, stacking, moneda de display, axisTick, i18n de titulos y series |
+| **Total** | **973** | |
 
 ---
 
