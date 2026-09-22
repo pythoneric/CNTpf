@@ -36,9 +36,14 @@ async function loadApp(page, opts = {}) {
     ];
 
     if (opts.withHistory) {
+      // Live net worth for this fixture is 266,000 in accounts − 380,000 of
+      // debt = −114,000 (holdings only; the emergency fund is an earmark on
+      // money the accounts already hold). The prior months sit below that so
+      // the current month reads as an improvement, which is what the delta
+      // arrow test is actually about.
       data.historial = [
-        { mes: 'Febrero', anio: 2026, ingresos: 174000, gasto: 130000, ahorro: 44000, tasaAhorro: 0.25, deudas: 400000, emergencia: 40000, netWorth: -100000, tasa: 58, notas: '' },
-        { mes: 'Enero', anio: 2026, ingresos: 170000, gasto: 140000, ahorro: 30000, tasaAhorro: 0.18, deudas: 420000, emergencia: 30000, netWorth: -140000, tasa: 57, notas: '' },
+        { mes: 'Febrero', anio: 2026, ingresos: 174000, gasto: 130000, ahorro: 44000, tasaAhorro: 0.25, deudas: 400000, emergencia: 40000, netWorth: -150000, tasa: 58, notas: '' },
+        { mes: 'Enero', anio: 2026, ingresos: 170000, gasto: 140000, ahorro: 30000, tasaAhorro: 0.18, deudas: 420000, emergencia: 30000, netWorth: -190000, tasa: 57, notas: '' },
       ];
     }
 

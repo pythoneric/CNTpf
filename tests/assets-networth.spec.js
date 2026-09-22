@@ -13,8 +13,14 @@ const { test, expect } = require('@playwright/test');
  * only checked that the two currency modes agreed with each other, which they
  * did while both were wrong.
  *
+ * Net worth is HOLDINGS ONLY: accounts + assets − debts. Emergency funds, the
+ * savings balance, sinking funds and goals are EARMARKS — labels on money that
+ * already sits in one of those accounts — so adding them counted the same peso
+ * twice. Both demos proved it: the USD persona's balanceAhorros and emergency
+ * fund were line-for-line duplicates of two of its own accounts.
+ *
  * Sub-suites:
- *   1. netWorthRD formula — direct, including the assets term
+ *   1. netWorthRD formula — direct, including assets and excluding earmarks
  *   2. Currency conversion of assets
  *   3. Live dashboard vs month-close parity (the duplicated-formula bug)
  *   4. Schema: defaults, migration, ids, tipo normalization
@@ -55,17 +61,48 @@ async function loadWith(page, mutate) {
 // 1. The formula
 // ───────────────────────────────────────────────────────────────────
 test.describe('netWorthRD — formula', () => {
-  test('with no assets: accounts + savings + emergency - debts', async ({ page }) => {
+  test('with no assets: accounts - debts', async ({ page }) => {
     await loadWith(page);
     const nw = await page.evaluate(() => window.netWorthRD(_editData));
-    // 100,000 + 20,000 + 50,000 − 3,000,000
-    expect(nw).toBe(100000 + 20000 + 50000 - 3000000);
+    // 100,000 in accounts − 3,000,000 of debt. The emergency fund (50,000) and
+    // savings balance (20,000) are EARMARKS on that same 100,000, not extra
+    // money, so they are deliberately absent.
+    expect(nw).toBe(100000 - 3000000);
   });
 
   test('assets are added to net worth', async ({ page }) => {
     await loadWith(page, "d.activos=[{nombre:'Casa',tipo:'inmueble',valor:3200000,moneda:'RD'}]");
     const nw = await page.evaluate(() => window.netWorthRD(_editData));
-    expect(nw).toBe(100000 + 20000 + 50000 + 3200000 - 3000000);
+    expect(nw).toBe(100000 + 3200000 - 3000000);
+  });
+
+  test('earmarks do NOT inflate net worth', async ({ page }) => {
+    await loadWith(page);
+    const before = await page.evaluate(() => window.netWorthRD(_editData));
+    await page.evaluate(() => {
+      // Every allocation bucket at once. None of it is new money — it all
+      // lives in the accounts already counted.
+      _editData.emerg.fondos.push({ fondo: 'Extra', moneda: 'RD', balance: 999999, meta: 0 });
+      _editData.emerg.cashflow.balanceAhorros = 888888;
+      _editData.sinkingFunds = [{ nombre: 'S', meta: 1, saved: 777777, cadencia: 'anual', moneda: 'RD' }];
+      _editData.metas = [{ name: 'M', goal: 1, saved: 666666, monthly: 0 }];
+      window.migrateData(_editData);
+    });
+    const after = await page.evaluate(() => window.netWorthRD(_editData));
+    expect(after).toBe(before);
+  });
+
+  test('earmarkedTotalRD reports allocations without touching net worth', async ({ page }) => {
+    await loadWith(page);
+    const res = await page.evaluate(() => {
+      _editData.sinkingFunds = [{ nombre: 'S', meta: 1, saved: 1000, cadencia: 'anual', moneda: 'RD' }];
+      _editData.metas = [{ name: 'M', goal: 1, saved: 2000, monthly: 0 }];
+      window.migrateData(_editData);
+      return { earmarked: window.earmarkedTotalRD(_editData), nw: window.netWorthRD(_editData) };
+    });
+    // 50,000 emergency + 1,000 sinking + 2,000 goals
+    expect(res.earmarked).toBe(53000);
+    expect(res.nw).toBe(100000 - 3000000);
   });
 
   test('a mortgaged home flips net worth from deeply negative to positive', async ({ page }) => {

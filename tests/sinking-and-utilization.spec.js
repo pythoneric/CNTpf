@@ -16,7 +16,7 @@ const { test, expect } = require('@playwright/test');
  * Sub-suites:
  *   1. Sinking fund maths (monthly set-aside, months left, cadence)
  *   2. Separation from emergency funds — the score must not move
- *   3. Sinking balances count toward net worth
+ *   3. Sinking balances are earmarks, not net worth
  *   4. Waterfall integration
  *   5. Credit utilization maths + bands
  *   6. Irregular recurrentes cadences
@@ -143,15 +143,18 @@ test.describe('Sinking funds — kept out of the emergency score', () => {
 // 3. Net worth
 // ───────────────────────────────────────────────────────────────────
 test.describe('Sinking funds — net worth', () => {
-  test('set-aside balances count as assets', async ({ page }) => {
+  test('set-aside balances are an earmark, not extra net worth', async ({ page }) => {
     await loadWith(page);
     const before = await page.evaluate(() => window.netWorthRD(_editData));
     await page.evaluate(() => {
       _editData.sinkingFunds = [{ nombre: 'IPI', meta: 20000, saved: 7500, cadencia: 'anual', proximaFecha: '2027-01-01', moneda: 'RD' }];
       window.migrateData(_editData);
     });
-    const after = await page.evaluate(() => window.netWorthRD(_editData));
-    expect(after - before).toBe(7500);
+    const res = await page.evaluate(() => ({ nw: window.netWorthRD(_editData), earmarked: window.earmarkedTotalRD(_editData) }));
+    // The RD$7,500 already sits in an account that net worth counts; it shows
+    // up as an allocation instead.
+    expect(res.nw).toBe(before);
+    expect(res.earmarked).toBeGreaterThanOrEqual(7500);
   });
 
   test('moving a fund from emergency to sinking leaves net worth unchanged', async ({ page }) => {
