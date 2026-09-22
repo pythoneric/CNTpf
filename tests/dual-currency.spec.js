@@ -353,25 +353,31 @@ test.describe('Demo Data', () => {
 // ══════════════════════════════════════════════════════════════════════
 
 test.describe('Import / Export', () => {
+  // Both of these used to build `data._meta` inside the test and then assert on
+  // their own literal, never calling downloadJSON() — so they passed no matter
+  // what the exporter did. They now read the actual downloaded file.
+  async function exportAndRead(page) {
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.evaluate(() => downloadJSON()),
+    ]);
+    const content = await (await download.createReadStream()).toArray();
+    return JSON.parse(Buffer.concat(content).toString());
+  }
+
   test('exported JSON includes monedaPrincipal field', async ({ page }) => {
     await loadWithCurrency(page, 'USD');
-    const exported = await page.evaluate(() => {
-      const data = JSON.parse(JSON.stringify(_editData));
-      data._meta = { version: 2, exportedAt: new Date().toISOString(), app: 'CNTpf' };
-      return data;
-    });
-    expect(exported.config.monedaPrincipal).toBe('USD');
+    const data = await exportAndRead(page);
+    expect(data.config.monedaPrincipal).toBe('USD');
   });
 
-  test('exported JSON has _meta.version = 2', async ({ page }) => {
+  test('exported JSON carries a _meta stamp from the app', async ({ page }) => {
     await loadWithCurrency(page, 'RD');
-    const meta = await page.evaluate(() => {
-      const data = JSON.parse(JSON.stringify(_editData));
-      data._meta = { version: 2, exportedAt: new Date().toISOString(), app: 'CNTpf' };
-      return data._meta;
-    });
-    expect(meta.version).toBe(2);
-    expect(meta.app).toBe('CNTpf');
+    const data = await exportAndRead(page);
+    expect(data._meta).toBeDefined();
+    expect(data._meta.app).toBe('CNTpf');
+    expect(data._meta.version).toBe(await page.evaluate(() => SCHEMA_VERSION));
+    expect(data._meta.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
   test('importing old JSON without monedaPrincipal defaults to RD', async ({ page }) => {
