@@ -278,8 +278,8 @@ test.describe('Edit modal Fondos tab — wallet UI', () => {
 // ───────────────────────────────────────────────────────────────────
 // 6. JSON export — version 4 + cuentas carry id + tipo
 // ───────────────────────────────────────────────────────────────────
-test.describe('JSON export — v4 schema', () => {
-  test('exported _meta.version is 4 and cuentas have id + tipo', async ({ page }) => {
+test.describe('JSON export — wallet schema', () => {
+  test('exported _meta.version tracks SCHEMA_VERSION and cuentas have id + tipo', async ({ page }) => {
     page.on('dialog', d => d.accept());
     await page.goto('/cnt.html');
     await page.waitForFunction(() => typeof window.loadDemo === 'function');
@@ -291,7 +291,12 @@ test.describe('JSON export — v4 schema', () => {
     ]);
     const content = await (await download.createReadStream()).toArray();
     const data = JSON.parse(Buffer.concat(content).toString());
-    expect(data._meta.version).toBe(4);
+    // The wallet fields this suite covers landed in v4; the export marker has
+    // moved on since. Assert it tracks the app constant and never regresses
+    // below the version that introduced cuenta ids, rather than pinning a
+    // literal that every later migration has to come back and edit.
+    expect(data._meta.version).toBe(await page.evaluate(() => SCHEMA_VERSION));
+    expect(data._meta.version).toBeGreaterThanOrEqual(4);
     for (const c of data.forNow.cuentas) {
       expect(c.id).toMatch(/^cnt_/);
       expect(['cash', 'banco', 'ahorro', 'inversion']).toContain(c.tipo);

@@ -150,7 +150,23 @@ test.describe('Demo Data Loader', () => {
     await page.locator('button[onclick="loadDemoSafe(\'RD\')"]').click();
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
 
+    // The dentist visit and mum's birthday used to sit in emerg.fondos, which
+    // inflated months-of-coverage with money earmarked for a known date. They
+    // are sinking funds now, so only the true emergency fund remains here.
     const efCount = await page.evaluate(() => _editData.emerg.fondos.length);
-    expect(efCount).toBe(3);
+    expect(efCount).toBe(1);
+    const sinkCount = await page.evaluate(() => _editData.sinkingFunds.length);
+    expect(sinkCount).toBe(3);
+  });
+
+  test('RD demo emergency funds contain no scheduled expenses', async ({ page }) => {
+    page.on('dialog', dialog => dialog.accept());
+    await page.goto('/cnt.html');
+    await page.waitForFunction(() => typeof window.loadDemo === 'function');
+    await page.locator('button[onclick="loadDemoSafe(\'RD\')"]').click();
+    await expect(page.locator('#dashApp')).toBeVisible({ timeout: 15000 });
+
+    const names = await page.evaluate(() => _editData.emerg.fondos.map(f => f.fondo));
+    expect(names.join(' ')).not.toMatch(/dentista|cumplea/i);
   });
 });

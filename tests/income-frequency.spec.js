@@ -218,6 +218,10 @@ test.describe('KPI integration — frequency feeds monthly aggregate', () => {
     await loadAppDefault(page);
     // Switch the loaded data to weekly and rebuild
     await page.evaluate(() => {
+      // Reset the source list so the scalar re-seeds it at the cadence set
+      // below; assigning the legacy scalar alone is ambiguous once a
+      // config already holds income sources.
+      _editData.config.ingresos = [];
       _editData.config.ingresoUSD = 400;
       _editData.config.payFrequency = 'semanal';
       _editData.config.ingresoRD = window.monthlyIncomeRD(_editData.config);
@@ -233,6 +237,10 @@ test.describe('KPI integration — frequency feeds monthly aggregate', () => {
   test('biweekly user: DTI denominator is the monthly equivalent', async ({ page }) => {
     await loadAppDefault(page);
     const dti = await page.evaluate(() => {
+      // Reset the source list so the scalar re-seeds it at the cadence set
+      // below; assigning the legacy scalar alone is ambiguous once a
+      // config already holds income sources.
+      _editData.config.ingresos = [];
       _editData.config.ingresoUSD = 1500;
       _editData.config.payFrequency = 'quincenal';
       _editData.config.tasa = 60;
@@ -255,6 +263,10 @@ test.describe('Header KPI — per-period vs monthly', () => {
   test('weekly $400 user: hIngUSD shows $400, hIngRD shows monthly aggregate', async ({ page }) => {
     await loadAppDefault(page);
     await page.evaluate(() => {
+      // Reset the source list so the scalar re-seeds it at the cadence set
+      // below; assigning the legacy scalar alone is ambiguous once a
+      // config already holds income sources.
+      _editData.config.ingresos = [];
       _editData.config.ingresoUSD = 400;
       _editData.config.payFrequency = 'semanal';
       _editData.config.tasa = 60;
@@ -314,6 +326,10 @@ test.describe('Regression — multiplier applied at every write site', () => {
     // Switch user to weekly $400 USD — monthly aggregate ≈ RD$104,000 at tasa 60.
     // Set obligaciones (totalAdeudado) = 9000 → disponible should be ~95,000.
     const disponible = await page.evaluate(() => {
+      // Reset the source list so the scalar re-seeds it at the cadence set
+      // below; assigning the legacy scalar alone is ambiguous once a
+      // config already holds income sources.
+      _editData.config.ingresos = [];
       _editData.config.ingresoUSD = 400;
       _editData.config.payFrequency = 'semanal';
       _editData.config.tasa = 60;
@@ -339,6 +355,10 @@ test.describe('Regression — multiplier applied at every write site', () => {
     await loadAppDefault(page);
     // Clear config.ingresoRD so buildChecklist falls back to the live computation.
     const pct = await page.evaluate(() => {
+      // Reset the source list so the scalar re-seeds it at the cadence set
+      // below; assigning the legacy scalar alone is ambiguous once a
+      // config already holds income sources.
+      _editData.config.ingresos = [];
       _editData.config.ingresoUSD = 1500;
       _editData.config.payFrequency = 'quincenal';
       _editData.config.tasa = 60;
@@ -365,15 +385,27 @@ test.describe('Regression — multiplier applied at every write site', () => {
     // Demo data is mensual + ingresoUSD 650.41 + tasa 61.5 → monthlyRD ≈ 40,000
     const monthlyRD = await page.evaluate(() => _editData.config.ingresoRD);
     expect(monthlyRD).toBeCloseTo(650.41 * 61.5, 0);
-    // Now simulate a hypothetical weekly demo by mutating the loaded config and
-    // re-running the same code path: ingresoRD must follow the helper.
-    const reweekly = await page.evaluate(() => {
-      _editData.config.payFrequency = 'semanal';
-      _editData.config.ingresoRD = window.monthlyIncomeRD(_editData.config);
-      _editData.emerg.cashflow.ingreso = _editData.config.ingresoRD;
-      return _editData.config.ingresoRD;
+    // Now simulate a hypothetical weekly demo: ingresoRD must follow the helper.
+    // Driven through syncConfigField — the same path the Settings dropdown
+    // uses — because each income source now carries its own cadence, so
+    // assigning config.payFrequency alone would leave the existing source on
+    // its old frequency and the totals would not move.
+    const res = await page.evaluate(() => {
+      window.syncConfigField('payFrequency', { value: 'semanal' });
+      const c = _editData.config;
+      // Expectation derived from the demo's own sources rather than a literal:
+      // each source carries its own cadence, so the total depends on how the
+      // demo splits its income, which is data that is allowed to change.
+      const mult = { mensual: 1, quincenal: 26 / 12, semanal: 52 / 12, anual: 1 / 12 };
+      const expected = c.ingresos.reduce((a, s) => {
+        const usd = s.moneda === 'RD' ? s.monto / c.tasa : s.monto;
+        return a + usd * mult[s.frecuencia];
+      }, 0) * c.tasa;
+      return { actual: c.ingresoRD, expected };
     });
-    expect(reweekly).toBeCloseTo(650.41 * (52 / 12) * 61.5, 0);
+    expect(res.actual).toBeCloseTo(res.expected, 0);
+    // Weekly pay must aggregate to more per month than the same figure monthly.
+    expect(res.actual).toBeGreaterThan(650.41 * 61.5);
   });
 
   test('readConfigFromForm picks up payFrequency change before final write', async ({ page }) => {

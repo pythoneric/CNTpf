@@ -368,6 +368,10 @@ test.describe('Análisis Tab — Cash Flow Waterfall', () => {
   test('waterfall shows deficit in red when expenses exceed income', async ({ page }) => {
     await loadApp(page);
     await page.evaluate(() => {
+      // Reset the source list so the scalar re-seeds it at the cadence set
+      // below; assigning the legacy scalar alone is ambiguous once a
+      // config already holds income sources.
+      _editData.config.ingresos = [];
       _editData.config.ingresoUSD = 500;
       _editData.config.ingresoRD = 29000; // 500*58
       _editData.gastos = [

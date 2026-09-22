@@ -950,6 +950,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-fornow" onclick="showTab('fornow',this)" data-section="ahorros" data-i18n="tab_fornow" style="display:none">💳 Fondos</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-emergency" onclick="showTab('emergency',this)" data-section="ahorros" data-i18n="tab_emergency" style="display:none">🛡 Emergencias</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-metas" onclick="showTab('metas',this)" data-section="ahorros" data-i18n="tab_metas" style="display:none">🏆 Metas</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-retiro" onclick="showTab('retiro',this)" data-section="ahorros" data-i18n="tab_retiro" style="display:none">🌴 Retiro</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-analisis" onclick="showTab('analisis',this)" data-section="historia" data-i18n="tab_analisis" style="display:none">📈 Análisis</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-historial" onclick="showTab('historial',this)" data-section="historia" data-i18n="tab_historial" style="display:none">📅 Historial</button>
   </div>
@@ -974,8 +975,8 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="card" style="margin-bottom:16px" id="resumenWaterfall"></div>
     <div id="summaryExtras" style="margin-bottom:16px"></div>
     <div class="grid g12" style="margin-bottom:16px">
-      <div class="card"><div class="card-title">Gastos por Tipo</div><div class="chart-wrap"><canvas id="pieChart"></canvas></div></div>
-      <div class="card"><div class="card-title">Pagado vs Pendiente</div><div class="chart-wrap"><canvas id="barChart"></canvas></div></div>
+      <div class="card"><div class="card-title" data-i18n="panel_resumen_pie">Gastos por Tipo</div><div class="chart-wrap"><canvas id="pieChart"></canvas></div></div>
+      <div class="card"><div class="card-title" data-i18n="panel_resumen_bar">Pagado vs Pendiente</div><div class="chart-wrap"><canvas id="barChart"></canvas></div></div>
     </div>
     <div class="card" style="margin-bottom:16px" id="deudaSummary"></div>
     <div id="netWorthAlert"></div>
@@ -1163,6 +1164,18 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <div class="card-title" data-i18n="metas_progress_title">Progreso Total de Metas</div>
       <div class="chart-wrap" style="height:200px"><canvas id="metasChart"></canvas></div>
     </div>
+  </div>
+
+  <!-- RETIRO: long-horizon projection against the 25x rule -->
+  <div id="tab-retiro" class="panel" role="tabpanel">
+    <div class="card" style="margin-bottom:16px" id="retiroVerdict" aria-live="polite"></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" data-i18n="retiro_assumptions">Supuestos</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6" data-i18n="retiro_assumptions_note">Estos son supuestos, no promesas.</div>
+      <div class="field-grid" id="retiroFields"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px" id="retiroBreakdown"></div>
+    <div class="card"><div class="card-title" data-i18n="retiro_chart_title">Proyeccion</div><div class="chart-wrap"><canvas id="retiroChart"></canvas></div></div>
   </div>
 
   <!-- ANÁLISIS: Budget vs Actual + Debt Payoff Dates (Features 2 & 3) -->
@@ -1415,6 +1428,9 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
       <button class="edit-tab" onclick="showEditTab('transacciones',this)" data-i18n="edit_tab_transacciones">🧾 Transacciones</button>
       <button class="edit-tab" onclick="showEditTab('presupuesto',this)" data-i18n="edit_tab_presupuesto">📋 Presupuesto</button>
       <button class="edit-tab" onclick="showEditTab('recurrentes',this)" data-i18n="edit_tab_recurrentes">🔄 Recurrentes</button>
+      <button class="edit-tab" onclick="showEditTab('activos',this)" data-i18n="edit_tab_activos">🏠 Activos</button>
+      <button class="edit-tab" onclick="showEditTab('sinking',this)" data-i18n="edit_tab_sinking">📅 Apartados</button>
+      <button class="edit-tab" onclick="showEditTab('ingresos',this)" data-i18n="edit_tab_ingresos">💰 Ingresos</button>
     </div>
     <div id="esection-config" class="edit-section active">
       <div class="edit-card"><div class="edit-card-title" data-i18n="edit_card_config">⚙️ Parámetros Globales</div><div class="field-grid" id="configFields"></div></div>
@@ -1425,7 +1441,7 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <div class="edit-table-wrap">
           <table class="edit-table"><thead><tr>
             <th data-i18n="eth_desc">Descripción</th><th data-i18n="eth_tipo">Tipo</th><th data-i18n="eth_pagado">Pagado (RD$)</th><th data-i18n="eth_adeudado">Cuota (RD$)</th>
-            <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_tasaCreacion">Tasa Creación</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_metodo">Método</th><th data-i18n="eth_notas">Notas</th><th></th>
+            <th data-i18n="eth_dia">Día Pago</th><th data-i18n="eth_tasa">Tasa %</th><th data-i18n="eth_balance">Balance (RD$)</th><th data-i18n="eth_limite">Límite (RD$)</th><th data-i18n="eth_originalRD">Original (RD$)</th><th data-i18n="eth_originalUSD">Original (USD)</th><th data-i18n="eth_tasaCreacion">Tasa Creación</th><th data-i18n="eth_fechaLimite">Fecha Límite</th><th data-i18n="eth_metodo">Método</th><th data-i18n="eth_notas">Notas</th><th></th>
           </tr></thead><tbody id="esencialesEditBody"></tbody></table>
         </div>
         <button class="row-add-btn" onclick="addEsencialRow()" data-i18n="edit_add_row">+ Agregar fila</button>
@@ -1489,6 +1505,52 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
         <button class="row-add-btn" onclick="addRecEditRow()" data-i18n="edit_add_rec">+ Agregar regla</button>
       </div>
     </div>
+    <div id="esection-activos" class="edit-section">
+      <div class="edit-card">
+        <div class="edit-card-title" data-i18n="activos_title">Activos (Patrimonio)</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6" data-i18n="activos_sub">Lo que posees: casa, vehículo, inversiones.</div>
+        <div class="edit-table-wrap">
+          <table class="edit-table"><thead><tr>
+            <th data-i18n="activos_nombre">Activo</th><th data-i18n="activos_tipo">Tipo</th><th data-i18n="activos_valor">Valor actual</th><th data-i18n="activos_moneda">Moneda</th><th></th>
+          </tr></thead><tbody id="activosEditBody"></tbody></table>
+        </div>
+        <button class="row-add-btn" onclick="addActivoRow()" data-i18n="edit_add_activo">+ Agregar activo</button>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+          <span data-i18n="activos_total">Total en activos</span>: <span class="mono" id="activosEditTotal" style="font-weight:700;color:var(--green)">—</span>
+        </div>
+      </div>
+    </div>
+    <div id="esection-sinking" class="edit-section">
+      <div class="edit-card">
+        <div class="edit-card-title" data-i18n="sinking_title">Apartados</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6" data-i18n="sinking_sub">Gastos que no caen todos los meses.</div>
+        <div class="edit-table-wrap">
+          <table class="edit-table"><thead><tr>
+            <th data-i18n="sinking_nombre">Fondo</th><th data-i18n="sinking_meta">Meta</th><th data-i18n="sinking_saved">Apartado</th><th data-i18n="sinking_cadencia">Cada cuánto</th><th data-i18n="sinking_fecha">Próxima fecha</th><th data-i18n="sinking_monthly">Apartar/mes</th><th data-i18n="activos_moneda">Moneda</th><th></th>
+          </tr></thead><tbody id="sinkingEditBody"></tbody></table>
+        </div>
+        <button class="row-add-btn" onclick="addSinkingRow()" data-i18n="edit_add_sinking">+ Agregar apartado</button>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap">
+          <span><span data-i18n="sinking_total_monthly">Total a apartar por mes</span>: <span class="mono" id="sinkingEditMonthly" style="font-weight:700;color:var(--accent)">—</span></span>
+          <span><span data-i18n="sinking_total_saved">Apartado hasta hoy</span>: <span class="mono" id="sinkingEditSaved" style="font-weight:700;color:var(--green)">—</span></span>
+        </div>
+      </div>
+    </div>
+    <div id="esection-ingresos" class="edit-section">
+      <div class="edit-card">
+        <div class="edit-card-title" data-i18n="income_title">Fuentes de ingreso</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6" data-i18n="income_sub">Todo lo que entra.</div>
+        <div class="edit-table-wrap">
+          <table class="edit-table"><thead><tr>
+            <th data-i18n="income_nombre">Fuente</th><th data-i18n="income_monto">Monto</th><th data-i18n="income_moneda">Moneda</th><th data-i18n="income_frecuencia">Frecuencia</th><th data-i18n="income_tipo">Tipo</th><th></th>
+          </tr></thead><tbody id="ingresosEditBody"></tbody></table>
+        </div>
+        <button class="row-add-btn" onclick="addIngresoRow()" data-i18n="edit_add_income">+ Agregar fuente</button>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+          <span data-i18n="income_total_monthly">Ingreso mensual total</span>: <span class="mono" id="ingresosEditTotal" style="font-weight:700;color:var(--green)">—</span>
+        </div>
+      </div>
+    </div>
     <div class="save-bar">
       <div style="display:flex;gap:10px;justify-content:flex-end">
         <button class="btn btn-success" onclick="applyAndDownload()" data-i18n="edit_save">💾 Guardar y exportar</button>
@@ -1515,26 +1577,107 @@ function fromDisplay(n){try{if(!_editData?.config)return n;return _editData.conf
 // `config.ingresoUSD` is the per-period paycheck amount.
 // `config.payFrequency` is one of 'mensual' | 'quincenal' | 'semanal'.
 // Multipliers convert per-period → monthly aggregate for KPI math.
-const _PAY_MULT={mensual:1,quincenal:26/12,semanal:52/12};
+// `anual` covers the DR's legally-mandated regalía pascual (13th-month salary)
+// and US-style annual bonuses: real income that arrives once and should be
+// amortised across the year rather than spiking one month's savings rate.
+const _PAY_MULT={mensual:1,quincenal:26/12,semanal:52/12,anual:1/12};
 function payMult(freq){return _PAY_MULT[freq]||1;}
+const INCOME_FREQS=['mensual','quincenal','semanal','anual'];
+const INCOME_TIPOS=['fijo','variable'];
+function genIngresoId(){return 'inc_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+
+// ── Income sources ──
+// `config.ingresoUSD` used to be a single scalar, so a second earner, freelance
+// work or a bonus was unrepresentable — and logged `ingreso` transactions are
+// deliberately excluded from every KPI by isExpenseTx, so that money was
+// invisible to savings rate, DTI, budget and the health score alike.
+//
+// The three helpers below keep their old signatures and still take a `config`,
+// so the ~40 call sites did not have to move; only their bodies changed from
+// reading one number to folding over a list.
+function incomeSources(cfg){
+  cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
+  // An EMPTY list plus a legacy amount is treated the same as a missing list —
+  // matching migrateData's seeding rule. Without this, `ingresos=[]` would
+  // shadow a perfectly good `ingresoUSD` and report zero income.
+  if(Array.isArray(cfg?.ingresos)&&(cfg.ingresos.length>0||!(cfg.ingresoUSD>0)))return cfg.ingresos;
+  // Un-migrated config: synthesize the legacy scalar as a single source rather
+  // than reporting zero income. migrateData normally runs first, but a config
+  // can also reach these helpers hand-built (the close-month wizard, tests,
+  // any future caller), and silently returning 0 there would zero out every
+  // ratio on the dashboard. Read-only — the array is not written back.
+  if(cfg&&(cfg.ingresoUSD||0)>0){
+    return [{id:'inc_legacy',nombre:'',monto:cfg.ingresoUSD,moneda:'USD',frecuencia:cfg.payFrequency||'mensual',tipo:'fijo'}];
+  }
+  return [];
+}
+function hasIncome(cfg){
+  cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
+  if(!cfg)return false;
+  return incomeSources(cfg).some(s=>(s?.monto||0)>0);
+}
+// One source's monthly contribution, expressed in USD.
+function sourceMonthlyUSD(s,tasa){
+  if(!s)return 0;
+  const monto=s.monto||0;
+  const inUSD=s.moneda==='RD'?monto/(tasa||60):monto;
+  return inUSD*payMult(s.frecuencia||'mensual');
+}
 function monthlyIncomeUSD(cfg){
   cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
   if(!cfg)return 0;
-  return (cfg.ingresoUSD||0)*payMult(cfg.payFrequency||'mensual');
+  const tasa=cfg.tasa||60;
+  return incomeSources(cfg).reduce((a,s)=>a+sourceMonthlyUSD(s,tasa),0);
 }
 function monthlyIncomeRD(cfg){
   cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
   if(!cfg)return 0;
   return monthlyIncomeUSD(cfg)*(cfg.tasa||60);
 }
-// Per-pay-period income in RD$ — the magnitude the user actually receives in
-// hand each paycheck. monthlyIncomeRD is the aggregate across the month;
-// per-pay = ingresoUSD * tasa (no payMult), since ingresoUSD is stored as the
-// amount per period.
+// Per-pay-period income in RD$ — the magnitude that actually lands in hand on
+// a pay day, used by the wallet's "I got paid" button. Only sources that pay
+// on the primary cadence count: a yearly bonus is not part of a normal
+// paycheck, and crediting it every pay day would overstate the wallet.
 function perPayIncomeRD(cfg){
   cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
   if(!cfg)return 0;
-  return (cfg.ingresoUSD||0)*(cfg.tasa||60);
+  const tasa=cfg.tasa||60;
+  const primary=cfg.payFrequency||'mensual';
+  return incomeSources(cfg)
+    .filter(s=>(s.frecuencia||'mensual')===primary)
+    .reduce((a,s)=>a+(s.moneda==='RD'?(s.monto||0):(s.monto||0)*tasa),0);
+}
+// The single "income per pay" box in Settings and the close-month wizard still
+// edits ONE number. It maps to the main paycheck — the source on the primary
+// cadence — leaving any freelance or bonus rows untouched.
+function primaryIncomeSource(cfg){
+  cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
+  const list=incomeSources(cfg);
+  if(!list.length)return null;
+  const primary=cfg?.payFrequency||'mensual';
+  return list.find(s=>(s.frecuencia||'mensual')===primary)||list[0];
+}
+function setPrimaryIncomeUSD(cfg,amountUSD){
+  cfg=cfg||(typeof _editData!=='undefined'?_editData?.config:null);
+  if(!cfg)return;
+  if(!Array.isArray(cfg.ingresos))cfg.ingresos=[];
+  const amt=Math.max(0,amountUSD||0);
+  let s=primaryIncomeSource(cfg);
+  if(!s){
+    s={id:genIngresoId(),nombre:(typeof t==='function'?t('income_primary'):'Salario'),monto:0,moneda:'USD',frecuencia:cfg.payFrequency||'mensual',tipo:'fijo'};
+    cfg.ingresos.push(s);
+  }
+  s.monto=s.moneda==='RD'?amt*(cfg.tasa||60):amt;
+}
+// Keep the legacy scalars and the cashflow copy in step with the list. Called
+// after every write so no consumer has to know which is authoritative.
+function syncIncomeMirrors(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  const c=d?.config;if(!c)return;
+  const primary=incomeSources(c).filter(s=>(s.frecuencia||'mensual')===(c.payFrequency||'mensual'));
+  c.ingresoUSD=primary.reduce((a,s)=>a+(s.moneda==='RD'?(s.monto||0)/(c.tasa||60):(s.monto||0)),0);
+  c.ingresoRD=monthlyIncomeRD(c);
+  if(d.emerg&&d.emerg.cashflow)d.emerg.cashflow.ingreso=c.ingresoRD;
 }
 
 // ══════════════════════════════════
@@ -1555,6 +1698,302 @@ function ensureCuentaIds(data){
     seen.add(c.id);
     if(!CUENTA_TIPOS.includes(c.tipo))c.tipo='banco';
   });
+}
+// ══════════════════════════════════
+// SCHEMA MIGRATION — the single normalization choke point
+// ══════════════════════════════════
+// Every path that produces an `_editData` (file import, IndexedDB restore,
+// demo load, test hook) funnels through here. Before this existed the
+// back-fills lived inline in importJSON only, so a file opened once and then
+// reloaded from IndexedDB came back missing whatever importJSON had added —
+// the restored session was a different shape from the imported one.
+//
+// Two hard rules:
+//   1. Idempotent. It runs again on every buildDashboard, so `migrateData
+//      (migrateData(d))` must deep-equal `migrateData(d)`.
+//   2. In place, and returns `d`, so callers can use either style.
+// `_meta.version` is the marker for transforms that cannot be expressed as a
+// plain default (v4→v5 income is the first). Pure "add a missing key" cases
+// need no version check — the `if absent` guard is already idempotent.
+// ══════════════════════════════════
+// ACTIVOS (assets) — the other half of net worth
+// ══════════════════════════════════
+// Net worth was accounts + savings + emergency − debts. A mortgage subtracted
+// but the house never added, so any homeowner read as deeply negative (the
+// bundled USD demo reported −$268,850 for a household near break-even) and
+// could never reach the "positive net worth" milestone.
+//
+// Deliberately a flat list with no link to the debt that secures it: an asset
+// is worth what it's worth regardless of what is owed against it, and the
+// liability is already counted on the gastos side. Per-asset equity would
+// need the link; the total does not.
+const ACTIVO_TIPOS=['inmueble','vehiculo','inversion','otro'];
+function genActivoId(){return 'act_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+// Value in RD$ (storage currency), converting USD-denominated assets at `tasa`.
+function activoToRD(a,tasa){
+  const m=a?.moneda==='USD'?(tasa||60):1;
+  return (a?.valor||0)*m;
+}
+function activosTotalRD(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  const tasa=d?.config?.tasa||60;
+  return (d?.activos||[]).reduce((s,a)=>s+activoToRD(a,tasa),0);
+}
+// Single definition of net worth. It previously existed twice — once for the
+// live dashboard and once inside the month-close wizard — which is exactly how
+// the headline figure and the archived history drift apart. Both now call this.
+function netWorthRD(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  if(!d)return 0;
+  const tasa=d.config?.tasa||60;
+  const cuentas=(d.forNow?.cuentas||[]).reduce((a,c)=>a+(c.saldo||0)*(c.moneda==='USD'?tasa:1),0);
+  const ahorros=d.emerg?.cashflow?.balanceAhorros||0;
+  // Converted inline rather than via fondoToRD(), which reads the global
+  // _editData for its rate — that would silently ignore `d` when a caller
+  // (or a test) passes a standalone object.
+  const ef=(d.emerg?.fondos||[]).reduce((a,f)=>a+(f.balance||0)*(f.moneda==='USD'?tasa:1),0);
+  const deudas=(d.gastos||[]).reduce((a,g)=>a+(g.balance||0),0);
+  // Sinking-fund balances are cash the user has genuinely set aside. Counted
+  // here so that reclassifying a fund out of emerg.fondos moves it between
+  // buckets without changing net worth — the money did not go anywhere.
+  const sinking=(d.sinkingFunds||[]).reduce((a,f)=>a+(f.saved||0)*(f.moneda==='USD'?tasa:1),0);
+  return cuentas+ahorros+ef+sinking+activosTotalRD(d)-deudas;
+}
+
+// ══════════════════════════════════
+// SINKING FUNDS — the irregular expenses that wreck a monthly budget
+// ══════════════════════════════════
+// Annual insurance, IPI, the marbete, tuition, Christmas: real, predictable,
+// and invisible to a tool that only models monthly cuotas. They arrive as a
+// shock, get put on a card, and become next year's interest.
+//
+// Kept in their own array rather than folded into emerg.fondos, even though
+// the record shape is nearly identical. efTotal/efMeta feed the 20-point
+// emergency band of calcScore and the months-of-coverage KPI; a 529 or a
+// "Christmas fund" counted as emergency coverage would inflate both. The
+// bundled USD demo was already misusing emerg.fondos this way.
+const SINKING_CADENCIAS=['mensual','trimestral','semestral','anual'];
+const _CADENCIA_MESES={mensual:1,trimestral:3,semestral:6,anual:12};
+function genSinkingId(){return 'snk_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function sinkingToRD(f,tasa){
+  const m=f?.moneda==='USD'?(tasa||60):1;
+  return {saved:(f?.saved||0)*m,meta:(f?.meta||0)*m};
+}
+// Months until the next due date, floored at 1. Falls back to the cadence when
+// no date is set, so a fund still produces a sensible set-aside on day one.
+function sinkingMonthsLeft(f,now){
+  const cad=_CADENCIA_MESES[f?.cadencia]||12;
+  if(!f?.proximaFecha)return cad;
+  // Parsed component-wise, NOT via `new Date('YYYY-MM-DD')`. That form is
+  // spec'd as UTC midnight, so anywhere west of Greenwich — including the
+  // Dominican Republic at UTC-4 — it lands on the previous day, and a
+  // January 1st due date reads as December. That silently shortens every
+  // horizon by a month and inflates the set-aside.
+  const m0=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(f.proximaFecha));
+  const due=m0?new Date(+m0[1],+m0[2]-1,+m0[3]):new Date(f.proximaFecha);
+  if(isNaN(due.getTime()))return cad;
+  now=now||new Date();
+  const months=(due.getFullYear()-now.getFullYear())*12+(due.getMonth()-now.getMonth());
+  // Past due: the next occurrence is one full cadence out, not "0 months",
+  // which would divide the whole remaining target into a single month.
+  return months>0?months:cad;
+}
+// What the user should set aside THIS month to arrive funded on the due date.
+function sinkingMonthlyRD(f,tasa,now){
+  const {saved,meta}=sinkingToRD(f,tasa);
+  const gap=Math.max(0,meta-saved);
+  if(!(gap>0))return 0;
+  return gap/sinkingMonthsLeft(f,now);
+}
+function sinkingTotalsRD(d,now){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  const tasa=d?.config?.tasa||60;
+  const list=d?.sinkingFunds||[];
+  return list.reduce((acc,f)=>{
+    const {saved,meta}=sinkingToRD(f,tasa);
+    acc.saved+=saved;acc.meta+=meta;
+    acc.monthly+=sinkingMonthlyRD(f,tasa,now);
+    return acc;
+  },{saved:0,meta:0,monthly:0,count:list.length});
+}
+
+// ══════════════════════════════════
+// RETIREMENT — the horizon the app was silent on
+// ══════════════════════════════════
+// 'inversion' existed as a cuenta label with no behaviour attached: no
+// contributions, no return assumption, no target. The app modelled the next 30
+// days well and the next 30 years not at all, which is backwards for most
+// people — the retirement gap usually dwarfs the credit-card one.
+//
+// All figures are REAL (inflation-adjusted): projecting 7% nominal against a
+// target priced in today's money would overstate the outcome by roughly the
+// inflation rate compounded over the whole horizon.
+const RETIRO_DEFAULTS={edadActual:30,edadRetiro:65,retornoEsperado:7,inflacion:3,aporteMensual:0,cuentasIds:[]};
+// Real return from nominal and inflation — Fisher, not a subtraction. At 7%
+// and 3% the difference is only ~0.12pp/yr, but compounded over 35 years the
+// naive form overstates the balance by several percent.
+function realRate(nominalPct,inflacionPct){
+  const n=(nominalPct||0)/100, i=(inflacionPct||0)/100;
+  return (1+n)/(1+i)-1;
+}
+// Future value of a present sum plus a monthly annuity, at a monthly rate.
+function futureValue(present,monthlyContrib,monthlyRate,months){
+  if(months<=0)return present;
+  if(Math.abs(monthlyRate)<1e-12)return present+monthlyContrib*months;
+  const g=Math.pow(1+monthlyRate,months);
+  return present*g+monthlyContrib*((g-1)/monthlyRate);
+}
+// The monthly contribution needed to reach `target` from `present`.
+function requiredContribution(target,present,monthlyRate,months){
+  if(months<=0)return Math.max(0,target-present);
+  if(Math.abs(monthlyRate)<1e-12)return Math.max(0,(target-present)/months);
+  const g=Math.pow(1+monthlyRate,months);
+  const need=target-present*g;
+  if(need<=0)return 0;
+  return need*monthlyRate/(g-1);
+}
+// Balance already invested: the cuentas the user flagged as retirement
+// accounts, plus any activo of type 'inversion'. Read from existing records so
+// nothing has to be entered twice.
+function retirementBalanceRD(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  if(!d)return 0;
+  const tasa=d.config?.tasa||60;
+  const ids=d.retiro?.cuentasIds||[];
+  const fromCuentas=(d.forNow?.cuentas||[])
+    .filter(c=>ids.includes(c.id))
+    .reduce((a,c)=>a+(c.saldo||0)*(c.moneda==='USD'?tasa:1),0);
+  const fromActivos=(d.activos||[])
+    .filter(a=>a.tipo==='inversion')
+    .reduce((a,x)=>a+(x.valor||0)*(x.moneda==='USD'?tasa:1),0);
+  return fromCuentas+fromActivos;
+}
+// The 4% rule: 25x annual spending is the balance from which a 4% withdrawal
+// covers a year. A rule of thumb calibrated on US market history, not a
+// guarantee — the UI says so.
+function retirementTargetRD(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  if(!d)return 0;
+  const gastoMes=(d.gastos||[]).reduce((a,g)=>a+(g.adeudado||0),0);
+  return gastoMes*12*25;
+}
+function calcRetirement(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  const r={...RETIRO_DEFAULTS,...(d?.retiro||{})};
+  const years=Math.max(0,(r.edadRetiro||0)-(r.edadActual||0));
+  const months=Math.round(years*12);
+  const annualReal=realRate(r.retornoEsperado,r.inflacion);
+  const monthlyRate=Math.pow(1+annualReal,1/12)-1;
+  const present=retirementBalanceRD(d);
+  const contrib=r.aporteMensual||0;
+  const projected=futureValue(present,contrib,monthlyRate,months);
+  const target=retirementTargetRD(d);
+  const gap=target-projected;
+  const needed=requiredContribution(target,present,monthlyRate,months);
+  return{
+    ...r,years,months,annualReal,monthlyRate,present,contrib,projected,target,
+    gap,needed,
+    onTrack:target>0&&projected>=target,
+    hasTarget:target>0,
+    shortfallContrib:Math.max(0,needed-contrib),
+  };
+}
+
+const SCHEMA_VERSION=5;
+function migrateData(d){
+  if(!d||typeof d!=='object')return d;
+  const c=d.config=d.config||{};
+
+  // ── v1/v2 → v3: pay frequency. Pre-feature data is monthly by definition.
+  if(!c.payFrequency)c.payFrequency='mensual';
+  if(!c.monedaPrincipal)c.monedaPrincipal='RD';
+
+  // ── Collections added after v1. Consumers still use `||[]` defensively,
+  // but normalizing here means the edit modal and export see a real array.
+  ['metas','transacciones','presupuesto','recurrentes','activos','sinkingFunds'].forEach(k=>{
+    if(!Array.isArray(d[k]))d[k]=[];
+  });
+
+  // ── v4 → v5: retirement block. Defaults only; the numbers are assumptions
+  // the user is expected to override, not claims about their situation.
+  d.retiro={...RETIRO_DEFAULTS,...(d.retiro&&typeof d.retiro==='object'?d.retiro:{})};
+  if(!Array.isArray(d.retiro.cuentasIds))d.retiro.cuentasIds=[];
+  d.retiro.edadActual=Math.max(0,Math.min(120,d.retiro.edadActual||0));
+  d.retiro.edadRetiro=Math.max(d.retiro.edadActual,Math.min(120,d.retiro.edadRetiro||0));
+  d.retiro.retornoEsperado=Math.max(0,Math.min(30,d.retiro.retornoEsperado||0));
+  d.retiro.inflacion=Math.max(0,Math.min(30,d.retiro.inflacion||0));
+  d.retiro.aporteMensual=Math.max(0,d.retiro.aporteMensual||0);
+  // Drop references to cuentas that no longer exist, same contract as the
+  // wallet pointer.
+  const _cids=new Set((d.forNow?.cuentas||[]).map(c=>c.id));
+  d.retiro.cuentasIds=d.retiro.cuentasIds.filter(id=>_cids.has(id));
+
+  // ── v4 → v5: sinking funds. Same id/currency contract as the other records.
+  d.sinkingFunds.forEach(f=>{
+    if(!f.id)f.id=genSinkingId();
+    if(!SINKING_CADENCIAS.includes(f.cadencia))f.cadencia='anual';
+    if(f.moneda!=='USD')f.moneda='RD';
+  });
+
+  // ── v4 → v5: assets. Give every activo a stable id and a valid tipo, the
+  // same contract cuentas get, so a rename or reorder can't break a reference.
+  d.activos.forEach(a=>{
+    if(!a.id)a.id=genActivoId();
+    if(!ACTIVO_TIPOS.includes(a.tipo))a.tipo='otro';
+    if(a.moneda!=='USD')a.moneda='RD';
+  });
+
+  // ── v3 → v4: wallet. Stable cuenta ids + tipo, and a pointer that resolves.
+  ensureCuentaIds(d);
+  if(c.defaultCashAccountId===undefined)c.defaultCashAccountId=null;
+  if(c.defaultCashAccountId&&!(d.forNow?.cuentas||[]).some(x=>x.id===c.defaultCashAccountId)){
+    c.defaultCashAccountId=null;
+  }
+
+  // ── v4 → v5: income becomes a list. The old scalar pair
+  // (ingresoUSD + payFrequency) becomes source #1; everything else is additive.
+  // Guarded on the array's absence rather than on a version number so a file
+  // that already has the list is never re-seeded.
+  // Seeded when the list is missing OR empty-with-a-legacy-amount. The second
+  // case matters because `ingresoUSD` stays writable during the transition:
+  // assigning it on an already-migrated object would otherwise be silently
+  // erased by the mirror recompute below, zeroing the user's income.
+  if(!Array.isArray(c.ingresos)||(c.ingresos.length===0&&(c.ingresoUSD||0)>0)){
+    c.ingresos=[];
+    if((c.ingresoUSD||0)>0){
+      c.ingresos.push({
+        id:genIngresoId(),
+        nombre:(typeof t==='function'?t('income_primary'):'Salario'),
+        monto:c.ingresoUSD,
+        moneda:'USD',
+        frecuencia:c.payFrequency||'mensual',
+        tipo:'fijo',
+      });
+    }
+  }
+  c.ingresos.forEach(s=>{
+    if(!s.id)s.id=genIngresoId();
+    if(!INCOME_FREQS.includes(s.frecuencia))s.frecuencia='mensual';
+    if(!INCOME_TIPOS.includes(s.tipo))s.tipo='fijo';
+    if(s.moneda!=='RD')s.moneda='USD';
+    s.monto=Math.max(0,s.monto||0);
+  });
+
+  // ── Derived mirrors. `ingresoUSD` is no longer the source of truth but is
+  // still written, so any read site missed during the migration sees a sane
+  // number instead of undefined. Mirrors the PRIMARY-cadence total, matching
+  // what the field meant before (a per-period paycheck).
+  const _primary=c.ingresos.filter(s=>(s.frecuencia||'mensual')===(c.payFrequency||'mensual'));
+  c.ingresoUSD=_primary.reduce((a,s)=>a+(s.moneda==='RD'?(s.monto||0)/(c.tasa||60):(s.monto||0)),0);
+  if(d.emerg&&d.emerg.cashflow){
+    c.ingresoRD=monthlyIncomeRD(c);
+    d.emerg.cashflow.ingreso=c.ingresoRD;
+  }else{
+    c.ingresoRD=monthlyIncomeRD(c);
+  }
+
+  d._schemaVersion=SCHEMA_VERSION;
+  return d;
 }
 function getDefaultCashAccount(data){
   data=data||(typeof _editData!=='undefined'?_editData:null);
@@ -1660,6 +2099,49 @@ function applyGastoTransferencia(gasto){
 // tx silently subtracts from gasto, distorts category charts, and corrupts
 // historial entries on cierre.
 function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso'&&tx.categoria!=='ajuste'&&tx.categoria!=='transferencia_interna';}
+
+// How much of THIS MONTH's cuota (`adeudado`) a gasto has covered, in RD$.
+// `pagado` is free-form: the checklist sets it to `adeudado`, but the edit
+// form lets it hold a partial abono or an overpayment carried from a prior
+// month, and `pagadoMes` can be true on its own (marked paid via the payment
+// prompt without an amount). Clamping to `adeudado` and honouring the flag is
+// what makes paid + pending always add up to the cuota, so a "Paid vs Pending"
+// stacked bar reads as one full bar per commitment with the unpaid remainder
+// on top. Callers pair it with `gastoPendienteMes`.
+function gastoPagadoMes(g){
+  if(!g||!(g.adeudado>0))return 0;
+  if(g.pagadoMes)return g.adeudado;
+  return Math.min(Math.max(g.pagado||0,0),g.adeudado);
+}
+function gastoPendienteMes(g){
+  if(!g||!(g.adeudado>0))return 0;
+  return Math.max(0,g.adeudado-gastoPagadoMes(g));
+}
+
+// ── Credit utilization ──
+// balance / credit limit, the single fastest-moving input a borrower controls
+// (roughly 30% of a FICO score, and unlike payment history it updates within
+// one statement cycle). `limiteCredito` is optional: 0 or absent means the
+// line isn't a revolving account, so utilization is undefined rather than 0 —
+// a store loan at "0% utilization" would be a lie, not a good score.
+const UTIL_WARN=0.30, UTIL_HIGH=0.50;
+function creditUtilization(g){
+  if(!g||!(g.limiteCredito>0))return null;
+  return Math.max(0,(g.balance||0)/g.limiteCredito);
+}
+function utilizationColor(u){
+  if(u==null)return 'var(--muted)';
+  return u<UTIL_WARN?'var(--green)':u<UTIL_HIGH?'var(--yellow)':'var(--red)';
+}
+// Aggregate across every revolving line — what a scoring model actually reads.
+function overallUtilization(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  const cards=(d?.gastos||[]).filter(g=>g.limiteCredito>0);
+  if(!cards.length)return null;
+  const lim=cards.reduce((a,g)=>a+g.limiteCredito,0);
+  if(!(lim>0))return null;
+  return cards.reduce((a,g)=>a+Math.max(0,g.balance||0),0)/lim;
+}
 
 // Deposit one paycheck to the wallet. Magnitude is the per-pay amount
 // (perPayIncomeRD) — what the user actually receives each period. For
@@ -2567,7 +3049,7 @@ const LANG = {
     // Net Worth alert
     nw_negative:'Patrimonio Neto Negativo', nw_positive:'Patrimonio Neto Positivo',
     nw_advice_neg:'Priorizar reducción de deudas con tasas altas', nw_advice_pos:'Buen trabajo manteniendo activos sobre pasivos.',
-    nw_interest_label:'Interés mensual total', nw_peryear:'solo en intereses',
+    nw_interest_label:'Interés mensual total', nw_peryear:'solo en intereses', nw_year:'año',
     // Emergency KPIs
     ef_balance:'Balance Emergencia', ef_missing:'Falta Cubrir', ef_surplus:'Superávit Mensual',
     ef_available:'Disponible', ef_deficit:'Déficit', ef_completed:'% completado',
@@ -2713,6 +3195,8 @@ const LANG = {
     panel_alertas_venc:'🔴 Vencimientos Próximos', panel_alertas_gen:'⚠️ Alertas Financieras',
     panel_alertas_sit:'📋 Resumen de Situación',
     panel_gastos_chart:'Pagado vs Pendiente por Compromiso',
+    panel_resumen_pie:'Gastos por Tipo', panel_resumen_bar:'Pagado vs Pendiente',
+    chart_paid:'Pagado', chart_pending:'Pendiente',
     panel_checklist_progress:'Progreso de Pagos del Mes',
     panel_deudas_dist:'Distribución de Deudas',
     panel_ef_progress:'Fondos de Emergencia · Progreso', panel_ef_cashflow:'Cashflow Mensual Detallado',
@@ -2779,7 +3263,7 @@ const LANG = {
     ecfg_tasa:'Tasa Dólar (RD$/USD)', ecfg_tasa_note:'Actualizar mensualmente',
     ecfg_mes:'Mes Actual', ecfg_mes_note:'Nombre del mes',
     ecfg_anio:'Año Actual', ecfg_anio_note:'',
-    ecfg_ingreso:'Ingreso por pago (USD)', ecfg_ingreso_note:'Tu paga por período (no el total mensual)',
+    ecfg_ingreso:'Ingreso neto por pago (USD)', ecfg_ingreso_note:'Lo que realmente recibes por período, ya descontados ISR, TSS y AFP — no el salario bruto ni el total mensual. Si pones el bruto, tu tasa de ahorro y tu DTI saldrán mal.',
     ecfg_ingresoRD:'Ingreso mensual equivalente (RD$)', ecfg_ingresoRD_note:'Calculado automáticamente · ingreso por pago × frecuencia',
     ecfg_payfreq:'Frecuencia de pago',
     payfreq_label:'¿Con qué frecuencia te pagan?',
@@ -2800,6 +3284,70 @@ const LANG = {
     cuenta_tipo_banco:'Banco',
     cuenta_tipo_ahorro:'Ahorros',
     cuenta_tipo_inversion:'Inversión',
+    // Activos (assets) — the asset side of net worth
+    edit_tab_activos:'🏠 Activos',
+    activos_title:'Activos (Patrimonio)',
+    activos_sub:'Lo que posees: casa, vehículo, inversiones. Se suma a tu patrimonio neto. La deuda asociada ya se cuenta en Gastos & Deudas — no la restes aquí.',
+    activos_nombre:'Activo', activos_tipo:'Tipo', activos_valor:'Valor actual ({cs})', activos_moneda:'Moneda',
+    activos_total:'Total en activos',
+    activos_empty:'Sin activos registrados. Si tienes casa o vehículo, agrégalos: sin ellos tu patrimonio neto solo muestra las deudas.',
+    activo_tipo_inmueble:'Inmueble', activo_tipo_vehiculo:'Vehículo',
+    activo_tipo_inversion:'Inversión', activo_tipo_otro:'Otro',
+    edit_add_activo:'+ Agregar activo',
+    // Retirement
+    tab_retiro:'🌴 Retiro',
+    retiro_assumptions:'Supuestos',
+    retiro_assumptions_note:'Son supuestos, no promesas. El 7% viene del histórico de la bolsa de EE.UU. a largo plazo; una AFP dominicana se comporta distinto. Todo se muestra en poder adquisitivo de hoy (ya descontada la inflación).',
+    retiro_edad_actual:'Edad actual', retiro_edad_retiro:'Edad de retiro',
+    retiro_retorno:'Retorno anual esperado (%)', retiro_inflacion:'Inflación anual (%)',
+    retiro_aporte:'Aporte mensual ({cs})',
+    retiro_balance:'Invertido hoy', retiro_projected:'Proyectado al retiro',
+    retiro_target:'Meta (25x gasto anual)', retiro_years:'Años por delante',
+    retiro_ontrack:'Vas en camino', retiro_behind:'Te falta',
+    retiro_ontrack_sub:'Con tu aporte actual llegas a la meta. Revisa una vez al año.',
+    retiro_behind_sub:'Para cerrar la brecha tendrías que aportar {amt} al mes (ahora aportas {cur}).',
+    retiro_no_target:'Agrega tus gastos mensuales para calcular la meta de retiro.',
+    retiro_no_balance:'Marca cuáles cuentas son de retiro, o agrega un activo tipo Inversión.',
+    retiro_accounts:'Cuentas de retiro',
+    retiro_accounts_note:'Marca las cuentas que son para el retiro. Los activos tipo Inversión se suman automáticamente.',
+    retiro_chart_title:'Proyección del balance (en pesos de hoy)',
+    retiro_rule_note:'La meta usa la regla del 4%: 25 veces tu gasto anual. Es una regla práctica, no una garantía.',
+    retiro_real_return:'Retorno real usado',
+    // Multiple income sources
+    income_primary:'Salario principal',
+    income_title:'Fuentes de ingreso',
+    income_sub:'Todo lo que entra: sueldo, segundo empleo, freelance, regalía pascual, alquileres. Si lo dejas fuera, tu tasa de ahorro y tu DTI salen mal.',
+    income_nombre:'Fuente', income_monto:'Monto', income_moneda:'Moneda',
+    income_frecuencia:'Frecuencia', income_tipo:'Tipo',
+    income_tipo_fijo:'Fijo', income_tipo_variable:'Variable',
+    income_freq_mensual:'Mensual', income_freq_quincenal:'Quincenal',
+    income_freq_semanal:'Semanal', income_freq_anual:'Anual',
+    income_total_monthly:'Ingreso mensual total',
+    income_empty:'Sin fuentes de ingreso. Agrega al menos una para que los KPIs tengan sentido.',
+    edit_add_income:'+ Agregar fuente',
+    edit_tab_ingresos:'💰 Ingresos',
+    income_variable_note:'Marcado como variable: no cuentes con él para gastos fijos.',
+    // Sinking funds — irregular / non-monthly expenses
+    edit_tab_sinking:'📅 Apartados',
+    sinking_title:'Apartados para gastos irregulares',
+    sinking_sub:'Gastos reales que no caen todos los meses: seguro anual, IPI, marbete, matrícula, Navidad. Apartas un poco cada mes y llegas con el dinero listo en vez de tirarlo a la tarjeta.',
+    sinking_nombre:'Fondo', sinking_meta:'Meta ({cs})', sinking_saved:'Apartado ({cs})',
+    sinking_cadencia:'Cada cuánto', sinking_fecha:'Próxima fecha', sinking_monthly:'Apartar/mes',
+    sinking_total_monthly:'Total a apartar por mes', sinking_total_saved:'Apartado hasta hoy',
+    sinking_empty:'Sin fondos programados. Si pagas algo una o dos veces al año (seguro, IPI, matrícula), agrégalo aquí.',
+    sinking_cad_mensual:'Mensual', sinking_cad_trimestral:'Trimestral',
+    sinking_cad_semestral:'Semestral', sinking_cad_anual:'Anual',
+    edit_add_sinking:'+ Agregar apartado',
+    wf_sinking:'Apartados',
+    rec_trimestral:'Trimestral', rec_semestral:'Semestral', rec_anual:'Anual',
+    // Credit utilization (revolving lines)
+    eth_limite:'Límite ({cs})', eth_limite_hint:'Solo tarjetas y líneas revolventes. Déjalo vacío si no aplica.',
+    dcard_utilization:'Uso del crédito', dcard_util_of:'de',
+    dcard_util_warn:'⚠ Por encima del 30% — empieza a pesar en tu score.',
+    dcard_util_high:'🔴 Por encima del 50% — es lo que más te está bajando el score.',
+    alert_util_title:'Uso de crédito alto',
+    alert_util_msg:'Estás usando {pct}% de tu límite total ({used} de {lim}). Bajar de 30% suele subir el score en 1–2 ciclos de facturación.',
+    pillar_activos:'Activos',
     // Gasto cash-payment auto-debit (batch 3)
     gasto_metodo_label:'Método de pago',
     gasto_metodo_none:'Sin auto-débito',
@@ -3155,7 +3703,7 @@ const LANG = {
     // Net Worth alert
     nw_negative:'Negative Net Worth', nw_positive:'Positive Net Worth',
     nw_advice_neg:'Prioritize paying high-rate debts', nw_advice_pos:'Great job keeping assets above liabilities.',
-    nw_interest_label:'Total monthly interest', nw_peryear:'in interest only',
+    nw_interest_label:'Total monthly interest', nw_peryear:'in interest only', nw_year:'yr',
     // Emergency KPIs
     ef_balance:'Emergency Balance', ef_missing:'Still Needed', ef_surplus:'Monthly Surplus',
     ef_available:'Available', ef_deficit:'Deficit', ef_completed:'% completed',
@@ -3301,6 +3849,8 @@ const LANG = {
     panel_alertas_venc:'🔴 Upcoming Due Dates', panel_alertas_gen:'⚠️ Financial Alerts',
     panel_alertas_sit:'📋 Situation Summary',
     panel_gastos_chart:'Paid vs Pending by Commitment',
+    panel_resumen_pie:'Expenses by Type', panel_resumen_bar:'Paid vs Pending',
+    chart_paid:'Paid', chart_pending:'Pending',
     panel_checklist_progress:'Monthly Payment Progress',
     panel_deudas_dist:'Debt Distribution',
     panel_ef_progress:'Emergency Funds · Progress', panel_ef_cashflow:'Detailed Monthly Cashflow',
@@ -3367,7 +3917,7 @@ const LANG = {
     ecfg_tasa:'Exchange Rate (RD$/USD)', ecfg_tasa_note:'Update monthly',
     ecfg_mes:'Current Month', ecfg_mes_note:'Month name',
     ecfg_anio:'Current Year', ecfg_anio_note:'',
-    ecfg_ingreso:'Income per pay (USD)', ecfg_ingreso_note:'Your per-period paycheck (not monthly total)',
+    ecfg_ingreso:'Net income per pay (USD)', ecfg_ingreso_note:'What actually lands in your account each period, after taxes and deductions — not gross pay, and not the monthly total. Entering gross will skew your savings rate and DTI.',
     ecfg_ingresoRD:'Monthly equivalent (RD$)', ecfg_ingresoRD_note:'Auto-calculated · per-pay amount × frequency',
     ecfg_payfreq:'Pay frequency',
     payfreq_label:'How often are you paid?',
@@ -3388,6 +3938,70 @@ const LANG = {
     cuenta_tipo_banco:'Bank',
     cuenta_tipo_ahorro:'Savings',
     cuenta_tipo_inversion:'Investment',
+    // Activos (assets) — the asset side of net worth
+    edit_tab_activos:'🏠 Assets',
+    activos_title:'Assets (Net Worth)',
+    activos_sub:'What you own: home, vehicle, investments. Counts toward your net worth. The loan against it is already counted in Expenses & Debts — do not subtract it here.',
+    activos_nombre:'Asset', activos_tipo:'Type', activos_valor:'Current value ({cs})', activos_moneda:'Currency',
+    activos_total:'Total assets',
+    activos_empty:'No assets recorded. If you own a home or vehicle, add them — without them your net worth shows only the debts.',
+    activo_tipo_inmueble:'Real estate', activo_tipo_vehiculo:'Vehicle',
+    activo_tipo_inversion:'Investment', activo_tipo_otro:'Other',
+    edit_add_activo:'+ Add asset',
+    // Retirement
+    tab_retiro:'🌴 Retirement',
+    retiro_assumptions:'Assumptions',
+    retiro_assumptions_note:'These are assumptions, not promises. The 7% figure comes from long-run US stock market history; a Dominican AFP behaves differently. Everything is shown in present-day purchasing power (inflation already removed).',
+    retiro_edad_actual:'Current age', retiro_edad_retiro:'Retirement age',
+    retiro_retorno:'Expected annual return (%)', retiro_inflacion:'Annual inflation (%)',
+    retiro_aporte:'Monthly contribution ({cs})',
+    retiro_balance:'Invested today', retiro_projected:'Projected at retirement',
+    retiro_target:'Target (25x annual spend)', retiro_years:'Years to go',
+    retiro_ontrack:'On track', retiro_behind:'Short by',
+    retiro_ontrack_sub:'Your current contribution reaches the target. Review once a year.',
+    retiro_behind_sub:'Closing the gap would take {amt} per month (you contribute {cur} now).',
+    retiro_no_target:'Add your monthly expenses to compute a retirement target.',
+    retiro_no_balance:'Flag which accounts are for retirement, or add an Investment-type asset.',
+    retiro_accounts:'Retirement accounts',
+    retiro_accounts_note:'Tick the accounts earmarked for retirement. Investment-type assets are included automatically.',
+    retiro_chart_title:'Projected balance (in present-day money)',
+    retiro_rule_note:'The target uses the 4% rule: 25x your annual spending. A rule of thumb, not a guarantee.',
+    retiro_real_return:'Real return used',
+    // Multiple income sources
+    income_primary:'Main salary',
+    income_title:'Income sources',
+    income_sub:'Everything coming in: salary, second job, freelance, bonuses, rent. Leaving any of it out skews your savings rate and DTI.',
+    income_nombre:'Source', income_monto:'Amount', income_moneda:'Currency',
+    income_frecuencia:'Frequency', income_tipo:'Type',
+    income_tipo_fijo:'Fixed', income_tipo_variable:'Variable',
+    income_freq_mensual:'Monthly', income_freq_quincenal:'Biweekly',
+    income_freq_semanal:'Weekly', income_freq_anual:'Yearly',
+    income_total_monthly:'Total monthly income',
+    income_empty:'No income sources yet. Add at least one so the KPIs mean something.',
+    edit_add_income:'+ Add source',
+    edit_tab_ingresos:'💰 Income',
+    income_variable_note:'Marked variable: do not count on it for fixed costs.',
+    // Sinking funds — irregular / non-monthly expenses
+    edit_tab_sinking:'📅 Set-asides',
+    sinking_title:'Set-asides for irregular costs',
+    sinking_sub:'Real expenses that do not land every month: annual insurance, property tax, registration, tuition, Christmas. Set aside a little each month and arrive with the cash ready instead of putting it on a card.',
+    sinking_nombre:'Fund', sinking_meta:'Target ({cs})', sinking_saved:'Set aside ({cs})',
+    sinking_cadencia:'How often', sinking_fecha:'Next due', sinking_monthly:'Per month',
+    sinking_total_monthly:'Total to set aside per month', sinking_total_saved:'Set aside so far',
+    sinking_empty:'No sinking funds yet. If you pay something once or twice a year (insurance, property tax, tuition), add it here.',
+    sinking_cad_mensual:'Monthly', sinking_cad_trimestral:'Quarterly',
+    sinking_cad_semestral:'Twice a year', sinking_cad_anual:'Yearly',
+    edit_add_sinking:'+ Add set-aside',
+    wf_sinking:'Set-asides',
+    rec_trimestral:'Quarterly', rec_semestral:'Twice a year', rec_anual:'Yearly',
+    // Credit utilization (revolving lines)
+    eth_limite:'Limit ({cs})', eth_limite_hint:'Cards and revolving lines only. Leave blank if not applicable.',
+    dcard_utilization:'Credit utilization', dcard_util_of:'of',
+    dcard_util_warn:'⚠ Above 30% — this is starting to weigh on your score.',
+    dcard_util_high:'🔴 Above 50% — this is the biggest thing dragging your score down.',
+    alert_util_title:'High credit utilization',
+    alert_util_msg:'You are using {pct}% of your total limit ({used} of {lim}). Getting under 30% usually lifts the score within 1–2 statement cycles.',
+    pillar_activos:'Assets',
     // Gasto cash-payment auto-debit (batch 3)
     gasto_metodo_label:'Payment method',
     gasto_metodo_none:'No auto-debit',
@@ -3781,6 +4395,16 @@ function ttStyleNow(){
     ? {backgroundColor:'#ffffff',titleColor:'#1a2540',bodyColor:'#475569',borderColor:'#d0d9e8',borderWidth:1}
     : {backgroundColor:'#1a2540',titleColor:'#e2eaf8',bodyColor:'#cbd5e1',borderColor:'#1e293b',borderWidth:1};
 }
+// Compact axis tick for money scales. A flat `(v/1000)+'k'` collapses every
+// tick to "0k" once values are in USD (a RD$12,000 cuota is ~$200), so the
+// unit is picked from the magnitude of the axis itself.
+function axisTick(v){
+  const a=Math.abs(v);
+  if(a>=1e6)return`${(v/1e6).toFixed(1)}M`;
+  if(a>=1e4)return`${Math.round(v/1000)}k`;
+  if(a>=1000)return`${(v/1000).toFixed(1)}k`;
+  return`${Math.round(v)}`;
+}
 function applyChartTheme(){
   if(typeof Chart==='undefined')return;
   const isLight=document.body.classList.contains('light');
@@ -3983,7 +4607,7 @@ async function loadFromDB(){
     showSpinner();
     const editData=await dbGet(STORE_DATA,'editData');
     if(!editData){showError('No se encontraron datos guardados.');return;}
-    _editData=editData;
+    _editData=migrateData(editData);
     buildDashboard(_editData);
     document.getElementById('loaderScreen').style.display='none';
     document.getElementById('dashApp').style.display='block';
@@ -4051,7 +4675,7 @@ window.addEventListener('load',()=>{
 // ══════════════════════════════════
 (()=>{
   // Ordered by section so swiping advances naturally: hoy → gastos → deudas → ahorros → historia.
-  const TAB_ORDER=['resumen','alertas','registro','gastos','presupuesto','deudas','proyector','fornow','emergency','metas','analisis','historial'];
+  const TAB_ORDER=['resumen','alertas','registro','gastos','presupuesto','deudas','proyector','fornow','emergency','metas','retiro','analisis','historial'];
   let _tx=0,_ty=0;
   document.addEventListener('touchstart',e=>{
     _tx=e.touches[0].clientX;
@@ -4130,6 +4754,9 @@ function defaultEditData(){
     transacciones:[],
     presupuesto:[],
     recurrentes:[],
+    activos:[],
+    sinkingFunds:[],
+    retiro:{...RETIRO_DEFAULTS},
     filename:'cnt.json'
   };
 }
@@ -4306,14 +4933,11 @@ const _setupSteps=[
       const currency=document.getElementById('sw-ing-rd-btn')?.style.background==='var(--accent)'?'RD':'USD';
       // ingresoUSD is the per-period paycheck. ingresoRD stores the monthly
       // aggregate (per-period × payFrequency multiplier × tasa).
-      if(currency==='RD'){
-        const perPayRD=rawVal;
-        _editData.config.ingresoUSD=_editData.config.tasa>0?perPayRD/_editData.config.tasa:0;
-      } else {
-        _editData.config.ingresoUSD=rawVal;
-      }
-      _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
-      _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
+      const perPayUSD=currency==='RD'
+        ?(_editData.config.tasa>0?rawVal/_editData.config.tasa:0)
+        :rawVal;
+      setPrimaryIncomeUSD(_editData.config,perPayUSD);
+      syncIncomeMirrors(_editData);
       _editData.emerg.cashflow.tasa=_editData.config.tasa;
     }
   },
@@ -4641,11 +5265,11 @@ async function hardResetCache(){
 // 30 meses de historial (Diciembre 2023 → Mayo 2026) muestran un proceso
 // realista de pagar deuda + construir fondo de emergencia con un sueldo modesto.
 const _DEMO_DATA_RD={
-"config":{"tasa":61.5,"mes":"Mayo","anio":2026,"ingresoUSD":650.41,"diasAlerta":7,"ingresoRD":40000,"monedaPrincipal":"RD","payFrequency":"mensual","defaultCashAccountId":"cnt_demo_cash","walletLowThreshold":6000},
+"config":{"tasa":61.5,"mes":"Mayo","anio":2026,"ingresoUSD":650.41,"diasAlerta":7,"ingresoRD":40000,"monedaPrincipal":"RD","payFrequency":"mensual","defaultCashAccountId":"cnt_demo_cash","walletLowThreshold":6000,"ingresos":[{"id":"inc_demo_sueldo","nombre":"Sueldo (neto)","monto":35000,"moneda":"RD","frecuencia":"mensual","tipo":"fijo"},{"id":"inc_demo_unas","nombre":"Uñas los sábados","monto":2000,"moneda":"RD","frecuencia":"mensual","tipo":"variable"},{"id":"inc_demo_regalia","nombre":"Regalía pascual","monto":36000,"moneda":"RD","frecuencia":"anual","tipo":"fijo"}]},
 "gastos":[
 {"nombre":"Aporte a la casa","tipo":"Vivienda","pagado":10000,"adeudado":10000,"dia":1,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Renta + servicios — vivo con mi mamá","pagadoMes":true,"metodo":"transferencia"},
 {"nombre":"Préstamo Coopcentral","tipo":"Préstamo","pagado":0,"adeudado":3200,"dia":15,"tasa":18,"balance":48000,"originalRD":80000,"originalUSD":0,"tasaCreacion":58.5,"fechaLimite":"2027-12-15","notas":"Cooperativa · 36 meses","pagadoMes":false,"metodo":"transferencia"},
-{"nombre":"Visa Clásica BPD","tipo":"Tarjeta","pagado":0,"adeudado":1800,"dia":22,"tasa":60,"balance":22500,"originalRD":22500,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Pago mínimo no cubre intereses — voy abonando","pagadoMes":false,"metodo":"transferencia"},
+{"nombre":"Visa Clásica BPD","tipo":"Tarjeta","pagado":0,"adeudado":1800,"dia":22,"tasa":60,"balance":22500,"limiteCredito":30000,"originalRD":22500,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Pago mínimo no cubre intereses — voy abonando","pagadoMes":false,"metodo":"transferencia"},
 {"nombre":"Edenorte (Electricidad)","tipo":"Servicio","pagado":2400,"adeudado":2400,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Promedio últimos 3 meses","pagadoMes":true,"metodo":"transferencia"},
 {"nombre":"Internet Wind Telecom","tipo":"Servicio","pagado":1800,"adeudado":1800,"dia":8,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan 100 Mbps","pagadoMes":true,"metodo":"transferencia"},
 {"nombre":"Plan Claro Móvil","tipo":"Servicio","pagado":1200,"adeudado":1200,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Plan postpago básico","pagadoMes":true,"metodo":"transferencia"},
@@ -4663,41 +5287,39 @@ const _DEMO_DATA_RD={
 {"id":"cnt_demo_cash","nombre":"Efectivo en cartera","moneda":"RD","saldo":1800,"tipo":"cash","comp":0,"disp":0}
 ],"fecha":"2026-05-15","total":30800,"comprometido":0,"disponible":0},
 "emerg":{"fondos":[
-{"fondo":"Fondo emergencia (1 mes)","moneda":"RD","balance":15000,"meta":40000},
-{"fondo":"Fondo cita dentista","moneda":"RD","balance":3500,"meta":8000},
-{"fondo":"Fondo cumpleaños mamá","moneda":"RD","balance":2000,"meta":6000}
+{"fondo":"Fondo emergencia (1 mes)","moneda":"RD","balance":15000,"meta":40000}
 ],"cashflow":{"ingreso":40000,"gasto":36850,"tasa":61.5,"retirarUSD":0,"ahorros":1500,"balanceAhorros":18500}},
 "historial":[
-{"mes":"Mayo","anio":2026,"ingresos":40000,"gasto":35850,"ahorro":4150,"tasaAhorro":0.10375,"deudas":70500,"emergencia":20500,"netWorth":-19200,"tasa":61.5,"notas":"Mes balance — meta: pagar Visa con extra"},
-{"mes":"Abril","anio":2026,"ingresos":40000,"gasto":36200,"ahorro":3800,"tasaAhorro":0.095,"deudas":70500,"emergencia":19500,"netWorth":-23000,"tasa":61.5,"notas":"Comencé curso digital marketing"},
-{"mes":"Marzo","anio":2026,"ingresos":40000,"gasto":38500,"ahorro":1500,"tasaAhorro":0.0375,"deudas":70500,"emergencia":18500,"netWorth":-26500,"tasa":61.5,"notas":"Ascenso a Senior — gasto extra de cumpleaños"},
-{"mes":"Febrero","anio":2026,"ingresos":38000,"gasto":34000,"ahorro":4000,"tasaAhorro":0.10526315789473684,"deudas":70500,"emergencia":17500,"netWorth":-30000,"tasa":61.5,"notas":"Mes apretado pero balanceado"},
-{"mes":"Enero","anio":2026,"ingresos":38000,"gasto":41200,"ahorro":-3200,"tasaAhorro":-0.08421052631578947,"deudas":70500,"emergencia":16000,"netWorth":-34500,"tasa":61.5,"notas":"Reyes — sobre-gasto que ahora pago"},
-{"mes":"Diciembre","anio":2025,"ingresos":60000,"gasto":56000,"ahorro":4000,"tasaAhorro":0.06666666666666667,"deudas":70300,"emergencia":17500,"netWorth":-30800,"tasa":61.5,"notas":"Regalía + bono — Navidad cara pero alcanzó"},
-{"mes":"Noviembre","anio":2025,"ingresos":37000,"gasto":33000,"ahorro":4000,"tasaAhorro":0.10810810810810811,"deudas":72100,"emergencia":17000,"netWorth":-39100,"tasa":61.5,"notas":"Bonificación de fin de año"},
-{"mes":"Octubre","anio":2025,"ingresos":35000,"gasto":31500,"ahorro":3500,"tasaAhorro":0.1,"deudas":73900,"emergencia":15500,"netWorth":-44400,"tasa":61.5,"notas":""},
-{"mes":"Septiembre","anio":2025,"ingresos":35000,"gasto":30200,"ahorro":4800,"tasaAhorro":0.13714285714285715,"deudas":75800,"emergencia":14500,"netWorth":-49300,"tasa":61.4,"notas":"Recuperando del mes anterior"},
-{"mes":"Agosto","anio":2025,"ingresos":35000,"gasto":41000,"ahorro":-6000,"tasaAhorro":-0.17142857142857143,"deudas":77700,"emergencia":13000,"netWorth":-58700,"tasa":61.4,"notas":"⚠ Urgencia médica de mamá — usé fondo emergencia"},
-{"mes":"Julio","anio":2025,"ingresos":37000,"gasto":38500,"ahorro":-1500,"tasaAhorro":-0.04054054054054054,"deudas":79600,"emergencia":18000,"netWorth":-52600,"tasa":61.4,"notas":"Vacaciones más caras que presupuestadas"},
-{"mes":"Junio","anio":2025,"ingresos":35000,"gasto":32000,"ahorro":3000,"tasaAhorro":0.08571428571428572,"deudas":81500,"emergencia":18500,"netWorth":-56000,"tasa":61.4,"notas":""},
-{"mes":"Mayo","anio":2025,"ingresos":35000,"gasto":33500,"ahorro":1500,"tasaAhorro":0.04285714285714286,"deudas":83400,"emergencia":16500,"netWorth":-61400,"tasa":61.4,"notas":"Día de las Madres"},
-{"mes":"Abril","anio":2025,"ingresos":35000,"gasto":31800,"ahorro":3200,"tasaAhorro":0.09142857142857143,"deudas":85300,"emergencia":16000,"netWorth":-64800,"tasa":61.3,"notas":"Aumento por evaluación anual"},
-{"mes":"Marzo","anio":2025,"ingresos":33000,"gasto":30500,"ahorro":2500,"tasaAhorro":0.07575757575757576,"deudas":87200,"emergencia":14500,"netWorth":-69200,"tasa":61.3,"notas":""},
-{"mes":"Febrero","anio":2025,"ingresos":33000,"gasto":29500,"ahorro":3500,"tasaAhorro":0.10606060606060606,"deudas":89100,"emergencia":13500,"netWorth":-73100,"tasa":61.2,"notas":"Mes disciplinado"},
-{"mes":"Enero","anio":2025,"ingresos":33000,"gasto":33500,"ahorro":-500,"tasaAhorro":-0.015151515151515152,"deudas":91000,"emergencia":11500,"netWorth":-77500,"tasa":61.1,"notas":"Reyes — pagué a plazos"},
-{"mes":"Diciembre","anio":2024,"ingresos":55000,"gasto":51000,"ahorro":4000,"tasaAhorro":0.07272727272727272,"deudas":92900,"emergencia":11000,"netWorth":-76900,"tasa":61.0,"notas":"Navidad — pude ahorrar algo gracias a la regalía"},
-{"mes":"Noviembre","anio":2024,"ingresos":35000,"gasto":32000,"ahorro":3000,"tasaAhorro":0.08571428571428572,"deudas":94800,"emergencia":11500,"netWorth":-80300,"tasa":61.0,"notas":"Cyber Monday — pequeñas compras controladas"},
-{"mes":"Octubre","anio":2024,"ingresos":33000,"gasto":30200,"ahorro":2800,"tasaAhorro":0.08484848484848485,"deudas":96700,"emergencia":10000,"netWorth":-84200,"tasa":61.0,"notas":""},
-{"mes":"Septiembre","anio":2024,"ingresos":33000,"gasto":29800,"ahorro":3200,"tasaAhorro":0.09696969696969697,"deudas":98600,"emergencia":8500,"netWorth":-88100,"tasa":60.9,"notas":"Mes calmado"},
-{"mes":"Agosto","anio":2024,"ingresos":33000,"gasto":35500,"ahorro":-2500,"tasaAhorro":-0.07575757575757576,"deudas":100500,"emergencia":6500,"netWorth":-92500,"tasa":60.8,"notas":"Útiles escolares para sobrina"},
-{"mes":"Julio","anio":2024,"ingresos":35000,"gasto":36000,"ahorro":-1000,"tasaAhorro":-0.02857142857142857,"deudas":102400,"emergencia":7500,"netWorth":-93400,"tasa":60.7,"notas":"Vacaciones — playa con primas"},
-{"mes":"Junio","anio":2024,"ingresos":33000,"gasto":30800,"ahorro":2200,"tasaAhorro":0.06666666666666667,"deudas":104300,"emergencia":7000,"netWorth":-95800,"tasa":60.6,"notas":""},
-{"mes":"Mayo","anio":2024,"ingresos":33000,"gasto":32500,"ahorro":500,"tasaAhorro":0.015151515151515152,"deudas":106200,"emergencia":5500,"netWorth":-99200,"tasa":60.5,"notas":"Día de las Madres"},
-{"mes":"Abril","anio":2024,"ingresos":33000,"gasto":31000,"ahorro":2000,"tasaAhorro":0.06060606060606061,"deudas":108100,"emergencia":4500,"netWorth":-102100,"tasa":60.5,"notas":"Aumento pequeño en sueldo"},
-{"mes":"Marzo","anio":2024,"ingresos":32000,"gasto":30200,"ahorro":1800,"tasaAhorro":0.05625,"deudas":110000,"emergencia":3000,"netWorth":-105500,"tasa":60.4,"notas":""},
-{"mes":"Febrero","anio":2024,"ingresos":32000,"gasto":28500,"ahorro":3500,"tasaAhorro":0.109375,"deudas":111800,"emergencia":1500,"netWorth":-108800,"tasa":60.3,"notas":"Mes disciplinado — comencé a ahorrar en serio"},
-{"mes":"Enero","anio":2024,"ingresos":32000,"gasto":35000,"ahorro":-3000,"tasaAhorro":-0.09375,"deudas":113500,"emergencia":0,"netWorth":-112000,"tasa":60.2,"notas":"Reyes — sobre-presupuesto"},
-{"mes":"Diciembre","anio":2023,"ingresos":50000,"gasto":47000,"ahorro":3000,"tasaAhorro":0.06,"deudas":115000,"emergencia":0,"netWorth":-111500,"tasa":60.0,"notas":"Regalía + gastos navideños"}
+{"mes":"Mayo","anio":2026,"ingresos":40000,"gasto":35850,"ahorro":4150,"tasaAhorro":0.10375,"deudas":70500,"emergencia":15000,"netWorth":120800,"tasa":61.5,"notas":"Mes balance — meta: pagar Visa con extra"},
+{"mes":"Abril","anio":2026,"ingresos":40000,"gasto":36200,"ahorro":3800,"tasaAhorro":0.095,"deudas":70500,"emergencia":14000,"netWorth":117000,"tasa":61.5,"notas":"Comencé curso digital marketing"},
+{"mes":"Marzo","anio":2026,"ingresos":40000,"gasto":38500,"ahorro":1500,"tasaAhorro":0.0375,"deudas":70500,"emergencia":13000,"netWorth":113500,"tasa":61.5,"notas":"Ascenso a Senior — gasto extra de cumpleaños"},
+{"mes":"Febrero","anio":2026,"ingresos":38000,"gasto":34000,"ahorro":4000,"tasaAhorro":0.10526315789473684,"deudas":70500,"emergencia":12000,"netWorth":110000,"tasa":61.5,"notas":"Mes apretado pero balanceado"},
+{"mes":"Enero","anio":2026,"ingresos":38000,"gasto":41200,"ahorro":-3200,"tasaAhorro":-0.08421052631578947,"deudas":70500,"emergencia":10500,"netWorth":105500,"tasa":61.5,"notas":"Reyes — sobre-gasto que ahora pago"},
+{"mes":"Diciembre","anio":2025,"ingresos":60000,"gasto":56000,"ahorro":4000,"tasaAhorro":0.06666666666666667,"deudas":70300,"emergencia":12000,"netWorth":109200,"tasa":61.5,"notas":"Regalía + bono — Navidad cara pero alcanzó"},
+{"mes":"Noviembre","anio":2025,"ingresos":37000,"gasto":33000,"ahorro":4000,"tasaAhorro":0.10810810810810811,"deudas":72100,"emergencia":11500,"netWorth":100900,"tasa":61.5,"notas":"Bonificación de fin de año"},
+{"mes":"Octubre","anio":2025,"ingresos":35000,"gasto":31500,"ahorro":3500,"tasaAhorro":0.1,"deudas":73900,"emergencia":10000,"netWorth":95600,"tasa":61.5,"notas":""},
+{"mes":"Septiembre","anio":2025,"ingresos":35000,"gasto":30200,"ahorro":4800,"tasaAhorro":0.13714285714285715,"deudas":75800,"emergencia":9000,"netWorth":90700,"tasa":61.4,"notas":"Recuperando del mes anterior"},
+{"mes":"Agosto","anio":2025,"ingresos":35000,"gasto":41000,"ahorro":-6000,"tasaAhorro":-0.17142857142857143,"deudas":77700,"emergencia":7500,"netWorth":81300,"tasa":61.4,"notas":"⚠ Urgencia médica de mamá — usé fondo emergencia"},
+{"mes":"Julio","anio":2025,"ingresos":37000,"gasto":38500,"ahorro":-1500,"tasaAhorro":-0.04054054054054054,"deudas":79600,"emergencia":12500,"netWorth":87400,"tasa":61.4,"notas":"Vacaciones más caras que presupuestadas"},
+{"mes":"Junio","anio":2025,"ingresos":35000,"gasto":32000,"ahorro":3000,"tasaAhorro":0.08571428571428572,"deudas":81500,"emergencia":13000,"netWorth":84000,"tasa":61.4,"notas":""},
+{"mes":"Mayo","anio":2025,"ingresos":35000,"gasto":33500,"ahorro":1500,"tasaAhorro":0.04285714285714286,"deudas":83400,"emergencia":11000,"netWorth":78600,"tasa":61.4,"notas":"Día de las Madres"},
+{"mes":"Abril","anio":2025,"ingresos":35000,"gasto":31800,"ahorro":3200,"tasaAhorro":0.09142857142857143,"deudas":85300,"emergencia":10500,"netWorth":75200,"tasa":61.3,"notas":"Aumento por evaluación anual"},
+{"mes":"Marzo","anio":2025,"ingresos":33000,"gasto":30500,"ahorro":2500,"tasaAhorro":0.07575757575757576,"deudas":87200,"emergencia":9000,"netWorth":70800,"tasa":61.3,"notas":""},
+{"mes":"Febrero","anio":2025,"ingresos":33000,"gasto":29500,"ahorro":3500,"tasaAhorro":0.10606060606060606,"deudas":89100,"emergencia":8000,"netWorth":66900,"tasa":61.2,"notas":"Mes disciplinado"},
+{"mes":"Enero","anio":2025,"ingresos":33000,"gasto":33500,"ahorro":-500,"tasaAhorro":-0.015151515151515152,"deudas":91000,"emergencia":6000,"netWorth":62500,"tasa":61.1,"notas":"Reyes — pagué a plazos"},
+{"mes":"Diciembre","anio":2024,"ingresos":55000,"gasto":51000,"ahorro":4000,"tasaAhorro":0.07272727272727272,"deudas":92900,"emergencia":5500,"netWorth":63100,"tasa":61.0,"notas":"Navidad — pude ahorrar algo gracias a la regalía"},
+{"mes":"Noviembre","anio":2024,"ingresos":35000,"gasto":32000,"ahorro":3000,"tasaAhorro":0.08571428571428572,"deudas":94800,"emergencia":6000,"netWorth":59700,"tasa":61.0,"notas":"Cyber Monday — pequeñas compras controladas"},
+{"mes":"Octubre","anio":2024,"ingresos":33000,"gasto":30200,"ahorro":2800,"tasaAhorro":0.08484848484848485,"deudas":96700,"emergencia":4500,"netWorth":55800,"tasa":61.0,"notas":""},
+{"mes":"Septiembre","anio":2024,"ingresos":33000,"gasto":29800,"ahorro":3200,"tasaAhorro":0.09696969696969697,"deudas":98600,"emergencia":3000,"netWorth":51900,"tasa":60.9,"notas":"Mes calmado"},
+{"mes":"Agosto","anio":2024,"ingresos":33000,"gasto":35500,"ahorro":-2500,"tasaAhorro":-0.07575757575757576,"deudas":100500,"emergencia":1000,"netWorth":47500,"tasa":60.8,"notas":"Útiles escolares para sobrina"},
+{"mes":"Julio","anio":2024,"ingresos":35000,"gasto":36000,"ahorro":-1000,"tasaAhorro":-0.02857142857142857,"deudas":102400,"emergencia":2000,"netWorth":46600,"tasa":60.7,"notas":"Vacaciones — playa con primas"},
+{"mes":"Junio","anio":2024,"ingresos":33000,"gasto":30800,"ahorro":2200,"tasaAhorro":0.06666666666666667,"deudas":104300,"emergencia":1500,"netWorth":44200,"tasa":60.6,"notas":""},
+{"mes":"Mayo","anio":2024,"ingresos":33000,"gasto":32500,"ahorro":500,"tasaAhorro":0.015151515151515152,"deudas":106200,"emergencia":0,"netWorth":40800,"tasa":60.5,"notas":"Día de las Madres"},
+{"mes":"Abril","anio":2024,"ingresos":33000,"gasto":31000,"ahorro":2000,"tasaAhorro":0.06060606060606061,"deudas":108100,"emergencia":-1000,"netWorth":37900,"tasa":60.5,"notas":"Aumento pequeño en sueldo"},
+{"mes":"Marzo","anio":2024,"ingresos":32000,"gasto":30200,"ahorro":1800,"tasaAhorro":0.05625,"deudas":110000,"emergencia":-2500,"netWorth":34500,"tasa":60.4,"notas":""},
+{"mes":"Febrero","anio":2024,"ingresos":32000,"gasto":28500,"ahorro":3500,"tasaAhorro":0.109375,"deudas":111800,"emergencia":-4000,"netWorth":31200,"tasa":60.3,"notas":"Mes disciplinado — comencé a ahorrar en serio"},
+{"mes":"Enero","anio":2024,"ingresos":32000,"gasto":35000,"ahorro":-3000,"tasaAhorro":-0.09375,"deudas":113500,"emergencia":-5500,"netWorth":28000,"tasa":60.2,"notas":"Reyes — sobre-presupuesto"},
+{"mes":"Diciembre","anio":2023,"ingresos":50000,"gasto":47000,"ahorro":3000,"tasaAhorro":0.06,"deudas":115000,"emergencia":-5500,"netWorth":28500,"tasa":60.0,"notas":"Regalía + gastos navideños"}
 ],
 "metas":[
 {"name":"Curso digital marketing","goal":28000,"saved":12000,"monthly":1500},
@@ -4717,19 +5339,29 @@ const _DEMO_DATA_RD={
 {"categoria":"otro","presupuestado":1000,"mes":"Mayo","anio":2026}
 ],
 "recurrentes":[],
+"activos":[
+{"id":"act_demo_pasola","nombre":"Pasola Honda","tipo":"vehiculo","valor":85000,"moneda":"RD"},
+{"id":"act_demo_prendas","nombre":"Prendas y electrodomésticos","tipo":"otro","valor":35000,"moneda":"RD"}
+],
+"retiro":{"edadActual":29,"edadRetiro":60,"retornoEsperado":6,"inflacion":4.5,"aporteMensual":2500,"cuentasIds":["cnt_demo_ahorro"]},
+"sinkingFunds":[
+{"id":"snk_demo_dentista","nombre":"Cita dentista","meta":8000,"saved":3500,"cadencia":"semestral","proximaFecha":"2026-11-15","moneda":"RD"},
+{"id":"snk_demo_cumple","nombre":"Cumpleaños mamá","meta":6000,"saved":2000,"cadencia":"anual","proximaFecha":"2027-02-10","moneda":"RD"},
+{"id":"snk_demo_marbete","nombre":"Marbete + seguro pasola","meta":9500,"saved":1500,"cadencia":"anual","proximaFecha":"2026-12-01","moneda":"RD"}
+],
 "filename":"cnt_demo.json"
 };
 // Demo USD — US household with mortgage, car loan, student loan and credit cards.
 // Income $6,500/mo. 30 months of historial (Dec 2023 → May 2026) provide 2.5
 // years of trend data for the historial charts.
 const _DEMO_DATA_USD={
-"config":{"tasa":60,"mes":"May","anio":2026,"ingresoUSD":6500,"diasAlerta":7,"ingresoRD":390000,"monedaPrincipal":"USD","payFrequency":"mensual","defaultCashAccountId":"cnt_demousd_cash","walletLowThreshold":12000},
+"config":{"tasa":60,"mes":"May","anio":2026,"ingresoUSD":6500,"diasAlerta":7,"ingresoRD":390000,"monedaPrincipal":"USD","payFrequency":"mensual","defaultCashAccountId":"cnt_demousd_cash","walletLowThreshold":12000,"ingresos":[{"id":"inc_demousd_salary","nombre":"Salary (net)","monto":5600,"moneda":"USD","frecuencia":"mensual","tipo":"fijo"},{"id":"inc_demousd_spouse","nombre":"Spouse part-time","monto":600,"moneda":"USD","frecuencia":"mensual","tipo":"fijo"},{"id":"inc_demousd_bonus","nombre":"Annual bonus","monto":3600,"moneda":"USD","frecuencia":"anual","tipo":"variable"}]},
 "gastos":[
 {"nombre":"Mortgage (Wells Fargo)","tipo":"Vivienda","pagado":111000,"adeudado":111000,"dia":1,"tasa":6.5,"balance":17100000,"originalRD":17100000,"originalUSD":285000,"tasaCreacion":60,"fechaLimite":"2054-01-01","notas":"30yr fixed · escrow included","pagadoMes":true,"metodo":"transferencia"},
 {"nombre":"Car Loan (Toyota)","tipo":"Préstamo","pagado":0,"adeudado":27000,"dia":15,"tasa":5.9,"balance":1080000,"originalRD":1680000,"originalUSD":28000,"tasaCreacion":60,"fechaLimite":"2029-06-15","notas":"5yr auto loan","pagadoMes":false,"metodo":"transferencia"},
 {"nombre":"Student Loan (Navient)","tipo":"Préstamo","pagado":21000,"adeudado":21000,"dia":20,"tasa":4.5,"balance":1680000,"originalRD":2700000,"originalUSD":45000,"tasaCreacion":60,"fechaLimite":"2034-09-20","notas":"Federal · 10yr standard","pagadoMes":true,"metodo":"transferencia"},
-{"nombre":"Visa (Chase)","tipo":"Tarjeta","pagado":12000,"adeudado":12000,"dia":25,"tasa":24.99,"balance":252000,"originalRD":252000,"originalUSD":4200,"tasaCreacion":60,"fechaLimite":"—","notas":"Minimum doesn't cover interest","pagadoMes":false,"metodo":"transferencia"},
-{"nombre":"Amex Blue Cash","tipo":"Tarjeta","pagado":0,"adeudado":9000,"dia":10,"tasa":21.99,"balance":108000,"originalRD":108000,"originalUSD":1800,"tasaCreacion":60,"fechaLimite":"—","notas":"Consolidate with Visa","pagadoMes":false,"metodo":"transferencia"},
+{"nombre":"Visa (Chase)","tipo":"Tarjeta","pagado":12000,"adeudado":12000,"dia":25,"tasa":24.99,"balance":252000,"limiteCredito":600000,"originalRD":252000,"originalUSD":4200,"tasaCreacion":60,"fechaLimite":"—","notas":"Minimum doesn't cover interest","pagadoMes":false,"metodo":"transferencia"},
+{"nombre":"Amex Blue Cash","tipo":"Tarjeta","pagado":0,"adeudado":9000,"dia":10,"tasa":21.99,"balance":108000,"limiteCredito":480000,"originalRD":108000,"originalUSD":1800,"tasaCreacion":60,"fechaLimite":"—","notas":"Consolidate with Visa","pagadoMes":false,"metodo":"transferencia"},
 {"nombre":"Electric (Duke Energy)","tipo":"Servicio","pagado":9900,"adeudado":9900,"dia":12,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Average last 3 months","pagadoMes":true,"metodo":"transferencia"},
 {"nombre":"Internet (Xfinity)","tipo":"Servicio","pagado":4800,"adeudado":4800,"dia":5,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"300 Mbps plan","pagadoMes":true,"metodo":"transferencia"},
 {"nombre":"Cell Phone (T-Mobile)","tipo":"Servicio","pagado":8400,"adeudado":8400,"dia":18,"tasa":0,"balance":0,"originalRD":0,"originalUSD":0,"tasaCreacion":0,"fechaLimite":"—","notas":"Family plan · 4 lines","pagadoMes":true,"metodo":"transferencia"},
@@ -4750,42 +5382,39 @@ const _DEMO_DATA_USD={
 ],"fecha":"2026-05-15","total":2331000,"comprometido":0,"disponible":0},
 "emerg":{"fondos":[
 {"fondo":"3-Month Expenses Fund","moneda":"USD","balance":12000,"meta":18000},
-{"fondo":"Car Repair Fund","moneda":"USD","balance":1500,"meta":3000},
-{"fondo":"Medical Fund","moneda":"USD","balance":2000,"meta":5000},
-{"fondo":"Home Repair Fund","moneda":"USD","balance":800,"meta":5000},
-{"fondo":"Kid's College 529","moneda":"USD","balance":4500,"meta":50000}
+{"fondo":"Medical Fund","moneda":"USD","balance":2000,"meta":5000}
 ],"cashflow":{"ingreso":390000,"gasto":341820,"tasa":60,"retirarUSD":0,"ahorros":24000,"balanceAhorros":510000}},
 "historial":[
-{"mes":"May","anio":2026,"ingresos":390000,"gasto":341820,"ahorro":48180,"tasaAhorro":0.1235,"deudas":20220000,"emergencia":1248000,"netWorth":-15558000,"tasa":60,"notas":"Best month — extra payment on Visa"},
-{"mes":"April","anio":2026,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":20370000,"emergencia":1188000,"netWorth":-15732000,"tasa":60,"notas":"Tax refund helped savings"},
-{"mes":"March","anio":2026,"ingresos":390000,"gasto":355200,"ahorro":34800,"tasaAhorro":0.0892,"deudas":20520000,"emergencia":1110000,"netWorth":-15990000,"tasa":60,"notas":"Paid extra on car loan"},
-{"mes":"February","anio":2026,"ingresos":390000,"gasto":346800,"ahorro":43200,"tasaAhorro":0.1108,"deudas":20670000,"emergencia":1032000,"netWorth":-16278000,"tasa":60,"notas":""},
-{"mes":"January","anio":2026,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":20820000,"emergencia":960000,"netWorth":-16500000,"tasa":60,"notas":"Post-holiday spending catch-up"},
-{"mes":"December","anio":2025,"ingresos":390000,"gasto":432000,"ahorro":-42000,"tasaAhorro":-0.1077,"deudas":20970000,"emergencia":912000,"netWorth":-16728000,"tasa":60,"notas":"Holiday spending high — gifts + travel"},
-{"mes":"November","anio":2025,"ingresos":390000,"gasto":339000,"ahorro":51000,"tasaAhorro":0.1308,"deudas":21090000,"emergencia":888000,"netWorth":-16872000,"tasa":60,"notas":"Disciplined month — Black Friday avoided"},
-{"mes":"October","anio":2025,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":21228000,"emergencia":840000,"netWorth":-17118000,"tasa":60,"notas":""},
-{"mes":"September","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21360000,"emergencia":792000,"netWorth":-17388000,"tasa":60,"notas":"Back to school supplies"},
-{"mes":"August","anio":2025,"ingresos":390000,"gasto":426000,"ahorro":-36000,"tasaAhorro":-0.0923,"deudas":21492000,"emergencia":750000,"netWorth":-17592000,"tasa":60,"notas":"⚠ Bad month — AC repair $1,200 + summer daycare costs up"},
-{"mes":"July","anio":2025,"ingresos":390000,"gasto":340800,"ahorro":49200,"tasaAhorro":0.1262,"deudas":21600000,"emergencia":708000,"netWorth":-17748000,"tasa":60,"notas":"Good month — got back on track"},
-{"mes":"June","anio":2025,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":21732000,"emergencia":660000,"netWorth":-18012000,"tasa":60,"notas":""},
-{"mes":"May","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21870000,"emergencia":612000,"netWorth":-18258000,"tasa":60,"notas":""},
-{"mes":"April","anio":2025,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22008000,"emergencia":570000,"netWorth":-18498000,"tasa":60,"notas":""},
-{"mes":"March","anio":2025,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":22140000,"emergencia":528000,"netWorth":-18732000,"tasa":60,"notas":"Started kid college 529 contributions"},
-{"mes":"February","anio":2025,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":22272000,"emergencia":480000,"netWorth":-18972000,"tasa":60,"notas":""},
-{"mes":"January","anio":2025,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":22410000,"emergencia":432000,"netWorth":-19218000,"tasa":60,"notas":"Resolution: pay debts aggressively"},
-{"mes":"December","anio":2024,"ingresos":390000,"gasto":450000,"ahorro":-60000,"tasaAhorro":-0.1538,"deudas":22500000,"emergencia":390000,"netWorth":-19440000,"tasa":60,"notas":"Holiday spending — high but manageable"},
-{"mes":"November","anio":2024,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":22640000,"emergencia":348000,"netWorth":-19660000,"tasa":60,"notas":"Pre-holiday savings push"},
-{"mes":"October","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":22772000,"emergencia":312000,"netWorth":-19858000,"tasa":60,"notas":""},
-{"mes":"September","anio":2024,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22898000,"emergencia":282000,"netWorth":-20060000,"tasa":60,"notas":""},
-{"mes":"August","anio":2024,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":23022000,"emergencia":252000,"netWorth":-20262000,"tasa":60,"notas":"Back to school costs"},
-{"mes":"July","anio":2024,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":23142000,"emergencia":228000,"netWorth":-20460000,"tasa":60,"notas":"Good month"},
-{"mes":"June","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":23262000,"emergencia":198000,"netWorth":-20662000,"tasa":60,"notas":""},
-{"mes":"May","anio":2024,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":23382000,"emergencia":174000,"netWorth":-20862000,"tasa":60,"notas":""},
-{"mes":"April","anio":2024,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":23502000,"emergencia":144000,"netWorth":-21070000,"tasa":60,"notas":"Big tax bill — owed extra"},
-{"mes":"March","anio":2024,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":23622000,"emergencia":132000,"netWorth":-21266000,"tasa":60,"notas":"Quarterly tax estimate"},
-{"mes":"February","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":23736000,"emergencia":108000,"netWorth":-21450000,"tasa":60,"notas":""},
-{"mes":"January","anio":2024,"ingresos":390000,"gasto":378000,"ahorro":12000,"tasaAhorro":0.0308,"deudas":23850000,"emergencia":84000,"netWorth":-21640000,"tasa":60,"notas":"Holiday catch-up + January raises kicked in"},
-{"mes":"December","anio":2023,"ingresos":390000,"gasto":462000,"ahorro":-72000,"tasaAhorro":-0.1846,"deudas":23958000,"emergencia":78000,"netWorth":-21810000,"tasa":60,"notas":"Holiday spending bigger than usual"}
+{"mes":"May","anio":2026,"ingresos":390000,"gasto":341820,"ahorro":48180,"tasaAhorro":0.1235,"deudas":20220000,"emergencia":840000,"netWorth":6798000,"tasa":60,"notas":"Best month — extra payment on Visa"},
+{"mes":"April","anio":2026,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":20370000,"emergencia":780000,"netWorth":6624000,"tasa":60,"notas":"Tax refund helped savings"},
+{"mes":"March","anio":2026,"ingresos":390000,"gasto":355200,"ahorro":34800,"tasaAhorro":0.0892,"deudas":20520000,"emergencia":702000,"netWorth":6366000,"tasa":60,"notas":"Paid extra on car loan"},
+{"mes":"February","anio":2026,"ingresos":390000,"gasto":346800,"ahorro":43200,"tasaAhorro":0.1108,"deudas":20670000,"emergencia":624000,"netWorth":6078000,"tasa":60,"notas":""},
+{"mes":"January","anio":2026,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":20820000,"emergencia":552000,"netWorth":5856000,"tasa":60,"notas":"Post-holiday spending catch-up"},
+{"mes":"December","anio":2025,"ingresos":390000,"gasto":432000,"ahorro":-42000,"tasaAhorro":-0.1077,"deudas":20970000,"emergencia":504000,"netWorth":5628000,"tasa":60,"notas":"Holiday spending high — gifts + travel"},
+{"mes":"November","anio":2025,"ingresos":390000,"gasto":339000,"ahorro":51000,"tasaAhorro":0.1308,"deudas":21090000,"emergencia":480000,"netWorth":5484000,"tasa":60,"notas":"Disciplined month — Black Friday avoided"},
+{"mes":"October","anio":2025,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":21228000,"emergencia":432000,"netWorth":5238000,"tasa":60,"notas":""},
+{"mes":"September","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21360000,"emergencia":384000,"netWorth":4968000,"tasa":60,"notas":"Back to school supplies"},
+{"mes":"August","anio":2025,"ingresos":390000,"gasto":426000,"ahorro":-36000,"tasaAhorro":-0.0923,"deudas":21492000,"emergencia":342000,"netWorth":4764000,"tasa":60,"notas":"⚠ Bad month — AC repair $1,200 + summer daycare costs up"},
+{"mes":"July","anio":2025,"ingresos":390000,"gasto":340800,"ahorro":49200,"tasaAhorro":0.1262,"deudas":21600000,"emergencia":300000,"netWorth":4608000,"tasa":60,"notas":"Good month — got back on track"},
+{"mes":"June","anio":2025,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":21732000,"emergencia":252000,"netWorth":4344000,"tasa":60,"notas":""},
+{"mes":"May","anio":2025,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":21870000,"emergencia":204000,"netWorth":4098000,"tasa":60,"notas":""},
+{"mes":"April","anio":2025,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22008000,"emergencia":162000,"netWorth":3858000,"tasa":60,"notas":""},
+{"mes":"March","anio":2025,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":22140000,"emergencia":120000,"netWorth":3624000,"tasa":60,"notas":"Started kid college 529 contributions"},
+{"mes":"February","anio":2025,"ingresos":390000,"gasto":366000,"ahorro":24000,"tasaAhorro":0.0615,"deudas":22272000,"emergencia":72000,"netWorth":3384000,"tasa":60,"notas":""},
+{"mes":"January","anio":2025,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":22410000,"emergencia":24000,"netWorth":3138000,"tasa":60,"notas":"Resolution: pay debts aggressively"},
+{"mes":"December","anio":2024,"ingresos":390000,"gasto":450000,"ahorro":-60000,"tasaAhorro":-0.1538,"deudas":22500000,"emergencia":-18000,"netWorth":2916000,"tasa":60,"notas":"Holiday spending — high but manageable"},
+{"mes":"November","anio":2024,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":22640000,"emergencia":-60000,"netWorth":2696000,"tasa":60,"notas":"Pre-holiday savings push"},
+{"mes":"October","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":22772000,"emergencia":-96000,"netWorth":2498000,"tasa":60,"notas":""},
+{"mes":"September","anio":2024,"ingresos":390000,"gasto":351000,"ahorro":39000,"tasaAhorro":0.1,"deudas":22898000,"emergencia":-126000,"netWorth":2296000,"tasa":60,"notas":""},
+{"mes":"August","anio":2024,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":23022000,"emergencia":-156000,"netWorth":2094000,"tasa":60,"notas":"Back to school costs"},
+{"mes":"July","anio":2024,"ingresos":390000,"gasto":345000,"ahorro":45000,"tasaAhorro":0.1154,"deudas":23142000,"emergencia":-180000,"netWorth":1896000,"tasa":60,"notas":"Good month"},
+{"mes":"June","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":23262000,"emergencia":-210000,"netWorth":1694000,"tasa":60,"notas":""},
+{"mes":"May","anio":2024,"ingresos":390000,"gasto":348000,"ahorro":42000,"tasaAhorro":0.1077,"deudas":23382000,"emergencia":-234000,"netWorth":1494000,"tasa":60,"notas":""},
+{"mes":"April","anio":2024,"ingresos":390000,"gasto":372000,"ahorro":18000,"tasaAhorro":0.0462,"deudas":23502000,"emergencia":-264000,"netWorth":1286000,"tasa":60,"notas":"Big tax bill — owed extra"},
+{"mes":"March","anio":2024,"ingresos":390000,"gasto":360000,"ahorro":30000,"tasaAhorro":0.0769,"deudas":23622000,"emergencia":-276000,"netWorth":1090000,"tasa":60,"notas":"Quarterly tax estimate"},
+{"mes":"February","anio":2024,"ingresos":390000,"gasto":354000,"ahorro":36000,"tasaAhorro":0.0923,"deudas":23736000,"emergencia":-300000,"netWorth":906000,"tasa":60,"notas":""},
+{"mes":"January","anio":2024,"ingresos":390000,"gasto":378000,"ahorro":12000,"tasaAhorro":0.0308,"deudas":23850000,"emergencia":-324000,"netWorth":716000,"tasa":60,"notas":"Holiday catch-up + January raises kicked in"},
+{"mes":"December","anio":2023,"ingresos":390000,"gasto":462000,"ahorro":-72000,"tasaAhorro":-0.1846,"deudas":23958000,"emergencia":-330000,"netWorth":546000,"tasa":60,"notas":"Holiday spending bigger than usual"}
 ],
 "metas":[
 {"name":"Family Vacation (Hawaii)","goal":300000,"saved":168000,"monthly":24000},
@@ -4797,6 +5426,19 @@ const _DEMO_DATA_USD={
 "transacciones":[],
 "presupuesto":[],
 "recurrentes":[],
+"activos":[
+{"id":"act_demousd_home","nombre":"Home (market value)","tipo":"inmueble","valor":310000,"moneda":"USD"},
+{"id":"act_demousd_car","nombre":"Toyota Camry","tipo":"vehiculo","valor":22000,"moneda":"USD"},
+{"id":"act_demousd_401k","nombre":"401k (Fidelity)","tipo":"inversion","valor":48000,"moneda":"USD"}
+],
+"retiro":{"edadActual":38,"edadRetiro":65,"retornoEsperado":7,"inflacion":3,"aporteMensual":54000,"cuentasIds":["cnt_demousd_brokerage"]},
+"sinkingFunds":[
+{"id":"snk_demousd_car","nombre":"Car maintenance & repair","meta":3000,"saved":1500,"cadencia":"semestral","proximaFecha":"2026-11-01","moneda":"USD"},
+{"id":"snk_demousd_home","nombre":"Home repair","meta":5000,"saved":800,"cadencia":"anual","proximaFecha":"2027-03-01","moneda":"USD"},
+{"id":"snk_demousd_529","nombre":"Kid's College 529","meta":50000,"saved":4500,"cadencia":"anual","proximaFecha":"2038-08-01","moneda":"USD"},
+{"id":"snk_demousd_prop","nombre":"Property tax","meta":4200,"saved":1750,"cadencia":"anual","proximaFecha":"2026-12-15","moneda":"USD"},
+{"id":"snk_demousd_xmas","nombre":"Christmas & gifts","meta":2500,"saved":400,"cadencia":"anual","proximaFecha":"2026-12-01","moneda":"USD"}
+],
 "filename":"cnt_demo_usd.json"
 };
 // ══════════════════════════════════
@@ -4804,7 +5446,7 @@ const _DEMO_DATA_USD={
 // ══════════════════════════════════
 function downloadJSON(){
   const data=JSON.parse(JSON.stringify(_editData));
-  data._meta={version:4,exportedAt:new Date().toISOString(),app:'CNTpf'};
+  data._meta={version:SCHEMA_VERSION,exportedAt:new Date().toISOString(),app:'CNTpf'};
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
@@ -4825,23 +5467,7 @@ function importJSON(file){
       const missing=required.filter(k=>!data[k]);
       if(missing.length){showError(`⚠ JSON inválido — faltan: ${missing.join(', ')}`);return;}
       delete data._meta;
-      _editData=data;
-      // Migration: v1/v2 had no payFrequency — pre-feature data is monthly by definition
-      if(!_editData.config.payFrequency)_editData.config.payFrequency='mensual';
-      _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
-      _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
-      if(!_editData.config.monedaPrincipal)_editData.config.monedaPrincipal='RD';
-      if(!_editData.metas)_editData.metas=[];
-      if(!_editData.transacciones)_editData.transacciones=[];
-      if(!_editData.presupuesto)_editData.presupuesto=[];
-      if(!_editData.recurrentes)_editData.recurrentes=[];
-      // v3→v4 wallet migration: ensure each cuenta has a stable id and default tipo
-      ensureCuentaIds(_editData);
-      if(_editData.config.defaultCashAccountId===undefined)_editData.config.defaultCashAccountId=null;
-      // Validate the pointer still resolves; null it out if the referenced cuenta is gone
-      if(_editData.config.defaultCashAccountId&&!_editData.forNow.cuentas.some(c=>c.id===_editData.config.defaultCashAccountId)){
-        _editData.config.defaultCashAccountId=null;
-      }
+      _editData=migrateData(data);
       _editData.filename=file.name;
       buildDashboard(_editData);
       applyI18n();
@@ -4894,7 +5520,7 @@ async function downloadFromDB(){
   const editData=await dbGet(STORE_DATA,'editData');
   if(!editData)return false;
   const data=JSON.parse(JSON.stringify(editData));
-  data._meta={version:4,exportedAt:new Date().toISOString(),app:'CNTpf'};
+  data._meta={version:SCHEMA_VERSION,exportedAt:new Date().toISOString(),app:'CNTpf'};
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
@@ -4912,13 +5538,7 @@ async function loadDemo(currency){
   try{
     const src=currency==='USD'?_DEMO_DATA_USD:_DEMO_DATA_RD;
     if(typeof src!=='object')throw new Error('no demo');
-    _editData=JSON.parse(JSON.stringify(src));
-    if(!_editData.config.payFrequency)_editData.config.payFrequency='mensual';
-    _editData.config.ingresoRD=monthlyIncomeRD(_editData.config);
-    _editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;
-    // Wallet migration: ensure ids/tipos
-    ensureCuentaIds(_editData);
-    if(_editData.config.defaultCashAccountId===undefined)_editData.config.defaultCashAccountId=null;
+    _editData=migrateData(JSON.parse(JSON.stringify(src)));
     buildDashboard(_editData);
     applyI18n();
     document.getElementById('loaderScreen').style.display='none';
@@ -5026,6 +5646,16 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
   else if(gpct>0.85)agHtml.push(`<div class="alert-item warning"><div class="alert-icon">⚠️</div><div class="alert-text"><div class="alert-title">${t('alert_highexp_title')}</div><div class="alert-sub">${t('alert_highexp_sub').replace('%',Math.round(gpct*100)+'%')}</div></div></div>`);
   const dRatio=ingreso>0?totalBalance/(ingreso*12):1;
   if(dRatio>1.5)agHtml.push(`<div class="alert-item urgent"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">${t('alert_highdebt_title')}</div><div class="alert-sub">${t('alert_highdebt_sub').replace('%',(dRatio*100).toFixed(0)+'%')}</div></div></div>`);
+  // Aggregate revolving utilization. Raised as its own alert rather than
+  // folded into the high-rate one: the fix is different (pay down toward the
+  // limit vs refinance the rate) and it moves within a statement cycle.
+  const _util=overallUtilization(_editData);
+  if(_util!=null&&_util>=UTIL_WARN){
+    const _cards=(_editData.gastos||[]).filter(g=>g.limiteCredito>0);
+    const _used=_cards.reduce((a,g)=>a+Math.max(0,g.balance||0),0);
+    const _lim=_cards.reduce((a,g)=>a+g.limiteCredito,0);
+    agHtml.push(`<div class="alert-item ${_util>=UTIL_HIGH?'urgent':'warning'}"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">${t('alert_util_title')}</div><div class="alert-sub">${t('alert_util_msg').replace('{pct}',Math.round(_util*100)).replace('{used}',fmtC(toDisplay(_used))).replace('{lim}',fmtC(toDisplay(_lim)))}</div></div></div>`);
+  }
   const altaTasa=gastos.filter(g=>g.tasa>15&&g.balance>0);
   altaTasa.forEach(g=>agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${t('alert_highrate_sub').replace('%',g.tasa+'%').replace(currencySymbol(),fmtC(toDisplay(g.balance)))}</div></div></div>`));
   if(emerg&&emerg.fondos&&emerg.fondos.length){
@@ -5126,7 +5756,7 @@ function buildChecklist(gastos){
     ${_pendingSave?`<div style="font-size:11px;color:var(--yellow);margin-top:8px;padding:8px 12px;background:rgba(245,200,66,.08);border-radius:8px;border:1px solid rgba(245,200,66,.2)">${t('chk_unsaved')}</div>`:''}`;
 
   const cfg=_editData.config||{};
-  const ingreso=cfg.ingresoUSD>0&&cfg.tasa>0?monthlyIncomeRD(cfg):(cfg.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
+  const ingreso=hasIncome(cfg)&&cfg.tasa>0?monthlyIncomeRD(cfg):(cfg.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
   const mkRow=(g,isDone)=>{
     const pct=ingreso>0?Math.round(g.adeudado/ingreso*100):0;
     const intMes=g.balance>0&&g.tasa>0?Math.round(g.balance*(g.tasa/100/12)):0;
@@ -5499,7 +6129,10 @@ function buildPresupuesto(presupuesto,transacciones,config){
     const actual=tx.filter(t=>t.categoria===cat).reduce((a,t)=>a+t.monto,0);
     // Estimate recurring for this category in current month
     const recEst=recs.filter(r=>r.categoria===cat).reduce((a,r)=>{
-      const mult=r.frecuencia==='diario'?30:r.frecuencia==='semanal'?4:r.frecuencia==='quincenal'?2:1;
+      // Occurrences per month. Sub-monthly cadences produce a fraction — an
+      // annual RD$12,000 premium is RD$1,000/mo of budget pressure, not
+      // RD$12,000 in whichever month it lands.
+      const mult={diario:30,semanal:4,quincenal:2,mensual:1,trimestral:1/3,semestral:1/6,anual:1/12}[r.frecuencia]??1;
       return a+r.monto*mult;
     },0);
     return{cat,budgeted,actual,remaining:budgeted-actual,pct:budgeted>0?Math.round(actual/budgeted*100):(actual>0?999:0),recEst};
@@ -5666,6 +6299,9 @@ function getRecurringDates(rec,upTo){
     else if(rec.frecuencia==='semanal')cursor.setDate(cursor.getDate()+7);
     else if(rec.frecuencia==='quincenal')cursor.setDate(cursor.getDate()+14);
     else if(rec.frecuencia==='mensual')cursor.setMonth(cursor.getMonth()+1);
+    else if(rec.frecuencia==='trimestral')cursor.setMonth(cursor.getMonth()+3);
+    else if(rec.frecuencia==='semestral')cursor.setMonth(cursor.getMonth()+6);
+    else if(rec.frecuencia==='anual')cursor.setFullYear(cursor.getFullYear()+1);
     else break;
     if(cursor>upTo)break;
     dates.push(new Date(cursor));
@@ -6083,7 +6719,7 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   // Single source of truth: monthlyIncomeRD applies the payFrequency multiplier
   // (per-period × {mensual:1, quincenal:26/12, semanal:52/12}). Stale cf.ingreso
   // is only used as an absolute fallback for legacy records.
-  const ingreso=config.ingresoUSD>0&&config.tasa>0?monthlyIncomeRD(config):(config.ingresoRD||cf.ingreso||0);
+  const ingreso=hasIncome(config)&&config.tasa>0?monthlyIncomeRD(config):(config.ingresoRD||cf.ingreso||0);
   // Include tracked spending from Registro (transacciones) in total expenses
   // The global tx-gasto must filter out income deposits, otherwise a synthetic
   // ingreso tx with negative monto silently DECREASES gasto across every KPI.
@@ -6092,9 +6728,10 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const resta=ingreso-gasto;
   const efTotal=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
   const efMeta=emerg.fondos.reduce((a,f)=>a+fondoToRD(f).meta,0);
-  // Fix: include forNow account balances in net worth (was missing — understated NW)
-  const fnTotalNW=forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?(config.tasa||60):1;return a+(c.saldo||0)*m;},0);
-  const netWorth=fnTotalNW+(cf.balanceAhorros||0)+efTotal-totalBalance;
+  // Accounts + savings + emergency + assets − debts. Shared with the month-close
+  // wizard via netWorthRD so the live figure and the archived one cannot drift.
+  const activosTotal=activosTotalRD(_editData);
+  const netWorth=netWorthRD(_editData);
   const gastoPct=ingreso>0?Math.round((gasto/ingreso)*100):0;
   const sobrante=100-gastoPct;
   const allDeudas=gastos.filter(g=>g.balance>0);
@@ -6105,7 +6742,7 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
   const interesMensual=allDeudas.filter(g=>g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0);
   // Convert display values to primary currency
   const toD=n=>config.monedaPrincipal==='USD'?n/(config.tasa||60):n;
-  return{cf,totalPagado:toD(totalPagado),totalAdeudado:toD(totalAdeudado),totalBalance:toD(totalBalance),totalOriginal:toD(totalOriginal),pagadoReal:toD(pagadoReal),ingreso:toD(ingreso),gasto:toD(gasto),resta:toD(resta),efTotal:toD(efTotal),efMeta:toD(efMeta),netWorth:toD(netWorth),gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas:toD(cuotaDeudas),deudaPct,interesMensual:toD(interesMensual),txGasto:toD(txGasto)};
+  return{cf,totalPagado:toD(totalPagado),totalAdeudado:toD(totalAdeudado),totalBalance:toD(totalBalance),totalOriginal:toD(totalOriginal),pagadoReal:toD(pagadoReal),ingreso:toD(ingreso),gasto:toD(gasto),resta:toD(resta),efTotal:toD(efTotal),efMeta:toD(efMeta),netWorth:toD(netWorth),activosTotal:toD(activosTotal),gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas:toD(cuotaDeudas),deudaPct,interesMensual:toD(interesMensual),txGasto:toD(txGasto)};
 }
 
 // ══════════════════════════════════
@@ -6113,15 +6750,19 @@ function calcDerivedMetrics({config,gastos,forNow,emerg}){
 // ══════════════════════════════════
 function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   destroyCharts();
-  // Wallet migration — runs on every dashboard build so any entry path
-  // (importJSON, loadDemo, IndexedDB restore, _testLoadData) gets ids/tipos.
+  // Safety net — the four entry paths already call migrateData, but callers
+  // reach this with `buildDashboard({..._editData})` (a shallow spread), so a
+  // caller that hand-built its argument still gets normalized. migrateData is
+  // idempotent, so running it again here costs nothing. Target _editData, not
+  // the destructured copy: array back-fills must land on the real object.
+  if(_editData&&_editData.config)migrateData(_editData);
   ensureCuentaIds({forNow});
   if(config.defaultCashAccountId===undefined)config.defaultCashAccountId=null;
   if(config.defaultCashAccountId&&!forNow.cuentas.some(c=>c.id===config.defaultCashAccountId))config.defaultCashAccountId=null;
   renderWalletChip();
   renderWalletCard();
   renderQuickPayFab();
-  const{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual,txGasto}=calcDerivedMetrics({config,gastos,forNow,emerg});
+  const{cf,totalPagado,totalAdeudado,totalBalance,totalOriginal,pagadoReal,ingreso,gasto,resta,efTotal,efMeta,netWorth,activosTotal,gastoPct,sobrante,allDeudas,masCaraDeuda,cuotaDeudas,deudaPct,interesMensual,txGasto}=calcDerivedMetrics({config,gastos,forNow,emerg});
 
   // Header
   document.getElementById('headerTitle').textContent=`${config.mes} ${config.anio}`;
@@ -6232,7 +6873,11 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       stats:[
         {l:t('ef_coverage'),v:efMoVal,c:efMoC},
         {l:t('ef_balance'),v:fmtC(efTotal),c:'var(--yellow)'},
-        {l:t('cf_savings'),v:fmtC(toDisplay(cf.ahorros||0)),c:'var(--green)'},
+        // Shown only once the user has recorded any — an always-visible
+        // "Assets $0" row would read as a fact about their finances rather
+        // than as an empty field.
+        ...(activosTotal>0?[{l:t('pillar_activos'),v:fmtC(activosTotal),c:'var(--accent2)'}]
+                         :[{l:t('cf_savings'),v:fmtC(toDisplay(cf.ahorros||0)),c:'var(--green)'}]),
       ],
     },
   ].map(p=>`<div class="card pillar-card">
@@ -6362,6 +7007,17 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${bc}"></div></div>
       ${indivPct>0?`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;margin-bottom:2px"><span>${t('dcard_payoff_progress')}</span><span>${indivPct}%</span></div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${indivPct}%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>`:''}
+      ${(()=>{
+        // Utilization bar, revolving lines only. The 30% mark is drawn as a
+        // notch rather than described in text because the actionable question
+        // is "am I over the line", not "what is my exact ratio".
+        const u=creditUtilization(d);
+        if(u==null)return '';
+        const uc=utilizationColor(u);
+        return `<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;margin-bottom:2px"><span>${t('dcard_utilization')}</span><span style="color:${uc};font-weight:700">${Math.round(u*100)}% ${t('dcard_util_of')} ${fmtC(toDisplay(d.limiteCredito))}</span></div>
+        <div class="progress-wrap" style="position:relative"><div class="progress-bar" style="width:${Math.min(100,u*100)}%;background:${uc}"></div><div style="position:absolute;left:30%;top:0;bottom:0;width:1px;background:var(--muted);opacity:.5"></div></div>
+        ${u>=UTIL_WARN?`<div style="font-size:10px;color:${uc};margin-top:4px">${t(u>=UTIL_HIGH?'dcard_util_high':'dcard_util_warn')}</div>`:''}`;
+      })()}
       <div class="debt-meta">
         ${d.adeudado>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_monthly')}</div><div class="dmi-val">${fmtC(toDisplay(d.adeudado))}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_intmonthly')}</div><div class="dmi-val" style="color:var(--yellow)">~${fmtC(toDisplay(Math.round(d.balance*(d.tasa/100/12))))}</div></div>`:''}        ${payoffStr}        ${d.dia?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_payday')}</div><div class="dmi-val">${t('chk_day')} ${d.dia}</div></div>`:''}        ${d.tasa>0?`<div class="debt-meta-item"><div class="dmi-label">${t('dcard_rate')}</div><div class="dmi-val" style="color:${d.tasa>15?'var(--red)':'var(--yellow)'}">${d.tasa}%</div></div>`:''}        <div class="debt-meta-item"><div class="dmi-label">${t('dcard_expires')}</div><div class="dmi-val">${fStr}</div></div></div>
       <div style="margin-top:10px;text-align:right"><button class="btn btn-sm btn-success" onclick="liquidarDeuda(${gastos.indexOf(d)})">${t('dcard_liquidar')}</button></div>
@@ -6385,7 +7041,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
     <div style="flex:1">
       <div style="font-weight:700;color:${netWorth<0?'var(--red)':'var(--green)'};font-size:14px">${netWorth<0?t('nw_negative')+': ('+currencySymbol()+fmt(Math.abs(netWorth))+')':t('nw_positive')+': '+fmtC(netWorth)}</div>
       <div style="font-size:12px;color:var(--muted);margin-top:4px">${netWorth<0?t('nw_advice_neg')+(masCaraDeuda?' ('+escH(masCaraDeuda.nombre)+' '+masCaraDeuda.tasa+'%).':'.' ):t('nw_advice_pos')}</div>
-      ${interesMensual>0?`<div style="font-size:11px;margin-top:8px;padding:6px 10px;background:rgba(244,96,106,.08);border-radius:6px;color:var(--muted)">💸 ${t('nw_interest_label')}: <span style="color:var(--red);font-weight:700;font-family:var(--mono)">${fmtC(Math.round(interesMensual))}</span> — <span style="color:var(--yellow)">${fmtC(Math.round(interesMensual*12))}/año ${t('nw_peryear')}</span></div>`:''}
+      ${interesMensual>0?`<div style="font-size:11px;margin-top:8px;padding:6px 10px;background:rgba(244,96,106,.08);border-radius:6px;color:var(--muted)">💸 ${t('nw_interest_label')}: <span style="color:var(--red);font-weight:700;font-family:var(--mono)">${fmtC(Math.round(interesMensual))}</span> — <span style="color:var(--yellow)">${fmtC(Math.round(interesMensual*12))}/${t('nw_year')} ${t('nw_peryear')}</span></div>`:''}
     </div></div>`;
 
   // ── Emergency KPIs ──
@@ -6516,14 +7172,18 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttStyleNow(),callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
         scales:{x:{grid:{display:true,color:'rgba(120,135,168,.15)'},ticks:{font:{size:10},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:`${(v/1000).toFixed(0)}k`}},y:{grid:{display:false},ticks:{font:{size:11}}}}}
     });
+    // Paid (green, bottom) + pending (red, on top) stack to each commitment's
+    // full monthly cuota, so every bar is the same story: how much of this
+    // month's obligation is still outstanding.
+    const _bRows=gastos.filter(g=>g.adeudado>0);
     charts.barChart=new Chart(document.getElementById('barChart'),{
       type:'bar',
-      data:{labels:gastos.filter(g=>g.adeudado>0).map(g=>g.nombre.length>12?g.nombre.slice(0,12)+'…':g.nombre),datasets:[
-        {label:'Pagado',data:gastos.filter(g=>g.adeudado>0).map(g=>g.pagado),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:4},
-        {label:'Pendiente',data:gastos.filter(g=>g.adeudado>0).map(g=>Math.max(0,g.adeudado-g.pagado)),backgroundColor:'#f4606a66',borderColor:'#f4606a',borderWidth:2,borderRadius:4},
+      data:{labels:_bRows.map(g=>g.nombre.length>12?g.nombre.slice(0,12)+'…':g.nombre),datasets:[
+        {label:t('chart_paid'),data:_bRows.map(g=>toDisplay(gastoPagadoMes(g))),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:4,stack:'s'},
+        {label:t('chart_pending'),data:_bRows.map(g=>toDisplay(gastoPendienteMes(g))),backgroundColor:'#f4606a66',borderColor:'#f4606a',borderWidth:2,borderRadius:4,stack:'s'},
       ]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},boxWidth:10}},tooltip:{...ttStyleNow(),callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
-        scales:{x:{stacked:true,grid:{display:true},ticks:{font:{size:10},maxRotation:40}},y:{stacked:true,grid:{display:true},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
+        scales:{x:{stacked:true,grid:{display:true},ticks:{font:{size:10},maxRotation:40}},y:{stacked:true,grid:{display:true},ticks:{font:{size:10},callback:axisTick}}}}
     });
     if(allDeudas2.length){
       charts.deudaBar=new Chart(document.getElementById('deudaBar'),{
@@ -6544,12 +7204,12 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
       data:{
         labels:_gRows.map(g=>g.nombre.length>14?g.nombre.slice(0,14)+'…':g.nombre),
         datasets:[
-          {label:'Pagado',data:_gRows.map(g=>Math.min(g.pagado,g.adeudado)),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:4,stack:'s'},
-          {label:'Pendiente',data:_gRows.map(g=>Math.max(0,g.adeudado-(g.pagadoMes?g.adeudado:Math.min(g.pagado,g.adeudado)))),backgroundColor:_gRows.map(g=>(tipoColors[g.tipo]||'#f87171')+'99'),borderColor:_gRows.map(g=>tipoColors[g.tipo]||'#f87171'),borderWidth:2,borderRadius:4,stack:'s'}
+          {label:t('chart_paid'),data:_gRows.map(g=>toDisplay(gastoPagadoMes(g))),backgroundColor:'#22d3a066',borderColor:'#22d3a0',borderWidth:2,borderRadius:4,stack:'s'},
+          {label:t('chart_pending'),data:_gRows.map(g=>toDisplay(gastoPendienteMes(g))),backgroundColor:_gRows.map(g=>(tipoColors[g.tipo]||'#f87171')+'99'),borderColor:_gRows.map(g=>tipoColors[g.tipo]||'#f87171'),borderWidth:2,borderRadius:4,stack:'s'}
         ]
       },
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:11},boxWidth:10}},tooltip:{...ttStyleNow(),callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
-        scales:{x:{stacked:true,grid:{display:true},ticks:{font:{size:10},maxRotation:40}},y:{stacked:true,grid:{display:true},ticks:{font:{size:10},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
+        scales:{x:{stacked:true,grid:{display:true},ticks:{font:{size:10},maxRotation:40}},y:{stacked:true,grid:{display:true},ticks:{font:{size:10},callback:axisTick}}}}
     });
     charts.efChart=new Chart(document.getElementById('efChart'),{
       type:'bar',
@@ -6616,6 +7276,7 @@ function buildDashboard({config,gastos,forNow,emerg,historial,filename}){
   buildDebtPayoffDates(gastos,ingreso,gasto);
   buildAnalisisSummary(gastos,ingreso,gasto,interesMensual);
   buildCashflowWaterfall(ingreso,gastos,config,_editData.metas);
+  buildRetiro();
   buildExpenseTrend(historial,gastos);
   // Fix 3.3: Net worth milestone celebrations
   if(historial.length>0){
@@ -6790,11 +7451,16 @@ function buildCashflowWaterfall(ingreso,gastos,config,metas){
   const txGasto=toDisplay((_editData.transacciones||[]).filter(t=>t.mes===config.mes&&t.anio===config.anio&&isExpenseTx(t)).reduce((a,t)=>a+(parseFloat(t.monto)||0),0));
   const goalContrib=toDisplay((metas||[]).reduce((a,m)=>a+(m.monthly||0),0));
   const interest=toDisplay(gastos.filter(g=>g.balance>0&&g.tasa>0).reduce((a,g)=>a+g.balance*(g.tasa/100/12),0));
-  const surplus=ingreso-obligations-txGasto-goalContrib;
+  // Sinking-fund set-aside is money already spoken for by an irregular bill,
+  // so it belongs above the surplus line. Leaving it out is what makes the
+  // surplus look healthy in the eleven months before the premium lands.
+  const sinking=toDisplay(sinkingTotalsRD(_editData).monthly);
+  const surplus=ingreso-obligations-txGasto-goalContrib-sinking;
   const steps=[
     {l:t('wf_income'),v:ingreso,type:'total'},
     {l:t('wf_obligations'),v:-obligations,type:'expense'},
     {l:t('wf_discretionary'),v:-txGasto,type:'expense'},
+    ...(sinking>0?[{l:t('wf_sinking'),v:-sinking,type:'saving'}]:[]),
     {l:t('wf_goals'),v:-goalContrib,type:'saving'},
     {l:t('wf_surplus'),v:surplus,type:surplus>=0?'surplus':'deficit'},
   ];
@@ -6879,7 +7545,7 @@ function buildExpenseTrend(historial,gastos){
 function buildSavingsGoals(){
   if(!_editData.metas)_editData.metas=[];
   const metas=_editData.metas;
-  const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0
+  const ingreso=hasIncome(_editData.config)&&_editData.config.tasa>0
     ?monthlyIncomeRD(_editData.config)
     :(_editData.config.ingresoRD||_editData.emerg?.cashflow?.ingreso||0);
   const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeudado||0),0);
@@ -7007,6 +7673,116 @@ function buildSavingsGoals(){
 // Fix #11: debounce rebuild to prevent full DOM rebuild on every keystroke
 let _metasTimer=0;
 function _metasDebounce(){clearTimeout(_metasTimer);_metasTimer=setTimeout(buildSavingsGoals,400);}
+
+// ══════════════════════════════════════════════════════
+// RETIREMENT TAB
+// ══════════════════════════════════════════════════════
+function syncRetiroField(key,el){
+  if(!_editData.retiro)_editData.retiro={...RETIRO_DEFAULTS};
+  const r=_editData.retiro;
+  const v=pf(el.value);
+  switch(key){
+    case 'edadActual':r.edadActual=Math.max(0,Math.min(120,Math.round(v)));break;
+    case 'edadRetiro':r.edadRetiro=Math.max(0,Math.min(120,Math.round(v)));break;
+    case 'retornoEsperado':r.retornoEsperado=Math.max(0,Math.min(30,v));break;
+    case 'inflacion':r.inflacion=Math.max(0,Math.min(30,v));break;
+    // Entered in display currency; stored in RD$ like every other amount.
+    case 'aporteMensual':r.aporteMensual=Math.max(0,fromDisplay(v));break;
+  }
+  autoSave();
+  buildRetiro();
+}
+function toggleRetiroCuenta(id,checked){
+  if(!_editData.retiro)_editData.retiro={...RETIRO_DEFAULTS};
+  const ids=new Set(_editData.retiro.cuentasIds||[]);
+  if(checked)ids.add(id);else ids.delete(id);
+  _editData.retiro.cuentasIds=[...ids];
+  autoSave();
+  buildRetiro();
+}
+function buildRetiro(){
+  const vEl=document.getElementById('retiroVerdict');
+  const fEl=document.getElementById('retiroFields');
+  const bEl=document.getElementById('retiroBreakdown');
+  if(!vEl||!fEl||!bEl)return;
+  const r=calcRetirement(_editData);
+
+  // ── Assumption inputs ──
+  const fields=[
+    {id:'ret-edadActual',label:t('retiro_edad_actual'),key:'edadActual',val:r.edadActual,mode:'numeric'},
+    {id:'ret-edadRetiro',label:t('retiro_edad_retiro'),key:'edadRetiro',val:r.edadRetiro,mode:'numeric'},
+    {id:'ret-retorno',label:t('retiro_retorno'),key:'retornoEsperado',val:r.retornoEsperado,mode:'decimal'},
+    {id:'ret-inflacion',label:t('retiro_inflacion'),key:'inflacion',val:r.inflacion,mode:'decimal'},
+    {id:'ret-aporte',label:t('retiro_aporte'),key:'aporteMensual',val:Math.round(toDisplay(r.aporteMensual)),mode:'decimal'},
+  ];
+  fEl.innerHTML=fields.map(f=>`<div class="field-group"><label class="field-label">${escH(f.label)}</label><input class="field-input" id="${f.id}" type="text" inputmode="${f.mode}" value="${f.val}" oninput="syncRetiroField('${f.key}',this)"></div>`).join('')
+    +`<div class="field-group" style="grid-column:1/-1">
+        <label class="field-label">${escH(t('retiro_accounts'))}</label>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px">
+          ${(_editData.forNow?.cuentas||[]).map(c=>`<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text);background:var(--surface2);padding:6px 10px;border-radius:8px;cursor:pointer">
+            <input type="checkbox" ${(r.cuentasIds||[]).includes(c.id)?'checked':''} onchange="toggleRetiroCuenta('${c.id}',this.checked)">${escH(c.nombre)}
+          </label>`).join('')||`<span style="font-size:11px;color:var(--muted)">—</span>`}
+        </div>
+        <div class="field-note">${escH(t('retiro_accounts_note'))}</div>
+      </div>`;
+
+  // ── Verdict ──
+  if(!r.hasTarget){
+    vEl.innerHTML=`<div class="card-title">${escH(t('tab_retiro'))}</div><p style="color:var(--muted);font-size:13px;padding:8px 0">${escH(t('retiro_no_target'))}</p>`;
+  }else{
+    const ok=r.onTrack;
+    const color=ok?'var(--green)':'var(--red)';
+    const sub=ok?t('retiro_ontrack_sub')
+      :t('retiro_behind_sub').replace('{amt}',fmtC(toDisplay(Math.round(r.needed)))).replace('{cur}',fmtC(toDisplay(Math.round(r.contrib))));
+    const pct=r.target>0?Math.min(100,Math.max(0,Math.round(r.projected/r.target*100))):0;
+    vEl.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
+        <div class="card-title" style="margin:0">${escH(t('tab_retiro'))}</div>
+        <div style="font-size:11px;color:var(--muted)">${escH(t('retiro_years'))}: <span class="mono" style="color:var(--text);font-weight:700">${r.years}</span></div>
+      </div>
+      <div style="font-size:26px;font-weight:800;color:${color};margin-top:8px">
+        ${ok?escH(t('retiro_ontrack')):escH(t('retiro_behind'))+' '+fmtC(toDisplay(Math.round(Math.max(0,r.gap))))}
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6">${sub}</div>
+      <div class="progress-wrap" style="margin-top:12px"><div class="progress-bar" style="width:${pct}%;background:linear-gradient(90deg,var(--accent),${color})"></div></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:right">${pct}%</div>`;
+  }
+
+  // ── Breakdown ──
+  bEl.innerHTML=`<div class="card-title">${escH(t('retiro_assumptions'))}</div>
+    <div class="grid g4" style="gap:10px;margin-bottom:12px">
+      ${[{l:t('retiro_balance'),v:fmtC(toDisplay(Math.round(r.present))),c:'var(--accent)'},
+         {l:t('retiro_projected'),v:fmtC(toDisplay(Math.round(r.projected))),c:'var(--green)'},
+         {l:t('retiro_target'),v:r.hasTarget?fmtC(toDisplay(Math.round(r.target))):'—',c:'var(--yellow)'},
+         {l:t('retiro_real_return'),v:(r.annualReal*100).toFixed(2)+'%',c:'var(--muted)'}]
+        .map(i=>`<div style="background:var(--surface2);border-radius:10px;padding:12px 16px"><div style="font-size:10px;color:var(--muted)">${escH(i.l)}</div><div class="mono" style="font-size:17px;font-weight:700;color:${i.c};margin-top:4px">${i.v}</div></div>`).join('')}
+    </div>
+    ${r.present<=0?`<div style="font-size:11px;color:var(--yellow);margin-bottom:6px">${escH(t('retiro_no_balance'))}</div>`:''}
+    <div style="font-size:10px;color:var(--muted)">${escH(t('retiro_rule_note'))}</div>`;
+
+  // ── Projection chart: balance by year against the flat target line ──
+  const cv=document.getElementById('retiroChart');
+  if(cv&&typeof Chart!=='undefined'){
+    if(charts.retiroChart)try{charts.retiroChart.destroy()}catch(e){}
+    const yrs=Math.max(1,r.years);
+    const labels=[],series=[];
+    for(let y=0;y<=yrs;y++){
+      labels.push(String((r.edadActual||0)+y));
+      series.push(toDisplay(futureValue(r.present,r.contrib,r.monthlyRate,y*12)));
+    }
+    const targetLine=r.hasTarget?labels.map(()=>toDisplay(r.target)):null;
+    charts.retiroChart=new Chart(cv,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:t('retiro_projected'),data:series,borderColor:'#22d3a0',backgroundColor:'#22d3a022',borderWidth:2,fill:true,pointRadius:0,tension:.25},
+        ...(targetLine?[{label:t('retiro_target'),data:targetLine,borderColor:'#f5c842',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false}]:[]),
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{labels:{font:{size:11},boxWidth:10}},tooltip:{...ttStyleNow(),callbacks:{label:ctx=>` ${fmtC(ctx.raw)}`}}},
+        scales:{x:{grid:{display:true},ticks:{font:{size:10},maxTicksLimit:12}},y:{grid:{display:true},ticks:{font:{size:10},callback:axisTick}}}}
+    });
+  }
+}
 
 function addSavingsGoal(){
   if(!_editData.metas)_editData.metas=[];
@@ -7260,7 +8036,7 @@ function renderCierre(){
   } else if(_cierreStep===6){
     // Bug 3 fix: use same income formula as calcDerivedMetrics — never stale config.ingresoRD
     const cf=_editData.emerg.cashflow;
-    const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?monthlyIncomeRD(_editData.config):(_editData.config.ingresoRD||cf.ingreso||0);
+    const ingreso=hasIncome(_editData.config)&&_editData.config.tasa>0?monthlyIncomeRD(_editData.config):(_editData.config.ingresoRD||cf.ingreso||0);
     const gasto=cf.gasto||0;
     const resta=ingreso-gasto;
     const tbl=`<div style="background:var(--surface2);border-radius:12px;padding:16px">
@@ -7319,7 +8095,7 @@ function cierreNav(dir){
     const s=_cierreSteps[_cierreStep];
     if(_cierreStep===0){_editData.config.tasa=pf(document.getElementById('cw-tasa')?.value)||_editData.config.tasa;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
     else if(_cierreStep===1){_editData.config.mes=document.getElementById('cw-mes')?.value||_editData.config.mes;_editData.config.anio=parseInt(document.getElementById('cw-anio')?.value)||_editData.config.anio;}
-    else if(_cierreStep===2){_editData.config.ingresoUSD=pf(document.getElementById('cw-ingreso')?.value)||_editData.config.ingresoUSD;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;}
+    else if(_cierreStep===2){const _v=pf(document.getElementById('cw-ingreso')?.value);if(_v>0)setPrimaryIncomeUSD(_editData.config,_v);syncIncomeMirrors(_editData);}
     // Fix #2: step 3 = gasto real
     else if(_cierreStep===3){const g=pf(document.getElementById('cw-gasto')?.value);if(g>0)_editData.emerg.cashflow.gasto=g;}
     else if(_cierreStep===4){
@@ -7341,14 +8117,15 @@ function cierreNav(dir){
       // Confirm: add to historial, then update config to next month
       // Bug 3 fix: same income formula as calcDerivedMetrics, and sync both income fields before saving
       const cf=_editData.emerg.cashflow;
-      const ingreso=_editData.config.ingresoUSD>0&&_editData.config.tasa>0?monthlyIncomeRD(_editData.config):(_editData.config.ingresoRD||cf.ingreso||0);
+      const ingreso=hasIncome(_editData.config)&&_editData.config.tasa>0?monthlyIncomeRD(_editData.config):(_editData.config.ingresoRD||cf.ingreso||0);
       _editData.config.ingresoRD=ingreso;
       cf.ingreso=ingreso;
       const gasto=cf.gasto||_editData.gastos.reduce((a,g)=>a+g.pagado,0);
       const totalDeudas=_editData.gastos.reduce((a,g)=>a+g.balance,0);
       const efTotal=_editData.emerg.fondos.reduce((a,f)=>a+fondoToRD(f).balance,0);
-      const fnTotalCierre=_editData.forNow.cuentas.reduce((a,c)=>{const m=c.moneda==='USD'?(_editData.config.tasa||60):1;return a+(c.saldo||0)*m;},0);
-      const netWorth=fnTotalCierre+(cf.balanceAhorros||0)+efTotal-totalDeudas;
+      // Same helper the live dashboard uses — the archived netWorth must match
+      // what the user saw on the Resumen tab when they closed the month.
+      const netWorth=netWorthRD(_editData);
       const ahorro=ingreso-gasto;
       const tasaAhorro=ingreso>0?ahorro/ingreso:0;
       // gastoReal must exclude income deposits — historial records spending only
@@ -7538,7 +8315,7 @@ const SECTIONS={
   hoy:{tabs:['resumen','alertas']},
   gastos:{tabs:['registro','gastos','presupuesto']},
   deudas:{tabs:['deudas','proyector']},
-  ahorros:{tabs:['fornow','emergency','metas']},
+  ahorros:{tabs:['fornow','emergency','metas','retiro']},
   historia:{tabs:['analisis','historial']},
 };
 const SECTION_OF={};
@@ -7612,6 +8389,7 @@ function navigateToHash(){
     '#registro':'registro',
     '#presupuesto':'presupuesto',
     '#metas':'metas',
+    '#retiro':'retiro',
     '#analisis':'analisis',
   };
   if(hash==='#cierre'){
@@ -7704,11 +8482,35 @@ let _editData={};
 let _changesCount=0;
 let _balanceSnapshot=[];
 // Test helper: allows external code to set _editData and build the dashboard
-window._testLoadData=function(d){_editData=d;buildDashboard(d);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchSection('hoy');};
+window._testLoadData=function(d){_editData=migrateData(d);buildDashboard(_editData);applyI18n();document.getElementById('loaderScreen').style.display='none';document.getElementById('dashApp').style.display='block';switchSection('hoy');};
 window.projectWalletBalance=projectWalletBalance;
 window.walletLowThresholdRD=walletLowThresholdRD;
 window.reconcileWallet=reconcileWallet;
 window.isExpenseTx=isExpenseTx;
+window.migrateData=migrateData;
+window.SCHEMA_VERSION=SCHEMA_VERSION;
+window.ACTIVO_TIPOS=ACTIVO_TIPOS;
+window.netWorthRD=netWorthRD;
+window.activosTotalRD=activosTotalRD;
+window.creditUtilization=creditUtilization;
+window.overallUtilization=overallUtilization;
+window.sinkingTotalsRD=sinkingTotalsRD;
+window.sinkingMonthlyRD=sinkingMonthlyRD;
+window.sinkingMonthsLeft=sinkingMonthsLeft;
+window.SINKING_CADENCIAS=SINKING_CADENCIAS;
+window.hasIncome=hasIncome;
+window.incomeSources=incomeSources;
+window.primaryIncomeSource=primaryIncomeSource;
+window.setPrimaryIncomeUSD=setPrimaryIncomeUSD;
+window.syncIncomeMirrors=syncIncomeMirrors;
+window.INCOME_FREQS=INCOME_FREQS;
+window.INCOME_TIPOS=INCOME_TIPOS;
+window.calcRetirement=calcRetirement;
+window.retirementBalanceRD=retirementBalanceRD;
+window.retirementTargetRD=retirementTargetRD;
+window.futureValue=futureValue;
+window.requiredContribution=requiredContribution;
+window.realRate=realRate;
 window.transferBetweenAccounts=transferBetweenAccounts;
 window.reverseTransferGroup=reverseTransferGroup;
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
@@ -7765,9 +8567,23 @@ function syncConfigField(key,el){
     case 'tasa':syncTasa(v);break;
     case 'mes':_editData.config.mes=v||'—';break;
     case 'anio':_editData.config.anio=parseInt(v)||2026;break;
-    case 'payFrequency':{const f=['mensual','quincenal','semanal'].includes(v)?v:'mensual';_editData.config.payFrequency=f;_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdElPF=document.getElementById('cfg-ingresoRD');if(rdElPF)rdElPF.value=Math.round(_editData.config.ingresoRD);}break;
-    case 'ingresoUSD':{_editData.config.ingresoUSD=Math.max(0,pf(v));_editData.config.ingresoRD=monthlyIncomeRD(_editData.config);_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const rdEl2=document.getElementById('cfg-ingresoRD');if(rdEl2)rdEl2.value=Math.round(_editData.config.ingresoRD);}break;
-    case 'ingresoRD':{_editData.config.ingresoRD=Math.max(0,pf(v));const mult=payMult(_editData.config.payFrequency||'mensual');_editData.config.ingresoUSD=(_editData.config.tasa>0&&mult>0)?Math.round(_editData.config.ingresoRD/(_editData.config.tasa*mult)*100)/100:0;_editData.emerg.cashflow.ingreso=_editData.config.ingresoRD;const usdEl=document.getElementById('cfg-ingreso');if(usdEl)usdEl.value=_editData.config.ingresoUSD;}break;
+    case 'payFrequency':{const f=['mensual','quincenal','semanal'].includes(v)?v:'mensual';const old=_editData.config.payFrequency||'mensual';_editData.config.payFrequency=f;
+      // Move the main paycheck onto the new cadence. Without this the source
+      // keeps its old frecuencia, stops matching `primary`, and the field
+      // the user just edited silently detaches from the number it shows.
+      incomeSources(_editData.config).forEach(src=>{if((src.frecuencia||'mensual')===old)src.frecuencia=f;});
+      syncIncomeMirrors(_editData);const rdElPF=document.getElementById('cfg-ingresoRD');if(rdElPF)rdElPF.value=Math.round(_editData.config.ingresoRD);}break;
+    case 'ingresoUSD':{setPrimaryIncomeUSD(_editData.config,pf(v));syncIncomeMirrors(_editData);const rdEl2=document.getElementById('cfg-ingresoRD');if(rdEl2)rdEl2.value=Math.round(_editData.config.ingresoRD);}break;
+    case 'ingresoRD':{
+      // Typing the monthly figure back-solves the per-period amount for the
+      // main paycheck. Only meaningful with a single source; with several,
+      // the other rows are left alone and the total simply lands elsewhere.
+      const target=Math.max(0,pf(v));const mult=payMult(_editData.config.payFrequency||'mensual');
+      const others=monthlyIncomeRD(_editData.config)-(primaryIncomeSource(_editData.config)?sourceMonthlyUSD(primaryIncomeSource(_editData.config),_editData.config.tasa||60)*(_editData.config.tasa||60):0);
+      const wantPrimaryRD=Math.max(0,target-others);
+      const perPeriodUSD=(_editData.config.tasa>0&&mult>0)?Math.round(wantPrimaryRD/(_editData.config.tasa*mult)*100)/100:0;
+      setPrimaryIncomeUSD(_editData.config,perPeriodUSD);syncIncomeMirrors(_editData);
+      const usdEl=document.getElementById('cfg-ingreso');if(usdEl)usdEl.value=_editData.config.ingresoUSD;}break;
     case 'diasAlerta':{const d=parseInt(v);_editData.config.diasAlerta=Math.min(30,Math.max(1,isNaN(d)?5:d));}break;
     case 'walletLowThreshold':{const w=pf(v);_editData.config.walletLowThreshold=Math.max(0,isNaN(w)?0:w);}break;
   }
@@ -7859,6 +8675,7 @@ function buildEditForms(){
       <td><input class="tbl-input" type="text" inputmode="numeric" min="1" max="31" value="${g.dia||1}" oninput="markChanged(this);_editData.gastos[${i}].dia=Math.min(31,Math.max(1,parseInt(this.value)||1))" style="min-width:60px"></td>
       <td><input class="tbl-input" type="text" inputmode="decimal" min="0" max="100" value="${g.tasa||0}" oninput="markChanged(this);_editData.gastos[${i}].tasa=Math.min(100,Math.max(0,pf(this.value)))" style="min-width:60px"></td>
       <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${g.balance||0}" oninput="markChanged(this);_editData.gastos[${i}].balance=Math.max(0,pf(this.value))"></td>
+      <td><input class="tbl-input" type="text" inputmode="decimal" min="0" placeholder="—" value="${g.limiteCredito||''}" oninput="markChanged(this);_editData.gastos[${i}].limiteCredito=Math.max(0,pf(this.value))" style="min-width:90px" title="${escH(t('eth_limite_hint'))}"></td>
       <td><input class="tbl-input" id="origRD-${i}" type="text" inputmode="decimal" min="0" value="${g.originalRD||0}" oninput="markChanged(this);syncOriginal(${i},'originalRD',this)"></td>
       <td><input class="tbl-input" id="origUSD-${i}" type="text" inputmode="decimal" min="0" value="${g.originalUSD||0}" oninput="markChanged(this);syncOriginal(${i},'originalUSD',this)" style="min-width:80px"></td>
       <td><input class="tbl-input" type="text" inputmode="decimal" value="${g.tasaCreacion||''}" readonly style="min-width:70px;opacity:.6;cursor:not-allowed"></td>
@@ -7970,7 +8787,7 @@ function buildEditForms(){
   // Recurrentes edit table
   const recb=document.getElementById('recEditBody');recb.innerHTML='';
   const recArr=_editData.recurrentes||[];
-  const FREQS=['diario','semanal','quincenal','mensual'];
+  const FREQS=['diario','semanal','quincenal','mensual','trimestral','semestral','anual'];
   recArr.forEach((r,i)=>{
     recb.innerHTML+=`<tr>
       <td><input class="tbl-input" type="date" value="${escH(r.fecha)}" oninput="markChanged(this);_editData.recurrentes[${i}].fecha=this.value" style="min-width:110px"></td>
@@ -7982,6 +8799,81 @@ function buildEditForms(){
       <td><button class="row-del-btn" onclick="deleteRecEditRow(${i})">✕</button></td>
     </tr>`;
   });
+
+  // ── Activos (assets) ──
+  const actb=document.getElementById('activosEditBody');
+  if(actb){
+    actb.innerHTML='';
+    const actArr=_editData.activos||[];
+    actArr.forEach((a,i)=>{
+      actb.innerHTML+=`<tr>
+        <td><input class="tbl-input" value="${escH(a.nombre||'')}" oninput="markChanged(this);_editData.activos[${i}].nombre=this.value" style="min-width:120px"></td>
+        <td><select class="tbl-input" onchange="markChanged(this);_editData.activos[${i}].tipo=this.value">${ACTIVO_TIPOS.map(tp=>`<option value="${tp}" ${a.tipo===tp?'selected':''}>${escH(t('activo_tipo_'+tp))}</option>`).join('')}</select></td>
+        <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${a.valor||0}" oninput="markChanged(this);_editData.activos[${i}].valor=Math.max(0,pf(this.value));updateActivosEditTotal()"></td>
+        <td><select class="tbl-input" onchange="markChanged(this);_editData.activos[${i}].moneda=this.value;updateActivosEditTotal()"><option value="RD" ${a.moneda!=='USD'?'selected':''}>RD$</option><option value="USD" ${a.moneda==='USD'?'selected':''}>USD</option></select></td>
+        <td><button class="row-del-btn" onclick="deleteActivoRow(${i})">✕</button></td>
+      </tr>`;
+    });
+    if(!actArr.length)actb.innerHTML=`<tr><td colspan="5" style="color:var(--muted);font-size:12px;padding:12px 4px">${escH(t('activos_empty'))}</td></tr>`;
+    updateActivosEditTotal();
+  }
+
+  // ── Sinking funds (irregular expenses) ──
+  const snkb=document.getElementById('sinkingEditBody');
+  if(snkb){
+    snkb.innerHTML='';
+    const snkArr=_editData.sinkingFunds||[];
+    const _tasa=_editData.config?.tasa||60;
+    snkArr.forEach((f,i)=>{
+      snkb.innerHTML+=`<tr>
+        <td><input class="tbl-input" value="${escH(f.nombre||'')}" oninput="markChanged(this);_editData.sinkingFunds[${i}].nombre=this.value" style="min-width:130px"></td>
+        <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${f.meta||0}" oninput="markChanged(this);_editData.sinkingFunds[${i}].meta=Math.max(0,pf(this.value));updateSinkingEditTotals()"></td>
+        <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${f.saved||0}" oninput="markChanged(this);_editData.sinkingFunds[${i}].saved=Math.max(0,pf(this.value));updateSinkingEditTotals()"></td>
+        <td><select class="tbl-input" onchange="markChanged(this);_editData.sinkingFunds[${i}].cadencia=this.value;buildEditForms()">${SINKING_CADENCIAS.map(c=>`<option value="${c}" ${f.cadencia===c?'selected':''}>${escH(t('sinking_cad_'+c))}</option>`).join('')}</select></td>
+        <td><input class="tbl-input" type="date" value="${f.proximaFecha?String(f.proximaFecha).slice(0,10):''}" oninput="markChanged(this);_editData.sinkingFunds[${i}].proximaFecha=this.value;buildEditForms()" style="min-width:120px"></td>
+        <td class="mono" style="color:var(--accent);font-weight:700">${fmtC(toDisplay(sinkingMonthlyRD(f,_tasa)))}</td>
+        <td><select class="tbl-input" onchange="markChanged(this);_editData.sinkingFunds[${i}].moneda=this.value;buildEditForms()"><option value="RD" ${f.moneda!=='USD'?'selected':''}>RD$</option><option value="USD" ${f.moneda==='USD'?'selected':''}>USD</option></select></td>
+        <td><button class="row-del-btn" onclick="deleteSinkingRow(${i})">✕</button></td>
+      </tr>`;
+    });
+    if(!snkArr.length)snkb.innerHTML=`<tr><td colspan="8" style="color:var(--muted);font-size:12px;padding:12px 4px">${escH(t('sinking_empty'))}</td></tr>`;
+    updateSinkingEditTotals();
+  }
+
+  // ── Ingresos (income sources) ──
+  const incb=document.getElementById('ingresosEditBody');
+  if(incb){
+    incb.innerHTML='';
+    const incArr=incomeSources(_editData.config);
+    incArr.forEach((s,i)=>{
+      incb.innerHTML+=`<tr>
+        <td><input class="tbl-input" value="${escH(s.nombre||'')}" oninput="markChanged(this);_editData.config.ingresos[${i}].nombre=this.value" style="min-width:130px"></td>
+        <td><input class="tbl-input" type="text" inputmode="decimal" min="0" value="${s.monto||0}" oninput="markChanged(this);_editData.config.ingresos[${i}].monto=Math.max(0,pf(this.value));syncIncomeMirrors(_editData);updateIngresosEditTotal()"></td>
+        <td><select class="tbl-input" onchange="markChanged(this);_editData.config.ingresos[${i}].moneda=this.value;syncIncomeMirrors(_editData);buildEditForms()"><option value="USD" ${s.moneda!=='RD'?'selected':''}>USD</option><option value="RD" ${s.moneda==='RD'?'selected':''}>RD$</option></select></td>
+        <td><select class="tbl-input" onchange="markChanged(this);_editData.config.ingresos[${i}].frecuencia=this.value;syncIncomeMirrors(_editData);buildEditForms()">${INCOME_FREQS.map(f=>`<option value="${f}" ${s.frecuencia===f?'selected':''}>${escH(t('income_freq_'+f))}</option>`).join('')}</select></td>
+        <td><select class="tbl-input" onchange="markChanged(this);_editData.config.ingresos[${i}].tipo=this.value;buildEditForms()">${INCOME_TIPOS.map(tp=>`<option value="${tp}" ${s.tipo===tp?'selected':''}>${escH(t('income_tipo_'+tp))}</option>`).join('')}</select></td>
+        <td><button class="row-del-btn" onclick="deleteIngresoRow(${i})">✕</button></td>
+      </tr>`;
+    });
+    if(!incArr.length)incb.innerHTML=`<tr><td colspan="6" style="color:var(--muted);font-size:12px;padding:12px 4px">${escH(t('income_empty'))}</td></tr>`;
+    updateIngresosEditTotal();
+  }
+}
+function updateIngresosEditTotal(){
+  const el=document.getElementById('ingresosEditTotal');
+  if(el)el.textContent=fmtC(toDisplay(monthlyIncomeRD(_editData.config)));
+}
+function updateSinkingEditTotals(){
+  const tot=sinkingTotalsRD(_editData);
+  const m=document.getElementById('sinkingEditMonthly');if(m)m.textContent=fmtC(toDisplay(tot.monthly));
+  const sv=document.getElementById('sinkingEditSaved');if(sv)sv.textContent=fmtC(toDisplay(tot.saved))+' / '+fmtC(toDisplay(tot.meta));
+}
+// Live total under the Activos table. Kept out of buildEditForms so typing a
+// value updates the figure without tearing down and rebuilding the row the
+// user is currently in (which would drop focus mid-keystroke).
+function updateActivosEditTotal(){
+  const el=document.getElementById('activosEditTotal');
+  if(el)el.textContent=fmtC(toDisplay(activosTotalRD(_editData)));
 }
 
 function deleteGastoRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.gastos.splice(i,1);if(i<_balanceSnapshot.length)_balanceSnapshot.splice(i,1);markChanged(document.body);buildEditForms();}
@@ -7989,7 +8881,7 @@ function liquidarDeuda(idx){const g=_editData.gastos[idx];if(!g)return;if(!confi
 function deleteFornowRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.forNow.cuentas.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteEmergFundRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.emerg.fondos.splice(i,1);markChanged(document.body);buildEditForms();}
 function deleteHistorialRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.historial.splice(i,1);markChanged(document.body);buildEditForms();}
-function addEsencialRow(){_editData.gastos.push({nombre:'Nueva entrada',tipo:'Variable',pagado:0,adeudado:0,dia:1,tasa:0,balance:0,originalRD:0,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:'',notas:'',pagadoMes:false});markChanged(document.body);buildEditForms();}
+function addEsencialRow(){_editData.gastos.push({nombre:'Nueva entrada',tipo:'Variable',pagado:0,adeudado:0,dia:1,tasa:0,balance:0,originalRD:0,originalUSD:0,tasaCreacion:_editData.config.tasa||60,fechaLimite:'',notas:'',pagadoMes:false,limiteCredito:0});markChanged(document.body);buildEditForms();}
 function addForNowRow(){_editData.forNow.cuentas.push({nombre:'Nueva cuenta',moneda:'RD',saldo:0,comp:0,disp:0});markChanged(document.body);buildEditForms();}
 function addEmergFundRow(){const gasto=_editData.gastos.reduce((a,g)=>a+(g.adeudado||0),0);const defaultMeta=gasto>0?Math.round(gasto*3):0;_editData.emerg.fondos.push({fondo:'Nuevo Fondo',balance:0,meta:defaultMeta,falta:defaultMeta,moneda:'RD'});markChanged(document.body);buildEditForms();}
 function addHistorialRow(){_editData.historial.unshift({mes:'Nuevo Mes',anio:new Date().getFullYear(),ingresos:0,gasto:0,ahorro:0,tasaAhorro:0,deudas:0,emergencia:0,netWorth:0,tasa:_editData.config.tasa||60,notas:''});markChanged(document.body);buildEditForms();}
@@ -8013,13 +8905,37 @@ function addPresEditRow(){if(!_editData.presupuesto)_editData.presupuesto=[];_ed
 function deletePresEditRow(i){if(!confirm(t('pres_delete_confirm')))return;_editData.presupuesto.splice(i,1);markChanged(document.body);buildEditForms();}
 function addRecEditRow(){if(!_editData.recurrentes)_editData.recurrentes=[];_editData.recurrentes.push({id:'rec_'+Date.now(),fecha:new Date().toISOString().slice(0,10),monto:0,categoria:'otro',nota:'',metodo:'efectivo',gastoIdx:-1,frecuencia:'mensual',lastGenerated:new Date().toISOString().slice(0,10)});markChanged(document.body);buildEditForms();}
 function deleteRecEditRow(i){if(!confirm(t('rec_delete_confirm')))return;_editData.recurrentes.splice(i,1);markChanged(document.body);buildEditForms();}
+function addActivoRow(){if(!Array.isArray(_editData.activos))_editData.activos=[];_editData.activos.push({id:genActivoId(),nombre:'',tipo:'otro',valor:0,moneda:_editData.config?.monedaPrincipal==='USD'?'USD':'RD'});markChanged(document.body);buildEditForms();}
+function deleteActivoRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.activos.splice(i,1);markChanged(document.body);buildEditForms();}
+function addSinkingRow(){
+  if(!Array.isArray(_editData.sinkingFunds))_editData.sinkingFunds=[];
+  // Default the due date one year out so a brand-new annual fund produces a
+  // sensible monthly set-aside immediately instead of demanding the whole
+  // target this month.
+  const d=new Date();d.setFullYear(d.getFullYear()+1);
+  _editData.sinkingFunds.push({id:genSinkingId(),nombre:'',meta:0,saved:0,cadencia:'anual',proximaFecha:d.toISOString().slice(0,10),moneda:_editData.config?.monedaPrincipal==='USD'?'USD':'RD'});
+  markChanged(document.body);buildEditForms();
+}
+function deleteSinkingRow(i){if(!confirm(t('edit_delete_confirm')))return;_editData.sinkingFunds.splice(i,1);markChanged(document.body);buildEditForms();}
+function addIngresoRow(){
+  const c=_editData.config;
+  if(!Array.isArray(c.ingresos))c.ingresos=[];
+  c.ingresos.push({id:genIngresoId(),nombre:'',monto:0,moneda:c.monedaPrincipal==='USD'?'USD':'RD',frecuencia:'mensual',tipo:'variable'});
+  markChanged(document.body);syncIncomeMirrors(_editData);buildEditForms();
+}
+function deleteIngresoRow(i){
+  if(!confirm(t('edit_delete_confirm')))return;
+  _editData.config.ingresos.splice(i,1);
+  markChanged(document.body);syncIncomeMirrors(_editData);buildEditForms();
+}
 
 function readConfigFromForm(){
   // Final flush — re-reads DOM values using same validation as syncConfigField
   _editData.config.tasa=Math.max(1,pf(document.getElementById('cfg-tasa')?.value)||60);
   _editData.config.mes=document.getElementById('cfg-mes')?.value||'—';
   _editData.config.anio=parseInt(document.getElementById('cfg-anio')?.value)||2026;
-  _editData.config.ingresoUSD=Math.max(0,pf(document.getElementById('cfg-ingreso')?.value));
+  setPrimaryIncomeUSD(_editData.config,pf(document.getElementById('cfg-ingreso')?.value));
+  syncIncomeMirrors(_editData);
   const freqVal=document.getElementById('cfg-payFreq')?.value;
   if(['mensual','quincenal','semanal'].includes(freqVal))_editData.config.payFrequency=freqVal;
   _editData.config.diasAlerta=Math.min(30,Math.max(1,parseInt(document.getElementById('cfg-diasAlerta')?.value)||5));

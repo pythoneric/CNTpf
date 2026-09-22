@@ -51,7 +51,11 @@ test.describe('JSON Backup — Export', () => {
     const content = await (await download.createReadStream()).toArray();
     const data = JSON.parse(Buffer.concat(content).toString());
     expect(data._meta).toBeDefined();
-    expect(data._meta.version).toBe(4);
+    // Pinned to the app's own constant so a schema bump only has to change
+    // one place; asserting a bare literal here made every migration a
+    // two-file edit and hid whether the export actually tracked the bump.
+    expect(data._meta.version).toBe(await page.evaluate(() => SCHEMA_VERSION));
+    expect(data._meta.version).toBeGreaterThanOrEqual(4);
     expect(data._meta.app).toBe('CNTpf');
     expect(data._meta.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });

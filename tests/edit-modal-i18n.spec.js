@@ -102,12 +102,14 @@ test.describe('Edit Modal - i18n', () => {
     await expect(config).toContainText('Exchange Rate (RD$/USD)');
     await expect(config).toContainText('Current Month');
     await expect(config).toContainText('Current Year');
-    await expect(config).toContainText('Income per pay (USD)');
+    await expect(config).toContainText('Net income per pay (USD)');
     await expect(config).toContainText('Payment alert days');
 
     // Notes should be English
     await expect(config).toContainText('Update monthly');
-    await expect(config).toContainText('per-period paycheck');
+    // The income note now spells out net-vs-gross, which is the whole point of
+    // the field: entering gross silently skews savings rate, DTI and the score.
+    await expect(config).toContainText('after taxes and deductions');
   });
 
   test('config section field labels show Spanish when language is Spanish', async ({ page }) => {
@@ -119,7 +121,7 @@ test.describe('Edit Modal - i18n', () => {
     await expect(config).toContainText('Tasa Dólar (RD$/USD)');
     await expect(config).toContainText('Mes Actual');
     await expect(config).toContainText('Año Actual');
-    await expect(config).toContainText('Ingreso por pago (USD)');
+    await expect(config).toContainText('Ingreso neto por pago (USD)');
     await expect(config).toContainText('Días alerta vencimiento');
   });
 

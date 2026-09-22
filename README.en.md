@@ -29,7 +29,7 @@ The 5 files must live in the **same folder** for the PWA to work correctly.
 Additional development files:
 ```
 playwright.config.js  -- E2E test configuration
-tests/                -- Playwright test suite (740 tests)
+tests/                -- Playwright test suite (900 tests)
 package.json          -- Dev dependencies (Playwright)
 ```
 
@@ -69,7 +69,7 @@ Both demos are fictional and useful for exploring the dashboard without entering
 
 ## Dashboard tabs
 
-The dashboard has **12 tabs** organised in **2 groups** through a segmented pill toggle. The active group is remembered between sessions.
+The dashboard has **13 tabs** organised in **2 groups** through a segmented pill toggle. The active group is remembered between sessions.
 
 ### Operations — day-to-day finances
 
@@ -90,6 +90,7 @@ The dashboard has **12 tabs** organised in **2 groups** through a segmented pill
 | **Debts** | Per-debt cards with balance, rate, payoff ETA, interest projection and "Liquidate debt" button |
 | **Projector** | Debt payoff simulator: Avalanche vs Snowball with what-if scenarios |
 | **Goals** | Savings goals with projection sparkline, progress, ETA and over-commit warning |
+| **Retirement** | Long-horizon projection in real terms: contributions, expected return, 25x target (4% rule) and an on-track / short-by verdict |
 | **Analysis** | Financial summary, waterfall cashflow, BVA, payment projections and expense trend |
 | **History** | Historical record with trend charts, net worth projection, savings rate and debt evolution |
 
@@ -264,8 +265,9 @@ The backup is exported as a `.json` file with this structure:
 
 ```json
 {
-  "_meta": { "version": 4, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
-  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5, "monedaPrincipal": "RD", "payFrequency": "mensual", "defaultCashAccountId": "cnt_…" },
+  "_meta": { "version": 5, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
+  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5, "monedaPrincipal": "RD", "payFrequency": "mensual", "defaultCashAccountId": "cnt_…",
+              "ingresos": [{ "id": "inc_…", "nombre": "Salary", "monto": 3000, "moneda": "USD", "frecuencia": "mensual", "tipo": "fijo" }] },
   "gastos": [...],
   "forNow": { "cuentas": [...], "fecha": "...", "total": 0 },
   "emerg": { "fondos": [...], "cashflow": {...} },
@@ -273,9 +275,20 @@ The backup is exported as a `.json` file with this structure:
   "metas": [...],
   "transacciones": [...],
   "presupuesto": [...],
-  "recurrentes": [...]
+  "recurrentes": [...],
+  "activos": [{ "id": "act_…", "nombre": "Home", "tipo": "inmueble", "valor": 310000, "moneda": "USD" }],
+  "sinkingFunds": [{ "id": "snk_…", "nombre": "Property tax", "meta": 4200, "saved": 1750, "cadencia": "anual", "proximaFecha": "2026-12-15", "moneda": "USD" }],
+  "retiro": { "edadActual": 38, "edadRetiro": 65, "retornoEsperado": 7, "inflacion": 3, "aporteMensual": 54000, "cuentasIds": ["cnt_…"] }
 }
 ```
+
+> **Note (v4 → v5):**
+> - `config.ingresos[]` is now the source of truth for income — multiple sources, each with its own `frecuencia` (`mensual` / `quincenal` / `semanal` / `anual`) and `moneda`. `ingresoUSD` / `ingresoRD` survive as derived mirrors so older readers still see a sane number; an existing v4 file is migrated automatically (the old scalar becomes source #1).
+> - `activos[]` holds what you own (`inmueble` / `vehiculo` / `inversion` / `otro`). **Net worth now counts assets**, so a mortgaged home no longer reads as pure liability.
+> - `sinkingFunds[]` holds irregular expenses (annual insurance, property tax, tuition). Deliberately separate from `emerg.fondos` — folding them together inflated the emergency-coverage KPI and the health score.
+> - `gastos[].limiteCredito` (optional) enables credit-utilization tracking on revolving lines.
+> - `retiro` holds the retirement assumptions. All projections are inflation-adjusted.
+> - Migration runs through a single `migrateData()` choke point that every load path calls, so an imported file and an IndexedDB restore now produce an identical shape.
 
 > **Note (v3 → v4):**
 > - `config.payFrequency` controls how `ingresoUSD` is interpreted: `"mensual"` (default · multiplier 1), `"quincenal"` (× 26/12) or `"semanal"` (× 52/12). `ingresoRD` is always the already-multiplied monthly equivalent.
