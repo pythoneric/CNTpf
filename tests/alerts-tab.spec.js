@@ -23,6 +23,14 @@ async function loadApp(page, overrides = {}) {
     data.emerg.cashflow.gasto = 120000;
     data.emerg.cashflow.tasa = 60;
 
+    // An account large enough to actually hold whatever funds a test sets up.
+    // defaultEditData() ships zero accounts, so without this every fixture with
+    // an emergency fund has earmarked money it does not hold, and trips the
+    // reconciliation alert on its way to testing something else.
+    data.forNow.cuentas = [
+      { id: 'cnt_fixture', nombre: 'Banco', moneda: 'RD', saldo: 5000000, tipo: 'banco', comp: 0, disp: 5000000 },
+    ];
+
     // Apply overrides
     if (ov.config) Object.assign(data.config, ov.config);
     if (ov.gastos) data.gastos = ov.gastos;

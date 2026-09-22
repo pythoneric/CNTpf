@@ -19,6 +19,7 @@ const { test, expect } = require('@playwright/test');
  *   2. Dates through the UI
  *   3. Close-month wizard i18n + currency
  *   4. fondoToRD rate injection
+ *   5. Earmark reconciliation
  */
 
 function baseData() {
@@ -227,5 +228,98 @@ test.describe('fondoToRD — explicit rate', () => {
     // the holdings term and the earmark term must honour the passed-in rate.
     expect(res.nw).toBe(1000);
     expect(res.earmarked).toBe(1000);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────
+// 5. Earmark reconciliation
+// ───────────────────────────────────────────────────────────────────
+//
+// Net worth counts holdings only, so over-earmarking no longer inflates it —
+// but an emergency fund, a sinking fund and a goal can each name the same
+// pesos without the user noticing, and at least one of those buckets is then
+// promising money that is not there. Both shipped demos did exactly this.
+test.describe('Earmark reconciliation', () => {
+  test('earmarks inside the accounts reconcile cleanly', async ({ page }) => {
+    await loadWith(page, "d.forNow.cuentas[0].saldo=100000;d.emerg.fondos=[{fondo:'EF',moneda:'RD',balance:30000,meta:60000}]");
+    const r = await page.evaluate(() => window.reconcileEarmarks(_editData));
+    expect(r.ok).toBe(true);
+    expect(r.overBy).toBe(0);
+    expect(r.held).toBe(100000);
+    expect(r.earmarked).toBe(30000);
+  });
+
+  test('earmarks exceeding the accounts are reported with the shortfall', async ({ page }) => {
+    await loadWith(page, "d.forNow.cuentas[0].saldo=10000;d.emerg.fondos=[{fondo:'EF',moneda:'RD',balance:30000,meta:60000}]");
+    const r = await page.evaluate(() => window.reconcileEarmarks(_editData));
+    expect(r.ok).toBe(false);
+    expect(r.overBy).toBe(20000);
+  });
+
+  test('the same money named by three buckets is caught', async ({ page }) => {
+    await loadWith(page, "d.forNow.cuentas[0].saldo=20000");
+    const r = await page.evaluate(() => {
+      // One RD$20,000 balance, claimed by an emergency fund, a sinking fund
+      // and a goal at once.
+      _editData.emerg.fondos = [{ fondo: 'EF', moneda: 'RD', balance: 20000, meta: 20000 }];
+      _editData.sinkingFunds = [{ nombre: 'S', meta: 20000, saved: 20000, cadencia: 'anual', moneda: 'RD' }];
+      _editData.metas = [{ name: 'M', goal: 20000, saved: 20000, monthly: 0 }];
+      window.migrateData(_editData);
+      return window.reconcileEarmarks(_editData);
+    });
+    expect(r.earmarked).toBe(60000);
+    expect(r.held).toBe(20000);
+    expect(r.overBy).toBe(40000);
+  });
+
+  test('exactly equal is not an error', async ({ page }) => {
+    await loadWith(page, "d.forNow.cuentas[0].saldo=30000;d.emerg.fondos=[{fondo:'EF',moneda:'RD',balance:30000,meta:30000}]");
+    const r = await page.evaluate(() => window.reconcileEarmarks(_editData));
+    expect(r.ok).toBe(true);
+    expect(r.overBy).toBe(0);
+  });
+
+  test('no earmarks at all reconciles', async ({ page }) => {
+    await loadWith(page, "d.emerg.fondos=[]");
+    const r = await page.evaluate(() => window.reconcileEarmarks(_editData));
+    expect(r.ok).toBe(true);
+    expect(r.earmarked).toBe(0);
+  });
+
+  test('USD accounts and funds are both converted at tasa', async ({ page }) => {
+    await loadWith(page, "d.forNow.cuentas=[{id:'c',nombre:'A',moneda:'USD',saldo:100,tipo:'banco'}];d.emerg.fondos=[{fondo:'EF',moneda:'USD',balance:50,meta:100}]");
+    const r = await page.evaluate(() => window.reconcileEarmarks(_editData));
+    expect(r.held).toBe(6000);
+    expect(r.earmarked).toBe(3000);
+    expect(r.ok).toBe(true);
+  });
+
+  test('the alert fires when earmarks overflow', async ({ page }) => {
+    await loadWith(page, "d.forNow.cuentas[0].saldo=1000;d.emerg.fondos=[{fondo:'EF',moneda:'RD',balance:50000,meta:60000}]");
+    await page.evaluate(() => window.showTab('alertas', null));
+    await expect(page.locator('#alertasGen')).toContainText('apartado');
+  });
+
+  test('no alert when the books balance', async ({ page }) => {
+    await loadWith(page, "d.forNow.cuentas[0].saldo=500000;d.emerg.fondos=[{fondo:'EF',moneda:'RD',balance:1000,meta:2000}]");
+    await page.evaluate(() => window.showTab('alertas', null));
+    await expect(page.locator('#alertasGen')).not.toContainText('apartado');
+  });
+
+  test('the alert translates', async ({ page }) => {
+    await loadWith(page, "d.forNow.cuentas[0].saldo=1000;d.emerg.fondos=[{fondo:'EF',moneda:'RD',balance:50000,meta:60000}]");
+    await page.evaluate(() => window._testSetLang('en'));
+    await page.evaluate(() => window.showTab('alertas', null));
+    await expect(page.locator('#alertasGen')).toContainText('earmarked more than');
+  });
+
+  test('neither shipped demo trips its own warning', async ({ page }) => {
+    for (const cur of ['RD', 'USD']) {
+      await openApp(page);
+      await page.evaluate(c => window.loadDemo(c), cur);
+      await page.waitForSelector('#dashApp', { state: 'visible' });
+      const r = await page.evaluate(() => window.reconcileEarmarks(_editData));
+      expect(r.ok, `${cur} demo earmarks ${r.earmarked} exceed accounts ${r.held}`).toBe(true);
+    }
   });
 });

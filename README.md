@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (921 tests)
+tests/                -- Suite de tests Playwright (931 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -286,6 +286,7 @@ El respaldo se exporta como un archivo `.json` con esta estructura:
 > - `config.ingresos[]` es ahora la fuente de verdad del ingreso — varias fuentes, cada una con su `frecuencia` (`mensual` / `quincenal` / `semanal` / `anual`) y `moneda`. `ingresoUSD` / `ingresoRD` quedan como espejos derivados; un archivo v4 se migra solo (el escalar viejo pasa a ser la fuente #1).
 > - `activos[]` guarda lo que posees (`inmueble` / `vehiculo` / `inversion` / `otro`). **El patrimonio neto ahora suma activos**, así que una casa hipotecada deja de leerse como pura deuda.
 > - **El patrimonio neto cuenta solo tenencias**: `cuentas + activos − deudas`. Los fondos de emergencia, el balance de ahorros, los apartados y las metas son *etiquetas* sobre dinero que ya está en alguna de tus cuentas — sumarlos contaba el mismo peso dos veces. Si llevas un fondo cuyo dinero no está en una cuenta listada, agrega esa cuenta.
+> - Aparece una alerta cuando lo apartado supera lo que hay en tus cuentas — señal de que dos fondos están nombrando el mismo dinero.
 > - `sinkingFunds[]` guarda gastos irregulares (seguro anual, IPI, matrícula). Va aparte de `emerg.fondos` a propósito — mezclarlos inflaba la cobertura de emergencia y el score.
 > - `gastos[].limiteCredito` (opcional) habilita el uso de crédito en líneas revolventes.
 > - `retiro` guarda los supuestos de retiro. Las proyecciones están ajustadas por inflación.
@@ -463,8 +464,8 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `sinking-and-utilization.spec.js` | 24 | Apartados (gastos irregulares) + uso de crédito: cálculo mensual, separación del fondo de emergencia, waterfall, bandas 30/50%, cadencias irregulares, demos |
 | `multi-income.spec.js` | 29 | Múltiples fuentes de ingreso: migración v4→v5, agregación por cadencia, per-pay, espejos legacy, tolerancia a configs sin migrar, pestaña Ingresos |
 | `retirement.spec.js` | 34 | Retiro: tasa real (Fisher), valor futuro/aporte requerido, balance invertido, meta 25x, veredicto, esquema, pestaña, i18n |
-| `preexisting-fixes.spec.js` | 19 | Bugs preexistentes: parseLocalDate (fechas UTC vs locales), labels del cierre traducidos y con moneda viva, fondoToRD con tasa inyectada |
-| **Total** | **921** | |
+| `preexisting-fixes.spec.js` | 29 | Bugs preexistentes: parseLocalDate (fechas UTC vs locales), labels del cierre traducidos y con moneda viva, fondoToRD con tasa inyectada, reconciliacion de apartados vs cuentas |
+| **Total** | **931** | |
 
 ---
 

@@ -29,7 +29,7 @@ The 5 files must live in the **same folder** for the PWA to work correctly.
 Additional development files:
 ```
 playwright.config.js  -- E2E test configuration
-tests/                -- Playwright test suite (921 tests)
+tests/                -- Playwright test suite (931 tests)
 package.json          -- Dev dependencies (Playwright)
 ```
 
@@ -286,6 +286,7 @@ The backup is exported as a `.json` file with this structure:
 > - `config.ingresos[]` is now the source of truth for income — multiple sources, each with its own `frecuencia` (`mensual` / `quincenal` / `semanal` / `anual`) and `moneda`. `ingresoUSD` / `ingresoRD` survive as derived mirrors so older readers still see a sane number; an existing v4 file is migrated automatically (the old scalar becomes source #1).
 > - `activos[]` holds what you own (`inmueble` / `vehiculo` / `inversion` / `otro`). **Net worth now counts assets**, so a mortgaged home no longer reads as pure liability.
 > - **Net worth is holdings-only**: `accounts + assets − debts`. Emergency funds, the savings balance, sinking funds and goals are *earmarks* — labels on money that already sits in one of your accounts — so adding them counted the same peso twice. If you track a fund whose money is not in a listed account, add that account.
+> - An alert appears when your earmarks total more than your accounts hold — a sign that two buckets are naming the same money.
 > - `sinkingFunds[]` holds irregular expenses (annual insurance, property tax, tuition). Deliberately separate from `emerg.fondos` — folding them together inflated the emergency-coverage KPI and the health score.
 > - `gastos[].limiteCredito` (optional) enables credit-utilization tracking on revolving lines.
 > - `retiro` holds the retirement assumptions. All projections are inflation-adjusted.

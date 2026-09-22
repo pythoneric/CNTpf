@@ -320,7 +320,10 @@ test.describe('Demo Data', () => {
 
     await loadDemoPage(page, 'USD');
     const usdMetas = await page.evaluate(() => _editData.metas.length);
-    expect(usdMetas).toBe(5);
+    // Was 5: the "Early Retirement Fund" goal held exactly the Brokerage
+    // balance that the Retiro tab now tracks directly, so it was a third label
+    // on the same $15,000 and was removed.
+    expect(usdMetas).toBe(4);
   });
 
   test('RD demo renders all tabs without JS errors', async ({ page }) => {

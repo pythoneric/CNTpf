@@ -1766,8 +1766,8 @@ function netWorthRD(d){
   return cuentas+activosTotalRD(d)-deudas;
 }
 // Total earmarked across every allocation bucket, in RD$. Not part of net
-// worth — exposed so the UI can show allocations beside holdings, and so a
-// future reconciliation check has one place to read.
+// worth — the UI shows allocations beside holdings, and reconcileEarmarks
+// compares the two.
 function earmarkedTotalRD(d){
   d=d||(typeof _editData!=='undefined'?_editData:null);
   if(!d)return 0;
@@ -1776,6 +1776,27 @@ function earmarkedTotalRD(d){
   const sinking=(d.sinkingFunds||[]).reduce((a,f)=>a+(f.saved||0)*(f.moneda==='USD'?tasa:1),0);
   const metas=(d.metas||[]).reduce((a,m)=>a+(m.saved||0),0);
   return ef+sinking+metas;
+}
+// Do the earmarks actually fit inside the accounts?
+//
+// Net worth counts holdings only, so over-earmarking no longer inflates it —
+// but it is still a bookkeeping error worth surfacing, and one that is easy to
+// fall into: an emergency fund, a sinking fund and a savings goal can each
+// name the same 20,000 pesos without the user noticing. When the total
+// earmarked exceeds what the accounts hold, at least one of those buckets is
+// promised money that is not there.
+//
+// Compared against ALL accounts rather than only the liquid ones. Someone may
+// legitimately hold a goal's money in a brokerage, and a false alarm on a
+// correct setup would train people to ignore the warning.
+function reconcileEarmarks(d){
+  d=d||(typeof _editData!=='undefined'?_editData:null);
+  if(!d)return{earmarked:0,held:0,overBy:0,ok:true};
+  const tasa=d.config?.tasa||60;
+  const held=(d.forNow?.cuentas||[]).reduce((a,c)=>a+(c.saldo||0)*(c.moneda==='USD'?tasa:1),0);
+  const earmarked=earmarkedTotalRD(d);
+  const overBy=earmarked-held;
+  return{earmarked,held,overBy:Math.max(0,overBy),ok:overBy<=0};
 }
 
 // ══════════════════════════════════
@@ -3309,6 +3330,9 @@ const LANG = {
     activo_tipo_inmueble:'Inmueble', activo_tipo_vehiculo:'Vehículo',
     activo_tipo_inversion:'Inversión', activo_tipo_otro:'Otro',
     edit_add_activo:'+ Agregar activo',
+    // Earmark reconciliation
+    alert_earmark_title:'Tienes más apartado de lo que hay en tus cuentas',
+    alert_earmark_msg:'Sumas {marked} entre fondo de emergencia, apartados y metas, pero tus cuentas tienen {held} — te pasas por {over}. Revisa que el dinero de cada fondo esté en una cuenta registrada, o baja lo apartado.',
     // Close-month wizard field labels (were hardcoded Spanish + frozen currency)
     cw_tasa:'Tasa Dólar (RD$/USD)', cw_mes:'Mes', cw_anio:'Año',
     cw_gasto:'Gasto total del mes ({cs})',
@@ -3968,6 +3992,9 @@ const LANG = {
     activo_tipo_inmueble:'Real estate', activo_tipo_vehiculo:'Vehicle',
     activo_tipo_inversion:'Investment', activo_tipo_otro:'Other',
     edit_add_activo:'+ Add asset',
+    // Earmark reconciliation
+    alert_earmark_title:'You have earmarked more than your accounts hold',
+    alert_earmark_msg:'Emergency fund, set-asides and goals add up to {marked}, but your accounts hold {held} — over by {over}. Check that each fund’s money sits in a listed account, or lower what is earmarked.',
     // Close-month wizard field labels (were hardcoded Spanish + frozen currency)
     cw_tasa:'USD rate (RD$/USD)', cw_mes:'Month', cw_anio:'Year',
     cw_gasto:'Total spending this month ({cs})',
@@ -5347,9 +5374,9 @@ const _DEMO_DATA_RD={
 {"mes":"Diciembre","anio":2023,"ingresos":50000,"gasto":47000,"ahorro":3000,"tasaAhorro":0.06,"deudas":115000,"emergencia":-5500,"netWorth":-12000,"tasa":60.0,"notas":"Regalía + gastos navideños"}
 ],
 "metas":[
-{"name":"Curso digital marketing","goal":28000,"saved":12000,"monthly":1500},
-{"name":"Celular nuevo","goal":22000,"saved":8500,"monthly":1000},
-{"name":"Ropa de invierno (visita NY)","goal":15000,"saved":3500,"monthly":800}
+{"name":"Curso digital marketing","goal":28000,"saved":3000,"monthly":1500},
+{"name":"Celular nuevo","goal":22000,"saved":2000,"monthly":1000},
+{"name":"Ropa de invierno (visita NY)","goal":15000,"saved":1000,"monthly":800}
 ],
 "transacciones":[
 {"fecha":"2026-05-04","monto":1200,"categoria":"comida","nota":"Compra colmado semana 1","metodo":"efectivo","gastoIdx":-1,"mes":"Mayo","anio":2026,"applied":true,"cuentaId":"cnt_demo_cash"},
@@ -5445,8 +5472,7 @@ const _DEMO_DATA_USD={
 {"name":"Family Vacation (Hawaii)","goal":300000,"saved":168000,"monthly":24000},
 {"name":"New Laptop","goal":90000,"saved":90000,"monthly":0},
 {"name":"Kid's College Fund","goal":3000000,"saved":270000,"monthly":18000},
-{"name":"Kitchen Renovation","goal":900000,"saved":192000,"monthly":15000},
-{"name":"Early Retirement Fund","goal":30000000,"saved":900000,"monthly":30000}
+{"name":"Kitchen Renovation","goal":900000,"saved":192000,"monthly":15000}
 ],
 "transacciones":[],
 "presupuesto":[],
@@ -5680,6 +5706,12 @@ function buildAlerts({gastos,config,ingreso,gasto,totalBalance,cuotaDeudas,resta
     const _used=_cards.reduce((a,g)=>a+Math.max(0,g.balance||0),0);
     const _lim=_cards.reduce((a,g)=>a+g.limiteCredito,0);
     agHtml.push(`<div class="alert-item ${_util>=UTIL_HIGH?'urgent':'warning'}"><div class="alert-icon">💳</div><div class="alert-text"><div class="alert-title">${t('alert_util_title')}</div><div class="alert-sub">${t('alert_util_msg').replace('{pct}',Math.round(_util*100)).replace('{used}',fmtC(toDisplay(_used))).replace('{lim}',fmtC(toDisplay(_lim)))}</div></div></div>`);
+  }
+  // Earmarks that do not fit in the accounts. A warning, not urgent: nothing
+  // is wrong with the money itself, the labels on it just do not add up.
+  const _rec=reconcileEarmarks(_editData);
+  if(!_rec.ok&&_rec.earmarked>0){
+    agHtml.push(`<div class="alert-item warning"><div class="alert-icon">🧮</div><div class="alert-text"><div class="alert-title">${t('alert_earmark_title')}</div><div class="alert-sub">${t('alert_earmark_msg').replace('{over}',fmtC(toDisplay(Math.round(_rec.overBy)))).replace('{marked}',fmtC(toDisplay(Math.round(_rec.earmarked)))).replace('{held}',fmtC(toDisplay(Math.round(_rec.held))))}</div></div></div>`);
   }
   const altaTasa=gastos.filter(g=>g.tasa>15&&g.balance>0);
   altaTasa.forEach(g=>agHtml.push(`<div class="alert-item warning"><div class="alert-icon">📈</div><div class="alert-text"><div class="alert-title">${t('alert_highrate_title')} ${escH(g.nombre)}</div><div class="alert-sub">${t('alert_highrate_sub').replace('%',g.tasa+'%').replace(currencySymbol(),fmtC(toDisplay(g.balance)))}</div></div></div>`));
@@ -8550,6 +8582,7 @@ window.realRate=realRate;
 window.parseLocalDate=parseLocalDate;
 window.cierreSteps=cierreSteps;
 window.earmarkedTotalRD=earmarkedTotalRD;
+window.reconcileEarmarks=reconcileEarmarks;
 window.transferBetweenAccounts=transferBetweenAccounts;
 window.reverseTransferGroup=reverseTransferGroup;
 window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
