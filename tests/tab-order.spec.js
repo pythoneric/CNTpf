@@ -13,7 +13,7 @@ const EXPECTED_ORDER = [
   'resumen', 'alertas',                   // hoy
   'registro', 'gastos', 'presupuesto',    // gastos
   'deudas', 'proyector',                  // deudas
-  'fornow', 'emergency', 'metas',         // ahorros
+  'fornow', 'emergency', 'metas', 'retiro', // ahorros
   'analisis', 'historial',                // historia
 ];
 
@@ -76,7 +76,7 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
     expect(sections).toEqual(SECTIONS);
   });
 
-  test('TAB_ORDER and desktop sub-tabs contain the same 12 ids', async ({ page }) => {
+  test('TAB_ORDER and desktop sub-tabs contain the same 13 ids', async ({ page }) => {
     await loadApp(page);
     const { desktopIds, tabOrderIds } = await page.evaluate(() => {
       const desktopIds = Array.from(document.querySelectorAll('.tabs .tab-btn')).map(btn => {
@@ -96,7 +96,7 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
     for (const id of tabOrderIds) expect(desktopIds).toContain(id);
   });
 
-  test('exactly 12 desktop sub-tabs with all original ids present', async ({ page }) => {
+  test('exactly 13 desktop sub-tabs with all original ids present', async ({ page }) => {
     await loadApp(page);
     const desktopIds = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('.tabs .tab-btn')).map(btn => {
@@ -104,13 +104,13 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
         return m ? m[1] : null;
       });
     });
-    expect(desktopIds).toHaveLength(12);
+    expect(desktopIds).toHaveLength(13);
     const allOriginals = ['resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'deudas',
       'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
     for (const id of allOriginals) expect(desktopIds).toContain(id);
   });
 
-  test('TAB_ORDER has exactly 12 entries with all original ids', async ({ page }) => {
+  test('TAB_ORDER has exactly 13 entries with all original ids', async ({ page }) => {
     await loadApp(page);
     const tabOrder = await page.evaluate(() => {
       const scripts = Array.from(document.querySelectorAll('script'));
@@ -120,7 +120,7 @@ test.describe('Tab Order — Personal Finance Workflow', () => {
       }
       return [];
     });
-    expect(tabOrder).toHaveLength(12);
+    expect(tabOrder).toHaveLength(13);
     const allOriginals = ['resumen', 'alertas', 'registro', 'presupuesto', 'gastos', 'deudas',
       'emergency', 'proyector', 'fornow', 'historial', 'metas', 'analisis'];
     for (const id of allOriginals) expect(tabOrder).toContain(id);

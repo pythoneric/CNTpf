@@ -174,10 +174,10 @@ test.describe('#6 Accessibility roles and labels', () => {
     await expect(alertasTab).toHaveAttribute('aria-selected', 'true');
   });
 
-  test('all 12 panels have role=tabpanel', async ({ page }) => {
+  test('all 13 panels have role=tabpanel', async ({ page }) => {
     await loadApp(page);
     const panels = await page.locator('.panel[role="tabpanel"]').count();
-    expect(panels).toBe(12);
+    expect(panels).toBe(13);
   });
 
   test('icon-only header buttons have aria-label', async ({ page }) => {

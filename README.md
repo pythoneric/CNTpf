@@ -29,7 +29,7 @@ Los 5 archivos deben estar en la **misma carpeta** para que la PWA funcione corr
 Archivos adicionales para desarrollo:
 ```
 playwright.config.js  -- Configuracion de tests E2E
-tests/                -- Suite de tests Playwright (765 tests)
+tests/                -- Suite de tests Playwright (900 tests)
 package.json          -- Dependencias de desarrollo (Playwright)
 ```
 
@@ -90,6 +90,7 @@ El dashboard tiene **12 pestanas** organizadas en **2 grupos** mediante un contr
 | **Deudas** | Cards individuales con balance, tasa, ETA de liquidacion, proyeccion de interes y boton "Liquidar deuda" |
 | **Proyector** | Simulador de pago de deudas: Avalancha vs Bola de Nieve con escenarios what-if |
 | **Metas** | Metas de ahorro con sparkline de proyeccion, progreso, ETA estimado y advertencia de sobrecompromiso |
+| **Retiro** | Proyeccion a largo plazo en terminos reales: aportes, retorno esperado, meta 25x (regla del 4%) y veredicto vas-en-camino / te-falta |
 | **Analisis** | Resumen financiero, flujo de caja waterfall, BVA, proyecciones de pago y tendencia de gastos |
 | **Historial** | Registro historico con graficos de tendencia, proyeccion de net worth, tasa de ahorro y evolucion de deudas |
 
@@ -264,8 +265,9 @@ El respaldo se exporta como un archivo `.json` con esta estructura:
 
 ```json
 {
-  "_meta": { "version": 4, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
-  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5, "monedaPrincipal": "RD", "payFrequency": "mensual", "defaultCashAccountId": "cnt_…" },
+  "_meta": { "version": 5, "exportedAt": "2026-03-30T...", "app": "CNTpf" },
+  "config": { "tasa": 60, "mes": "Marzo", "anio": 2026, "ingresoUSD": 3000, "diasAlerta": 5, "monedaPrincipal": "RD", "payFrequency": "mensual", "defaultCashAccountId": "cnt_…",
+              "ingresos": [{ "id": "inc_…", "nombre": "Salary", "monto": 3000, "moneda": "USD", "frecuencia": "mensual", "tipo": "fijo" }] },
   "gastos": [...],
   "forNow": { "cuentas": [...], "fecha": "...", "total": 0 },
   "emerg": { "fondos": [...], "cashflow": {...} },
@@ -273,9 +275,20 @@ El respaldo se exporta como un archivo `.json` con esta estructura:
   "metas": [...],
   "transacciones": [...],
   "presupuesto": [...],
-  "recurrentes": [...]
+  "recurrentes": [...],
+  "activos": [{ "id": "act_…", "nombre": "Home", "tipo": "inmueble", "valor": 310000, "moneda": "USD" }],
+  "sinkingFunds": [{ "id": "snk_…", "nombre": "Property tax", "meta": 4200, "saved": 1750, "cadencia": "anual", "proximaFecha": "2026-12-15", "moneda": "USD" }],
+  "retiro": { "edadActual": 38, "edadRetiro": 65, "retornoEsperado": 7, "inflacion": 3, "aporteMensual": 54000, "cuentasIds": ["cnt_…"] }
 }
 ```
+
+> **Nota (v4 → v5):**
+> - `config.ingresos[]` es ahora la fuente de verdad del ingreso — varias fuentes, cada una con su `frecuencia` (`mensual` / `quincenal` / `semanal` / `anual`) y `moneda`. `ingresoUSD` / `ingresoRD` quedan como espejos derivados; un archivo v4 se migra solo (el escalar viejo pasa a ser la fuente #1).
+> - `activos[]` guarda lo que posees (`inmueble` / `vehiculo` / `inversion` / `otro`). **El patrimonio neto ahora suma activos**, así que una casa hipotecada deja de leerse como pura deuda.
+> - `sinkingFunds[]` guarda gastos irregulares (seguro anual, IPI, matrícula). Va aparte de `emerg.fondos` a propósito — mezclarlos inflaba la cobertura de emergencia y el score.
+> - `gastos[].limiteCredito` (opcional) habilita el uso de crédito en líneas revolventes.
+> - `retiro` guarda los supuestos de retiro. Las proyecciones están ajustadas por inflación.
+> - La migración pasa por un único `migrateData()` que llaman todas las rutas de carga, así que importar un archivo y restaurar de IndexedDB producen la misma forma.
 
 > **Nota (v3 → v4):**
 > - `config.payFrequency` indica como se interpreta `ingresoUSD`: `"mensual"` (default · multiplicador 1), `"quincenal"` (× 26/12) o `"semanal"` (× 52/12). `ingresoRD` siempre es el equivalente mensual ya multiplicado.
@@ -444,7 +457,12 @@ npx playwright test tests/finance-advisor-features.spec.js
 | `help-modal.spec.js` | 21 | Botón Ayuda en header, modal renderiza README.md/README.en.md según idioma, toggleLang refresca, fallback offline, i18n, renderMarkdown unit tests |
 | `wallet-other-income.spec.js` | 15 | Botón "Otro ingreso" para gigs/bonos: monto custom, sin dedup por día, USD wallet, reversión, modal flow, i18n |
 | `manifest-app-name.spec.js` | 7 | manifest.json name + short_name = "BitEric Finance" (Android), apple-mobile-web-app-title + `<title>` (iOS), CACHE_NAME bump |
-| **Total** | **765** | |
+| `migration-v5.spec.js` | 16 | migrateData() como único punto de normalización: idempotencia, paridad entre las 4 rutas de carga, back-fills, puntero de wallet, marcador de versión |
+| `assets-networth.spec.js` | 24 | Activos en patrimonio neto: fórmula directa, conversión RD$/USD, paridad live vs cierre, esquema/migración, pestaña Activos, i18n |
+| `sinking-and-utilization.spec.js` | 24 | Apartados (gastos irregulares) + uso de crédito: cálculo mensual, separación del fondo de emergencia, waterfall, bandas 30/50%, cadencias irregulares, demos |
+| `multi-income.spec.js` | 29 | Múltiples fuentes de ingreso: migración v4→v5, agregación por cadencia, per-pay, espejos legacy, tolerancia a configs sin migrar, pestaña Ingresos |
+| `retirement.spec.js` | 34 | Retiro: tasa real (Fisher), valor futuro/aporte requerido, balance invertido, meta 25x, veredicto, esquema, pestaña, i18n |
+| **Total** | **900** | |
 
 ---
 

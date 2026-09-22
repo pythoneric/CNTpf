@@ -127,7 +127,10 @@ test.describe('loadDemoSafe — saved data triggers the confirmation modal', () 
     expect(json.filename).toBe('real_user_data.json');
     expect(json.config.ingresoUSD).toBe(1234);
     expect(json._meta).toBeDefined();
-    expect(json._meta.version).toBe(4);
+    // Tracks the app constant rather than a literal — this assertion is about
+    // the backup carrying a version marker at all, not about which one.
+    expect(json._meta.version).toBe(await page.evaluate(() => SCHEMA_VERSION));
+    expect(json._meta.version).toBeGreaterThanOrEqual(4);
     // Modal closes and demo loads
     await expect(page.locator('#demoConfirmModal')).not.toHaveClass(/open/);
     await expect(page.locator('#dashApp')).toBeVisible({ timeout: 10000 });
