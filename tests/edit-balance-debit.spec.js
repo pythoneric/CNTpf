@@ -224,3 +224,53 @@ test.describe('i18n', () => {
     await expect(page.locator('#balanceDebitOptions')).toContainText('It wasn’t a payment');
   });
 });
+
+// ───────────────────────────────────────────────────────────────────
+// 6. Layout on a phone (many cuentas)
+// ───────────────────────────────────────────────────────────────────
+test.describe('Layout on a phone', () => {
+  async function inViewport(locator) {
+    return locator.evaluate(el => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; });
+  }
+
+  test('long account lists scroll so the buttons stay reachable', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 640 });
+    await loadApp(page);
+    await page.evaluate(() => {
+      for (let i = 0; i < 8; i++) _editData.forNow.cuentas.push({ id: 'cnt_x' + i, nombre: 'Cuenta ' + i, moneda: 'RD', saldo: 1000, tipo: 'banco', comp: 0, disp: 1000 });
+    });
+    await openEdit(page);
+    await page.evaluate(() => { _editData.gastos[0].balance = 27000; applyChanges(); });
+    const btn = page.locator('#balanceDebitModal .btn-primary');
+    await btn.scrollIntoViewIfNeeded();
+    expect(await inViewport(btn)).toBe(true);
+    await btn.click();
+    await expect(page.locator('#balanceDebitModal')).not.toHaveClass(/open/);
+  });
+
+  test('option radios keep their natural width and labels are not uppercased', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loadApp(page);
+    await openEdit(page);
+    await page.evaluate(() => { _editData.gastos[0].balance = 27000; applyChanges(); });
+    const r = await page.locator('#balanceDebitOptions .paymethod-opt').first().evaluate(l => ({
+      radioW: l.querySelector('input').getBoundingClientRect().width,
+      labelW: l.getBoundingClientRect().width,
+      transform: getComputedStyle(l).textTransform,
+    }));
+    expect(r.radioW).toBeLessThan(40);
+    expect(r.transform).toBe('none');
+  });
+
+  test('the "¿Cómo pagaste?" prompt gets the same fix', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loadApp(page);
+    await page.evaluate(() => openPaymentPrompt(0));
+    const r = await page.locator('#paymentMethodOptions .paymethod-opt').first().evaluate(l => ({
+      radioW: l.querySelector('input').getBoundingClientRect().width,
+      transform: getComputedStyle(l).textTransform,
+    }));
+    expect(r.radioW).toBeLessThan(40);
+    expect(r.transform).toBe('none');
+  });
+});
