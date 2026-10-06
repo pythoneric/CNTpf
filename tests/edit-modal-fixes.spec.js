@@ -532,9 +532,8 @@ test.describe('Fix #20 — History row tasa', () => {
 // ────────────────────────────────────────────────────────────────────
 // #22 — Balance correction vs payment detection
 // ────────────────────────────────────────────────────────────────────
-test.describe('Fix #22 — Payment detection confirmation', () => {
-  test('balance decrease triggers confirm, dismiss prevents pagado credit', async ({ page }) => {
-    _dialogAction = 'accept';
+test.describe('Fix #22 — Payment detection prompt', () => {
+  test('balance decrease + "No fue un pago" leaves pagado alone', async ({ page }) => {
     await loadApp(page);
     await openEdit(page);
     await page.locator('.edit-tab', { hasText: /Gastos/ }).click();
@@ -546,18 +545,17 @@ test.describe('Fix #22 — Payment detection confirmation', () => {
       _editData.gastos[0].balance = 40000;
     });
 
-    // Dismiss the payment detection dialog
-    _dialogAction = 'dismiss';
     await page.evaluate(() => applyChanges());
+    await expect(page.locator('#balanceDebitModal')).toHaveClass(/open/);
+    await page.locator('#balanceDebitOptions input[value="correccion"]').check();
+    await page.locator('#balanceDebitModal .btn-primary').click();
 
     // pagado should NOT have increased
     const pagadoAfter = await page.evaluate(() => _editData.gastos[0].pagado);
     expect(pagadoAfter).toBe(pagadoBefore);
-    _dialogAction = 'accept';
   });
 
-  test('balance decrease triggers confirm, accept credits pagado', async ({ page }) => {
-    _dialogAction = 'accept';
+  test('balance decrease + "No descontar" credits pagado', async ({ page }) => {
     await loadApp(page);
     await openEdit(page);
     await page.locator('.edit-tab', { hasText: /Gastos/ }).click();
@@ -570,6 +568,8 @@ test.describe('Fix #22 — Payment detection confirmation', () => {
     });
 
     await page.evaluate(() => applyChanges());
+    await page.locator('#balanceDebitOptions input[value="ninguna"]').check();
+    await page.locator('#balanceDebitModal .btn-primary').click();
 
     const pagadoAfter = await page.evaluate(() => _editData.gastos[0].pagado);
     expect(pagadoAfter).toBe(pagadoBefore + 5000);
