@@ -374,6 +374,10 @@ header{will-change:auto}
 /* ══ MI SALDO — Quick-Pay modal + Payment-method prompt ══ */
 #quickPayModal,#paymentMethodModal,#balanceDebitModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
 #quickPayModal.open,#paymentMethodModal.open,#balanceDebitModal.open{display:flex}
+/* Long option lists (many cuentas) must scroll instead of clipping the title
+   and the action buttons off-screen; margin:auto keeps short cards centered. */
+#quickPayModal,#paymentMethodModal,#balanceDebitModal{overflow-y:auto;-webkit-overflow-scrolling:touch}
+#quickPayModal>.qpay-card,#paymentMethodModal>.qpay-card,#balanceDebitModal>.qpay-card{margin:auto}
 .paymethod-opt:hover{border-color:var(--accent)!important;background:rgba(59,130,246,.04)}
 .paymethod-opt input[type="radio"]:checked~div{color:var(--accent)}
 .paymethod-opt:has(input[type="radio"]:checked){border-color:var(--accent);background:rgba(59,130,246,.06)}
@@ -383,6 +387,10 @@ header{will-change:auto}
 .qpay-field{margin-bottom:12px}
 .qpay-field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:600}
 .qpay-field input,.qpay-field select{width:100%}
+/* Radio option cards inside a .qpay-field: undo the field-label and full-width
+   input styles above, which squeezed the text and stretched the radio. */
+.qpay-field .paymethod-opt{text-transform:none;letter-spacing:normal;font-size:inherit;font-weight:400;color:var(--text);margin-bottom:0}
+.qpay-field .paymethod-opt input[type="radio"]{width:auto;flex:none}
 .qpay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .qpay-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
 .qpay-actions .btn{flex:1;justify-content:center;min-width:120px}
@@ -3602,6 +3610,8 @@ const LANG = {
     toast_saved:'💾 Estado de pagos guardado en memoria local',
     toast_autosaved:'💾 Guardado automáticamente',
     toast_changes:'✓ Cambios aplicados',
+    export_ok:'💾 Respaldo exportado · {file}',
+    export_fail:'⚠️ No se pudo exportar el respaldo',
     toast_monthclosed:'🗓 Mes cerrado · Respaldo descargado con historial y pagos reseteados ✓',
     // Months (for historial)
     months:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
@@ -4276,6 +4286,8 @@ const LANG = {
     toast_saved:'💾 Payment status saved to local memory',
     toast_autosaved:'💾 Auto-saved',
     toast_changes:'✓ Changes applied',
+    export_ok:'💾 Backup exported · {file}',
+    export_fail:'⚠️ Could not export the backup',
     toast_monthclosed:'🗓 Month closed · Backup downloaded with history and payments reset ✓',
     // Months
     months:['January','February','March','April','May','June','July','August','September','October','November','December'],
@@ -5292,7 +5304,7 @@ function setupNav(dir){
       switchSection('hoy');
       showTab('resumen',document.querySelector('.tab-btn'));
       autoSave();
-      downloadJSON();
+      downloadJSON({quiet:true});
       showToast('✨ Dashboard creado · Respaldo JSON descargado','var(--accent)');
       setTimeout(()=>openEditModal(),1200);
       return;
@@ -5536,18 +5548,68 @@ const _DEMO_DATA_USD={
 // ══════════════════════════════════
 // JSON EXPORT / IMPORT
 // ══════════════════════════════════
-function downloadJSON(){
-  const data=JSON.parse(JSON.stringify(_editData));
+function backupStamp(){
+  const now=new Date();
+  return `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+}
+function backupPayload(src){
+  const data=JSON.parse(JSON.stringify(src));
   data._meta={version:SCHEMA_VERSION,exportedAt:new Date().toISOString(),app:'CNTpf'};
-  const json=JSON.stringify(data,null,2);
+  return data;
+}
+// iOS home-screen apps ignore <a download> on blob URLs (nothing happens),
+// so there the backup goes through the share sheet ("Guardar en Archivos").
+function _isIOSStandalone(){
+  const ua=navigator.userAgent||'';
+  const ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const standalone=window.navigator.standalone===true||window.matchMedia?.('(display-mode:standalone)').matches;
+  return ios&&!!standalone;
+}
+function _anchorDownload(json,filename){
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  const now=new Date();
-  const stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-  a.href=url;a.download=`cnt_${stamp}.json`;
+  a.href=url;a.download=filename;a.rel='noopener';a.style.display='none';
   document.body.appendChild(a);a.click();
-  document.body.removeChild(a);URL.revokeObjectURL(url);
+  // Revoking synchronously after click() cancels the download in Safari,
+  // Firefox and some Android browsers — give the browser time to start it.
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},4000);
+  return true;
+}
+// Hand a JSON file to the user. Must be called synchronously inside the
+// click handler (share sheet and downloads need the user gesture). Resolves
+// true when the file was handed off, false when the user dismissed the share
+// sheet; rejects on failure.
+function saveJSONFile(data,filename){
+  const json=JSON.stringify(data,null,2);
+  if(_isIOSStandalone()&&typeof navigator.share==='function'&&typeof File==='function'){
+    const file=new File([json],filename,{type:'application/json'});
+    if(!navigator.canShare||navigator.canShare({files:[file]})){
+      return navigator.share({files:[file],title:filename}).then(()=>true,err=>{
+        if(err&&err.name==='AbortError')return false;
+        return _anchorDownload(json,filename);
+      });
+    }
+  }
+  return Promise.resolve(_anchorDownload(json,filename));
+}
+// Toast the result so a blocked or silent download never looks like success.
+// `quiet` skips the success toast for callers that show their own summary.
+function _reportExport(promise,filename,quiet){
+  return Promise.resolve(promise).then(ok=>{
+    if(ok&&!quiet)showToast(t('export_ok').replace('{file}',filename));
+    return ok;
+  }).catch(err=>{
+    console.warn('export failed',err);
+    showToast(t('export_fail'),'var(--red)');
+    return false;
+  });
+}
+function downloadJSON(opts){
+  const filename=`cnt_${backupStamp()}.json`;
+  let p;
+  try{p=saveJSONFile(backupPayload(_editData),filename);}catch(err){p=Promise.reject(err);}
+  return _reportExport(p,filename,opts&&opts.quiet);
 }
 function importJSON(file){
   showSpinner();
@@ -5578,12 +5640,15 @@ function importJSON(file){
 // saved data exists, just runs loadDemo directly (no friction for first-run
 // users).
 let _pendingDemoCurrency=null;
+let _pendingDemoBackup=null;
 async function loadDemoSafe(currency){
   try{
     const meta=await dbGet(STORE_DATA,'meta');
     if(!meta){return loadDemo(currency);}
   }catch(e){return loadDemo(currency);}
   _pendingDemoCurrency=currency;
+  _pendingDemoBackup=null;
+  try{_pendingDemoBackup=await dbGet(STORE_DATA,'editData');}catch(e){}
   document.getElementById('demoConfirmModal')?.classList.add('open');
 }
 function cancelDemoConfirm(){
@@ -5598,7 +5663,9 @@ async function confirmDemoContinueNoBackup(){
 }
 async function confirmDemoDownloadAndContinue(){
   const cur=_pendingDemoCurrency;
-  try{await downloadFromDB();}catch(e){console.warn('downloadFromDB failed',e);}
+  const backup=_pendingDemoBackup;
+  _pendingDemoBackup=null;
+  try{await downloadFromDB(backup);}catch(e){console.warn('downloadFromDB failed',e);}
   _pendingDemoCurrency=null;
   document.getElementById('demoConfirmModal')?.classList.remove('open');
   if(cur)loadDemo(cur);
@@ -5608,21 +5675,16 @@ async function confirmDemoDownloadAndContinue(){
 // — useful when the user wants a backup but hasn't yet "Continued where they
 // left off" (so _editData is empty). Mirrors downloadJSON's blob-and-anchor
 // flow but reads from the DB record directly.
-async function downloadFromDB(){
-  const editData=await dbGet(STORE_DATA,'editData');
+// `prefetched` lets the demo-confirm modal pass the record it loaded when it
+// opened, so the save runs inside the click (an await first would drop the
+// user gesture the iOS share sheet needs).
+async function downloadFromDB(prefetched){
+  const editData=prefetched||await dbGet(STORE_DATA,'editData');
   if(!editData)return false;
-  const data=JSON.parse(JSON.stringify(editData));
-  data._meta={version:SCHEMA_VERSION,exportedAt:new Date().toISOString(),app:'CNTpf'};
-  const json=JSON.stringify(data,null,2);
-  const blob=new Blob([json],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  const now=new Date();
-  const stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-  a.href=url;a.download=`cnt_backup_${stamp}.json`;
-  document.body.appendChild(a);a.click();
-  document.body.removeChild(a);URL.revokeObjectURL(url);
-  return true;
+  const filename=`cnt_backup_${backupStamp()}.json`;
+  let p;
+  try{p=saveJSONFile(backupPayload(editData),filename);}catch(err){p=Promise.reject(err);}
+  return _reportExport(p,filename);
 }
 
 async function loadDemo(currency){
@@ -8313,7 +8375,7 @@ function cierreNav(dir){
       closeCierre();
       buildDashboard({..._editData});
       showTab('historial',document.querySelector(".tab-btn[onclick*=\"'historial'\"]"));
-      downloadJSON();
+      downloadJSON({quiet:true});
       autoSave();
       // Show post-close summary toast with key metrics
       const summaryHtml=`<div style="text-align:left;line-height:1.8">
@@ -9251,7 +9313,7 @@ function _detectPaymentsFromBalanceChanges(onDone){
 }
 window.applyBalanceDebit=applyBalanceDebit;
 function applyChanges(){readConfigFromForm();_detectPaymentsFromBalanceChanges(()=>{buildDashboard({..._editData,filename:_editData.filename});autoSave();_changesCount=0;closeEditModal(true);showToast(t('toast_changes'));});}
-function applyAndDownload(){readConfigFromForm();_detectPaymentsFromBalanceChanges(()=>{buildDashboard({..._editData,filename:_editData.filename});autoSave();downloadJSON();_changesCount=0;closeEditModal(true);});}
+function applyAndDownload(){readConfigFromForm();_detectPaymentsFromBalanceChanges(()=>{downloadJSON();buildDashboard({..._editData,filename:_editData.filename});autoSave();_changesCount=0;closeEditModal(true);});}
 
 </script>
 </body>
