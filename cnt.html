@@ -372,8 +372,8 @@ header{will-change:auto}
 }
 
 /* ══ MI SALDO — Quick-Pay modal + Payment-method prompt ══ */
-#quickPayModal,#paymentMethodModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
-#quickPayModal.open,#paymentMethodModal.open{display:flex}
+#quickPayModal,#paymentMethodModal,#balanceDebitModal{position:fixed;inset:0;z-index:var(--z-cierre-modal);background:rgba(6,9,18,.92);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px}
+#quickPayModal.open,#paymentMethodModal.open,#balanceDebitModal.open{display:flex}
 .paymethod-opt:hover{border-color:var(--accent)!important;background:rgba(59,130,246,.04)}
 .paymethod-opt input[type="radio"]:checked~div{color:var(--accent)}
 .paymethod-opt:has(input[type="radio"]:checked){border-color:var(--accent);background:rgba(59,130,246,.06)}
@@ -1248,6 +1248,23 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <div class="qpay-actions">
       <button type="button" class="btn btn-ghost" onclick="cancelPaymentPrompt()" data-i18n="paymethod_cancel">Cancelar</button>
       <button type="button" class="btn btn-primary" onclick="confirmPaymentPrompt()" data-i18n="paymethod_confirm">Marcar pagado</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EDIT — Balance-decrease prompt (Gastos y deudas: "¿de dónde salió el pago?") ══ -->
+<div id="balanceDebitModal" role="dialog" aria-modal="true" aria-labelledby="balanceDebitTitle">
+  <div class="qpay-card">
+    <h2 id="balanceDebitTitle" class="qpay-title" data-i18n="baldebit_title">¿De dónde salió el pago?</h2>
+    <div id="balanceDebitSub" class="qpay-sub">—</div>
+    <div class="qpay-field">
+      <label data-i18n="baldebit_label">Descontar de</label>
+      <div id="balanceDebitOptions" role="radiogroup" aria-labelledby="balanceDebitTitle" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    <div id="balanceDebitWarn" role="alert" style="display:none;font-size:12px;color:var(--yellow);margin-top:-4px"></div>
+    <div class="qpay-actions">
+      <button type="button" class="btn btn-ghost" onclick="cancelBalanceDebitPrompt()" data-i18n="baldebit_cancel">Volver a editar</button>
+      <button type="button" class="btn btn-primary" onclick="confirmBalanceDebitPrompt()" data-i18n="baldebit_confirm">Continuar</button>
     </div>
   </div>
 </div>
@@ -2134,7 +2151,7 @@ function applyGastoTransferencia(gasto){
 // for SPENDING totals must filter through this helper, otherwise the income
 // tx silently subtracts from gasto, distorts category charts, and corrupts
 // historial entries on cierre.
-function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso'&&tx.categoria!=='ajuste'&&tx.categoria!=='transferencia_interna';}
+function isExpenseTx(tx){return !!tx&&tx.categoria!=='ingreso'&&tx.categoria!=='ajuste'&&tx.categoria!=='transferencia_interna'&&tx.categoria!=='pago_deuda';}
 
 // How much of THIS MONTH's cuota (`adeudado`) a gasto has covered, in RD$.
 // `pagado` is free-form: the checklist sets it to `adeudado`, but the edit
@@ -3295,7 +3312,16 @@ const LANG = {
     edit_delete_confirm:'¿Eliminar esta fila? Esta acción no se puede deshacer.',
     edit_cf_ingreso_note:'Se sincroniza automáticamente desde Configuración (USD × Tasa)',
     edit_currency_convert:'¿Convertir el saldo a la nueva moneda usando la tasa actual?',
-    edit_payment_detect:'El balance de "{name}" bajó {cs}{amt}. ¿Registrar como pago?',
+    baldebit_title:'¿De dónde salió el pago?',
+    baldebit_sub:'El balance de "{name}" bajó {amt}',
+    baldebit_label:'Descontar de',
+    baldebit_none:'No descontar de ninguna cuenta',
+    baldebit_none_sub:'Registrar el pago sin tocar los saldos',
+    baldebit_correction:'No fue un pago',
+    baldebit_correction_sub:'Solo corregir el balance',
+    baldebit_insufficient:'⚠️ {acct} tiene {saldo}; quedará en negativo.',
+    baldebit_confirm:'Continuar',
+    baldebit_cancel:'Volver a editar',
     edit_tasa_warn:'⚠️ Usando tasa por defecto (60). Actualiza con la tasa real del mes.',
     // Config field labels
     ecfg_tasa:'Tasa Dólar (RD$/USD)', ecfg_tasa_note:'Actualizar mensualmente',
@@ -3644,6 +3670,7 @@ const LANG = {
     reg_cat_ingreso:'Ingreso',
     reg_cat_ajuste:'Ajuste',
     reg_cat_transferencia_interna:'Transferencia',
+    reg_cat_pago_deuda:'Pago de deuda',
     reg_chart_title:'Gasto por Categoría', reg_tracked:'Gasto registrado', reg_trend_title:'Tendencia de Gasto',
     edit_tab_transacciones:'🧾 Transacciones',
     // Feature 6 – Presupuesto (Forward Budget)
@@ -3959,7 +3986,16 @@ const LANG = {
     edit_delete_confirm:'Delete this row? This action cannot be undone.',
     edit_cf_ingreso_note:'Auto-synced from Settings (USD × Rate)',
     edit_currency_convert:'Convert the balance to the new currency using the current rate?',
-    edit_payment_detect:'Balance of "{name}" decreased by {cs}{amt}. Record as payment?',
+    baldebit_title:'Where did the payment come from?',
+    baldebit_sub:'Balance of "{name}" decreased by {amt}',
+    baldebit_label:'Debit from',
+    baldebit_none:'Don’t debit any account',
+    baldebit_none_sub:'Record the payment without touching balances',
+    baldebit_correction:'It wasn’t a payment',
+    baldebit_correction_sub:'Just correct the balance',
+    baldebit_insufficient:'⚠️ {acct} has {saldo}; it will go negative.',
+    baldebit_confirm:'Continue',
+    baldebit_cancel:'Back to editing',
     edit_tasa_warn:'⚠️ Using default rate (60). Update with this month\'s actual rate.',
     // Config field labels
     ecfg_tasa:'Exchange Rate (RD$/USD)', ecfg_tasa_note:'Update monthly',
@@ -4308,6 +4344,7 @@ const LANG = {
     reg_cat_ingreso:'Income',
     reg_cat_ajuste:'Adjustment',
     reg_cat_transferencia_interna:'Transfer',
+    reg_cat_pago_deuda:'Debt payment',
     reg_chart_title:'Spending by Category', reg_tracked:'Tracked spending', reg_trend_title:'Spending Trend',
     edit_tab_transacciones:'🧾 Transactions',
     // Feature 6 – Budget (Forward Budget)
@@ -8570,7 +8607,8 @@ document.addEventListener('click',e=>{
 // Close modals on Escape key
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
-    if(document.getElementById('editModal')?.classList.contains('open'))closeEditModal();
+    if(document.getElementById('balanceDebitModal')?.classList.contains('open'))cancelBalanceDebitPrompt();
+    else if(document.getElementById('editModal')?.classList.contains('open'))closeEditModal();
     else if(document.getElementById('cierreModal')?.classList.contains('open'))closeCierre();
     else if(document.getElementById('walletSetupModal')?.classList.contains('open'))cancelWalletSetup();
     else if(document.getElementById('quickPayModal')?.classList.contains('open'))closeQuickPay();
@@ -8580,7 +8618,7 @@ document.addEventListener('keydown',e=>{
 // Close modals on backdrop tap (mobile-friendly: tap outside the modal body to dismiss).
 // Setup wizard is intentionally excluded — losing multi-step onboarding progress on an
 // accidental tap would be worse than forcing the user to complete or refresh.
-['editModal','cierreModal','walletSetupModal','quickPayModal','paymentMethodModal'].forEach(id=>{
+['editModal','cierreModal','walletSetupModal','quickPayModal','paymentMethodModal','balanceDebitModal'].forEach(id=>{
   const m=document.getElementById(id);
   if(!m)return;
   m.addEventListener('click',e=>{
@@ -8589,6 +8627,7 @@ document.addEventListener('keydown',e=>{
     else if(id==='cierreModal')closeCierre();
     else if(id==='walletSetupModal')cancelWalletSetup();
     else if(id==='quickPayModal')closeQuickPay();
+    else if(id==='balanceDebitModal')cancelBalanceDebitPrompt();
     else cancelPaymentPrompt();
   });
 });
@@ -9098,9 +9137,121 @@ function readConfigFromForm(){
   // Validate emergency fund meta ≥ 0
   _editData.emerg.fondos.forEach(f=>{f.meta=Math.max(0,f.meta||0);f.balance=Math.max(0,f.balance||0);f.falta=Math.max(0,(f.meta||0)-(f.balance||0));});
 }
-function _detectPaymentsFromBalanceChanges(){_editData.gastos.forEach((g,i)=>{if(i>=_balanceSnapshot.length)return;const diff=_balanceSnapshot[i]-(g.balance||0);if(diff>0){const msg=t('edit_payment_detect').replace('{name}',g.nombre).replace('{amt}',fmt(Math.round(diff)));if(confirm(msg)){g.pagado=(g.pagado||0)+diff;if(!g.pagadoMes&&g.adeudado>0&&g.pagado>=g.adeudado)g.pagadoMes=true;}}});_balanceSnapshot=[];}
-function applyChanges(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();_changesCount=0;closeEditModal(true);showToast(t('toast_changes'));}
-function applyAndDownload(){readConfigFromForm();_detectPaymentsFromBalanceChanges();buildDashboard({..._editData,filename:_editData.filename});autoSave();downloadJSON();_changesCount=0;closeEditModal(true);}
+// BALANCE-DECREASE PROMPT (Edit → Gastos y deudas). When a debt's balance
+// went down since the modal opened, ask which cuenta funded the payment.
+// Decisions are collected first and applied only once every prompt is
+// answered, so "Volver a editar" abandons the save without having touched
+// any saldo. Gasto balances live in RD$; the debit is converted to the
+// cuenta's moneda, and a `pago_deuda` tx keeps the audit trail (deleting
+// that movement restores the saldo through reverseCashDebit).
+let _balDebitQueue=[];
+let _balDebitDecisions=[];
+let _balDebitOnDone=null;
+function _balanceDecreases(){
+  const out=[];
+  (_editData.gastos||[]).forEach((g,i)=>{
+    if(i>=_balanceSnapshot.length)return;
+    const diff=_balanceSnapshot[i]-(g.balance||0);
+    if(diff>0)out.push({idx:i,diff});
+  });
+  return out;
+}
+// choice: a cuenta id → credit pagado + debit that cuenta; 'ninguna' → credit
+// pagado only; 'correccion' → nothing (the balance was simply wrong).
+function applyBalanceDebit(idx,diff,choice){
+  const g=_editData.gastos?.[idx];
+  if(!g||!(diff>0)||choice==='correccion')return null;
+  g.pagado=(g.pagado||0)+diff;
+  if(!g.pagadoMes&&g.adeudado>0&&g.pagado>=g.adeudado)g.pagadoMes=true;
+  if(!choice||choice==='ninguna')return null;
+  const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===choice);
+  if(!cuenta)return null;
+  cuenta.saldo=(cuenta.saldo||0)-txAmountInCuenta(diff,cuenta);
+  const cfg=_editData.config||{};
+  if(!_editData.transacciones)_editData.transacciones=[];
+  const tx={
+    fecha:new Date().toISOString().slice(0,10),
+    monto:diff, // RD$, positive = debit
+    categoria:'pago_deuda',
+    metodo:'transferencia', // bypass applyCashDebit on re-render
+    nota:g.nombre||'',
+    gastoIdx:-1,
+    mes:cfg.mes,anio:cfg.anio,
+    applied:true,cuentaId:cuenta.id,
+  };
+  _editData.transacciones.push(tx);
+  return tx;
+}
+function fmtAcct(saldo,moneda){
+  const n=Math.abs(saldo).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});
+  return (saldo<0?'-':'')+(moneda==='USD'?'US$':'RD$')+n;
+}
+function _showNextBalanceDebit(){
+  const item=_balDebitQueue[0];
+  const m=document.getElementById('balanceDebitModal');
+  if(!item||!m){_finishBalanceDebits();return;}
+  const g=_editData.gastos[item.idx];
+  document.getElementById('balanceDebitSub').textContent=t('baldebit_sub').replace('{name}',g.nombre||'').replace('{amt}',fmtC(toDisplay(item.diff)));
+  const opts=(_editData.forNow?.cuentas||[]).map(c=>({v:c.id,l:c.nombre||'—',sub:fmtAcct(c.saldo||0,c.moneda)}));
+  opts.push({v:'ninguna',l:t('baldebit_none'),sub:t('baldebit_none_sub')});
+  opts.push({v:'correccion',l:t('baldebit_correction'),sub:t('baldebit_correction_sub')});
+  // Preselect the wallet when the debt is paid in cash, else the first option
+  const wallet=g.metodo==='efectivo'?getDefaultCashAccount():null;
+  const preset=wallet?wallet.id:opts[0].v;
+  document.getElementById('balanceDebitOptions').innerHTML=opts.map(o=>`
+    <label class="paymethod-opt" style="display:flex;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;align-items:flex-start">
+      <input type="radio" name="baldebit" value="${escH(o.v)}" ${o.v===preset?'checked':''} style="margin-top:3px" onchange="onBalanceDebitChange(this.value)">
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px">${escH(o.l)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${escH(o.sub)}</div>
+      </div>
+    </label>
+  `).join('');
+  onBalanceDebitChange(preset);
+  m.classList.add('open');
+  setTimeout(()=>m.querySelector('input[type="radio"]:checked')?.focus(),50);
+}
+// Warn (don't block) when the chosen cuenta can't cover the payment.
+function onBalanceDebitChange(v){
+  const warn=document.getElementById('balanceDebitWarn');if(!warn)return;
+  const item=_balDebitQueue[0];
+  const c=(_editData.forNow?.cuentas||[]).find(x=>x.id===v);
+  if(item&&c&&txAmountInCuenta(item.diff,c)>(c.saldo||0)){
+    warn.textContent=t('baldebit_insufficient').replace('{acct}',c.nombre||'').replace('{saldo}',fmtAcct(c.saldo||0,c.moneda));
+    warn.style.display='block';
+  } else warn.style.display='none';
+}
+function confirmBalanceDebitPrompt(){
+  const item=_balDebitQueue.shift();if(!item)return;
+  const checked=document.querySelector('#balanceDebitOptions input[name="baldebit"]:checked');
+  _balDebitDecisions.push({...item,choice:checked?.value||'ninguna'});
+  if(_balDebitQueue.length)_showNextBalanceDebit();
+  else _finishBalanceDebits();
+}
+function cancelBalanceDebitPrompt(){
+  document.getElementById('balanceDebitModal')?.classList.remove('open');
+  _balDebitQueue=[];_balDebitDecisions=[];_balDebitOnDone=null;
+}
+function _finishBalanceDebits(){
+  document.getElementById('balanceDebitModal')?.classList.remove('open');
+  _balDebitDecisions.forEach(d=>applyBalanceDebit(d.idx,d.diff,d.choice));
+  const done=_balDebitOnDone;
+  _balDebitQueue=[];_balDebitDecisions=[];_balDebitOnDone=null;
+  _balanceSnapshot=[];
+  if(done)done();
+}
+// Ask about every balance decrease, then run `onDone` (immediately when
+// nothing went down).
+function _detectPaymentsFromBalanceChanges(onDone){
+  _balDebitQueue=_balanceDecreases();
+  _balDebitDecisions=[];
+  _balDebitOnDone=onDone||null;
+  if(_balDebitQueue.length)_showNextBalanceDebit();
+  else _finishBalanceDebits();
+}
+window.applyBalanceDebit=applyBalanceDebit;
+function applyChanges(){readConfigFromForm();_detectPaymentsFromBalanceChanges(()=>{buildDashboard({..._editData,filename:_editData.filename});autoSave();_changesCount=0;closeEditModal(true);showToast(t('toast_changes'));});}
+function applyAndDownload(){readConfigFromForm();_detectPaymentsFromBalanceChanges(()=>{buildDashboard({..._editData,filename:_editData.filename});autoSave();downloadJSON();_changesCount=0;closeEditModal(true);});}
 
 </script>
 </body>
