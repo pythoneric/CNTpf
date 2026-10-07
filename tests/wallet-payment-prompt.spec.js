@@ -91,9 +91,9 @@ test.describe('Payment-method prompt — Efectivo', () => {
     await page.evaluate(() => window.toggleCheck(0));
     // Pick efectivo radio + confirm
     await page.evaluate(() => {
-      const r = document.querySelector('#paymentMethodOptions input[value="efectivo"]');
+      const r = document.querySelector('#paymentMethodOptions input[value="cnt_cash_seed"]');
       r.checked = true;
-      window.onPaymentMethodChange('efectivo');
+      window.onPaymentMethodChange('cnt_cash_seed');
       window.confirmPaymentPrompt();
     });
     const result = await page.evaluate(() => ({
@@ -102,7 +102,7 @@ test.describe('Payment-method prompt — Efectivo', () => {
       saldo: _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo,
     }));
     expect(result.paid).toBe(true);
-    expect(result.method).toBe('efectivo');
+    expect(result.method).toBe('cuenta');
     expect(result.saldo).toBe(7500); // 10000 - 2500
   });
 
@@ -110,7 +110,7 @@ test.describe('Payment-method prompt — Efectivo', () => {
     await loadAppDefault(page);
     await page.evaluate(() => window.toggleCheck(0));
     await page.evaluate(() => {
-      document.querySelector('#paymentMethodOptions input[value="efectivo"]').checked = true;
+      document.querySelector('#paymentMethodOptions input[value="cnt_cash_seed"]').checked = true;
       window.confirmPaymentPrompt();
     });
     // Now toggle off
@@ -212,13 +212,14 @@ test.describe('Payment-method prompt — Transferencia', () => {
 // 3. Modal hides options that don't apply
 // ───────────────────────────────────────────────────────────────────
 test.describe('Payment-method prompt — context-aware options', () => {
-  test('no wallet → Efectivo option is hidden', async ({ page }) => {
+  test('no default cuenta → accounts still listed, "just mark paid" preselected', async ({ page }) => {
     await loadAppDefault(page, { withDefault: false });
     await page.evaluate(() => window.toggleCheck(0));
     const values = await page.evaluate(() =>
       Array.from(document.querySelectorAll('#paymentMethodOptions input[name="paymethod"]')).map(r => r.value)
     );
-    expect(values).not.toContain('efectivo');
+    expect(values).toEqual(['cnt_bank_seed', 'cnt_cash_seed', 'tarjeta', 'transferencia']);
+    await expect(page.locator('#paymentMethodOptions input[value="transferencia"]')).toBeChecked();
     expect(values).toContain('tarjeta');
     expect(values).toContain('transferencia');
     await page.evaluate(() => window.cancelPaymentPrompt());
@@ -230,7 +231,7 @@ test.describe('Payment-method prompt — context-aware options', () => {
     const values = await page.evaluate(() =>
       Array.from(document.querySelectorAll('#paymentMethodOptions input[name="paymethod"]')).map(r => r.value)
     );
-    expect(values).toContain('efectivo');
+    expect(values).toContain('cnt_cash_seed');
     expect(values).not.toContain('tarjeta');
     expect(values).toContain('transferencia');
     await page.evaluate(() => window.cancelPaymentPrompt());
@@ -289,15 +290,15 @@ test.describe('Payment-method prompt — i18n', () => {
     await page.evaluate(() => window._testSetLang('es'));
     const k = await page.evaluate(() => ({
       title: window.t('paymethod_title'),
-      efectivo: window.t('paymethod_efectivo'),
+      label: window.t('paymethod_label'),
       tarjeta: window.t('paymethod_tarjeta'),
-      transferencia: window.t('paymethod_transferencia'),
+      none: window.t('paymethod_none'),
       confirm: window.t('paymethod_confirm'),
     }));
     expect(k.title).toMatch(/cómo|como/i);
-    expect(k.efectivo).toBe('Efectivo');
+    expect(k.label).toBe('Pagar desde');
     expect(k.tarjeta).toMatch(/tarjeta/i);
-    expect(k.transferencia).toMatch(/transferencia/i);
+    expect(k.none).toBe('Solo marcar como pagado');
     expect(k.confirm).toMatch(/marcar/i);
   });
 
@@ -306,15 +307,15 @@ test.describe('Payment-method prompt — i18n', () => {
     await page.evaluate(() => window._testSetLang('en'));
     const k = await page.evaluate(() => ({
       title: window.t('paymethod_title'),
-      efectivo: window.t('paymethod_efectivo'),
+      label: window.t('paymethod_label'),
       tarjeta: window.t('paymethod_tarjeta'),
-      transferencia: window.t('paymethod_transferencia'),
+      none: window.t('paymethod_none'),
       confirm: window.t('paymethod_confirm'),
     }));
     expect(k.title).toMatch(/how did you pay/i);
-    expect(k.efectivo).toBe('Cash');
+    expect(k.label).toBe('Pay from');
     expect(k.tarjeta).toMatch(/credit/i);
-    expect(k.transferencia).toMatch(/transfer/i);
+    expect(k.none).toBe('Just mark as paid');
     expect(k.confirm).toMatch(/mark/i);
   });
 });

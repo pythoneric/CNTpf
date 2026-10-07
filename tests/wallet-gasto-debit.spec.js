@@ -45,6 +45,12 @@ async function loadAppDefault(page, opts = {}) {
     window._testLoadData(data);
   }, { withDefault: opts.withDefault !== false, withMetodo: opts.withMetodo !== false });
   await page.waitForSelector('#dashApp', { state: 'visible' });
+  // Checking a pending gasto now always opens the "Pagar desde" prompt with
+  // the default cuenta preselected; tick() accepts that preselection.
+  // Unchecking never prompts, so tick() is also the uncheck.
+  await page.evaluate(() => {
+    window.tick = i => { toggleCheck(i); if (document.getElementById('paymentMethodModal').classList.contains('open')) confirmPaymentPrompt(); };
+  });
 }
 
 // ───────────────────────────────────────────────────────────────────
@@ -106,10 +112,10 @@ test.describe('applyGastoDebit / reverseGastoDebit', () => {
 // ───────────────────────────────────────────────────────────────────
 // 2. toggleCheck flows
 // ───────────────────────────────────────────────────────────────────
-test.describe('toggleCheck — auto-debit on check, restore on uncheck', () => {
+test.describe('toggleCheck — debit the default cuenta on confirm, restore on uncheck', () => {
   test('checking a cash gasto debits the wallet', async ({ page }) => {
     await loadAppDefault(page);
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
     const result = await page.evaluate(() => {
       const g = _editData.gastos[0];
       const cash = _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId);
@@ -122,8 +128,8 @@ test.describe('toggleCheck — auto-debit on check, restore on uncheck', () => {
 
   test('un-checking the same gasto restores the wallet', async ({ page }) => {
     await loadAppDefault(page);
-    await page.evaluate(() => window.toggleCheck(0));
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
+    await page.evaluate(() => window.tick(0));
     const result = await page.evaluate(() => {
       const g = _editData.gastos[0];
       const cash = _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId);
@@ -134,9 +140,10 @@ test.describe('toggleCheck — auto-debit on check, restore on uncheck', () => {
     expect(result.saldo).toBe(10000);
   });
 
-  test('checking a tarjeta gasto leaves wallet untouched', async ({ page }) => {
+  test('checking a gasto leaves the wallet untouched until the prompt is confirmed', async ({ page }) => {
     await loadAppDefault(page);
     await page.evaluate(() => window.toggleCheck(1)); // index 1 is tarjeta
+    await expect(page.locator('#paymentMethodModal')).toHaveClass(/open/);
     const saldo = await page.evaluate(() =>
       _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
     );
@@ -145,18 +152,21 @@ test.describe('toggleCheck — auto-debit on check, restore on uncheck', () => {
 
   test('checking a cash gasto with NO default wallet still marks paid (no debit)', async ({ page }) => {
     await loadAppDefault(page, { withDefault: false });
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
+    // No default → "Solo marcar como pagado" is preselected: paid, no saldo moved
     const result = await page.evaluate(() => ({
       paid: _editData.gastos[0].pagadoMes,
-      applied: !!_editData.gastos[0].pagadoApplied,
+      method: _editData.gastos[0].pagadoMethod,
+      saldos: _editData.forNow.cuentas.map(c => c.saldo),
     }));
     expect(result.paid).toBe(true);
-    expect(result.applied).toBe(false);
+    expect(result.method).toBe('transferencia');
+    expect(result.saldos).toEqual([50000, 10000]);
   });
 
   test('rebuilding dashboard does not re-debit a paid gasto', async ({ page }) => {
     await loadAppDefault(page);
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
     await page.evaluate(() => window.buildDashboard({ ..._editData }));
     await page.evaluate(() => window.buildDashboard({ ..._editData }));
     const saldo = await page.evaluate(() =>
@@ -190,7 +200,7 @@ test.describe('onGastoMetodoChange — reverse on demote, re-apply on promote', 
 
   test('changing a paid gasto from efectivo→tarjeta restores the wallet', async ({ page }) => {
     await loadAppDefault(page);
-    await page.evaluate(() => window.toggleCheck(0)); // pay it (debits 2500)
+    await page.evaluate(() => window.tick(0)); // pay it (debits 2500)
     const sel = await buildMetodoSelect(page, 'tarjeta');
     await page.evaluate(({ s }) => window.onGastoMetodoChange(0, s), { s: sel });
     const result = await page.evaluate(() => ({
@@ -238,8 +248,8 @@ test.describe('resetChecklist — fully restore wallet', () => {
     await page.evaluate(() => {
       // Make both gastos cash + paid
       _editData.gastos[1].metodo = 'efectivo';
-      window.toggleCheck(0);
-      window.toggleCheck(1);
+      window.tick(0);
+      window.tick(1);
     });
     let saldo = await page.evaluate(() =>
       _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
@@ -262,7 +272,7 @@ test.describe('Cierre month-close — clears flags without re-crediting', () => 
   test('closing a month leaves wallet at the spent state', async ({ page }) => {
     await loadAppDefault(page);
     // Pay the cash gasto so saldo is 7500
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
     let saldo = await page.evaluate(() =>
       _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
     );
@@ -401,7 +411,7 @@ test.describe('Wallet gasto — audit follow-ups', () => {
   test('Bug #1: editing adeudado after apply, then uncheck — refunds ORIGINAL amount', async ({ page }) => {
     await loadAppDefault(page);
     // Pay (debits 2500 of 10000 wallet → 7500)
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
     let saldo = await page.evaluate(() =>
       _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
     );
@@ -409,7 +419,7 @@ test.describe('Wallet gasto — audit follow-ups', () => {
     // Inflate adeudado AFTER the debit (simulating a user editing the gasto)
     await page.evaluate(() => { _editData.gastos[0].adeudado = 5000; });
     // Uncheck — must refund the originally-applied 2500, NOT the new 5000
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
     saldo = await page.evaluate(() =>
       _editData.forNow.cuentas.find(c => c.id === _editData.config.defaultCashAccountId).saldo
     );
@@ -418,10 +428,10 @@ test.describe('Wallet gasto — audit follow-ups', () => {
 
   test('pagadoAppliedAmt is stored on apply and cleared on reverse', async ({ page }) => {
     await loadAppDefault(page);
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
     let stored = await page.evaluate(() => _editData.gastos[0].pagadoAppliedAmt);
     expect(stored).toBe(2500);
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
     stored = await page.evaluate(() => _editData.gastos[0].pagadoAppliedAmt);
     expect(stored).toBeUndefined();
   });
@@ -429,7 +439,7 @@ test.describe('Wallet gasto — audit follow-ups', () => {
   test('Bug #2: deleting wallet cuenta then unchecking clears the orphan flag', async ({ page }) => {
     await loadAppDefault(page);
     // Pay the cash gasto
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
     expect(await page.evaluate(() => _editData.gastos[0].pagadoApplied)).toBe(true);
     // Nuke the wallet cuenta out from under it
     await page.evaluate(() => {
@@ -439,7 +449,7 @@ test.describe('Wallet gasto — audit follow-ups', () => {
     });
     // Unchecking now must NOT leave pagadoApplied=true forever — flag clears
     // even though the cuenta is gone (no refund is possible, but state stays clean).
-    await page.evaluate(() => window.toggleCheck(0));
+    await page.evaluate(() => window.tick(0));
     const result = await page.evaluate(() => ({
       paid: _editData.gastos[0].pagadoMes,
       applied: !!_editData.gastos[0].pagadoApplied,
