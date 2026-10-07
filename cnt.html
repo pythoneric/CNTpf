@@ -1248,13 +1248,14 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
     <h2 id="paymentMethodTitle" class="qpay-title" data-i18n="paymethod_title">¿Cómo pagaste?</h2>
     <div id="paymentMethodSub" class="qpay-sub">—</div>
     <div class="qpay-field">
-      <label data-i18n="paymethod_label">Método de pago</label>
+      <label data-i18n="paymethod_label">Pagar desde</label>
       <div id="paymentMethodOptions" role="radiogroup" aria-labelledby="paymentMethodTitle" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
     <div class="qpay-field" id="paymentMethodCardWrap" style="display:none">
       <label for="paymentMethodCardSel" data-i18n="paymethod_card_label">Tarjeta</label>
       <select class="cierre-input" id="paymentMethodCardSel"></select>
     </div>
+    <div id="paymentMethodWarn" role="alert" style="display:none;font-size:12px;color:var(--yellow);margin-top:-4px"></div>
     <div class="qpay-actions">
       <button type="button" class="btn btn-ghost" onclick="cancelPaymentPrompt()" data-i18n="paymethod_cancel">Cancelar</button>
       <button type="button" class="btn btn-primary" onclick="confirmPaymentPrompt()" data-i18n="paymethod_confirm">Marcar pagado</button>
@@ -2135,6 +2136,22 @@ function applyGastoDebit(gasto){
   return true;
 }
 
+// Pay a gasto from any cuenta (the checklist prompt's "Pagar desde" list).
+// Same bookkeeping as applyGastoDebit, against the chosen cuenta instead of
+// the wallet; reverseGastoDebit refunds `pagadoCuentaId` on uncheck.
+function applyGastoAccountDebit(gasto,cuentaId){
+  if(!gasto||gasto.pagadoApplied)return false;
+  const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===cuentaId);
+  if(!cuenta)return false;
+  const amt=txAmountInCuenta(gasto.adeudado||0,cuenta);
+  cuenta.saldo=(cuenta.saldo||0)-amt;
+  gasto.pagadoApplied=true;
+  gasto.pagadoMethod='cuenta';
+  gasto.pagadoCuentaId=cuenta.id;
+  gasto.pagadoAppliedAmt=amt;
+  return true;
+}
+
 // Charge a paid gasto to a credit-card debt (gasto-as-card). Increments the
 // card's `balance` by the gasto's adeudado, marking the gasto applied with
 // pagadoMethod='tarjeta' so the reverse on uncheck knows where to send the
@@ -2459,7 +2476,7 @@ function reverseGastoDebit(gasto){
   if(!gasto||!gasto.pagadoApplied)return false;
   const method=gasto.pagadoMethod||'efectivo'; // legacy default
   let touched=false;
-  if(method==='efectivo'){
+  if(method==='efectivo'||method==='cuenta'){
     const cuenta=(_editData.forNow?.cuentas||[]).find(c=>c.id===gasto.pagadoCuentaId);
     if(cuenta){
       const amt=(typeof gasto.pagadoAppliedAmt==='number')?gasto.pagadoAppliedAmt:txAmountInCuenta(gasto.adeudado||0,cuenta);
@@ -2557,20 +2574,23 @@ function openPaymentPrompt(idx){
   // Headline + amount preview
   const sub=document.getElementById('paymentMethodSub');
   if(sub)sub.textContent=`${g.nombre} · ${fmtC(toDisplay(g.adeudado||0))}`;
-  // Build the radio options. Hide Efectivo if no wallet (user can still pick
-  // Tarjeta or Transferencia). Hide Tarjeta if no credit cards exist.
+  // Radio options: every cuenta (value = its id), then a credit card if any
+  // exist, then "just mark as paid". The default cuenta is always
+  // preselected; with no default, nothing gets debited unless the user
+  // picks an account.
   const wrap=document.getElementById('paymentMethodOptions');
   const cards=(_editData.gastos||[]).map((c,i)=>({c,i})).filter(({c,i})=>c.tipo==='Tarjeta'&&!c.atrasado&&i!==idx);
-  const hasWallet=!!getDefaultCashAccount();
-  const opts=[];
-  if(hasWallet)opts.push({v:'efectivo',l:t('paymethod_efectivo'),sub:t('paymethod_efectivo_sub')});
+  const def=getDefaultCashAccount();
+  const opts=(_editData.forNow?.cuentas||[]).map(c=>({
+    v:c.id,l:c.nombre||'—',
+    sub:fmtAcct(c.saldo||0,c.moneda)+(def&&c.id===def.id?' · '+t('paymethod_default'):''),
+  }));
   if(cards.length>0)opts.push({v:'tarjeta',l:t('paymethod_tarjeta'),sub:t('paymethod_tarjeta_sub')});
-  opts.push({v:'transferencia',l:t('paymethod_transferencia'),sub:t('paymethod_transferencia_sub')});
-  // Pre-select the gasto's `metodo` if set; otherwise default to first option
-  const preset=opts.find(o=>o.v===g.metodo)?g.metodo:(opts[0]?.v||'transferencia');
+  opts.push({v:'transferencia',l:t('paymethod_none'),sub:t('paymethod_none_sub')});
+  const preset=def?def.id:'transferencia';
   wrap.innerHTML=opts.map(o=>`
     <label class="paymethod-opt" style="display:flex;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;align-items:flex-start">
-      <input type="radio" name="paymethod" value="${o.v}" ${o.v===preset?'checked':''} style="margin-top:3px" onchange="onPaymentMethodChange(this.value)">
+      <input type="radio" name="paymethod" value="${escH(o.v)}" ${o.v===preset?'checked':''} style="margin-top:3px" onchange="onPaymentMethodChange(this.value)">
       <div style="flex:1">
         <div style="font-weight:700;font-size:14px">${escH(o.l)}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${escH(o.sub)}</div>
@@ -2589,6 +2609,14 @@ function openPaymentPrompt(idx){
 function onPaymentMethodChange(method){
   const w=document.getElementById('paymentMethodCardWrap');
   if(w)w.style.display=method==='tarjeta'?'block':'none';
+  // Warn (don't block) when the chosen cuenta can't cover the payment
+  const warn=document.getElementById('paymentMethodWarn');if(!warn)return;
+  const g=_editData.gastos?.[_payPromptIdx];
+  const c=(_editData.forNow?.cuentas||[]).find(x=>x.id===method);
+  if(g&&c&&txAmountInCuenta(g.adeudado||0,c)>(c.saldo||0)){
+    warn.textContent=t('paymethod_insufficient').replace('{acct}',c.nombre||'').replace('{saldo}',fmtAcct(c.saldo||0,c.moneda));
+    warn.style.display='block';
+  } else warn.style.display='none';
 }
 function cancelPaymentPrompt(){
   document.getElementById('paymentMethodModal')?.classList.remove('open');
@@ -2602,16 +2630,14 @@ function confirmPaymentPrompt(){
   // Mark paid first so the apply* helpers see a consistent state
   g.pagadoMes=true;
   if(g.adeudado>0)g.pagado=g.adeudado;
-  if(method==='efectivo'){
-    // Override the gasto's static `metodo` so applyGastoDebit's gate passes
-    g.metodo='efectivo';
-    applyGastoDebit(g);
-  } else if(method==='tarjeta'){
+  if(method==='tarjeta'){
     const sel=document.getElementById('paymentMethodCardSel');
     const cardIdx=parseInt(sel?.value,10);
     if(!isNaN(cardIdx))applyGastoCardCharge(g,cardIdx);
-  } else {
+  } else if(method==='transferencia'){
     applyGastoTransferencia(g);
+  } else {
+    applyGastoAccountDebit(g,method);
   }
   document.getElementById('paymentMethodModal')?.classList.remove('open');
   _payPromptIdx=-1;
@@ -3474,14 +3500,14 @@ const LANG = {
     qpay_toast_other:'Pago registrado',
     // Payment-method prompt (interactive: toggleCheck → "how did you pay?")
     paymethod_title:'¿Cómo pagaste?',
-    paymethod_label:'Método de pago',
+    paymethod_label:'Pagar desde',
     paymethod_card_label:'Tarjeta',
-    paymethod_efectivo:'Efectivo',
-    paymethod_efectivo_sub:'Descontar de Mi Saldo',
+    paymethod_default:'Predeterminada',
     paymethod_tarjeta:'Tarjeta de crédito',
     paymethod_tarjeta_sub:'Sumar al balance de la tarjeta',
-    paymethod_transferencia:'Transferencia',
-    paymethod_transferencia_sub:'Solo marcar como pagado',
+    paymethod_none:'Solo marcar como pagado',
+    paymethod_none_sub:'No descontar de ninguna cuenta',
+    paymethod_insufficient:'⚠️ {acct} tiene {saldo}; quedará en negativo.',
     paymethod_confirm:'Marcar pagado',
     paymethod_cancel:'Cancelar',
     // Mi Saldo widget + Resumen card
@@ -4150,14 +4176,14 @@ const LANG = {
     qpay_toast_other:'Payment recorded',
     // Payment-method prompt (interactive: toggleCheck → "how did you pay?")
     paymethod_title:'How did you pay?',
-    paymethod_label:'Payment method',
+    paymethod_label:'Pay from',
     paymethod_card_label:'Credit card',
-    paymethod_efectivo:'Cash',
-    paymethod_efectivo_sub:'Deduct from My Balance',
+    paymethod_default:'Default',
     paymethod_tarjeta:'Credit card',
     paymethod_tarjeta_sub:'Add to the card’s balance',
-    paymethod_transferencia:'Bank transfer',
-    paymethod_transferencia_sub:'Just mark as paid',
+    paymethod_none:'Just mark as paid',
+    paymethod_none_sub:'Don’t debit any account',
+    paymethod_insufficient:'⚠️ {acct} has {saldo}; it will go negative.',
     paymethod_confirm:'Mark as paid',
     paymethod_cancel:'Cancel',
     // My Balance widget + Resumen card
@@ -6003,25 +6029,9 @@ function toggleCheck(idx){
     buildDashboard({..._editData});
     return;
   }
-  // Going unpaid → paid. The decision tree:
-  //   - g.metodo='efectivo'   → auto-debit Mi Saldo (preset, no prompt)
-  //   - g.metodo='transferencia' → just mark paid (preset, no prompt)
-  //   - g.metodo='tarjeta'    → still prompt (need to ask which card)
-  //   - g.metodo=''           → prompt (user's "balance doesn't go down" path)
-  if(g.metodo==='efectivo'||g.metodo==='transferencia'){
-    g.pagadoMes=true;
-    if(g.adeudado>0)g.pagado=g.adeudado;
-    if(g.metodo==='efectivo')applyGastoDebit(g);
-    else applyGastoTransferencia(g);
-    _pendingSave=true;
-    autoSave();
-    if(navigator.vibrate) navigator.vibrate([10,30,10]);
-    buildDashboard({..._editData});
-    return;
-  }
-  // Empty or 'tarjeta' metodo → open the payment-method prompt. The prompt's
-  // confirm handler does the mark + apply, so cancelling leaves the gasto
-  // unpaid (no half-state).
+  // Going unpaid → paid: always ask which cuenta paid it (default cuenta
+  // preselected). The prompt's confirm handler does the mark + apply, so
+  // cancelling leaves the gasto unpaid (no half-state).
   openPaymentPrompt(idx);
 }
 
@@ -8756,10 +8766,19 @@ window._testSetupSave=function(stepIdx){return _setupSteps[stepIdx||0].save();};
 window._testSetupGoToStep=function(stepIdx){_setupStep=stepIdx;renderSetup();};
 // Tests that exercise the toggle/apply cycle without going through the
 // payment-method prompt: temporarily set g.metodo to drive the bypass path.
+// 'efectivo' pays from the default cuenta, 'transferencia' just marks paid;
+// unchecking a paid gasto never prompts.
 window._testToggleWithMethod=function(idx,method){
   const g=_editData.gastos?.[idx];if(!g)return;
-  g.metodo=method;toggleCheck(idx);
+  g.metodo=method;
+  if(g.pagadoMes){toggleCheck(idx);return;}
+  toggleCheck(idx);
+  const v=method==='efectivo'?getDefaultCashAccount()?.id:method;
+  const r=v&&document.querySelector(`#paymentMethodOptions input[value="${v}"]`);
+  if(r)r.checked=true;
+  confirmPaymentPrompt();
 };
+window.applyGastoAccountDebit=applyGastoAccountDebit;
 window._testSetLang=function(lang){_lang=lang;localStorage.setItem('cnt_lang',lang);applyI18n();if(_editData&&_editData.config)buildDashboard({..._editData});};
 window.CUENTA_TIPOS=CUENTA_TIPOS;
 function markChanged(el){if(el&&el!==document.body)el.classList.add('changed');_changesCount++;document.getElementById('changesBadge').style.display='inline-flex';document.getElementById('changesCount').textContent=_changesCount;autoSave();}
