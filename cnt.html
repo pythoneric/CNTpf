@@ -4447,7 +4447,8 @@ const LANG = {
   }
 };
 
-function t(key){ let v=(LANG[_lang]||LANG.es)[key]||key;if(typeof v==='string'&&v.includes('{cs}'))v=v.split('{cs}').join(currencySymbol());return v; }
+function t(key){ const d=LANG[_lang]||LANG.es; let v=(key in d)?d[key]:key; // '' is a valid (intentionally blank) translation
+if(typeof v==='string'&&v.includes('{cs}'))v=v.split('{cs}').join(currencySymbol());return v; }
 
 // Translate a canonical gasto.tipo (stored in Spanish) into the active language
 // for display. Storage convention is preserved: tipo='Préstamo' / 'Educación'

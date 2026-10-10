@@ -283,3 +283,21 @@ test.describe('Edit Modal - i18n', () => {
     expect(tabsText).not.toContain('Historial');
   });
 });
+
+test.describe('Edit modal — blank translations', () => {
+  test('t() returns an intentionally empty translation instead of the raw key', async ({ page }) => {
+    await page.goto('/cnt.html');
+    expect(await page.evaluate(() => t('ecfg_anio_note'))).toBe('');
+    expect(await page.evaluate(() => t('__missing_key__'))).toBe('__missing_key__');
+  });
+
+  for (const lang of ['es', 'en']) {
+    test(`Config tab never shows raw i18n keys (${lang})`, async ({ page }) => {
+      await loadApp(page);
+      await page.evaluate(l => window._testSetLang(l), lang);
+      await openEdit(page);
+      const notes = await page.locator('#editModal .field-note').allTextContents();
+      expect(notes.filter(n => /^[a-z]+(_[a-z0-9]+)+$/.test(n.trim()))).toEqual([]);
+    });
+  }
+});
