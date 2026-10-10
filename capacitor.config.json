@@ -1,0 +1,15 @@
+{
+  "appId": "com.biteric.finance",
+  "appName": "BitEric Finance",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#060912"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}
