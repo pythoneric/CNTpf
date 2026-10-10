@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches the bg CSS variable / manifest background_color -->
+    <color name="appBackground">#060912</color>
+</resources>

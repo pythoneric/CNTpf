@@ -782,6 +782,17 @@ header{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,e
   .pwa-banner-actions{width:100%;justify-content:stretch}
   .pwa-banner-actions .btn{flex:1;justify-content:center}
 }
+/* ══ ANDROID APP (Capacitor, edge-to-edge) ══
+   The WebView draws under the status bar: paint a solid strip there and keep
+   the page, sticky header and full-screen overlays below it. The strip stays
+   dark in both themes to match the native window background (light icons). */
+html.cap-native body{padding-top:env(safe-area-inset-top)}
+html.cap-native body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#060912;z-index:calc(var(--z-setup-modal) + 100);pointer-events:none}
+html.cap-native header{top:env(safe-area-inset-top)}
+html.cap-native #loaderScreen,html.cap-native #setupModal,html.cap-native #editModal,html.cap-native #cierreModal,
+html.cap-native #quickPayModal,html.cap-native #paymentMethodModal,html.cap-native #balanceDebitModal,
+html.cap-native #walletSetupModal,html.cap-native #walletReconcileModal,html.cap-native #walletTransferModal,
+html.cap-native #walletOtherIncomeModal,html.cap-native #demoConfirmModal,html.cap-native #helpModal{top:env(safe-area-inset-top)}
 </style>
 </head>
 <body>
@@ -4571,9 +4582,18 @@ function showToast(msg,color='var(--green)'){
 }
 
 // ══════════════════════════════════
+// Android (Capacitor) — platform layer
+// ══════════════════════════════════
+// True only inside the Android APK. Every native-only path is guarded by this,
+// so the web/PWA build behaves exactly as before.
+const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+const NativePlugins=IS_NATIVE?window.Capacitor.Plugins:{};
+if(IS_NATIVE)document.documentElement.classList.add('cap-native');
+
+// ══════════════════════════════════
 // PWA — Service Worker Registration
 // ══════════════════════════════════
-if('serviceWorker' in navigator){
+if('serviceWorker' in navigator&&!IS_NATIVE){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js')
       .then(r=>console.log('SW registered:',r.scope))
@@ -4606,6 +4626,7 @@ function detectPwaPlatform(){
 }
 
 function showPwaInstallBanner(){
+  if(IS_NATIVE) return;
   const platform=detectPwaPlatform();
   if(platform==='standalone') return;
   if(localStorage.getItem(PWA_DISMISS_KEY)) return;
@@ -4801,6 +4822,8 @@ async function autoSave(){
 // Flush pending save when leaving / hiding the page
 window.addEventListener('beforeunload',()=>{if(_pendingSave&&_editData&&Object.keys(_editData).length){clearTimeout(_autoSaveTimer);saveToDB();}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&_pendingSave&&_editData&&Object.keys(_editData).length){clearTimeout(_autoSaveTimer);saveToDB();_pendingSave=false;}});
+// Android: the OS may kill a backgrounded app without beforeunload — flush on pause too.
+if(IS_NATIVE&&NativePlugins.App) NativePlugins.App.addListener('pause',()=>{if(_pendingSave&&_editData&&Object.keys(_editData).length){clearTimeout(_autoSaveTimer);saveToDB();_pendingSave=false;}});
 
 window.addEventListener('load',()=>{
   checkSavedData();
@@ -5616,6 +5639,7 @@ function _anchorDownload(json,filename){
 // sheet; rejects on failure.
 function saveJSONFile(data,filename){
   const json=JSON.stringify(data,null,2);
+  if(IS_NATIVE)return _nativeSaveJSON(json,filename);
   if(_isIOSStandalone()&&typeof navigator.share==='function'&&typeof File==='function'){
     const file=new File([json],filename,{type:'application/json'});
     if(!navigator.canShare||navigator.canShare({files:[file]})){
@@ -5626,6 +5650,27 @@ function saveJSONFile(data,filename){
     }
   }
   return Promise.resolve(_anchorDownload(json,filename));
+}
+// Android APK: the WebView ignores <a download>. Keep a copy in the public
+// Documents/BitEric folder (survives uninstall), then offer the share sheet so
+// the user can also send it to Drive, email, etc. Resolves true if either worked.
+async function _nativeSaveJSON(json,filename){
+  const {Filesystem,Share}=NativePlugins;
+  let saved=false;
+  try{
+    await Filesystem.writeFile({path:'BitEric/'+filename,data:json,directory:'DOCUMENTS',encoding:'utf8',recursive:true});
+    saved=true;
+  }catch(err){console.warn('Documents save failed',err);}
+  try{
+    const {uri}=await Filesystem.writeFile({path:filename,data:json,directory:'CACHE',encoding:'utf8'});
+    await Share.share({title:filename,files:[uri]});
+    return true;
+  }catch(err){
+    // Dismissing the share sheet rejects — fine if the Documents copy exists.
+    if(saved)return true;
+    if(/cancel/i.test(err&&err.message||''))return false;
+    throw err;
+  }
 }
 // Toast the result so a blocked or silent download never looks like success.
 // `quiet` skips the success toast for callers that show their own summary.
@@ -8417,6 +8462,8 @@ function cierreNav(dir){
 // SNAPSHOT EXPORT
 // ══════════════════════════════════
 function exportSnapshot(){
+  // Android APK: WebView ignores window.print() — use the native print dialog (Save as PDF).
+  if(IS_NATIVE&&NativePlugins.Print){NativePlugins.Print.print({name:`BitEric Finance ${backupStamp()}`});return;}
   window.print();
 }
 
@@ -8695,6 +8742,36 @@ document.addEventListener('keydown',e=>{
     else if(document.getElementById('paymentMethodModal')?.classList.contains('open'))cancelPaymentPrompt();
   }
 });
+// Android hardware/gesture back: close the topmost menu or modal, else return
+// to the home tab, else send the app to the background (Android root behavior).
+if(IS_NATIVE&&NativePlugins.App){
+  const BACK_MODALS=[
+    ['balanceDebitModal',()=>cancelBalanceDebitPrompt()],
+    ['paymentMethodModal',()=>cancelPaymentPrompt()],
+    ['quickPayModal',()=>closeQuickPay()],
+    ['walletTransferModal',()=>cancelWalletTransfer()],
+    ['walletOtherIncomeModal',()=>cancelWalletOtherIncome()],
+    ['walletReconcileModal',()=>cancelWalletReconcile()],
+    ['walletSetupModal',()=>cancelWalletSetup()],
+    ['demoConfirmModal',()=>cancelDemoConfirm()],
+    ['helpModal',()=>closeHelp()],
+    ['cierreModal',()=>closeCierre()],
+    ['editModal',()=>closeEditModal()],
+  ];
+  NativePlugins.App.addListener('backButton',()=>{
+    if(document.getElementById('hdrOverflowMenu')?.classList.contains('open')){closeOverflow();return;}
+    const open=BACK_MODALS.find(([id])=>document.getElementById(id)?.classList.contains('open'));
+    if(open){open[1]();return;}
+    // Setup wizard: ignore back so onboarding progress isn't lost (same as backdrop taps).
+    if(document.getElementById('setupModal')?.style.display==='flex')return;
+    const dash=document.getElementById('dashApp');
+    const cur=document.querySelector('.panel.active')?.id.replace('tab-','');
+    if(dash&&dash.style.display!=='none'&&cur&&cur!=='resumen'){
+      showTab('resumen',document.querySelector(`.tab-btn[onclick*="'resumen'"]`));syncMobileNav('resumen');window.scrollTo(0,0);return;
+    }
+    NativePlugins.App.minimizeApp();
+  });
+}
 // Close modals on backdrop tap (mobile-friendly: tap outside the modal body to dismiss).
 // Setup wizard is intentionally excluded — losing multi-step onboarding progress on an
 // accidental tap would be worse than forcing the user to complete or refresh.

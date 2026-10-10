@@ -2,3 +2,8 @@ node_modules/
 package-lock.json
 test-results/
 playwright-report/
+# Android build (generated from cnt.html by scripts/build-www.mjs)
+www/
+*.jks
+*.keystore
+keystore.properties
